@@ -1,0 +1,5 @@
+{
+global: CHIRP_*;
+local: *;
+};
+
