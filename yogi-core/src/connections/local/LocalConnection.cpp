@@ -9,7 +9,7 @@
 #include <chrono>
 
 
-namespace chirp {
+namespace yogi {
 namespace connections {
 namespace local {
 
@@ -135,7 +135,7 @@ void LocalConnection::post_msg(const interfaces::IMessage& msg,
 
         try {
             BOOST_LOG_TRIVIAL(trace) << "SENT from 0x" << std::hex
-                << channel.sender->receiver.get() << " to 0x" 
+                << channel.sender->receiver.get() << " to 0x"
                 << channel.receiver.get() << ": " << msg.to_string();
         }
         catch (...) {
@@ -256,7 +256,7 @@ const std::string& LocalConnection::description() const
 
 const std::string& LocalConnection::remote_version() const
 {
-    static std::string s{CHIRP_VERSION};
+    static std::string s{YOGI_VERSION};
     return s;
 }
 
@@ -268,4 +268,4 @@ const std::vector<char>& LocalConnection::remote_identification() const
 
 } // namespace local
 } // namespace connections
-} // namespace chirp
+} // namespace yogi

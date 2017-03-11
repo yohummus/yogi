@@ -1,10 +1,10 @@
 #include "TcpServer.hpp"
-#include "../../chirp.h"
+#include "../../yogi_core.h"
 
 #include <boost/log/trivial.hpp>
 
 
-namespace chirp {
+namespace yogi {
 namespace connections {
 namespace tcp {
 
@@ -12,7 +12,7 @@ boost::asio::ip::tcp::endpoint TcpServer::make_endpoint(std::string address,
     unsigned short port)
 {
     if (port == 0) {
-        throw api::ExceptionT<CHIRP_ERR_INVALID_PORT_NUMBER>{};
+        throw api::ExceptionT<YOGI_ERR_INVALID_PORT_NUMBER>{};
     }
 
     boost::system::error_code ec;
@@ -20,7 +20,7 @@ boost::asio::ip::tcp::endpoint TcpServer::make_endpoint(std::string address,
     if (ec) {
         BOOST_LOG_TRIVIAL(error) << "Could not convert '" << address
             << "' to an IP address: " << ec.message();
-        throw api::ExceptionT<CHIRP_ERR_INVALID_IP_ADDRESS>{};
+        throw api::ExceptionT<YOGI_ERR_INVALID_IP_ADDRESS>{};
     }
 
     return boost::asio::ip::tcp::endpoint{addr, port};
@@ -33,7 +33,7 @@ void TcpServer::open_acceptor()
     if (ec) {
         BOOST_LOG_TRIVIAL(error) << "Could not open acceptor socket: "
             << ec.message();
-        throw api::ExceptionT<CHIRP_ERR_CANNOT_OPEN_SOCKET>{};
+        throw api::ExceptionT<YOGI_ERR_CANNOT_OPEN_SOCKET>{};
     }
 
     boost::asio::socket_base::reuse_address option(true);
@@ -49,10 +49,10 @@ void TcpServer::bind_acceptor()
             << ec.message();
 
         if (ec == boost::asio::error::address_in_use) {
-            throw api::ExceptionT<CHIRP_ERR_ADDRESS_IN_USE>{};
+            throw api::ExceptionT<YOGI_ERR_ADDRESS_IN_USE>{};
         }
         else {
-            throw api::ExceptionT<CHIRP_ERR_CANNOT_BIND_SOCKET>{};
+            throw api::ExceptionT<YOGI_ERR_CANNOT_BIND_SOCKET>{};
         }
     }
 }
@@ -60,11 +60,11 @@ void TcpServer::bind_acceptor()
 void TcpServer::listen_on_acceptor()
 {
     boost::system::error_code ec;
-    m_acceptor.listen(CHIRP_TCP_ACCEPTOR_BACKLOG, ec);
+    m_acceptor.listen(YOGI_TCP_ACCEPTOR_BACKLOG, ec);
     if (ec) {
         BOOST_LOG_TRIVIAL(error) << "Could not listen on acceptor socket: "
             << ec.message();
-        throw api::ExceptionT<CHIRP_ERR_CANNOT_LISTEN_ON_SOCKET>{};
+        throw api::ExceptionT<YOGI_ERR_CANNOT_LISTEN_ON_SOCKET>{};
     }
 }
 
@@ -89,7 +89,7 @@ void TcpServer::on_accept_completed(const boost::system::error_code& ec)
 
         auto lock = super::make_lock_guard();
         if (m_canceled) {
-            m_acceptOp.fire<CHIRP_ERR_CANCELED>(tcp_connection_ptr{});
+            m_acceptOp.fire<YOGI_ERR_CANCELED>(tcp_connection_ptr{});
         }
         else {
             start_async_shake_hands(std::move(m_socket), m_handshakeTimeout);
@@ -98,20 +98,20 @@ void TcpServer::on_accept_completed(const boost::system::error_code& ec)
     // canceled?
     else if (ec == boost::asio::error::operation_aborted) {
         BOOST_LOG_TRIVIAL(debug) << "Async accept operation canceled";
-        m_acceptOp.fire<CHIRP_ERR_CANCELED>(tcp_connection_ptr{});
+        m_acceptOp.fire<YOGI_ERR_CANCELED>(tcp_connection_ptr{});
     }
     // error
     else {
         BOOST_LOG_TRIVIAL(error) << "Async accept operation failed: "
             << ec.message();
-        m_acceptOp.fire<CHIRP_ERR_ACCEPT_FAILED>(tcp_connection_ptr{});
+        m_acceptOp.fire<YOGI_ERR_ACCEPT_FAILED>(tcp_connection_ptr{});
     }
 }
 
 void TcpServer::on_shake_hands_completed(const api::Exception& e,
     tcp_connection_ptr&& conn)
 {
-    if (e.error_code() == CHIRP_OK) {
+    if (e.error_code() == YOGI_OK) {
         BOOST_LOG_TRIVIAL(debug) << "TCP connection to " << conn->description()
             << " successfully established";
     }
@@ -173,4 +173,4 @@ void TcpServer::cancel_accept()
 
 } // namespace tcp
 } // namespace connections
-} // namespace chirp
+} // namespace yogi

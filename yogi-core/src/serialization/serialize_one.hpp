@@ -1,5 +1,5 @@
-#ifndef CHIRP_SERIALIZATION_SERIALIZE_ONE_HPP
-#define CHIRP_SERIALIZATION_SERIALIZE_ONE_HPP
+#ifndef YOGI_SERIALIZATION_SERIALIZE_ONE_HPP
+#define YOGI_SERIALIZATION_SERIALIZE_ONE_HPP
 
 #include "../config.h"
 #include "../base/Id.hpp"
@@ -10,7 +10,7 @@
 #include <vector>
 
 
-namespace chirp {
+namespace yogi {
 namespace serialization {
 
 template <typename T>
@@ -69,11 +69,11 @@ template <>
 inline void serialize_one<core::scatter_gather::gather_flags>(
     std::vector<char>& buffer, const core::scatter_gather::gather_flags& value)
 {
-    CHIRP_ASSERT(static_cast<int>(value) <= 127);
+    YOGI_ASSERT(static_cast<int>(value) <= 127);
     buffer.push_back(static_cast<char>(value));
 }
 
 } // namespace serialization
-} // namespace chirp
+} // namespace yogi
 
-#endif // CHIRP_SERIALIZATION_SERIALIZE_ONE_HPP
+#endif // YOGI_SERIALIZATION_SERIALIZE_ONE_HPP

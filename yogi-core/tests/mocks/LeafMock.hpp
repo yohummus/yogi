@@ -1,5 +1,5 @@
-#ifndef CHIRP_TESTS_MOCKS_LEAFMOCK_HPP
-#define CHIRP_TESTS_MOCKS_LEAFMOCK_HPP
+#ifndef YOGI_TESTS_MOCKS_LEAFMOCK_HPP
+#define YOGI_TESTS_MOCKS_LEAFMOCK_HPP
 
 #include "SchedulerMock.hpp"
 #include "../../src/core/Leaf.hpp"
@@ -59,4 +59,4 @@ struct LeafMock : public core::Leaf
 
 } // namespace mocks
 
-#endif // CHIRP_TESTS_MOCKS_LEAFMOCK_HPP
+#endif // YOGI_TESTS_MOCKS_LEAFMOCK_HPP

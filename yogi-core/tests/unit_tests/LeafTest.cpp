@@ -1,8 +1,8 @@
 #include "../../src/core/Leaf.hpp"
-using namespace chirp::base;
-using namespace chirp::core;
-using namespace chirp::interfaces;
-using namespace chirp::messaging::messages;
+using namespace yogi::base;
+using namespace yogi::core;
+using namespace yogi::interfaces;
+using namespace yogi::messaging::messages;
 
 #include "../mocks/SchedulerMock.hpp"
 #include "../mocks/ConnectionMock.hpp"
@@ -102,7 +102,7 @@ TEST_F(LeafTest, AlreadyConnected)
 {
     ASSERT_NO_THROW(uut->on_new_connection(*connection));
     ASSERT_THROW(uut->on_new_connection(*connection),
-        api::ExceptionT<CHIRP_ERR_ALREADY_CONNECTED>);
+        api::ExceptionT<YOGI_ERR_ALREADY_CONNECTED>);
     ASSERT_NO_THROW(uut->on_connection_destroyed(*connection));
 }
 
@@ -112,7 +112,7 @@ TEST_F(LeafTest, AmbiguousTerminals)
         Identifier{1u, "A", false});
     EXPECT_THROW((std::make_shared<mocks::DeafMuteTerminalMock>(*uut,
         Identifier{1u, "A", false})),
-        api::ExceptionT<CHIRP_ERR_AMBIGUOUS_IDENTIFIER>);
+        api::ExceptionT<YOGI_ERR_AMBIGUOUS_IDENTIFIER>);
 }
 
 TEST_F(LeafTest, NewTerminal)
@@ -333,7 +333,7 @@ TEST_F(LeafTest, ScatterLeafLogic)
 
         EXPECT_THROW(uut->scatter_gather::LeafLogic<>::sg_scatter(
             *terminal, Buffer{}),
-            api::ExceptionT<CHIRP_ERR_NOT_BOUND>);
+            api::ExceptionT<YOGI_ERR_NOT_BOUND>);
     }}
 
     // run a successful scatter operation
@@ -540,7 +540,7 @@ TEST_F(LeafTest, GatherLeafLogic)
 
         EXPECT_THROW(uut->scatter_gather::LeafLogic<>::
             sg_respond_to_scattered_message(*t1, Id{88}, GATHER_NO_FLAGS, true,
-                Buffer{buf}), api::ExceptionT<CHIRP_ERR_INVALID_ID>);
+                Buffer{buf}), api::ExceptionT<YOGI_ERR_INVALID_ID>);
     }}
 
     uut->on_message_received(ScatterGather::BindingRemovedAck::create(
@@ -568,7 +568,7 @@ TEST_F(LeafTest, GatherLeafLogic)
 
         EXPECT_THROW(uut->scatter_gather::LeafLogic<>::
             sg_respond_to_scattered_message(*t1, Id{88}, GATHER_NO_FLAGS, true,
-                Buffer{buf}), api::ExceptionT<CHIRP_ERR_INVALID_ID>);
+                Buffer{buf}), api::ExceptionT<YOGI_ERR_INVALID_ID>);
     }}
 
     uut->on_message_received(ScatterGather::BindingRemovedAck::create(
@@ -593,7 +593,7 @@ TEST_F(LeafTest, GatherLeafLogic)
 
         EXPECT_THROW(uut->scatter_gather::LeafLogic<>::
             sg_respond_to_scattered_message(*t1, Id{88}, GATHER_NO_FLAGS, true,
-                Buffer{buf}), api::ExceptionT<CHIRP_ERR_INVALID_ID>);
+                Buffer{buf}), api::ExceptionT<YOGI_ERR_INVALID_ID>);
     }}
 
     uut->on_message_received(ScatterGather::TerminalRemovedAck::create(
@@ -615,7 +615,7 @@ TEST_F(LeafTest, GatherLeafLogic)
 
         EXPECT_THROW(uut->scatter_gather::LeafLogic<>::
             sg_respond_to_scattered_message(*t1, Id{88}, GATHER_NO_FLAGS, true,
-                Buffer{buf}), api::ExceptionT<CHIRP_ERR_INVALID_ID>);
+                Buffer{buf}), api::ExceptionT<YOGI_ERR_INVALID_ID>);
     }}
 }
 
@@ -641,7 +641,7 @@ TEST_F(LeafTest, ScatterGatherTerminal)
             Identifier{0u, "T", false});
 
         EXPECT_CALL(*leaf, scatter_(Ref(*terminal), scatBuf))
-            .WillOnce(Throw(api::ExceptionT<CHIRP_ERR_NOT_BOUND>{}));
+            .WillOnce(Throw(api::ExceptionT<YOGI_ERR_NOT_BOUND>{}));
 
         bool called = false;
         EXPECT_THROW(terminal->async_scatter_gather(Buffer{scatBuf}, gathBuf,
@@ -650,7 +650,7 @@ TEST_F(LeafTest, ScatterGatherTerminal)
                 called = true;
                 return true;
             }
-        ), api::ExceptionT<CHIRP_ERR_NOT_BOUND>);
+        ), api::ExceptionT<YOGI_ERR_NOT_BOUND>);
 
         EXPECT_FALSE(called);
     }}
@@ -672,12 +672,12 @@ TEST_F(LeafTest, ScatterGatherTerminal)
                 EXPECT_EQ(Id{444}, operationId);
 
                 if (calls == 1) {
-                    EXPECT_EQ(CHIRP_ERR_BUFFER_TOO_SMALL, e.error_code());
+                    EXPECT_EQ(YOGI_ERR_BUFFER_TOO_SMALL, e.error_code());
                     EXPECT_EQ(GATHER_NO_FLAGS, flags);
                     EXPECT_EQ(3, size);
                 }
                 else {
-                    EXPECT_EQ(CHIRP_OK, e.error_code());
+                    EXPECT_EQ(YOGI_OK, e.error_code());
                     EXPECT_EQ(GATHER_FINISHED, flags);
                     EXPECT_EQ(2, size);
                 }
@@ -707,7 +707,7 @@ TEST_F(LeafTest, ScatterGatherTerminal)
             gather_flags flags, std::size_t size) -> bool  {
                 ++calls;
 
-                EXPECT_EQ(CHIRP_OK, e.error_code());
+                EXPECT_EQ(YOGI_OK, e.error_code());
                 EXPECT_EQ(Id{444}, operationId);
                 EXPECT_EQ(GATHER_NO_FLAGS, flags);
                 EXPECT_EQ(2, size);
@@ -735,7 +735,7 @@ TEST_F(LeafTest, ScatterGatherTerminal)
             gather_flags flags, std::size_t size) -> bool  {
                 ++calls;
 
-                EXPECT_EQ(CHIRP_ERR_CANCELED, e.error_code());
+                EXPECT_EQ(YOGI_ERR_CANCELED, e.error_code());
                 EXPECT_EQ(Id{444}, operationId);
                 EXPECT_EQ(GATHER_NO_FLAGS, flags);
                 EXPECT_EQ(0, size);
@@ -763,7 +763,7 @@ TEST_F(LeafTest, ScatterGatherTerminal)
             gather_flags flags, std::size_t size) -> bool  {
                 ++calls;
 
-                EXPECT_EQ(CHIRP_ERR_CANCELED, e.error_code());
+                EXPECT_EQ(YOGI_ERR_CANCELED, e.error_code());
                 EXPECT_EQ(Id{444}, operationId);
                 EXPECT_EQ(GATHER_NO_FLAGS, flags);
                 EXPECT_EQ(0, size);
@@ -787,7 +787,7 @@ TEST_F(LeafTest, ScatterGatherTerminal)
             std::size_t size) {
                 ++calls;
 
-                EXPECT_EQ(CHIRP_OK, e.error_code());
+                EXPECT_EQ(YOGI_OK, e.error_code());
                 EXPECT_EQ(Id{999}, operationId);
                 EXPECT_EQ(2, size);
             }
@@ -813,7 +813,7 @@ TEST_F(LeafTest, ScatterGatherTerminal)
             std::size_t size) {
                 ++calls;
 
-                EXPECT_EQ(CHIRP_ERR_BUFFER_TOO_SMALL, e.error_code());
+                EXPECT_EQ(YOGI_ERR_BUFFER_TOO_SMALL, e.error_code());
                 EXPECT_EQ(Id{999}, operationId);
                 EXPECT_EQ(3, size);
             }
@@ -864,7 +864,7 @@ TEST_F(LeafTest, ScatterGatherTerminal)
             std::size_t size) {
                 ++calls;
 
-                EXPECT_EQ(CHIRP_ERR_CANCELED, e.error_code());
+                EXPECT_EQ(YOGI_ERR_CANCELED, e.error_code());
                 EXPECT_EQ(Id{}, operationId);
                 EXPECT_EQ(0, size);
             }
@@ -885,7 +885,7 @@ TEST_F(LeafTest, ScatterGatherTerminal)
             std::size_t size) {
                 ++calls;
 
-                EXPECT_EQ(CHIRP_ERR_CANCELED, e.error_code());
+                EXPECT_EQ(YOGI_ERR_CANCELED, e.error_code());
                 EXPECT_EQ(Id{}, operationId);
                 EXPECT_EQ(0, size);
             }
@@ -1036,7 +1036,7 @@ TEST_F(LeafTest, CachedPublishSubscribeCacheLeafConnection)
     EXPECT_EQ(data1[1], cache[1]);
 
     EXPECT_THROW(t1->get_cache(boost::asio::buffer(cache, 1)),
-        api::ExceptionT<CHIRP_ERR_BUFFER_TOO_SMALL>);
+        api::ExceptionT<YOGI_ERR_BUFFER_TOO_SMALL>);
 
     // un-map the terminal
     uut->on_message_received(CachedPublishSubscribe::BindingRemoved::create(

@@ -1,8 +1,8 @@
-#ifndef CHIRP_TESTS_MOCKS_DEAFMUTEBINDINGMOCK_HPP
-#define CHIRP_TESTS_MOCKS_DEAFMUTEBINDINGMOCK_HPP
+#ifndef YOGI_TESTS_MOCKS_DEAFMUTEBINDINGMOCK_HPP
+#define YOGI_TESTS_MOCKS_DEAFMUTEBINDINGMOCK_HPP
 
 #include "../../src/core/BindingT.hpp"
-using namespace chirp;
+using namespace yogi;
 
 #include <gmock/gmock.h>
 using namespace testing;
@@ -34,4 +34,4 @@ struct BindingMock : public core::BindingT<TLeafLogic>
 
 } // namespace mocks
 
-#endif // CHIRP_TESTS_MOCKS_DEAFMUTEBINDINGMOCK_HPP
+#endif // YOGI_TESTS_MOCKS_DEAFMUTEBINDINGMOCK_HPP

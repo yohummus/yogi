@@ -1,8 +1,8 @@
-#ifndef CHIRP_TESTS_MOCKS_MESSAGEMOCK_HPP
-#define CHIRP_TESTS_MOCKS_MESSAGEMOCK_HPP
+#ifndef YOGI_TESTS_MOCKS_MESSAGEMOCK_HPP
+#define YOGI_TESTS_MOCKS_MESSAGEMOCK_HPP
 
 #include "../../src/interfaces/IMessage.hpp"
-using namespace chirp;
+using namespace yogi;
 
 #include <gmock/gmock.h>
 using namespace testing;
@@ -52,4 +52,4 @@ struct MessageMock : public interfaces::IMessage
 
 } // namespace mocks
 
-#endif // CHIRP_TESTS_MOCKS_MESSAGEMOCK_HPP
+#endif // YOGI_TESTS_MOCKS_MESSAGEMOCK_HPP

@@ -1,5 +1,5 @@
-#ifndef CHIRP_CONNECTIONS_TCP_TCPCONNECTION_HPP
-#define CHIRP_CONNECTIONS_TCP_TCPCONNECTION_HPP
+#ifndef YOGI_CONNECTIONS_TCP_TCPCONNECTION_HPP
+#define YOGI_CONNECTIONS_TCP_TCPCONNECTION_HPP
 
 #include "../../config.h"
 #include "../../interfaces/IScheduler.hpp"
@@ -16,7 +16,7 @@
 #include <functional>
 
 
-namespace chirp {
+namespace yogi {
 namespace connections {
 namespace tcp {
 
@@ -110,6 +110,6 @@ typedef std::shared_ptr<TcpConnection> tcp_connection_ptr;
 
 } // namespace tcp
 } // namespace connections
-} // namespace chirp
+} // namespace yogi
 
-#endif // CHIRP_CONNECTIONS_TCP_TCPCONNECTION_HPP
+#endif // YOGI_CONNECTIONS_TCP_TCPCONNECTION_HPP

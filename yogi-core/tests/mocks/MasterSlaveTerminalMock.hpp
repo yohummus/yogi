@@ -1,8 +1,8 @@
-#ifndef CHIRP_TESTS_MOCKS_MASTERSLAVETERMINALMOCK_HPP
-#define CHIRP_TESTS_MOCKS_MASTERSLAVETERMINALMOCK_HPP
+#ifndef YOGI_TESTS_MOCKS_MASTERSLAVETERMINALMOCK_HPP
+#define YOGI_TESTS_MOCKS_MASTERSLAVETERMINALMOCK_HPP
 
 #include "../../src/core/master_slave/Terminal.hpp"
-using namespace chirp;
+using namespace yogi;
 
 #include <gmock/gmock.h>
 using namespace testing;
@@ -21,4 +21,4 @@ struct MasterSlaveTerminalMock
 
 } // namespace mocks
 
-#endif // CHIRP_TESTS_MOCKS_MASTERSLAVETERMINALMOCK_HPP
+#endif // YOGI_TESTS_MOCKS_MASTERSLAVETERMINALMOCK_HPP

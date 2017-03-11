@@ -1,5 +1,5 @@
-#ifndef CHIRP_CORE_SCATTER_GATHER_NODELOGIC_HPP
-#define CHIRP_CORE_SCATTER_GATHER_NODELOGIC_HPP
+#ifndef YOGI_CORE_SCATTER_GATHER_NODELOGIC_HPP
+#define YOGI_CORE_SCATTER_GATHER_NODELOGIC_HPP
 
 #include "../../config.h"
 #include "../../base/ObjectRegister.hpp"
@@ -7,7 +7,7 @@
 #include "logic_types.hpp"
 
 
-namespace chirp {
+namespace yogi {
 namespace core {
 namespace scatter_gather {
 
@@ -128,9 +128,9 @@ protected:
         for (auto& subscriber : tm.subscribers) {
             auto conn = const_cast<interfaces::IConnection*>(subscriber.first);
             if (conn != &origin) {
-                CHIRP_ASSERT(tm.usingNodes.count(conn));
-                CHIRP_ASSERT(tm.usingNodes.find(conn)->second.is_mapped());
-                CHIRP_ASSERT(!op.remainingResponses.count(conn));
+                YOGI_ASSERT(tm.usingNodes.count(conn));
+                YOGI_ASSERT(tm.usingNodes.find(conn)->second.is_mapped());
+                YOGI_ASSERT(!op.remainingResponses.count(conn));
 
                 op.remainingResponses.insert(conn);
 
@@ -144,8 +144,8 @@ protected:
 
             for (auto& owner : bd.owningLeafs) {
                 if (owner.first != &origin) {
-                    CHIRP_ASSERT(owner.second.is_mapped());
-                    CHIRP_ASSERT(!op.remainingResponses.count(owner.first));
+                    YOGI_ASSERT(owner.second.is_mapped());
+                    YOGI_ASSERT(!op.remainingResponses.count(owner.first));
 
                     op.remainingResponses.insert(owner.first);
 
@@ -161,7 +161,7 @@ protected:
 			m_operations.erase(operationId);
 		}
 		else {
-			CHIRP_ASSERT(!tm.ext.activeOperations.count(operationId));
+			YOGI_ASSERT(!tm.ext.activeOperations.count(operationId));
 			tm.ext.activeOperations.insert(operationId);
 		}
     }
@@ -173,7 +173,7 @@ protected:
 
         base::Id operationId = msg[fields::operationId];
         auto& op = m_operations[operationId];
-        CHIRP_ASSERT(op.remainingResponses.count(&origin));
+        YOGI_ASSERT(op.remainingResponses.count(&origin));
 
         interfaces::IConnection* opSource = op.source;
         msg[fields::operationId] = op.sourceOperationId;
@@ -184,7 +184,7 @@ protected:
             if (op.remainingResponses.empty()) {
                 if (opSource) {
                     auto& tm = super::get_terminal_info(op.terminalId);
-                    CHIRP_ASSERT(tm.ext.activeOperations.count(operationId));
+                    YOGI_ASSERT(tm.ext.activeOperations.count(operationId));
                     tm.ext.activeOperations.erase(operationId);
                 }
 
@@ -203,6 +203,6 @@ protected:
 
 } // namespace scatter_gather
 } // namespace core
-} // namespace chirp
+} // namespace yogi
 
-#endif // CHIRP_CORE_SCATTER_GATHER_NODELOGIC_HPP
+#endif // YOGI_CORE_SCATTER_GATHER_NODELOGIC_HPP

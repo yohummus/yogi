@@ -1,5 +1,5 @@
-#ifndef CHIRP_CORE_SCATTER_GATHER_GATHER_FLAGS_HPP
-#define CHIRP_CORE_SCATTER_GATHER_GATHER_FLAGS_HPP
+#ifndef YOGI_CORE_SCATTER_GATHER_GATHER_FLAGS_HPP
+#define YOGI_CORE_SCATTER_GATHER_GATHER_FLAGS_HPP
 
 #include "../../config.h"
 
@@ -7,7 +7,7 @@
 #include <ostream>
 #include <vector>
 
-namespace chirp {
+namespace yogi {
 namespace core {
 namespace scatter_gather {
 
@@ -48,14 +48,14 @@ inline gather_flags& operator&= (gather_flags& a, gather_flags b)
 
 } // namespace scatter_gather
 } // namespace core
-} // namespace chirp
+} // namespace yogi
 
 namespace std {
 
 inline std::ostream& operator<< (std::ostream& os,
-	chirp::core::scatter_gather::gather_flags flags)
+	yogi::core::scatter_gather::gather_flags flags)
 {
-	using namespace chirp::core::scatter_gather;
+	using namespace yogi::core::scatter_gather;
 
 	std::vector<const char*> v;
 	if (flags == GATHER_NO_FLAGS) {
@@ -91,4 +91,4 @@ inline std::ostream& operator<< (std::ostream& os,
 
 } // namespace std
 
-#endif // CHIRP_CORE_SCATTER_GATHER_GATHER_FLAGS_HPP
+#endif // YOGI_CORE_SCATTER_GATHER_GATHER_FLAGS_HPP

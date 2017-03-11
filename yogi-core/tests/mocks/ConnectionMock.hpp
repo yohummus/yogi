@@ -1,8 +1,8 @@
-#ifndef CHIRP_TESTS_MOCKS_CONNECTIONMOCK_HPP
-#define CHIRP_TESTS_MOCKS_CONNECTIONMOCK_HPP
+#ifndef YOGI_TESTS_MOCKS_CONNECTIONMOCK_HPP
+#define YOGI_TESTS_MOCKS_CONNECTIONMOCK_HPP
 
 #include "../../src/interfaces/IConnection.hpp"
-using namespace chirp;
+using namespace yogi;
 
 #include <gmock/gmock.h>
 using namespace testing;
@@ -34,4 +34,4 @@ struct ConnectionMock : public interfaces::IConnection
 
 } // namespace mocks
 
-#endif // CHIRP_TESTS_MOCKS_CONNECTIONMOCK_HPP
+#endif // YOGI_TESTS_MOCKS_CONNECTIONMOCK_HPP

@@ -1,12 +1,12 @@
-#ifndef CHIRP_CORE_SERVICE_CLIENT_LOGIC_TYPES_HPP
-#define CHIRP_CORE_SERVICE_CLIENT_LOGIC_TYPES_HPP
+#ifndef YOGI_CORE_SERVICE_CLIENT_LOGIC_TYPES_HPP
+#define YOGI_CORE_SERVICE_CLIENT_LOGIC_TYPES_HPP
 
 #include "../../config.h"
 #include "../scatter_gather/logic_types.hpp"
 #include "../../messaging/messages/ServiceClient.hpp"
 
 
-namespace chirp {
+namespace yogi {
 namespace core {
 namespace service_client {
 
@@ -30,6 +30,6 @@ struct logic_types
 
 } // namespace service_client
 } // namespace core
-} // namespace chirp
+} // namespace yogi
 
-#endif // CHIRP_CORE_SERVICE_CLIENT_LOGIC_TYPES_HPP
+#endif // YOGI_CORE_SERVICE_CLIENT_LOGIC_TYPES_HPP

@@ -1,8 +1,8 @@
-#ifndef CHIRP_TESTS_MOCKS_PUBLISHSUBSCRIBETERMINALMOCK_HPP
-#define CHIRP_TESTS_MOCKS_PUBLISHSUBSCRIBETERMINALMOCK_HPP
+#ifndef YOGI_TESTS_MOCKS_PUBLISHSUBSCRIBETERMINALMOCK_HPP
+#define YOGI_TESTS_MOCKS_PUBLISHSUBSCRIBETERMINALMOCK_HPP
 
 #include "../../src/core/publish_subscribe/Terminal.hpp"
-using namespace chirp;
+using namespace yogi;
 
 #include <gmock/gmock.h>
 using namespace testing;
@@ -22,4 +22,4 @@ struct PublishSubscribeTerminalMock
 
 } // namespace mocks
 
-#endif // CHIRP_TESTS_MOCKS_PUBLISHSUBSCRIBETERMINALMOCK_HPP
+#endif // YOGI_TESTS_MOCKS_PUBLISHSUBSCRIBETERMINALMOCK_HPP

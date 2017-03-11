@@ -1,5 +1,5 @@
-#ifndef CHIRP_CONNECTIONS_LOCAL_LOCALCONNECTION_HPP
-#define CHIRP_CONNECTIONS_LOCAL_LOCALCONNECTION_HPP
+#ifndef YOGI_CONNECTIONS_LOCAL_LOCALCONNECTION_HPP
+#define YOGI_CONNECTIONS_LOCAL_LOCALCONNECTION_HPP
 
 #include "../../config.h"
 #include "../../interfaces/ICommunicator.hpp"
@@ -9,7 +9,7 @@
 #include <atomic>
 
 
-namespace chirp {
+namespace yogi {
 namespace connections {
 namespace local {
 
@@ -28,7 +28,7 @@ private:
         bool                         remoteIsNode;
         boost::asio::strand          strand;
         std::atomic<bool>            delayDeath;
-        
+
         channel_data(interfaces::ICommunicator& receiver_);
     };
 
@@ -87,6 +87,6 @@ public:
 
 } // namespace local
 } // namespace connections
-} // namespace chirp
+} // namespace yogi
 
-#endif // CHIRP_CONNECTIONS_LOCAL_LOCALCONNECTION_HPP
+#endif // YOGI_CONNECTIONS_LOCAL_LOCALCONNECTION_HPP

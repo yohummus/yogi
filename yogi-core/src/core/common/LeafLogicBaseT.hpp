@@ -1,5 +1,5 @@
-#ifndef CHIRP_CORE_COMMON_LEAFLOGICBASET_HPP
-#define CHIRP_CORE_COMMON_LEAFLOGICBASET_HPP
+#ifndef YOGI_CORE_COMMON_LEAFLOGICBASET_HPP
+#define YOGI_CORE_COMMON_LEAFLOGICBASET_HPP
 
 #include "../../config.h"
 #include "../../interfaces/IConnection.hpp"
@@ -17,7 +17,7 @@
 #include <algorithm>
 
 
-namespace chirp {
+namespace yogi {
 namespace core {
 namespace common {
 
@@ -127,7 +127,7 @@ protected:
             m_msgHandlers.resize(msgTypeIdNum + 1);
         }
 
-        CHIRP_ASSERT(!m_msgHandlers[msgTypeIdNum]);
+        YOGI_ASSERT(!m_msgHandlers[msgTypeIdNum]);
 
         m_msgHandlers[msgTypeIdNum] = [=](interfaces::IMessage& msg) {
             auto lock = make_lock_guard();
@@ -147,7 +147,7 @@ protected:
 
     interfaces::IConnection& connection()
     {
-        CHIRP_ASSERT(connected());
+        YOGI_ASSERT(connected());
         return *m_connection;
     }
 
@@ -173,12 +173,12 @@ protected:
         auto lock = make_lock_guard();
 
         // store the new connection
-        CHIRP_ASSERT(m_connection == nullptr);
+        YOGI_ASSERT(m_connection == nullptr);
         m_connection = &connection;
 
         // send a description of each endpoint and reset the FSM
         for (auto& tm : m_terminals) {
-            CHIRP_ASSERT(!tm.hidden());
+            YOGI_ASSERT(!tm.hidden());
             tm.fsm.reset(!m_connection->remote_is_node(), [&]{
                 typename TTypes::TerminalDescription msg;
                 msg[fields::identifier] = tm.identifier();
@@ -189,7 +189,7 @@ protected:
 
         // send a description of each endpoint and reset the FSM
         for (auto& bd : m_bindings) {
-            CHIRP_ASSERT(!bd.hidden());
+            YOGI_ASSERT(!bd.hidden());
             bd.fsm.reset(false, [&] {
                 typename TTypes::BindingDescription msg;
                 msg[fields::identifier] = bd.identifier();
@@ -204,7 +204,7 @@ protected:
         auto lock = make_lock_guard();
 
         // reset the connection pointer
-        CHIRP_ASSERT(m_connection != nullptr);
+        YOGI_ASSERT(m_connection != nullptr);
         m_connection = nullptr;
 
         // erase all hidden entries
@@ -264,7 +264,7 @@ public:
         auto res = m_terminals.insert(terminal.identifier());
         auto& tm = *res.first;
         if (!res.second) {
-            throw api::ExceptionT<CHIRP_ERR_AMBIGUOUS_IDENTIFIER>{};
+            throw api::ExceptionT<YOGI_ERR_AMBIGUOUS_IDENTIFIER>{};
         }
 
         tm.terminal = &terminal;
@@ -291,7 +291,7 @@ public:
 
         // find the associated terminal info entry
         auto tm = m_terminals.find(terminal.id());
-        CHIRP_ASSERT(tm != m_terminals.end());
+        YOGI_ASSERT(tm != m_terminals.end());
 
         // reset the terminal pointer
         tm->terminal = nullptr;
@@ -369,7 +369,7 @@ public:
 
         // find the associated binding group entry
         auto bd = m_bindings.find(binding.group_id());
-        CHIRP_ASSERT(bd != m_bindings.end());
+        YOGI_ASSERT(bd != m_bindings.end());
 
         // erase the binding from the group
         bd->bindings.erase(std::find(bd->bindings.begin(), bd->bindings.end(),
@@ -472,7 +472,7 @@ public:
 
         // find the terminal info entry associated with the terminal ID
         auto tm = m_terminals.find(msg[fields::terminalId]);
-        CHIRP_ASSERT(tm != m_terminals.end());
+        YOGI_ASSERT(tm != m_terminals.end());
 
         // evalute the state machine
         bool fsmAlive = tm->fsm.process_rcvd_noticed(
@@ -499,7 +499,7 @@ public:
 
         // find the binding group entry associated with the mapped ID
         auto bd = m_bindings.find(msg[fields::mappedId]);
-        CHIRP_ASSERT(bd != m_bindings.end());
+        YOGI_ASSERT(bd != m_bindings.end());
 
         // evaluate the FSM
         bool fsmAlive = bd->fsm.process_rcvd_removed(
@@ -526,7 +526,7 @@ public:
 
         // find the terminal info entry associated with the terminal ID
         auto tm = m_terminals.find(msg[fields::terminalId]);
-        CHIRP_ASSERT(tm != m_terminals.end());
+        YOGI_ASSERT(tm != m_terminals.end());
 
         // evaluate the FSM
         bool fsmAlive = tm->fsm.process_rcvd_removed_ack();
@@ -607,7 +607,7 @@ public:
 
         // find the binding group entry associated with the binding group ID
         auto bd = m_bindings.find(msg[fields::bindingId]);
-        CHIRP_ASSERT(bd != m_bindings.end());
+        YOGI_ASSERT(bd != m_bindings.end());
 
         // evalute the state machine
         bool fsmAlive = bd->fsm.process_rcvd_noticed(
@@ -634,7 +634,7 @@ public:
 
         // find the terminal info entry associated with the mapped ID
         auto tm = m_terminals.find(msg[fields::mappedId]);
-        CHIRP_ASSERT(tm != m_terminals.end());
+        YOGI_ASSERT(tm != m_terminals.end());
 
         // evaluate the FSM
         bool fsmAlive = tm->fsm.process_rcvd_removed(
@@ -661,7 +661,7 @@ public:
 
         // find the binding group entry associated with the binding group ID
         auto bd = m_bindings.find(msg[fields::bindingId]);
-        CHIRP_ASSERT(bd != m_bindings.end());
+        YOGI_ASSERT(bd != m_bindings.end());
 
         // evaluate the FSM
         bool fsmAlive = bd->fsm.process_rcvd_removed_ack();
@@ -680,7 +680,7 @@ public:
         auto& bd = m_bindings[msg[fields::bindingId]];
 
         // set the binding group state to ESTABLISHED
-        CHIRP_ASSERT(bd.fsm.state() == MappedObjectFsm::STATE_MAPPED_CONFIRMED
+        YOGI_ASSERT(bd.fsm.state() == MappedObjectFsm::STATE_MAPPED_CONFIRMED
             || bd.fsm.state() == MappedObjectFsm::STATE_AWAIT_ACK);
 
         if (bd.fsm.state() == MappedObjectFsm::STATE_MAPPED_CONFIRMED) {
@@ -696,7 +696,7 @@ public:
         auto& bd = m_bindings[msg[fields::bindingId]];
 
         // set the binding group state to RELEASED
-        CHIRP_ASSERT(bd.fsm.state() == MappedObjectFsm::STATE_MAPPED_CONFIRMED
+        YOGI_ASSERT(bd.fsm.state() == MappedObjectFsm::STATE_MAPPED_CONFIRMED
             || bd.fsm.state() == MappedObjectFsm::STATE_AWAIT_ACK);
 
         if (bd.fsm.state() == MappedObjectFsm::STATE_MAPPED_CONFIRMED) {
@@ -707,6 +707,6 @@ public:
 
 } // namespace common
 } // namespace core
-} // namespace chirp
+} // namespace yogi
 
-#endif // CHIRP_CORE_COMMON_LEAFLOGICBASET_HPP
+#endif // YOGI_CORE_COMMON_LEAFLOGICBASET_HPP

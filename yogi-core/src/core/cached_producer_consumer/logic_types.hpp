@@ -1,12 +1,12 @@
-#ifndef CHIRP_CORE_CACHED_PRODUCER_CONSUMER_LOGIC_TYPES_HPP
-#define CHIRP_CORE_CACHED_PRODUCER_CONSUMER_LOGIC_TYPES_HPP
+#ifndef YOGI_CORE_CACHED_PRODUCER_CONSUMER_LOGIC_TYPES_HPP
+#define YOGI_CORE_CACHED_PRODUCER_CONSUMER_LOGIC_TYPES_HPP
 
 #include "../../config.h"
 #include "../cached_publish_subscribe/logic_types.hpp"
 #include "../../messaging/messages/CachedProducerConsumer.hpp"
 
 
-namespace chirp {
+namespace yogi {
 namespace core {
 namespace cached_producer_consumer {
 
@@ -30,6 +30,6 @@ struct logic_types
 
 } // namespace cached_producer_consumer
 } // namespace core
-} // namespace chirp
+} // namespace yogi
 
-#endif // CHIRP_CORE_CACHED_PRODUCER_CONSUMER_LOGIC_TYPES_HPP
+#endif // YOGI_CORE_CACHED_PRODUCER_CONSUMER_LOGIC_TYPES_HPP

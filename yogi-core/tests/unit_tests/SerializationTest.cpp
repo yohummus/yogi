@@ -1,7 +1,7 @@
 #include "../../src/serialization/serialize.hpp"
 #include "../../src/serialization/deserialize.hpp"
 #include "../../src/serialization/can_deserialize_one.hpp"
-using namespace chirp;
+using namespace yogi;
 
 #include <gmock/gmock.h>
 

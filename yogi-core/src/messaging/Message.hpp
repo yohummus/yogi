@@ -1,5 +1,5 @@
-#ifndef CHIRP_MESSAGING_MESSAGE_HPP
-#define CHIRP_MESSAGING_MESSAGE_HPP
+#ifndef YOGI_MESSAGING_MESSAGE_HPP
+#define YOGI_MESSAGING_MESSAGE_HPP
 
 #include "../config.h"
 #include "../interfaces/IMessage.hpp"
@@ -8,14 +8,14 @@
 
 #include <sstream>
 
-#define CHIRP_MESSAGE_NAME(str)                                                \
+#define YOGI_MESSAGE_NAME(str)                                                \
     virtual const char* name() const override                                  \
     {                                                                          \
         return str;                                                            \
     }
 
 
-namespace chirp {
+namespace yogi {
 namespace messaging {
 namespace internal_ {
 
@@ -119,7 +119,7 @@ public:
 
 	virtual interfaces::message_ptr clone() const override
 	{
-		CHIRP_ASSERT(dynamic_cast<const TFinalMessage*>(this) != nullptr);
+		YOGI_ASSERT(dynamic_cast<const TFinalMessage*>(this) != nullptr);
 		return std::make_unique<TFinalMessage>(
 			*static_cast<const TFinalMessage*>(this));
 	}
@@ -151,6 +151,6 @@ public:
 };
 
 } // namespace messaging
-} // namespace chirp
+} // namespace yogi
 
-#endif // CHIRP_MESSAGING_MESSAGE_HPP
+#endif // YOGI_MESSAGING_MESSAGE_HPP

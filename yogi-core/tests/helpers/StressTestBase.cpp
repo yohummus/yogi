@@ -5,13 +5,13 @@ namespace helpers {
 
 void StressTestBase::SetUp()
 {
-    ASSERT_EQ(CHIRP_OK, CHIRP_Initialise());
+    ASSERT_EQ(YOGI_OK, YOGI_Initialise());
 }
 
 void StressTestBase::TearDown()
 {
-    int res = CHIRP_Shutdown();
-    ASSERT_TRUE(res == CHIRP_OK || res == CHIRP_ERR_NOT_INITIALISED);
+    int res = YOGI_Shutdown();
+    ASSERT_TRUE(res == YOGI_OK || res == YOGI_ERR_NOT_INITIALISED);
 }
 
 StressTestBase::task_name_and_fn_pair StressTestBase::take_task()
@@ -125,8 +125,8 @@ void StressTestBase::shuffle_tasks()
 
 void StressTestBase::shutdown()
 {
-    int res = CHIRP_Shutdown();
-    ASSERT_TRUE(res == CHIRP_OK || res == CHIRP_ERR_NOT_INITIALISED) << res;
+    int res = YOGI_Shutdown();
+    ASSERT_TRUE(res == YOGI_OK || res == YOGI_ERR_NOT_INITIALISED) << res;
 }
 
 void StressTestBase::increase_number_of_tasks_by_factor(std::size_t factor)
@@ -141,7 +141,7 @@ void StressTestBase::increase_number_of_tasks_by_factor(std::size_t factor)
 
 void StressTestBase::create_log_file()
 {
-    CHIRP_SetLogFile("log.txt", CHIRP_VB_TRACE);
+    YOGI_SetLogFile("log.txt", YOGI_VB_TRACE);
 }
 
 void StressTestBase::add_task(const char* name, task_type task, std::size_t n)
@@ -286,7 +286,7 @@ void StressTestBase::add_destroy_object_task(const char* name,
 {
     add_task(name, [&] {
         std::lock_guard<std::mutex> lock{object.mutex};
-        if (object.handle && (CHIRP_Destroy(object.handle) == CHIRP_OK)) {
+        if (object.handle && (YOGI_Destroy(object.handle) == YOGI_OK)) {
             object.handle = nullptr;
             return true;
         }
@@ -301,7 +301,7 @@ void StressTestBase::add_async_await_state_change_task(const char* name,
     add_task(name, [&] {
         std::lock_guard<std::mutex> lock{bd.mutex};
         if (bd.handle) {
-            CHIRP_AsyncAwaitBindingStateChange(bd.handle,
+            YOGI_AsyncAwaitBindingStateChange(bd.handle,
                 &helpers::BindingStateCallbackHandler::fn, &bd.stateHandler);
             return true;
         }

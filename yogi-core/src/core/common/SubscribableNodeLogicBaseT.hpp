@@ -1,12 +1,12 @@
-#ifndef CHIRP_CORE_COMMON_SUBSCRIBABLENODELOGICBASET_HPP
-#define CHIRP_CORE_COMMON_SUBSCRIBABLENODELOGICBASET_HPP
+#ifndef YOGI_CORE_COMMON_SUBSCRIBABLENODELOGICBASET_HPP
+#define YOGI_CORE_COMMON_SUBSCRIBABLENODELOGICBASET_HPP
 
 #include "../../config.h"
 #include "NodeLogicBaseT.hpp"
 #include "subscribable_logic_types.hpp"
 
 
-namespace chirp {
+namespace yogi {
 namespace core {
 namespace common {
 
@@ -85,7 +85,7 @@ private:
     bool at_least_one_subscriber_or_binding_owner_besides(
         const terminal_info& tm, interfaces::IConnection& connection)
     {
-        CHIRP_ASSERT(!tm.binding || !super::get_binding_info(tm.binding)
+        YOGI_ASSERT(!tm.binding || !super::get_binding_info(tm.binding)
             .owningLeafs.empty());
 
         // another subscribers besides connection?
@@ -115,14 +115,14 @@ private:
 
             return bdOwner->first;
         }
-        
+
         return nullptr;
     }
 
     bool no_other_subscriber_or_binding_owner(const terminal_info& tm,
         interfaces::IConnection& connection)
     {
-        CHIRP_ASSERT(!tm.binding || !super::get_binding_info(
+        YOGI_ASSERT(!tm.binding || !super::get_binding_info(
             tm.binding).owningLeafs.empty());
 
         if (tm.subscribers.empty() && (!tm.binding)) {
@@ -180,7 +180,7 @@ private:
 
 		typename TTypes::Unsubscribe msg;
         auto onlyConn = only_subscriber_or_binding_owner(tm);
-        CHIRP_ASSERT(onlyConn != &exception);
+        YOGI_ASSERT(onlyConn != &exception);
         if (onlyConn) {
             base::Id id = terminal_owner_fsm_mapped_id(tm, *onlyConn);
             if (id) {
@@ -220,20 +220,20 @@ protected:
         super::template add_msg_handler<typename TTypes::Unsubscribe>(this,
             &SubscribableNodeLogicBaseT::on_message_received);
     }
-    
+
     virtual void on_terminal_owner_added(interfaces::IConnection& connection,
         typename super::const_terminal_iterator tm,
         const typename TTypes::TerminalDescription& msg) override
     {
 		using namespace messaging;
 
-        CHIRP_ASSERT(tm->owningLeafs.count(&connection)
+        YOGI_ASSERT(tm->owningLeafs.count(&connection)
             + tm->owningNodes.count(&connection) == 1);
-        CHIRP_ASSERT(!tm->owningLeafs.count(&connection)
+        YOGI_ASSERT(!tm->owningLeafs.count(&connection)
             || tm->owningLeafs.find(&connection)->second.is_mapped());
-        CHIRP_ASSERT(!tm->owningNodes.count(&connection)
+        YOGI_ASSERT(!tm->owningNodes.count(&connection)
             || tm->owningNodes.find(&connection)->second.is_mapped());
-        
+
         if (at_least_one_subscriber_or_binding_owner_besides(*tm, connection)) {
             typename TTypes::Subscribe fwMsg;
 			fwMsg[fields::terminalId] = msg[fields::id];
@@ -247,9 +247,9 @@ protected:
     {
 		using namespace messaging;
 
-        CHIRP_ASSERT(!tm->owningLeafs.count(&connection)
+        YOGI_ASSERT(!tm->owningLeafs.count(&connection)
             || tm->owningLeafs.find(&connection)->second.is_mapped());
-        CHIRP_ASSERT(!tm->owningNodes.count(&connection)
+        YOGI_ASSERT(!tm->owningNodes.count(&connection)
             || tm->owningNodes.find(&connection)->second.is_mapped());
 
         if (at_least_one_subscriber_or_binding_owner_besides(*tm, connection)) {
@@ -275,7 +275,7 @@ protected:
             auto ownIt = tm->owningNodes.begin();
             auto subIt = tm->subscribers.find(ownIt->first);
             if (subIt != tm->subscribers.end()) {
-                //CHIRP_ASSERT(subIt->second == ownIt->second.mapped_id()); // TODO: remove (?) only if no fundamental problem
+                //YOGI_ASSERT(subIt->second == ownIt->second.mapped_id()); // TODO: remove (?) only if no fundamental problem
                 tm->subscribers.erase(subIt);
             }
         }
@@ -284,7 +284,7 @@ protected:
     virtual void on_terminal_user_removed(interfaces::IConnection& connection,
         typename super::const_terminal_iterator tm) override
     {
-        CHIRP_ASSERT(!tm->usingNodes.count(&connection));
+        YOGI_ASSERT(!tm->usingNodes.count(&connection));
 
         remove_subscriber_if_needed(connection, *tm);
     }
@@ -294,7 +294,7 @@ protected:
     {
 		using namespace messaging;
 
-        CHIRP_ASSERT(bd->owningLeafs.count(&connection));
+        YOGI_ASSERT(bd->owningLeafs.count(&connection));
 
         if (!bd->terminal) {
             return;
@@ -313,7 +313,7 @@ protected:
             auto subIt  = tm.subscribers.begin();
             auto ownIt = tm.owningNodes.find(subIt->first);
             if (ownIt != tm.owningNodes.end()) {
-                CHIRP_ASSERT(ownIt->second.is_mapped());
+                YOGI_ASSERT(ownIt->second.is_mapped());
                 base::Id ownId = ownIt->second.mapped_id();
                 typename TTypes::Subscribe msg;
 				msg[fields::terminalId] = ownId;
@@ -322,7 +322,7 @@ protected:
         }
         else if (tm.subscribers.empty() && bd->owningLeafs.size() == 2) {
             auto otherOwner = second_binding_owner_of_two(*bd, connection);
-            CHIRP_ASSERT(otherOwner);
+            YOGI_ASSERT(otherOwner);
 
             base::Id id = terminal_owner_fsm_mapped_id(*bd, *otherOwner);
             if (id) {
@@ -336,8 +336,8 @@ protected:
     virtual void on_binding_owner_removed(interfaces::IConnection& connection,
         typename super::const_binding_iterator bd) override
     {
-        CHIRP_ASSERT(!connection.remote_is_node());
-        CHIRP_ASSERT(!bd->owningLeafs.count(&connection));
+        YOGI_ASSERT(!connection.remote_is_node());
+        YOGI_ASSERT(!bd->owningLeafs.count(&connection));
 
         if (!bd->terminal) {
             return;
@@ -353,12 +353,12 @@ protected:
     {
 		using namespace messaging;
 
-        CHIRP_ASSERT(origin.remote_is_node());
-        
+        YOGI_ASSERT(origin.remote_is_node());
+
         auto& tm = super::get_terminal_info(msg[fields::terminalId]);
 
-        CHIRP_ASSERT(!tm.subscribers.count(&origin));
-        CHIRP_ASSERT(tm.usingNodes.count(&origin));
+        YOGI_ASSERT(!tm.subscribers.count(&origin));
+        YOGI_ASSERT(tm.usingNodes.count(&origin));
 
         auto subsFsm = tm.usingNodes.find(&origin)->second;
         if (!subsFsm.is_mapped()) {
@@ -403,6 +403,6 @@ protected:
 
 } // namespace common
 } // namespace core
-} // namespace chirp
+} // namespace yogi
 
-#endif // CHIRP_CORE_COMMON_SUBSCRIBABLENODELOGICBASET_HPP
+#endif // YOGI_CORE_COMMON_SUBSCRIBABLENODELOGICBASET_HPP

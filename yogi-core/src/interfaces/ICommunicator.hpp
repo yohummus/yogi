@@ -1,5 +1,5 @@
-#ifndef CHIRP_INTERFACES_ICOMMUNICATOR_HPP
-#define CHIRP_INTERFACES_ICOMMUNICATOR_HPP
+#ifndef YOGI_INTERFACES_ICOMMUNICATOR_HPP
+#define YOGI_INTERFACES_ICOMMUNICATOR_HPP
 
 #include "../config.h"
 #include "../interfaces/IScheduler.hpp"
@@ -7,7 +7,7 @@
 #include "IConnection.hpp"
 
 
-namespace chirp {
+namespace yogi {
 namespace interfaces {
 
 /***************************************************************************//**
@@ -28,6 +28,6 @@ struct ICommunicator : virtual public IPublicObject
 typedef std::shared_ptr<ICommunicator> communicator_ptr;
 
 } // namespace interfaces
-} // namespace chirp
+} // namespace yogi
 
-#endif // CHIRP_INTERFACES_ICOMMUNICATOR_HPP
+#endif // YOGI_INTERFACES_ICOMMUNICATOR_HPP

@@ -1,5 +1,5 @@
 {
-global: CHIRP_*;
+global: YOGI_*;
 local: *;
 };
 

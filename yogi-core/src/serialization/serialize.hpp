@@ -1,11 +1,11 @@
-#ifndef CHIRP_SERIALIZATION_SERIALIZE_HPP
-#define CHIRP_SERIALIZATION_SERIALIZE_HPP
+#ifndef YOGI_SERIALIZATION_SERIALIZE_HPP
+#define YOGI_SERIALIZATION_SERIALIZE_HPP
 
 #include "../config.h"
 #include "serialize_one.hpp"
 
 
-namespace chirp {
+namespace yogi {
 namespace serialization {
 
 template <typename... TValues>
@@ -16,6 +16,6 @@ void serialize(std::vector<char>& buffer, const TValues&... values)
 }
 
 } // namespace serialization
-} // namespace chirp
+} // namespace yogi
 
-#endif // CHIRP_SERIALIZATION_SERIALIZE_HPP
+#endif // YOGI_SERIALIZATION_SERIALIZE_HPP

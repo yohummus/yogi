@@ -1,5 +1,5 @@
-#ifndef CHIRP_CORE_CACHED_PUBLISH_SUBSCRIBE_TERMINAL_HPP
-#define CHIRP_CORE_CACHED_PUBLISH_SUBSCRIBE_TERMINAL_HPP
+#ifndef YOGI_CORE_CACHED_PUBLISH_SUBSCRIBE_TERMINAL_HPP
+#define YOGI_CORE_CACHED_PUBLISH_SUBSCRIBE_TERMINAL_HPP
 
 #include "../../config.h"
 #include "../../base/Buffer.hpp"
@@ -7,7 +7,7 @@
 #include "logic_types.hpp"
 
 
-namespace chirp {
+namespace yogi {
 namespace core {
 
 class Leaf;
@@ -47,7 +47,7 @@ public:
         auto n = boost::asio::buffer_copy(buffer, boost::asio::buffer(
             cache.first.data(), cache.first.size()));
         if (boost::asio::buffer_size(buffer) < cache.first.size()) {
-            throw api::ExceptionT<CHIRP_ERR_BUFFER_TOO_SMALL>{};
+            throw api::ExceptionT<YOGI_ERR_BUFFER_TOO_SMALL>{};
         }
 
         return std::make_pair(true, n);
@@ -56,6 +56,6 @@ public:
 
 } // namespace cached_publish_subscribe
 } // namespace core
-} // namespace chirp
+} // namespace yogi
 
-#endif // CHIRP_CORE_CACHED_PUBLISH_SUBSCRIBE_TERMINAL_HPP
+#endif // YOGI_CORE_CACHED_PUBLISH_SUBSCRIBE_TERMINAL_HPP

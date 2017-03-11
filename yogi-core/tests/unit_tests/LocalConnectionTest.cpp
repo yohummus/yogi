@@ -1,6 +1,6 @@
 #include "../../src/connections/local/LocalConnection.hpp"
-using namespace chirp::interfaces;
-using namespace chirp::connections::local;
+using namespace yogi::interfaces;
+using namespace yogi::connections::local;
 
 #include "../mocks/SchedulerMock.hpp"
 #include "../mocks/CommunicatorMock.hpp"
@@ -145,8 +145,8 @@ TEST_F(LocalConnectionTest, Description)
 
 TEST_F(LocalConnectionTest, RemoteVersion)
 {
-	EXPECT_EQ(CHIRP_VERSION, connectionA->remote_version());
-	EXPECT_EQ(CHIRP_VERSION, connectionB->remote_version());
+	EXPECT_EQ(YOGI_VERSION, connectionA->remote_version());
+	EXPECT_EQ(YOGI_VERSION, connectionB->remote_version());
 }
 
 TEST_F(LocalConnectionTest, RemoteIdentification)

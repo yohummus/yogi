@@ -1,129 +1,129 @@
-#ifndef CHIRP_H
-#define CHIRP_H
+#ifndef YOGI_H
+#define YOGI_H
 
 //! @defgroup ERRORCODES Error codes
 //!
-//! CHIRP error codes are always < 0 and a human-readable description of an
-//! error code can be obtained by calling CHIRP_GetErrorString().
+//! YOGI error codes are always < 0 and a human-readable description of an
+//! error code can be obtained by calling YOGI_GetErrorString().
 //!
 //! @{
 
 //! The operation completed successfully
-#define CHIRP_OK 0
+#define YOGI_OK 0
 
 //! Unknown internal error occured
-#define CHIRP_ERR_UNKNOWN -1
+#define YOGI_ERR_UNKNOWN -1
 
 //! Invalid object handle
-#define CHIRP_ERR_INVALID_HANDLE -2
+#define YOGI_ERR_INVALID_HANDLE -2
 
 //! Object is of the wrong type
-#define CHIRP_ERR_WRONG_OBJECT_TYPE -3
+#define YOGI_ERR_WRONG_OBJECT_TYPE -3
 
 //! Object is still used
-#define CHIRP_ERR_OBJECT_STILL_USED -4
+#define YOGI_ERR_OBJECT_STILL_USED -4
 
 //! Insufficient memory to complete the operation
-#define CHIRP_ERR_BAD_ALLOCATION -5
+#define YOGI_ERR_BAD_ALLOCATION -5
 
 //! Invalid parameter
-#define CHIRP_ERR_INVALID_PARAM -6
+#define YOGI_ERR_INVALID_PARAM -6
 
 //! Already connected
-#define CHIRP_ERR_ALREADY_CONNECTED -7
+#define YOGI_ERR_ALREADY_CONNECTED -7
 
 //! There is already an object with the same identifier
-#define CHIRP_ERR_AMBIGUOUS_IDENTIFIER -8
+#define YOGI_ERR_AMBIGUOUS_IDENTIFIER -8
 
 //! The library has already been initialised
-#define CHIRP_ERR_ALREADY_INITIALISED -9
+#define YOGI_ERR_ALREADY_INITIALISED -9
 
 //! The library has not been initialised
-#define CHIRP_ERR_NOT_INITIALISED -10
+#define YOGI_ERR_NOT_INITIALISED -10
 
 //! Could not create the log file
-#define CHIRP_ERR_CANNOT_CREATE_LOG_FILE -11
+#define YOGI_ERR_CANNOT_CREATE_LOG_FILE -11
 
 //! The operation has been canceled
-#define CHIRP_ERR_CANCELED -12
+#define YOGI_ERR_CANCELED -12
 
 //! An asynchronous operation has already been started
-#define CHIRP_ERR_ASYNC_OPERATION_RUNNING -13
+#define YOGI_ERR_ASYNC_OPERATION_RUNNING -13
 
 //! The provided buffer is not big enough
-#define CHIRP_ERR_BUFFER_TOO_SMALL -14
+#define YOGI_ERR_BUFFER_TOO_SMALL -14
 
 //! No remote Terminals are currently bound to the local Terminal
-#define CHIRP_ERR_NOT_BOUND -15
+#define YOGI_ERR_NOT_BOUND -15
 
 //! Invalid ID
-#define CHIRP_ERR_INVALID_ID -16
+#define YOGI_ERR_INVALID_ID -16
 
 //! Identification data is too large
-#define CHIRP_ERR_IDENTIFICATION_TOO_LARGE -17
+#define YOGI_ERR_IDENTIFICATION_TOO_LARGE -17
 
 //! Invalid IP address
-#define CHIRP_ERR_INVALID_IP_ADDRESS -18
+#define YOGI_ERR_INVALID_IP_ADDRESS -18
 
 //! Invalid port number
-#define CHIRP_ERR_INVALID_PORT_NUMBER -19
+#define YOGI_ERR_INVALID_PORT_NUMBER -19
 
 //! Could not open socket
-#define CHIRP_ERR_CANNOT_OPEN_SOCKET -20
+#define YOGI_ERR_CANNOT_OPEN_SOCKET -20
 
 //! Could not bind socket
-#define CHIRP_ERR_CANNOT_BIND_SOCKET -21
+#define YOGI_ERR_CANNOT_BIND_SOCKET -21
 
 //! Could not listen on socket
-#define CHIRP_ERR_CANNOT_LISTEN_ON_SOCKET -22
+#define YOGI_ERR_CANNOT_LISTEN_ON_SOCKET -22
 
 //! Could not read from or write to socket
-#define CHIRP_ERR_SOCKET_BROKEN -23
+#define YOGI_ERR_SOCKET_BROKEN -23
 
 //! Received an invalid magic prefix
-#define CHIRP_ERR_INVALID_MAGIC_PREFIX -24
+#define YOGI_ERR_INVALID_MAGIC_PREFIX -24
 
 //! Incompatible version
-#define CHIRP_ERR_INCOMPATIBLE_VERSION -25
+#define YOGI_ERR_INCOMPATIBLE_VERSION -25
 
 //! Failed to accept incoming connection
-#define CHIRP_ERR_ACCEPT_FAILED -26
+#define YOGI_ERR_ACCEPT_FAILED -26
 
 //! Timeout
-#define CHIRP_ERR_TIMEOUT -27
+#define YOGI_ERR_TIMEOUT -27
 
 //! Address is already in use
-#define CHIRP_ERR_ADDRESS_IN_USE -28
+#define YOGI_ERR_ADDRESS_IN_USE -28
 
 //! Resolving IP address failed
-#define CHIRP_ERR_RESOLVE_FAILED -29
+#define YOGI_ERR_RESOLVE_FAILED -29
 
 //! Connection refused
-#define CHIRP_ERR_CONNECTION_REFUSED -30
+#define YOGI_ERR_CONNECTION_REFUSED -30
 
 //! Host is unreachable
-#define CHIRP_ERR_HOST_UNREACHABLE -31
+#define YOGI_ERR_HOST_UNREACHABLE -31
 
 //! Network is down
-#define CHIRP_ERR_NETWORK_DOWN -32
+#define YOGI_ERR_NETWORK_DOWN -32
 
 //! Could not establish connection
-#define CHIRP_ERR_CONNECT_FAILED -33
+#define YOGI_ERR_CONNECT_FAILED -33
 
 //! The operation is not ready to be performed
-#define CHIRP_ERR_NOT_READY -34
+#define YOGI_ERR_NOT_READY -34
 
 //! The connection has already been assigned
-#define CHIRP_ERR_ALREADY_ASSIGNED -35
+#define YOGI_ERR_ALREADY_ASSIGNED -35
 
 //! The connection is not alive any more
-#define CHIRP_ERR_CONNECTION_DEAD -36
+#define YOGI_ERR_CONNECTION_DEAD -36
 
 //! The connection has been closed gracefully by the remote host
-#define CHIRP_ERR_CONNECTION_CLOSED -37
+#define YOGI_ERR_CONNECTION_CLOSED -37
 
 //! Not yet initialized
-#define CHIRP_ERR_UNINITIALIZED -38
+#define YOGI_ERR_UNINITIALIZED -38
 
 //! @}
 //!
@@ -134,22 +134,22 @@
 //! @{
 
 //! Only log fatal errors.
-#define CHIRP_VB_FATAL 0
+#define YOGI_VB_FATAL 0
 
 //! Log fatal and normal errors.
-#define CHIRP_VB_ERROR 1
+#define YOGI_VB_ERROR 1
 
 //! Log errors and warnings.
-#define CHIRP_VB_WARNING 2
+#define YOGI_VB_WARNING 2
 
 //! Log errors, warnings and additional information.
-#define CHIRP_VB_INFO 3
+#define YOGI_VB_INFO 3
 
 //! Log errors, warnings, additional information and debug messages.
-#define CHIRP_VB_DEBUG 4
+#define YOGI_VB_DEBUG 4
 
 //! Maximum log level; contains information for detailed debugging.
-#define CHIRP_VB_TRACE 5
+#define YOGI_VB_TRACE 5
 
 //! @}
 //!
@@ -164,7 +164,7 @@
 //! Deaf-Mute Terminals are used to indicate if a resource is available in the
 //! virtual network; they cannot be used to transfer data. Bindings are used to
 //! observe whether a resource is available or not.
-#define CHIRP_TM_DEAFMUTE 0
+#define YOGI_TM_DEAFMUTE 0
 
 //! Publish-Subscribe Terminal.
 //!
@@ -172,7 +172,7 @@
 //! publish-subscribe messaging pattern, i.e. a message published via a Terminal
 //! T will be sent to all remote Terminals which have an established Binding
 //! targeting T.
-#define CHIRP_TM_PUBLISHSUBSCRIBE 1
+#define YOGI_TM_PUBLISHSUBSCRIBE 1
 
 //! Scatter-Gather Terminal.
 //!
@@ -183,41 +183,41 @@
 //! the gather phase, the initiating Terminal waits for responses from all
 //! remote Terminals that it sent data to. Once all those responses have been
 //! received, the scatter-gather operation has completed.
-#define CHIRP_TM_SCATTERGATHER 2
+#define YOGI_TM_SCATTERGATHER 2
 
 //! Cached Publish-Subscribe Terminal.
 //!
 //! Cached version of a Publish-Subscribe Terminal, i.e. the Terminal keeps a
 //! copy of the last received message to ensure that, after having been
 //! initialized, it always has a "current value".
-#define CHIRP_TM_CACHEDPUBLISHSUBSCRIBE 3
+#define YOGI_TM_CACHEDPUBLISHSUBSCRIBE 3
 
 //! Producer Terminal.
 //!
 //! A Producer Terminal is a terminal which only publishes messages. Only
 //! Consumer Terminals can be bound to Producer Terminals.
-#define CHIRP_TM_PRODUCER 4
+#define YOGI_TM_PRODUCER 4
 
 //! Consumer Terminal.
 //!
 //! Consumer Terminals receive messages from Producer Terminals. They are
 //! bound automatically to the Producer Terminals with the same name and
 //! signature.
-#define CHIRP_TM_CONSUMER 5
+#define YOGI_TM_CONSUMER 5
 
 //! Cached Producer Terminal.
 //!
 //! Cached version of the Producer Terminal, i.e. the Terminal keeps a copy of
 //! the last sent message to ensure that bound Consumer Terminals always have
 //! a "current value" after having been initialized.
-#define CHIRP_TM_CACHEDPRODUCER 6
+#define YOGI_TM_CACHEDPRODUCER 6
 
 //! Cached Consumer Terminal.
 //!
 //! Cached version of the Consumer Terminal, i.e. the Terminal keeps a copy of
 //! the last received message to ensure that it always has a "current value"
 //! after having been initialized.
-#define CHIRP_TM_CACHEDCONSUMER 7
+#define YOGI_TM_CACHEDCONSUMER 7
 
 //! Master Terminal.
 //!
@@ -225,28 +225,28 @@
 //! that they re-publish any received messages. For example, if a Master
 //! Terminal M has two bound Slave Terminals S1 and S2 and it receives a
 //! message from S1, it will re-publish this message to both S1 and S2.
-#define CHIRP_TM_MASTER 8
+#define YOGI_TM_MASTER 8
 
 //! Slave Terminal.
 //!
 //! A Slave Terminal automatically binds to Master Terminals with the same name
 //! and is used to publish and receive messages. Published messages will be sent
 //! back to the Slave Terminal by all bound Master Terminals.
-#define CHIRP_TM_SLAVE 9
+#define YOGI_TM_SLAVE 9
 
 //! Cached Master Terminal.
 //!
 //! Cached version of the Master Terminal, i.e. the Terminal keeps a copy of the
 //! last received message to ensure that it always has a "current value" after
 //! having been initialized.
-#define CHIRP_TM_CACHEDMASTER 10
+#define YOGI_TM_CACHEDMASTER 10
 
 //! Cached Slave Terminal.
 //!
 //! Cached version of the Slave Terminal, i.e. the Terminal keeps a copy of
 //! the last received message to ensure that it always has a "current value"
 //! after having been initialized.
-#define CHIRP_TM_CACHEDSLAVE 11
+#define YOGI_TM_CACHEDSLAVE 11
 
 //! Service Terminal.
 //!
@@ -254,13 +254,13 @@
 //! only allow listening for incoming requests from Client Terminals. Service
 //! Terminals automatically bind to Client Terminals with the same name and
 //! signature.
-#define CHIRP_TM_SERVICE 12
+#define YOGI_TM_SERVICE 12
 
 //! Client Terminal.
 //!
 //! Client Terminals automatically bind to Service Terminals with the same name
 //! and signature and allow for sending requests and their response.
-#define CHIRP_TM_CLIENT 13
+#define YOGI_TM_CLIENT 13
 
 //! @}
 //!
@@ -271,23 +271,23 @@
 //! @{
 
 //! No flags set.
-#define CHIRP_SG_NOFLAGS 0
+#define YOGI_SG_NOFLAGS 0
 
 //! The scatter-gather operation has finished.
-#define CHIRP_SG_FINISHED (1<<0)
+#define YOGI_SG_FINISHED (1<<0)
 
 //! The remote Terminal has actively ignored the scattered message.
-#define CHIRP_SG_IGNORED (1<<1)
+#define YOGI_SG_IGNORED (1<<1)
 
 //! The remote Terminal has not been listening for scattered messages when it
 //! received the scattered message.
-#define CHIRP_SG_DEAF (1<<2)
+#define YOGI_SG_DEAF (1<<2)
 
 //! The remote Binding has been destroyed.
-#define CHIRP_SG_BINDINGDESTROYED (1<<3)
+#define YOGI_SG_BINDINGDESTROYED (1<<3)
 
 //! The connection between the local and the remote Leaf has been lost.
-#define CHIRP_SG_CONNECTIONLOST (1<<4)
+#define YOGI_SG_CONNECTIONLOST (1<<4)
 
 //! @}
 //!
@@ -297,8 +297,8 @@
 //!
 //! @{
 
-#define CHIRP_DO_CONTINUE 0
-#define CHIRP_DO_STOP 1
+#define YOGI_DO_CONTINUE 0
+#define YOGI_DO_STOP 1
 
 //! @}
 //!
@@ -309,10 +309,10 @@
 //! @{
 
 //! The Binding is released
-#define CHIRP_BD_RELEASED 0
+#define YOGI_BD_RELEASED 0
 
 //! The Binding is established
-#define CHIRP_BD_ESTABLISHED 1
+#define YOGI_BD_ESTABLISHED 1
 
 //! @}
 //!
@@ -323,18 +323,18 @@
 //! @{
 
 //! Not subscribed
-#define CHIRP_SB_UNSUBSCRIBED 0
+#define YOGI_SB_UNSUBSCRIBED 0
 
 //! Subscribed
-#define CHIRP_SB_SUBSCRIBED 1
+#define YOGI_SB_SUBSCRIBED 1
 
 //! @}
 
-#ifndef CHIRP_API
+#ifndef YOGI_API
 #   ifdef _MSC_VER
-#       define CHIRP_API __declspec(dllimport)
+#       define YOGI_API __declspec(dllimport)
 #   else
-#       define CHIRP_API
+#       define YOGI_API
 #   endif
 #endif
 
@@ -353,20 +353,20 @@ extern "C" {
  *
  * @returns Library version string
  ******************************************************************************/
-CHIRP_API const char* CHIRP_GetVersion();
+YOGI_API const char* YOGI_GetVersion();
 
 /***************************************************************************//**
  * Obtains a description of an error code.
  *
- * Use this function to obtain a human readable description of an error code. 
- * The function will always return a valid pointer, even if the error code is 
+ * Use this function to obtain a human readable description of an error code.
+ * The function will always return a valid pointer, even if the error code is
  * not valid. In this case, the description will tell you that.
  *
  * @param[in] errCode The error code (see \ref ERRORCODES)
  *
  * @returns Description of the error code
  ******************************************************************************/
-CHIRP_API const char* CHIRP_GetErrorString(int errCode);
+YOGI_API const char* YOGI_GetErrorString(int errCode);
 
 /***************************************************************************//**
  * Sets the path and verbosity for the log file.
@@ -381,18 +381,18 @@ CHIRP_API const char* CHIRP_GetErrorString(int errCode);
  * @param[in] file      Path to the log file (NULL disables logging)
  * @param[in] verbosity The verbosity of the log file (see \ref VERBOSITY)
  *
- * @returns [=0] #CHIRP_OK if successful
+ * @returns [=0] #YOGI_OK if successful
  * @returns [<0] An error code (see \ref ERRORCODES) in case of a failure
  ******************************************************************************/
-CHIRP_API int CHIRP_SetLogFile(const char* file, int verbosity);
+YOGI_API int YOGI_SetLogFile(const char* file, int verbosity);
 
 /***************************************************************************//**
  * Initialises the DLL.
  *
- * @returns [=0] #CHIRP_OK if successful
+ * @returns [=0] #YOGI_OK if successful
  * @returns [<0] An error code (see \ref ERRORCODES) in case of a failure
  ******************************************************************************/
-CHIRP_API int CHIRP_Initialise();
+YOGI_API int YOGI_Initialise();
 
 /***************************************************************************//**
  * Cancels all active asyncronous operations, destroys all created objects and
@@ -400,47 +400,47 @@ CHIRP_API int CHIRP_Initialise();
  *
  * Before an object is destroyed, any active asynchronous operations will be
  * canceled and the completion handlers will be called with an error code of
- * #CHIRP_ERR_CANCELED.
+ * #YOGI_ERR_CANCELED.
  *
- * @returns [=0] #CHIRP_OK if successful
+ * @returns [=0] #YOGI_OK if successful
  * @returns [<0] An error code (see \ref ERRORCODES) in case of a failure
  ******************************************************************************/
-CHIRP_API int CHIRP_Shutdown();
+YOGI_API int YOGI_Shutdown();
 
 /***************************************************************************//**
  * Destroys an object.
  *
  * Tries to destroy the object with the given \p handle. If any other object
  * depends on this object, destroying it will fail and
- * #CHIRP_ERR_OBJECT_STILL_USED will be returned.
+ * #YOGI_ERR_OBJECT_STILL_USED will be returned.
  *
  * Destroying an object will cause any active asynchronous operations to get
  * canceled and the corresponding completion handlers will be invoked with an
- * error code of #CHIRP_ERR_CANCELED.
+ * error code of #YOGI_ERR_CANCELED.
  *
  * @param[in] object Handle of the object
  *
- * @returns [=0] #CHIRP_OK if successful
+ * @returns [=0] #YOGI_OK if successful
  * @returns [<0] An error code (see \ref ERRORCODES) in case of a failure
  ******************************************************************************/
-CHIRP_API int CHIRP_Destroy(void* object);
+YOGI_API int YOGI_Destroy(void* object);
 
 /***************************************************************************//**
  * Creates a new scheduler.
  *
  * A scheduler manages a thread pool with an arbitrary number of threads. After
  * construction, the pool consists of only a single thread, but the size of the
- * pool can be adjusted at any time via CHIRP_SetSchedulerThreadPoolSize().
+ * pool can be adjusted at any time via YOGI_SetSchedulerThreadPoolSize().
  *
  * The parameter \p scheduler is only set if the operation succeeds. If an error
  * occurs, the parameter will not be altered.
  *
  * @param[out] scheduler Pointer to the scheduler handle
  *
- * @returns [=0] #CHIRP_OK if successful
+ * @returns [=0] #YOGI_OK if successful
  * @returns [<0] An error code (see \ref ERRORCODES) in case of a failure
  ******************************************************************************/
-CHIRP_API int CHIRP_CreateScheduler(void** scheduler);
+YOGI_API int YOGI_CreateScheduler(void** scheduler);
 
 /***************************************************************************//**
  * Sets the number of threads in a scheduler's thread pool.
@@ -448,10 +448,10 @@ CHIRP_API int CHIRP_CreateScheduler(void** scheduler);
  * @param[in] scheduler  Scheduler handle
  * @param[in] numThreads Number of threads
  *
- * @returns [=0] #CHIRP_OK if successful
+ * @returns [=0] #YOGI_OK if successful
  * @returns [<0] An error code (see \ref ERRORCODES) in case of a failure
  ******************************************************************************/
-CHIRP_API int CHIRP_SetSchedulerThreadPoolSize(void* scheduler,
+YOGI_API int YOGI_SetSchedulerThreadPoolSize(void* scheduler,
     unsigned numThreads);
 
 /***************************************************************************//**
@@ -463,10 +463,10 @@ CHIRP_API int CHIRP_SetSchedulerThreadPoolSize(void* scheduler,
  * @param[out] node      Pointer to the Node handle
  * @param[in]  scheduler Scheduler handle
  *
- * @returns [=0] #CHIRP_OK if successful
+ * @returns [=0] #YOGI_OK if successful
  * @returns [<0] An error code (see \ref ERRORCODES) in case of a failure
  ******************************************************************************/
-CHIRP_API int CHIRP_CreateNode(void** node, void* scheduler);
+YOGI_API int YOGI_CreateNode(void** node, void* scheduler);
 
 /***************************************************************************//**
  * Gets descriptions of all terminals known to a node
@@ -482,10 +482,10 @@ CHIRP_API int CHIRP_CreateNode(void** node, void* scheduler);
  * @param[in]  bufferSize   Size of the buffer
  * @param[out] numTerminals Number terminal descriptions written to \p buffer
  *
- * @returns [=0] #CHIRP_OK if successful
+ * @returns [=0] #YOGI_OK if successful
  * @returns [<0] An error code (see \ref ERRORCODES) in case of a failure
  ******************************************************************************/
-CHIRP_API int CHIRP_GetKnownTerminals(void* node, void* buffer,
+YOGI_API int YOGI_GetKnownTerminals(void* node, void* buffer,
     unsigned bufferSize, unsigned* numTerminals);
 
 /***************************************************************************//**
@@ -507,25 +507,25 @@ CHIRP_API int CHIRP_GetKnownTerminals(void* node, void* buffer,
  * @param[in]  handlerFn  Completion handler
  * @param[in]  userArg    User-defined parameter passed to \p handlerFn
  *
- * @returns [=0] #CHIRP_OK if successful
+ * @returns [=0] #YOGI_OK if successful
  * @returns [<0] An error code (see \ref ERRORCODES) in case of a failure
  ******************************************************************************/
-CHIRP_API int CHIRP_AsyncAwaitKnownTerminalsChange(void* node, void* buffer,
+YOGI_API int YOGI_AsyncAwaitKnownTerminalsChange(void* node, void* buffer,
     unsigned bufferSize, void (*handlerFn)(int, void*), void* userArg);
 
 /***************************************************************************//**
- * Cancels an active asynchronous operation started via 
- * CHIRP_AsyncAwaitKnownTerminalsChange().
+ * Cancels an active asynchronous operation started via
+ * YOGI_AsyncAwaitKnownTerminalsChange().
  *
  * This causes the corresponding completion handler to get called with an error
- * code of #CHIRP_ERR_CANCELED.
+ * code of #YOGI_ERR_CANCELED.
  *
  * @param[in] node Node handle
  *
- * @returns [=0] #CHIRP_OK if successful
+ * @returns [=0] #YOGI_OK if successful
  * @returns [<0] An error code (see \ref ERRORCODES) in case of a failure
  ******************************************************************************/
-CHIRP_API int CHIRP_CancelAwaitKnownTerminalsChange(void* node);
+YOGI_API int YOGI_CancelAwaitKnownTerminalsChange(void* node);
 
 /***************************************************************************//**
  * Creates a Leaf.
@@ -537,10 +537,10 @@ CHIRP_API int CHIRP_CancelAwaitKnownTerminalsChange(void* node);
  * @param[out] leaf      Pointer to the Leaf handle
  * @param[in]  scheduler Scheduler handle
  *
- * @returns [=0] #CHIRP_OK if successful
+ * @returns [=0] #YOGI_OK if successful
  * @returns [<0] An error code (see \ref ERRORCODES) in case of a failure
  ******************************************************************************/
-CHIRP_API int CHIRP_CreateLeaf(void** leaf, void* scheduler);
+YOGI_API int YOGI_CreateLeaf(void** leaf, void* scheduler);
 
 /***************************************************************************//**
  * Creates a Terminal.
@@ -548,9 +548,9 @@ CHIRP_API int CHIRP_CreateLeaf(void** leaf, void* scheduler);
  * The type of the Terminal is determined by the value of the \p type parameter.
  * Multiple Terminals may have the same name if and only if they are of
  * different Terminal types. Possible types are:
- *  - #CHIRP_TM_DEAFMUTE
- *  - #CHIRP_TM_PUBLISHSUBSCRIBE
- *  - #CHIRP_TM_SCATTERGATHER
+ *  - #YOGI_TM_DEAFMUTE
+ *  - #YOGI_TM_PUBLISHSUBSCRIBE
+ *  - #YOGI_TM_SCATTERGATHER
  *
  * Each Terminal has a certain user-defined signature which allows the library
  * user to further differentiate Terminal types. Only Terminals with the same
@@ -562,10 +562,10 @@ CHIRP_API int CHIRP_CreateLeaf(void** leaf, void* scheduler);
  * @param[in]  name      Name of the Terminal
  * @param[in]  signature User-defined signature of the Terminal
  *
- * @returns [=0] #CHIRP_OK if successful
+ * @returns [=0] #YOGI_OK if successful
  * @returns [<0] An error code (see \ref ERRORCODES) in case of a failure
  ******************************************************************************/
-CHIRP_API int CHIRP_CreateTerminal(void** terminal, void* leaf, int type, 
+YOGI_API int YOGI_CreateTerminal(void** terminal, void* leaf, int type,
     const char* name, unsigned signature);
 
 /***************************************************************************//**
@@ -578,10 +578,10 @@ CHIRP_API int CHIRP_CreateTerminal(void** terminal, void* leaf, int type,
  * @param[in]  terminal Terminal handle
  * @param[out] state    Pointer to where the state shall be stored
  *
- * @returns [=0] #CHIRP_OK if successful
+ * @returns [=0] #YOGI_OK if successful
  * @returns [<0] An error code (see \ref ERRORCODES) in case of a failure
  ******************************************************************************/
-CHIRP_API int CHIRP_GetSubscriptionState(void* terminal, int* state);
+YOGI_API int YOGI_GetSubscriptionState(void* terminal, int* state);
 
 /***************************************************************************//**
  * Asynchronously queries a Terminal's subscription state.
@@ -591,7 +591,7 @@ CHIRP_API int CHIRP_GetSubscriptionState(void* terminal, int* state);
  *
  * Propagation of the subscription state is blocked during the invokation of
  * \p handlerFn to avoid losing state changes within that time. In order to keep
- * track of future state changes, the CHIRP_AsyncAwaitSubscriptionStateChange()
+ * track of future state changes, the YOGI_AsyncAwaitSubscriptionStateChange()
  * function should be called from within \p handlerFn.
  *
  * The parameters of the completion handler \p handlerFn are:
@@ -603,10 +603,10 @@ CHIRP_API int CHIRP_GetSubscriptionState(void* terminal, int* state);
  * @param[in] handlerFn Completion handler
  * @param[in] userArg   User-defined parameter passed to \p handlerFn
  *
- * @returns [=0] #CHIRP_OK if successful
+ * @returns [=0] #YOGI_OK if successful
  * @returns [<0] An error code (see \ref ERRORCODES) in case of a failure
  ******************************************************************************/
-CHIRP_API int CHIRP_AsyncGetSubscriptionState(void* terminal,
+YOGI_API int YOGI_AsyncGetSubscriptionState(void* terminal,
     void (*handlerFn)(int, int, void*), void* userArg);
 
 /***************************************************************************//**
@@ -629,25 +629,25 @@ CHIRP_API int CHIRP_AsyncGetSubscriptionState(void* terminal,
  * @param[in] handlerFn Completion handler
  * @param[in] userArg   User-defined parameter passed to \p handlerFn
  *
- * @returns [=0] #CHIRP_OK if successful
+ * @returns [=0] #YOGI_OK if successful
  * @returns [<0] An error code (see \ref ERRORCODES) in case of a failure
  ******************************************************************************/
-CHIRP_API int CHIRP_AsyncAwaitSubscriptionStateChange(void* terminal,
+YOGI_API int YOGI_AsyncAwaitSubscriptionStateChange(void* terminal,
     void (*handlerFn)(int, int, void*), void* userArg);
 
 /***************************************************************************//**
- * Cancels an active asynchronous operation started via 
- * CHIRP_AsyncAwaitSubscriptionStateChange().
+ * Cancels an active asynchronous operation started via
+ * YOGI_AsyncAwaitSubscriptionStateChange().
  *
  * This causes the corresponding completion handler to get called with an error
- * code of #CHIRP_ERR_CANCELED.
+ * code of #YOGI_ERR_CANCELED.
  *
  * @param[in] terminal Terminal handle
  *
- * @returns [=0] #CHIRP_OK if successful
+ * @returns [=0] #YOGI_OK if successful
  * @returns [<0] An error code (see \ref ERRORCODES) in case of a failure
  ******************************************************************************/
-CHIRP_API int CHIRP_CancelAwaitSubscriptionStateChange(void* terminal);
+YOGI_API int YOGI_CancelAwaitSubscriptionStateChange(void* terminal);
 
 /***************************************************************************//**
  * Creates a Binding for a local Terminal to one or more remote Terminals.
@@ -656,10 +656,10 @@ CHIRP_API int CHIRP_CancelAwaitSubscriptionStateChange(void* terminal);
  * @param[in]  terminal Handle of the associated local Terminal
  * @param[in]  targets  Name of the target Terminal(s)
  *
- * @returns [=0] #CHIRP_OK if successful
+ * @returns [=0] #YOGI_OK if successful
  * @returns [<0] An error code (see \ref ERRORCODES) in case of a failure
  ******************************************************************************/
-CHIRP_API int CHIRP_CreateBinding(void** binding, void* terminal,
+YOGI_API int YOGI_CreateBinding(void** binding, void* terminal,
     const char* targets);
 
 /***************************************************************************//**
@@ -671,10 +671,10 @@ CHIRP_API int CHIRP_CreateBinding(void** binding, void* terminal,
  * @param[in]  object Binding or Terminal handle
  * @param[out] state  Pointer to where the Binding's state shall be stored
  *
- * @returns [=0] #CHIRP_OK if successful
+ * @returns [=0] #YOGI_OK if successful
  * @returns [<0] An error code (see \ref ERRORCODES) in case of a failure
  ******************************************************************************/
-CHIRP_API int CHIRP_GetBindingState(void* object, int* state);
+YOGI_API int YOGI_GetBindingState(void* object, int* state);
 
 /***************************************************************************//**
  * Asynchronously queries a Binding's state.
@@ -685,7 +685,7 @@ CHIRP_API int CHIRP_GetBindingState(void* object, int* state);
  *
  * Propagation of the Binding's state is blocked during the invokation of
  * \p handlerFn to avoid losing state changes within that time. In order to keep
- * track of future state changes, the CHIRP_AsyncAwaitBindingStateChange()
+ * track of future state changes, the YOGI_AsyncAwaitBindingStateChange()
  * function should be called from within \p handlerFn.
  *
  * The parameters of the completion handler \p handlerFn are:
@@ -697,10 +697,10 @@ CHIRP_API int CHIRP_GetBindingState(void* object, int* state);
  * @param[in] handlerFn Completion handler
  * @param[in] userArg   User-defined parameter passed to \p handlerFn
  *
- * @returns [=0] #CHIRP_OK if successful
+ * @returns [=0] #YOGI_OK if successful
  * @returns [<0] An error code (see \ref ERRORCODES) in case of a failure
  ******************************************************************************/
-CHIRP_API int CHIRP_AsyncGetBindingState(void* binding,
+YOGI_API int YOGI_AsyncGetBindingState(void* binding,
     void (*handlerFn)(int, int, void*), void* userArg);
 
 /***************************************************************************//**
@@ -724,25 +724,25 @@ CHIRP_API int CHIRP_AsyncGetBindingState(void* binding,
  * @param[in] handlerFn Completion handler
  * @param[in] userArg   User-defined parameter passed to \p handlerFn
  *
- * @returns [=0] #CHIRP_OK if successful
+ * @returns [=0] #YOGI_OK if successful
  * @returns [<0] An error code (see \ref ERRORCODES) in case of a failure
  ******************************************************************************/
-CHIRP_API int CHIRP_AsyncAwaitBindingStateChange(void* binding,
+YOGI_API int YOGI_AsyncAwaitBindingStateChange(void* binding,
     void (*handlerFn)(int, int, void*), void* userArg);
 
 /***************************************************************************//**
- * Cancels an active asynchronous operation started via 
- * CHIRP_AsyncAwaitBindingStateChange().
+ * Cancels an active asynchronous operation started via
+ * YOGI_AsyncAwaitBindingStateChange().
  *
  * This causes the corresponding completion handler to get called with an error
- * code of #CHIRP_ERR_CANCELED.
+ * code of #YOGI_ERR_CANCELED.
  *
  * @param[in] binding Binding handle
  *
- * @returns [=0] #CHIRP_OK if successful
+ * @returns [=0] #YOGI_OK if successful
  * @returns [<0] An error code (see \ref ERRORCODES) in case of a failure
  ******************************************************************************/
-CHIRP_API int CHIRP_CancelAwaitBindingStateChange(void* binding);
+YOGI_API int YOGI_CancelAwaitBindingStateChange(void* binding);
 
 /***************************************************************************//**
  * Creates a connection between local Leafs/Nodes.
@@ -757,10 +757,10 @@ CHIRP_API int CHIRP_CancelAwaitBindingStateChange(void* binding);
  * @param[in]  leafNodeA  Handle of the 1st Leaf/Node
  * @param[in]  leafNodeB  Handle of the 2nd Leaf/Node
  *
- * @returns [=0] #CHIRP_OK if successful
+ * @returns [=0] #YOGI_OK if successful
  * @returns [<0] An error code (see \ref ERRORCODES) in case of a failure
  ******************************************************************************/
-CHIRP_API int CHIRP_CreateLocalConnection(void** connection, void* leafNodeA,
+YOGI_API int YOGI_CreateLocalConnection(void** connection, void* leafNodeA,
     void* leafNodeB);
 
 /***************************************************************************//**
@@ -778,10 +778,10 @@ CHIRP_API int CHIRP_CreateLocalConnection(void** connection, void* leafNodeA,
  * @param[in]  ident     Identification data (or NULL)
  * @param[in]  identSize Size of the identification data in bytes
  *
- * @returns [=0] #CHIRP_OK if successful
+ * @returns [=0] #YOGI_OK if successful
  * @returns [<0] An error code (see \ref ERRORCODES) in case of a failure
  ******************************************************************************/
-CHIRP_API int CHIRP_CreateTcpServer(void** tcpServer, void* scheduler,
+YOGI_API int YOGI_CreateTcpServer(void** tcpServer, void* scheduler,
 	const char* address, unsigned port, const void* ident, unsigned identSize);
 
 /***************************************************************************//**
@@ -794,27 +794,27 @@ CHIRP_API int CHIRP_CreateTcpServer(void** tcpServer, void* scheduler,
  *  -# Error code (see \ref ERRORCODES)
  *  -# Handler of the created TCP connection
  *  -# User-defined parameter \p userArg
- * 
+ *
  * @param[in] tcpServer Server handle
  * @param[in] hsTimeout Handshake timeout in milliseconds (-1 for infinity)
  * @param[in] handlerFn Completion handler
  * @param[in] userArg   User-defined parameter passed to \p handlerFn
  *
- * @returns [=0] #CHIRP_OK if successful
+ * @returns [=0] #YOGI_OK if successful
  * @returns [<0] An error code (see \ref ERRORCODES) in case of a failure
  ******************************************************************************/
-CHIRP_API int CHIRP_AsyncTcpAccept(void* tcpServer, int hsTimeout,
+YOGI_API int YOGI_AsyncTcpAccept(void* tcpServer, int hsTimeout,
 	void (*handlerFn)(int, void*, void*), void* userArg);
 
 /***************************************************************************//**
  * Cancels an asynchronous accept operation
- * 
+ *
  * @param[in] tcpServer Server handle
  *
- * @returns [=0] #CHIRP_OK if successful
+ * @returns [=0] #YOGI_OK if successful
  * @returns [<0] An error code (see \ref ERRORCODES) in case of a failure
  ******************************************************************************/
-CHIRP_API int CHIRP_CancelTcpAccept(void* tcpServer);
+YOGI_API int YOGI_CancelTcpAccept(void* tcpServer);
 
 /***************************************************************************//**
  * Creates a TCP client
@@ -829,10 +829,10 @@ CHIRP_API int CHIRP_CancelTcpAccept(void* tcpServer);
  * @param[in]  ident     Identification data (or NULL)
  * @param[in]  identSize Size of the identification data in bytes
  *
- * @returns [=0] #CHIRP_OK if successful
+ * @returns [=0] #YOGI_OK if successful
  * @returns [<0] An error code (see \ref ERRORCODES) in case of a failure
  ******************************************************************************/
-CHIRP_API int CHIRP_CreateTcpClient(void** tcpClient, void* scheduler,
+YOGI_API int YOGI_CreateTcpClient(void** tcpClient, void* scheduler,
 	const void* ident, unsigned identSize);
 
 /***************************************************************************//**
@@ -845,7 +845,7 @@ CHIRP_API int CHIRP_CreateTcpClient(void** tcpClient, void* scheduler,
  *  -# Error code (see \ref ERRORCODES)
  *  -# Handler of the created TCP connection
  *  -# User-defined parameter \p userArg
- * 
+ *
  * @param[in] tcpClient Client handle
  * @param[in] host      Hostname or IPv4/IPv6 address of the remote host
  * @param[in] port      TCP port of the remote host
@@ -853,82 +853,82 @@ CHIRP_API int CHIRP_CreateTcpClient(void** tcpClient, void* scheduler,
  * @param[in] handlerFn Completion handler
  * @param[in] userArg   User-defined parameter passed to \p handlerFn
  *
- * @returns [=0] #CHIRP_OK if successful
+ * @returns [=0] #YOGI_OK if successful
  * @returns [<0] An error code (see \ref ERRORCODES) in case of a failure
  ******************************************************************************/
-CHIRP_API int CHIRP_AsyncTcpConnect(void* tcpClient, const char* host,
+YOGI_API int YOGI_AsyncTcpConnect(void* tcpClient, const char* host,
     unsigned port, int hsTimeout, void (*handlerFn)(int, void*, void*),
     void* userArg);
 
 /***************************************************************************//**
  * Cancels an asynchronous connect operation
- * 
+ *
  * @param[in] tcpClient Client handle
  *
- * @returns [=0] #CHIRP_OK if successful
+ * @returns [=0] #YOGI_OK if successful
  * @returns [<0] An error code (see \ref ERRORCODES) in case of a failure
  ******************************************************************************/
-CHIRP_API int CHIRP_CancelTcpConnect(void* tcpClient);
+YOGI_API int YOGI_CancelTcpConnect(void* tcpClient);
 
 /***************************************************************************//**
  * Gets a human-readable description of a connection
- * 
+ *
  * This function copies up to \p bufferSize - 1 bytes into \p buffer. The string
  * \p buffer will always be null-terminated.
- * 
+ *
  * @param[in] connection Connection handle
  * @param[in] buffer     Buffer to copy the description string into
  * @param[in] bufferSize Size of the buffer
  *
- * @returns [=0] #CHIRP_OK if successful
+ * @returns [=0] #YOGI_OK if successful
  * @returns [<0] An error code (see \ref ERRORCODES) in case of a failure
  ******************************************************************************/
-CHIRP_API int CHIRP_GetConnectionDescription(void* connection, char* buffer,
+YOGI_API int YOGI_GetConnectionDescription(void* connection, char* buffer,
     unsigned bufferSize);
 
 /***************************************************************************//**
- * Gets the CHIRP version that the remote end uses
+ * Gets the YOGI version that the remote end uses
  *
  * This function copies up to \p bufferSize - 1 bytes into \p buffer. The string
  * \p buffer will always be null-terminated.
- * 
+ *
  * @param[in] connection Connection handle
  * @param[in] buffer     Buffer to copy the version string into
  * @param[in] bufferSize Size of the buffer
  *
- * @returns [=0] #CHIRP_OK if successful
+ * @returns [=0] #YOGI_OK if successful
  * @returns [<0] An error code (see \ref ERRORCODES) in case of a failure
  ******************************************************************************/
-CHIRP_API int CHIRP_GetRemoteVersion(void* connection, char* buffer,
+YOGI_API int YOGI_GetRemoteVersion(void* connection, char* buffer,
     unsigned bufferSize);
 
 /***************************************************************************//**
  * Gets the identification received from the remote end
- * 
+ *
  * @param[in]  connection Connection handle
  * @param[out] buffer     Buffer to copy the identification data into
  * @param[in]  bufferSize Size of the buffer
  * @param[out] size       Size of the identification in bytes (may be NULL)
  *
- * @returns [=0] #CHIRP_OK if successful
+ * @returns [=0] #YOGI_OK if successful
  * @returns [<0] An error code (see \ref ERRORCODES) in case of a failure
  ******************************************************************************/
-CHIRP_API int CHIRP_GetRemoteIdentification(void* connection, void* buffer,
+YOGI_API int YOGI_GetRemoteIdentification(void* connection, void* buffer,
     unsigned bufferSize, unsigned* size);
 
 /***************************************************************************//**
  * Assigns a connection to a node or leaf
  *
  * A connection can only be assigned once.
- * 
+ *
  * @param[in] connection Connection handle
  * @param[in] leafNode   Handle of the target leaf or node
  * @param[in] timeout    Timeout of the connection in milliseconds
  *
- * @returns [=0] #CHIRP_OK if successful
+ * @returns [=0] #YOGI_OK if successful
  * @returns [<0] An error code (see \ref ERRORCODES) in case of a failure
  ******************************************************************************/
-CHIRP_API int CHIRP_AssignConnection(void* connection, void* leafNode,
+YOGI_API int YOGI_AssignConnection(void* connection, void* leafNode,
     int timeout);
 
 /***************************************************************************//**
@@ -939,26 +939,26 @@ CHIRP_API int CHIRP_AssignConnection(void* connection, void* leafNode,
  * The parameters of the completion handler \p handlerFn are:
  *  -# Error code (see \ref ERRORCODES)
  *  -# User-defined parameter \p userArg
- * 
+ *
  * @param[in] connection Connection handle
  * @param[in] handlerFn  Completion handler
  * @param[in] userArg    User-defined parameter passed to \p handlerFn
  *
- * @returns [=0] #CHIRP_OK if successful
+ * @returns [=0] #YOGI_OK if successful
  * @returns [<0] An error code (see \ref ERRORCODES) in case of a failure
  ******************************************************************************/
-CHIRP_API int CHIRP_AsyncAwaitConnectionDeath(void* connection,
+YOGI_API int YOGI_AsyncAwaitConnectionDeath(void* connection,
 	void (*handlerFn)(int, void*), void* userArg);
 
 /***************************************************************************//**
  * Cancels an asynchronous await death operation
- * 
+ *
  * @param[in] connection Connection handle
  *
- * @returns [=0] #CHIRP_OK if successful
+ * @returns [=0] #YOGI_OK if successful
  * @returns [<0] An error code (see \ref ERRORCODES) in case of a failure
  ******************************************************************************/
-CHIRP_API int CHIRP_CancelAwaitConnectionDeath(void* connection);
+YOGI_API int YOGI_CancelAwaitConnectionDeath(void* connection);
 
 /***************************************************************************//**
  * Publishes a message on a Publish-Subscribe Terminal.
@@ -970,10 +970,10 @@ CHIRP_API int CHIRP_CancelAwaitConnectionDeath(void* connection);
  * @param[in] buffer     Pointer to the beginning of the data to send
  * @param[in] bufferSize Number of bytes to send
  *
- * @returns [=0] #CHIRP_OK if successful
+ * @returns [=0] #YOGI_OK if successful
  * @returns [<0] An error code (see \ref ERRORCODES) in case of a failure
  ******************************************************************************/
-CHIRP_API int CHIRP_PS_Publish(void* terminal, const void* buffer,
+YOGI_API int YOGI_PS_Publish(void* terminal, const void* buffer,
     unsigned bufferSize);
 
 /***************************************************************************//**
@@ -989,7 +989,7 @@ CHIRP_API int CHIRP_PS_Publish(void* terminal, const void* buffer,
  * The target memory location and maximum size for the message's payload is
  * specified by the parameters \p buffer and \p bufferSize. If the payload of
  * the received message is larger than \p bufferSize, \p handlerFn will be
- * called with an error code of #CHIRP_ERR_BUFFER_TOO_SMALL. However, \p buffer
+ * called with an error code of #YOGI_ERR_BUFFER_TOO_SMALL. However, \p buffer
  * will still be filled with the first \p bufferSize received payload bytes and
  * the size of the received payload parameter will be set to the number of
  * payload bytes in the received message.
@@ -1005,26 +1005,26 @@ CHIRP_API int CHIRP_PS_Publish(void* terminal, const void* buffer,
  * @param[in]  handlerFn  Function to call when the message has been received
  * @param[in]  userArg    User-defined parameter passed to \p handlerFn
  *
- * @returns [=0] #CHIRP_OK if successful
+ * @returns [=0] #YOGI_OK if successful
  * @returns [<0] An error code (see \ref ERRORCODES) in case of a failure
  ******************************************************************************/
-CHIRP_API int CHIRP_PS_AsyncReceiveMessage(void* terminal, void* buffer,
-    unsigned bufferSize, void (*handlerFn)(int, unsigned, void*), 
+YOGI_API int YOGI_PS_AsyncReceiveMessage(void* terminal, void* buffer,
+    unsigned bufferSize, void (*handlerFn)(int, unsigned, void*),
     void* userArg);
 
 /***************************************************************************//**
  * Cancels an active asynchronous receive operation started via
- * CHIRP_PS_AsyncReceiveMessage().
+ * YOGI_PS_AsyncReceiveMessage().
  *
  * This causes the corresponding completion handler to get called with an error
- * code of #CHIRP_ERR_CANCELED.
+ * code of #YOGI_ERR_CANCELED.
  *
  * @param[in] terminal Handle of the Publish-Subscribe Terminal
  *
- * @returns [=0] #CHIRP_OK if successful
+ * @returns [=0] #YOGI_OK if successful
  * @returns [<0] An error code (see \ref ERRORCODES) in case of a failure
  ******************************************************************************/
-CHIRP_API int CHIRP_PS_CancelReceiveMessage(void* terminal);
+YOGI_API int YOGI_PS_CancelReceiveMessage(void* terminal);
 
 /***************************************************************************//**
  * Initiates a Scatter-Gather operation and asynchronously waits for responses
@@ -1037,27 +1037,27 @@ CHIRP_API int CHIRP_PS_CancelReceiveMessage(void* terminal);
  *
  * The parameters of the completion handler \p handlerFn are:
  *  -# Error code (see \ref ERRORCODES)
- *  -# Operation ID returned by CHIRP_SG_AsyncScatterGather()
+ *  -# Operation ID returned by YOGI_SG_AsyncScatterGather()
  *  -# Flags (see \ref SCATGATHFLAGS)
  *  -# Size of the received payload (can be greater than \p gathSize)
  *  -# User-defined parameter \p userArg
- * 
+ *
  * On reception of the data from the very last remote Terminal, the
- * #CHIRP_SG_FINISHED flag will be set.
+ * #YOGI_SG_FINISHED flag will be set.
  *
- * If the completion handler \p handlerFn returns #CHIRP_DO_STOP, the 
+ * If the completion handler \p handlerFn returns #YOGI_DO_STOP, the
  * Scatter-Gather operation will be aborted and \p handlerFn will not be called
- * any more, even if the #CHIRP_SG_FINISHED flag has not been set. In order to
- * continue to receive data, return #CHIRP_DO_CONTINUE.
+ * any more, even if the #YOGI_SG_FINISHED flag has not been set. In order to
+ * continue to receive data, return #YOGI_DO_CONTINUE.
  *
- * If the operation gets canceled via CHIRP_SG_CancelScatterGather(), the
+ * If the operation gets canceled via YOGI_SG_CancelScatterGather(), the
  * \p handlerFn callback function will be called with an error code of
- * #CHIRP_ERR_CANCELED and the #CHIRP_SG_FINISHED flag set.
+ * #YOGI_ERR_CANCELED and the #YOGI_SG_FINISHED flag set.
  *
  * The target memory location and maximum size for the received message's
  * payload is specified by the parameters \p gathBuf and \p gathSize. If the
  * payload of the received message is larger than \p gathSize, the handler
- * function will be called with an error code of #CHIRP_ERR_BUFFER_TOO_SMALL.
+ * function will be called with an error code of #YOGI_ERR_BUFFER_TOO_SMALL.
  * However, \p gathBuf will still be filled with the first \p gathSize received
  * payload bytes and the size of the received payload parameter will be set to
  * the number of payload bytes in the received message.
@@ -1073,37 +1073,37 @@ CHIRP_API int CHIRP_PS_CancelReceiveMessage(void* terminal);
  * @returns [>0] ID of the operation if successful
  * @returns [<0] An error code (see \ref ERRORCODES) in case of a failure
  ******************************************************************************/
-CHIRP_API int CHIRP_SG_AsyncScatterGather(void* terminal, const void* scatBuf,
+YOGI_API int YOGI_SG_AsyncScatterGather(void* terminal, const void* scatBuf,
     unsigned scatSize, void* gathBuf, unsigned gathSize,
     int (*handlerFn)(int, int, int, unsigned, void*), void* userArg);
 
 /***************************************************************************//**
  * Cancels an active asynchronous Scatter-Gather operation started via
- * CHIRP_SG_AsyncScatterGather().
+ * YOGI_SG_AsyncScatterGather().
  *
  * This causes the corresponding completion handler to get called with an error
- * code of #CHIRP_ERR_CANCELED.
+ * code of #YOGI_ERR_CANCELED.
  *
  * @param[in] terminal    Terminal handle
  * @param[in] operationId ID of the Scatter-Gather operation
  *
- * @returns [=0] #CHIRP_OK if successful
+ * @returns [=0] #YOGI_OK if successful
  * @returns [<0] An error code (see \ref ERRORCODES) in case of a failure
  ******************************************************************************/
-CHIRP_API int CHIRP_SG_CancelScatterGather(void* terminal, int operationId);
+YOGI_API int YOGI_SG_CancelScatterGather(void* terminal, int operationId);
 
 /***************************************************************************//**
  * Asynchronously waits for an incoming, scattered message.
  *
  * The completion handler \p handlerFn gets called once the scattered message
  * is received. The user code is responsible for reporting back by calling
- * either CHIRP_SG_RespondToScatteredMessage() or CHIRP_SG_IgnoreScatteredMessage().
+ * either YOGI_SG_RespondToScatteredMessage() or YOGI_SG_IgnoreScatteredMessage().
  * If neither of those functions is called, the Scatter-Gather operation on the
  * scattering Terminal will never finish (unless canceled).
  *
  * If no asynchronous receive operation is running while a scattered message is
  * received, the Leaf will automatically report back to the scattering Terminal
- * with the #CHIRP_SG_DEAF flag set.
+ * with the #YOGI_SG_DEAF flag set.
  *
  * The parameters of the completion handler \p handlerFn are:
  *  -# Error code (see \ref ERRORCODES)
@@ -1114,7 +1114,7 @@ CHIRP_API int CHIRP_SG_CancelScatterGather(void* terminal, int operationId);
  * The target memory location and maximum size for the message's payload is
  * specified by the parameters \p buffer and \p bufferSize. If the payload of
  * the received message is larger than \p bufferSize, the handler function will
- * be called with an error code of #CHIRP_ERR_BUFFER_TOO_SMALL. However, \p
+ * be called with an error code of #YOGI_ERR_BUFFER_TOO_SMALL. However, \p
  * buffer will still be filled with the first \p bufferSize received payload
  * bytes and the size of the received payload parameter will be set to the
  * number of payload bytes in the received message.
@@ -1125,26 +1125,26 @@ CHIRP_API int CHIRP_SG_CancelScatterGather(void* terminal, int operationId);
  * @param[in]  handlerFn  Completion handler
  * @param[in]  userArg    User-defined parameter passed to \p handlerFn
  *
- * @returns [=0] #CHIRP_OK if successful
+ * @returns [=0] #YOGI_OK if successful
  * @returns [<0] An error code (see \ref ERRORCODES) in case of a failure
  ******************************************************************************/
-CHIRP_API int CHIRP_SG_AsyncReceiveScatteredMessage(void* terminal,
+YOGI_API int YOGI_SG_AsyncReceiveScatteredMessage(void* terminal,
     void* buffer, unsigned bufferSize,
     void (*handlerFn)(int, int, unsigned, void*), void* userArg);
 
 /***************************************************************************//**
  * Cancels an active asynchronous receive operation started via
- * CHIRP_SG_AsyncReceiveScatteredMessage().
+ * YOGI_SG_AsyncReceiveScatteredMessage().
  *
  * This causes the corresponding completion handler to get called with an error
- * code of #CHIRP_ERR_CANCELED.
+ * code of #YOGI_ERR_CANCELED.
  *
  * @param[in] terminal Handle of the Scatter-Gather Terminal
  *
- * @returns [=0] #CHIRP_OK if successful
+ * @returns [=0] #YOGI_OK if successful
  * @returns [<0] An error code (see \ref ERRORCODES) in case of a failure
  ******************************************************************************/
-CHIRP_API int CHIRP_SG_CancelReceiveScatteredMessage(void* terminal);
+YOGI_API int YOGI_SG_CancelReceiveScatteredMessage(void* terminal);
 
 /***************************************************************************//**
  * Responds to a received Scatter-Gather request by sending back data.
@@ -1154,24 +1154,24 @@ CHIRP_API int CHIRP_SG_CancelReceiveScatteredMessage(void* terminal);
  * @param[in] buffer      Pointer to the beginning of the data to send
  * @param[in] bufferSize  Number of bytes to send
  *
- * @returns [=0] #CHIRP_OK if successful
+ * @returns [=0] #YOGI_OK if successful
  * @returns [<0] An error code (see \ref ERRORCODES) in case of a failure
  ******************************************************************************/
-CHIRP_API int CHIRP_SG_RespondToScatteredMessage(void* terminal,
+YOGI_API int YOGI_SG_RespondToScatteredMessage(void* terminal,
     int operationId, const void* buffer, unsigned bufferSize);
 
 /***************************************************************************//**
  * Ignores a received Scatter-Gather request.
  *
- * This reports back with the #CHIRP_SG_IGNORED flag set.
+ * This reports back with the #YOGI_SG_IGNORED flag set.
  *
  * @param[in] terminal    Handle of the Scatter-Gather Terminal
  * @param[in] operationId ID of the Scatter-Gather operation
  *
- * @returns [=0] #CHIRP_OK if successful
+ * @returns [=0] #YOGI_OK if successful
  * @returns [<0] An error code (see \ref ERRORCODES) in case of a failure
  ******************************************************************************/
-CHIRP_API int CHIRP_SG_IgnoreScatteredMessage(void* terminal, int operationId);
+YOGI_API int YOGI_SG_IgnoreScatteredMessage(void* terminal, int operationId);
 
 /***************************************************************************//**
  * Publishes a message on a Cached Publish-Subscribe Terminal.
@@ -1183,10 +1183,10 @@ CHIRP_API int CHIRP_SG_IgnoreScatteredMessage(void* terminal, int operationId);
  * @param[in] buffer     Pointer to the beginning of the data to send
  * @param[in] bufferSize Number of bytes to send
  *
- * @returns [=0] #CHIRP_OK if successful
+ * @returns [=0] #YOGI_OK if successful
  * @returns [<0] An error code (see \ref ERRORCODES) in case of a failure
  ******************************************************************************/
-CHIRP_API int CHIRP_CPS_Publish(void* terminal, const void* buffer,
+YOGI_API int YOGI_CPS_Publish(void* terminal, const void* buffer,
     unsigned bufferSize);
 
 /***************************************************************************//**
@@ -1198,10 +1198,10 @@ CHIRP_API int CHIRP_CPS_Publish(void* terminal, const void* buffer,
  * @param[in]  bufferSize   Size of \p buffer in bytes
  * @param[out] bytesWritten Number of bytes written to \p buffer
  *
- * @returns [=0] #CHIRP_OK if successful
+ * @returns [=0] #YOGI_OK if successful
  * @returns [<0] An error code (see \ref ERRORCODES) in case of a failure
  ******************************************************************************/
-CHIRP_API int CHIRP_CPS_GetCachedMessage(void* terminal, void* buffer,
+YOGI_API int YOGI_CPS_GetCachedMessage(void* terminal, void* buffer,
     unsigned bufferSize, unsigned* bytesWritten);
 
 /***************************************************************************//**
@@ -1217,7 +1217,7 @@ CHIRP_API int CHIRP_CPS_GetCachedMessage(void* terminal, void* buffer,
  * The target memory location and maximum size for the message's payload is
  * specified by the parameters \p buffer and \p bufferSize. If the payload of
  * the received message is larger than \p bufferSize, \p handlerFn will be
- * called with an error code of #CHIRP_ERR_BUFFER_TOO_SMALL. However, \p buffer
+ * called with an error code of #YOGI_ERR_BUFFER_TOO_SMALL. However, \p buffer
  * will still be filled with the first \p bufferSize received payload bytes and
  * the size of the received payload parameter will be set to the number of
  * payload bytes in the received message.
@@ -1234,26 +1234,26 @@ CHIRP_API int CHIRP_CPS_GetCachedMessage(void* terminal, void* buffer,
  * @param[in]  handlerFn  Function to call when the message has been received
  * @param[in]  userArg    User-defined parameter passed to \p handlerFn
  *
- * @returns [=0] #CHIRP_OK if successful
+ * @returns [=0] #YOGI_OK if successful
  * @returns [<0] An error code (see \ref ERRORCODES) in case of a failure
  ******************************************************************************/
-CHIRP_API int CHIRP_CPS_AsyncReceiveMessage(void* terminal, void* buffer, 
-    unsigned bufferSize, void (*handlerFn)(int, unsigned, int, void*), 
+YOGI_API int YOGI_CPS_AsyncReceiveMessage(void* terminal, void* buffer,
+    unsigned bufferSize, void (*handlerFn)(int, unsigned, int, void*),
     void* userArg);
 
 /***************************************************************************//**
  * Cancels an active asynchronous receive operation started via
- * CHIRP_AsyncReceiveCachePublishedMessage().
+ * YOGI_AsyncReceiveCachePublishedMessage().
  *
  * This causes the corresponding completion handler to get called with an error
- * code of #CHIRP_ERR_CANCELED.
+ * code of #YOGI_ERR_CANCELED.
  *
  * @param[in] terminal Handle of the Cached Publish-Subscribe Terminal
  *
- * @returns [=0] #CHIRP_OK if successful
+ * @returns [=0] #YOGI_OK if successful
  * @returns [<0] An error code (see \ref ERRORCODES) in case of a failure
  ******************************************************************************/
-CHIRP_API int CHIRP_CPS_CancelReceiveMessage(void* terminal);
+YOGI_API int YOGI_CPS_CancelReceiveMessage(void* terminal);
 
 /***************************************************************************//**
  * Publishes a message on a Producer Terminal.
@@ -1265,10 +1265,10 @@ CHIRP_API int CHIRP_CPS_CancelReceiveMessage(void* terminal);
  * @param[in] buffer     Pointer to the beginning of the data to send
  * @param[in] bufferSize Number of bytes to send
  *
- * @returns [=0] #CHIRP_OK if successful
+ * @returns [=0] #YOGI_OK if successful
  * @returns [<0] An error code (see \ref ERRORCODES) in case of a failure
  ******************************************************************************/
-CHIRP_API int CHIRP_PC_Publish(void* terminal, const void* buffer,
+YOGI_API int YOGI_PC_Publish(void* terminal, const void* buffer,
     unsigned bufferSize);
 
 /***************************************************************************//**
@@ -1283,7 +1283,7 @@ CHIRP_API int CHIRP_PC_Publish(void* terminal, const void* buffer,
  * The target memory location and maximum size for the message's payload is
  * specified by the parameters \p buffer and \p bufferSize. If the payload of
  * the received message is larger than \p bufferSize, \p handlerFn will be
- * called with an error code of #CHIRP_ERR_BUFFER_TOO_SMALL. However, \p buffer
+ * called with an error code of #YOGI_ERR_BUFFER_TOO_SMALL. However, \p buffer
  * will still be filled with the first \p bufferSize received payload bytes and
  * the size of the received payload parameter will be set to the number of
  * payload bytes in the received message.
@@ -1299,26 +1299,26 @@ CHIRP_API int CHIRP_PC_Publish(void* terminal, const void* buffer,
  * @param[in]  handlerFn  Function to call when the message has been received
  * @param[in]  userArg    User-defined parameter passed to \p handlerFn
  *
- * @returns [=0] #CHIRP_OK if successful
+ * @returns [=0] #YOGI_OK if successful
  * @returns [<0] An error code (see \ref ERRORCODES) in case of a failure
  ******************************************************************************/
-CHIRP_API int CHIRP_PC_AsyncReceiveMessage(void* terminal, void* buffer,
-    unsigned bufferSize, void (*handlerFn)(int, unsigned, void*), 
+YOGI_API int YOGI_PC_AsyncReceiveMessage(void* terminal, void* buffer,
+    unsigned bufferSize, void (*handlerFn)(int, unsigned, void*),
     void* userArg);
 
 /***************************************************************************//**
  * Cancels an active asynchronous receive operation started via
- * CHIRP_PC_AsyncReceiveMessage().
+ * YOGI_PC_AsyncReceiveMessage().
  *
  * This causes the corresponding completion handler to get called with an error
- * code of #CHIRP_ERR_CANCELED.
+ * code of #YOGI_ERR_CANCELED.
  *
  * @param[in] terminal Handle of the Consumer Terminal
  *
- * @returns [=0] #CHIRP_OK if successful
+ * @returns [=0] #YOGI_OK if successful
  * @returns [<0] An error code (see \ref ERRORCODES) in case of a failure
  ******************************************************************************/
-CHIRP_API int CHIRP_PC_CancelReceiveMessage(void* terminal);
+YOGI_API int YOGI_PC_CancelReceiveMessage(void* terminal);
 
 /***************************************************************************//**
  * Publishes a message on a Cached Producer-Consumer Terminal.
@@ -1329,10 +1329,10 @@ CHIRP_API int CHIRP_PC_CancelReceiveMessage(void* terminal);
  * @param[in] buffer     Pointer to the beginning of the data to send
  * @param[in] bufferSize Number of bytes to send
  *
- * @returns [=0] #CHIRP_OK if successful
+ * @returns [=0] #YOGI_OK if successful
  * @returns [<0] An error code (see \ref ERRORCODES) in case of a failure
  ******************************************************************************/
-CHIRP_API int CHIRP_CPC_Publish(void* terminal, const void* buffer,
+YOGI_API int YOGI_CPC_Publish(void* terminal, const void* buffer,
     unsigned bufferSize);
 
 /***************************************************************************//**
@@ -1343,10 +1343,10 @@ CHIRP_API int CHIRP_CPC_Publish(void* terminal, const void* buffer,
  * @param[in]  bufferSize   Size of \p buffer in bytes
  * @param[out] bytesWritten Number of bytes written to \p buffer
  *
- * @returns [=0] #CHIRP_OK if successful
+ * @returns [=0] #YOGI_OK if successful
  * @returns [<0] An error code (see \ref ERRORCODES) in case of a failure
  ******************************************************************************/
-CHIRP_API int CHIRP_CPC_GetCachedMessage(void* terminal, void* buffer,
+YOGI_API int YOGI_CPC_GetCachedMessage(void* terminal, void* buffer,
     unsigned bufferSize, unsigned* bytesWritten);
 
 /***************************************************************************//**
@@ -1362,7 +1362,7 @@ CHIRP_API int CHIRP_CPC_GetCachedMessage(void* terminal, void* buffer,
  * The target memory location and maximum size for the message's payload is
  * specified by the parameters \p buffer and \p bufferSize. If the payload of
  * the received message is larger than \p bufferSize, \p handlerFn will be
- * called with an error code of #CHIRP_ERR_BUFFER_TOO_SMALL. However, \p buffer
+ * called with an error code of #YOGI_ERR_BUFFER_TOO_SMALL. However, \p buffer
  * will still be filled with the first \p bufferSize received payload bytes and
  * the size of the received payload parameter will be set to the number of
  * payload bytes in the received message.
@@ -1379,26 +1379,26 @@ CHIRP_API int CHIRP_CPC_GetCachedMessage(void* terminal, void* buffer,
  * @param[in]  handlerFn  Function to call when the message has been received
  * @param[in]  userArg    User-defined parameter passed to \p handlerFn
  *
- * @returns [=0] #CHIRP_OK if successful
+ * @returns [=0] #YOGI_OK if successful
  * @returns [<0] An error code (see \ref ERRORCODES) in case of a failure
  ******************************************************************************/
-CHIRP_API int CHIRP_CPC_AsyncReceiveMessage(void* terminal, void* buffer,
-    unsigned bufferSize, void (*handlerFn)(int, unsigned, int, void*), 
+YOGI_API int YOGI_CPC_AsyncReceiveMessage(void* terminal, void* buffer,
+    unsigned bufferSize, void (*handlerFn)(int, unsigned, int, void*),
     void* userArg);
 
 /***************************************************************************//**
  * Cancels an active asynchronous receive operation started via
- * CHIRP_CPC_AsyncReceiveMessage().
+ * YOGI_CPC_AsyncReceiveMessage().
  *
  * This causes the corresponding completion handler to get called with an error
- * code of #CHIRP_ERR_CANCELED.
+ * code of #YOGI_ERR_CANCELED.
  *
  * @param[in] terminal Handle of the Cached Consumer Terminal
  *
- * @returns [=0] #CHIRP_OK if successful
+ * @returns [=0] #YOGI_OK if successful
  * @returns [<0] An error code (see \ref ERRORCODES) in case of a failure
  ******************************************************************************/
-CHIRP_API int CHIRP_CPC_CancelReceiveMessage(void* terminal);
+YOGI_API int YOGI_CPC_CancelReceiveMessage(void* terminal);
 
 /***************************************************************************//**
  * Publishes a message on a Master or Slave Terminal.
@@ -1411,10 +1411,10 @@ CHIRP_API int CHIRP_CPC_CancelReceiveMessage(void* terminal);
  * @param[in] buffer     Pointer to the beginning of the data to send
  * @param[in] bufferSize Number of bytes to send
  *
- * @returns [=0] #CHIRP_OK if successful
+ * @returns [=0] #YOGI_OK if successful
  * @returns [<0] An error code (see \ref ERRORCODES) in case of a failure
  ******************************************************************************/
-CHIRP_API int CHIRP_MS_Publish(void* terminal, const void* buffer,
+YOGI_API int YOGI_MS_Publish(void* terminal, const void* buffer,
     unsigned bufferSize);
 
 /***************************************************************************//**
@@ -1430,7 +1430,7 @@ CHIRP_API int CHIRP_MS_Publish(void* terminal, const void* buffer,
  * The target memory location and maximum size for the message's payload is
  * specified by the parameters \p buffer and \p bufferSize. If the payload of
  * the received message is larger than \p bufferSize, \p handlerFn will be
- * called with an error code of #CHIRP_ERR_BUFFER_TOO_SMALL. However, \p buffer
+ * called with an error code of #YOGI_ERR_BUFFER_TOO_SMALL. However, \p buffer
  * will still be filled with the first \p bufferSize received payload bytes and
  * the size of the received payload parameter will be set to the number of
  * payload bytes in the received message.
@@ -1446,26 +1446,26 @@ CHIRP_API int CHIRP_MS_Publish(void* terminal, const void* buffer,
  * @param[in]  handlerFn  Function to call when the message has been received
  * @param[in]  userArg    User-defined parameter passed to \p handlerFn
  *
- * @returns [=0] #CHIRP_OK if successful
+ * @returns [=0] #YOGI_OK if successful
  * @returns [<0] An error code (see \ref ERRORCODES) in case of a failure
  ******************************************************************************/
-CHIRP_API int CHIRP_MS_AsyncReceiveMessage(void* terminal, void* buffer,
-    unsigned bufferSize, void (*handlerFn)(int, unsigned, void*), 
+YOGI_API int YOGI_MS_AsyncReceiveMessage(void* terminal, void* buffer,
+    unsigned bufferSize, void (*handlerFn)(int, unsigned, void*),
     void* userArg);
 
 /***************************************************************************//**
  * Cancels an active asynchronous receive operation started via
- * CHIRP_MS_AsyncReceiveMessage().
+ * YOGI_MS_AsyncReceiveMessage().
  *
  * This causes the corresponding completion handler to get called with an error
- * code of #CHIRP_ERR_CANCELED.
+ * code of #YOGI_ERR_CANCELED.
  *
  * @param[in] terminal Handle of the Master or Slave Terminal
  *
- * @returns [=0] #CHIRP_OK if successful
+ * @returns [=0] #YOGI_OK if successful
  * @returns [<0] An error code (see \ref ERRORCODES) in case of a failure
  ******************************************************************************/
-CHIRP_API int CHIRP_MS_CancelReceiveMessage(void* terminal);
+YOGI_API int YOGI_MS_CancelReceiveMessage(void* terminal);
 
 /***************************************************************************//**
  * Publishes a message on a Cached Master or Cached Slave Terminal.
@@ -1479,10 +1479,10 @@ CHIRP_API int CHIRP_MS_CancelReceiveMessage(void* terminal);
  * @param[in] buffer     Pointer to the beginning of the data to send
  * @param[in] bufferSize Number of bytes to send
  *
- * @returns [=0] #CHIRP_OK if successful
+ * @returns [=0] #YOGI_OK if successful
  * @returns [<0] An error code (see \ref ERRORCODES) in case of a failure
  ******************************************************************************/
-CHIRP_API int CHIRP_CMS_Publish(void* terminal, const void* buffer,
+YOGI_API int YOGI_CMS_Publish(void* terminal, const void* buffer,
     unsigned bufferSize);
 
 /***************************************************************************//**
@@ -1494,10 +1494,10 @@ CHIRP_API int CHIRP_CMS_Publish(void* terminal, const void* buffer,
  * @param[in]  bufferSize   Size of \p buffer in bytes
  * @param[out] bytesWritten Number of bytes written to \p buffer
  *
- * @returns [=0] #CHIRP_OK if successful
+ * @returns [=0] #YOGI_OK if successful
  * @returns [<0] An error code (see \ref ERRORCODES) in case of a failure
  ******************************************************************************/
-CHIRP_API int CHIRP_CMS_GetCachedMessage(void* terminal, void* buffer,
+YOGI_API int YOGI_CMS_GetCachedMessage(void* terminal, void* buffer,
     unsigned bufferSize, unsigned* bytesWritten);
 
 /***************************************************************************//**
@@ -1513,7 +1513,7 @@ CHIRP_API int CHIRP_CMS_GetCachedMessage(void* terminal, void* buffer,
  * The target memory location and maximum size for the message's payload is
  * specified by the parameters \p buffer and \p bufferSize. If the payload of
  * the received message is larger than \p bufferSize, \p handlerFn will be
- * called with an error code of #CHIRP_ERR_BUFFER_TOO_SMALL. However, \p buffer
+ * called with an error code of #YOGI_ERR_BUFFER_TOO_SMALL. However, \p buffer
  * will still be filled with the first \p bufferSize received payload bytes and
  * the size of the received payload parameter will be set to the number of
  * payload bytes in the received message.
@@ -1530,57 +1530,57 @@ CHIRP_API int CHIRP_CMS_GetCachedMessage(void* terminal, void* buffer,
  * @param[in]  handlerFn  Function to call when the message has been received
  * @param[in]  userArg    User-defined parameter passed to \p handlerFn
  *
- * @returns [=0] #CHIRP_OK if successful
+ * @returns [=0] #YOGI_OK if successful
  * @returns [<0] An error code (see \ref ERRORCODES) in case of a failure
  ******************************************************************************/
-CHIRP_API int CHIRP_CMS_AsyncReceiveMessage(void* terminal, void* buffer,
-    unsigned bufferSize, void (*handlerFn)(int, unsigned, int, void*), 
+YOGI_API int YOGI_CMS_AsyncReceiveMessage(void* terminal, void* buffer,
+    unsigned bufferSize, void (*handlerFn)(int, unsigned, int, void*),
     void* userArg);
 
 /***************************************************************************//**
  * Cancels an active asynchronous receive operation started via
- * CHIRP_CMS_AsyncReceiveMessage().
+ * YOGI_CMS_AsyncReceiveMessage().
  *
  * This causes the corresponding completion handler to get called with an error
- * code of #CHIRP_ERR_CANCELED.
+ * code of #YOGI_ERR_CANCELED.
  *
  * @param[in] terminal Handle of the Cached Master or Cached Slave Terminal
  *
- * @returns [=0] #CHIRP_OK if successful
+ * @returns [=0] #YOGI_OK if successful
  * @returns [<0] An error code (see \ref ERRORCODES) in case of a failure
  ******************************************************************************/
-CHIRP_API int CHIRP_CMS_CancelReceiveMessage(void* terminal);
+YOGI_API int YOGI_CMS_CancelReceiveMessage(void* terminal);
 
 /***************************************************************************//**
  * Sends a request to the remote Service Terminals and asynchronously waits for
  * them to respond.
- * 
+ *
  * For each response, the completion handler \p handlerFn will be invoked with
  * the data sent back from the corresponding remote Service Terminal.
  *
  * The parameters of the completion handler \p handlerFn are:
  *  -# Error code (see \ref ERRORCODES)
- *  -# Operation ID returned by CHIRP_SC_AsyncRequest()
+ *  -# Operation ID returned by YOGI_SC_AsyncRequest()
  *  -# Flags (see \ref SCATGATHFLAGS)
  *  -# Size of the received payload (can be greater than \p gathSize)
  *  -# User-defined parameter \p userArg
- * 
+ *
  * On reception of the data from the very last remote Terminal, the
- * #CHIRP_SG_FINISHED flag will be set.
+ * #YOGI_SG_FINISHED flag will be set.
  *
- * If the completion handler \p handlerFn returns #CHIRP_DO_STOP, the operation
+ * If the completion handler \p handlerFn returns #YOGI_DO_STOP, the operation
  * will be aborted and \p handlerFn will not be called any more, even if the
- * #CHIRP_SG_FINISHED flag has not been set. In order to continue to receive
- * data, return #CHIRP_DO_CONTINUE.
+ * #YOGI_SG_FINISHED flag has not been set. In order to continue to receive
+ * data, return #YOGI_DO_CONTINUE.
  *
- * If the operation gets canceled via CHIRP_SC_CancelRequest(), the \p handlerFn
- * callback function will be called with an error code of #CHIRP_ERR_CANCELED
- * and the #CHIRP_SG_FINISHED flag set.
+ * If the operation gets canceled via YOGI_SC_CancelRequest(), the \p handlerFn
+ * callback function will be called with an error code of #YOGI_ERR_CANCELED
+ * and the #YOGI_SG_FINISHED flag set.
  *
  * The target memory location and maximum size for the received message's
  * payload is specified by the parameters \p reqBuf and \p reqSize. If the
  * payload of the received message is larger than \p respSize, the handler
- * function will be called with an error code of #CHIRP_ERR_BUFFER_TOO_SMALL.
+ * function will be called with an error code of #YOGI_ERR_BUFFER_TOO_SMALL.
  * However, \p respBuf will still be filled with the first \p respSize received
  * payload bytes and the size of the received payload parameter will be set to
  * the number of payload bytes in the received message.
@@ -1596,37 +1596,37 @@ CHIRP_API int CHIRP_CMS_CancelReceiveMessage(void* terminal);
  * @returns [>0] ID of the operation if successful
  * @returns [<0] An error code (see \ref ERRORCODES) in case of a failure
  ******************************************************************************/
-CHIRP_API int CHIRP_SC_AsyncRequest(void* terminal, const void* reqBuf,
+YOGI_API int YOGI_SC_AsyncRequest(void* terminal, const void* reqBuf,
     unsigned reqSize, void* respBuf, unsigned respSize,
     int (*handlerFn)(int, int, int, unsigned, void*), void* userArg);
 
 /***************************************************************************//**
  * Cancels an active asynchronous request operation started via
- * CHIRP_SC_AsyncRequest().
+ * YOGI_SC_AsyncRequest().
  *
  * This causes the corresponding completion handler to get called with an error
- * code of #CHIRP_ERR_CANCELED.
+ * code of #YOGI_ERR_CANCELED.
  *
  * @param[in] terminal    Handle of the Client Terminal
  * @param[in] operationId ID of the request operation
  *
- * @returns [=0] #CHIRP_OK if successful
+ * @returns [=0] #YOGI_OK if successful
  * @returns [<0] An error code (see \ref ERRORCODES) in case of a failure
  ******************************************************************************/
-CHIRP_API int CHIRP_SC_CancelRequest(void* terminal, int operationId);
+YOGI_API int YOGI_SC_CancelRequest(void* terminal, int operationId);
 
 /***************************************************************************//**
  * Asynchronously waits for an incoming requests.
  *
  * The completion handler \p handlerFn gets called once the request message
  * is received. The user code is responsible for reporting back by calling
- * either CHIRP_SC_RespondToRequest() or CHIRP_SC_IgnoreRequest(). If neither of
+ * either YOGI_SC_RespondToRequest() or YOGI_SC_IgnoreRequest(). If neither of
  * those functions is called, the request operation on the requesting Terminal
  * will never finish (unless canceled).
  *
  * If no asynchronous receive operation is running while a request is received,
  * the Leaf will automatically report back to the requesting Terminal with the
- * #CHIRP_SG_DEAF flag set.
+ * #YOGI_SG_DEAF flag set.
  *
  * The parameters of the completion handler \p handlerFn are:
  *  -# Error code (see \ref ERRORCODES)
@@ -1637,7 +1637,7 @@ CHIRP_API int CHIRP_SC_CancelRequest(void* terminal, int operationId);
  * The target memory location and maximum size for the message's payload is
  * specified by the parameters \p buffer and \p bufferSize. If the payload of
  * the received message is larger than \p bufferSize, the handler function will
- * be called with an error code of #CHIRP_ERR_BUFFER_TOO_SMALL. However, \p
+ * be called with an error code of #YOGI_ERR_BUFFER_TOO_SMALL. However, \p
  * buffer will still be filled with the first \p bufferSize received payload
  * bytes and the size of the received payload parameter will be set to the
  * number of payload bytes in the received message.
@@ -1648,26 +1648,26 @@ CHIRP_API int CHIRP_SC_CancelRequest(void* terminal, int operationId);
  * @param[in]  handlerFn  Completion handler
  * @param[in]  userArg    User-defined parameter passed to \p handlerFn
  *
- * @returns [=0] #CHIRP_OK if successful
+ * @returns [=0] #YOGI_OK if successful
  * @returns [<0] An error code (see \ref ERRORCODES) in case of a failure
  ******************************************************************************/
-CHIRP_API int CHIRP_SC_AsyncReceiveRequest(void* terminal, void* buffer,
+YOGI_API int YOGI_SC_AsyncReceiveRequest(void* terminal, void* buffer,
     unsigned bufferSize, void (*handlerFn)(int, int, unsigned, void*),
     void* userArg);
 
 /***************************************************************************//**
  * Cancels an active asynchronous receive operation started via
- * CHIRP_SC_AsyncReceiveRequest().
+ * YOGI_SC_AsyncReceiveRequest().
  *
  * This causes the corresponding completion handler to get called with an error
- * code of #CHIRP_ERR_CANCELED.
+ * code of #YOGI_ERR_CANCELED.
  *
  * @param[in] terminal Handle of the Service Terminal
  *
- * @returns [=0] #CHIRP_OK if successful
+ * @returns [=0] #YOGI_OK if successful
  * @returns [<0] An error code (see \ref ERRORCODES) in case of a failure
  ******************************************************************************/
-CHIRP_API int CHIRP_SC_CancelReceiveRequest(void* terminal);
+YOGI_API int YOGI_SC_CancelReceiveRequest(void* terminal);
 
 /***************************************************************************//**
  * Responds to a received request by sending back data.
@@ -1677,24 +1677,24 @@ CHIRP_API int CHIRP_SC_CancelReceiveRequest(void* terminal);
  * @param[in] buffer      Pointer to the beginning of the data to send
  * @param[in] bufferSize  Number of bytes to send
  *
- * @returns [=0] #CHIRP_OK if successful
+ * @returns [=0] #YOGI_OK if successful
  * @returns [<0] An error code (see \ref ERRORCODES) in case of a failure
  ******************************************************************************/
-CHIRP_API int CHIRP_SC_RespondToRequest(void* terminal, int operationId,
+YOGI_API int YOGI_SC_RespondToRequest(void* terminal, int operationId,
     const void* buffer, unsigned bufferSize);
 
 /***************************************************************************//**
  * Ignores a received request.
  *
- * This reports back with the #CHIRP_SG_IGNORED flag set.
+ * This reports back with the #YOGI_SG_IGNORED flag set.
  *
  * @param[in] terminal    Handle of the Service Terminal
  * @param[in] operationId ID of the request operation
  *
- * @returns [=0] #CHIRP_OK if successful
+ * @returns [=0] #YOGI_OK if successful
  * @returns [<0] An error code (see \ref ERRORCODES) in case of a failure
  ******************************************************************************/
-CHIRP_API int CHIRP_SC_IgnoreRequest(void* terminal, int operationId);
+YOGI_API int YOGI_SC_IgnoreRequest(void* terminal, int operationId);
 
 //! @}
 
@@ -1702,4 +1702,4 @@ CHIRP_API int CHIRP_SC_IgnoreRequest(void* terminal, int operationId);
 } // extern "C"
 #endif
 
-#endif // CHIRP_H
+#endif // YOGI_H

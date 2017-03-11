@@ -1,5 +1,5 @@
-#ifndef CHIRP_CORE_NODE_HPP
-#define CHIRP_CORE_NODE_HPP
+#ifndef YOGI_CORE_NODE_HPP
+#define YOGI_CORE_NODE_HPP
 
 #include "../config.h"
 #include "../base/AsyncOperation.hpp"
@@ -17,7 +17,7 @@
 #include <mutex>
 
 
-namespace chirp {
+namespace yogi {
 namespace core {
 
 /***************************************************************************//**
@@ -47,7 +47,7 @@ public:
         std::vector<base::Identifier> cachedMasterSlave;
         std::vector<base::Identifier> serviceClient;
     };
-    
+
     struct known_terminal_change_info {
         int              type;
         base::Identifier identifier;
@@ -64,7 +64,7 @@ private:
     std::mutex m_awaitKnownTerminalsChangeOpMutex;
     base::AsyncOperation<await_known_terminals_change_handler_fn>
         m_awaitKnownTerminalsChangeOp;
-    
+
 private:
     void merge_message_handlers(
         const NodeLogicBase::msg_handler_lut_type& others);
@@ -92,6 +92,6 @@ public:
 };
 
 } // namespace core
-} // namespace chirp
+} // namespace yogi
 
-#endif // CHIRP_CORE_NODE_HPP
+#endif // YOGI_CORE_NODE_HPP

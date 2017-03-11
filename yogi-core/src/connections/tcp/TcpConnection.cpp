@@ -1,12 +1,12 @@
 #include "TcpConnection.hpp"
 #include "../../interfaces/INode.hpp"
-#include "../../chirp.h"
+#include "../../yogi_core.h"
 #include "../../serialization/serialize.hpp"
 #include "../../serialization/deserialize.hpp"
 #include "../../serialization/can_deserialize_one.hpp"
 #include "../../messaging/MessageRegister.hpp"
 #include "../../base/AsyncOperation.hpp"
-#include "../../chirp.h"
+#include "../../yogi_core.h"
 
 #include <boost/log/trivial.hpp>
 
@@ -16,7 +16,7 @@
 #include <thread>
 
 
-namespace chirp {
+namespace yogi {
 namespace connections {
 namespace tcp {
 
@@ -44,10 +44,10 @@ void TcpConnection::die(const boost::system::error_code& ec, bool* runningFlag)
         m_alive = false;
 
         if (ec == boost::asio::error::eof) {
-            m_awaitDeathOp.fire<CHIRP_ERR_CONNECTION_CLOSED>();
+            m_awaitDeathOp.fire<YOGI_ERR_CONNECTION_CLOSED>();
         }
         else {
-            m_awaitDeathOp.fire<CHIRP_ERR_SOCKET_BROKEN>();
+            m_awaitDeathOp.fire<YOGI_ERR_SOCKET_BROKEN>();
         }
     }
 
@@ -56,7 +56,7 @@ void TcpConnection::die(const boost::system::error_code& ec, bool* runningFlag)
 
 void TcpConnection::done(bool* runningFlag)
 {
-    CHIRP_ASSERT(*runningFlag);
+    YOGI_ASSERT(*runningFlag);
     *runningFlag = false;
     m_cv.notify_all();
 }
@@ -320,7 +320,7 @@ void TcpConnection::on_timeout(const boost::system::error_code& ec)
             close_socket();
             m_alive = false;
 
-            m_awaitDeathOp.fire<CHIRP_ERR_TIMEOUT>();
+            m_awaitDeathOp.fire<YOGI_ERR_TIMEOUT>();
 
             done(&m_timerRunning);
         }
@@ -346,7 +346,7 @@ void TcpConnection::on_timeout(const boost::system::error_code& ec)
     }
     else {
         if (ec == boost::asio::error::operation_aborted) {
-            m_awaitDeathOp.fire<CHIRP_ERR_CANCELED>();
+            m_awaitDeathOp.fire<YOGI_ERR_CANCELED>();
         }
         else {
             BOOST_LOG_TRIVIAL(error) << m_description << ": Async wait "
@@ -400,7 +400,7 @@ TcpConnection::TcpConnection(interfaces::IScheduler& scheduler,
     , m_heartbeatsSinceLastSend   {0}
 {
     BOOST_LOG_TRIVIAL(info) << "TCP connection to " << m_description
-        << " running CHIRP " << m_remoteVersion << " successfully created";
+        << " running YOGI " << m_remoteVersion << " successfully created";
 }
 
 TcpConnection::~TcpConnection()
@@ -451,15 +451,15 @@ void TcpConnection::assign(interfaces::ICommunicator& communicator,
     std::lock_guard<std::recursive_mutex> lock{m_mutex};
 
     if (m_communicator) {
-        throw api::ExceptionT<CHIRP_ERR_ALREADY_ASSIGNED>{};
+        throw api::ExceptionT<YOGI_ERR_ALREADY_ASSIGNED>{};
     }
 
     if (!m_alive) {
-        throw api::ExceptionT<CHIRP_ERR_CONNECTION_DEAD>{};
+        throw api::ExceptionT<YOGI_ERR_CONNECTION_DEAD>{};
     }
 
     if (timeout.count() / 2 == 0) {
-        throw api::ExceptionT<CHIRP_ERR_INVALID_PARAM>{};
+        throw api::ExceptionT<YOGI_ERR_INVALID_PARAM>{};
     }
 
     if (timeout != timeout.max()) {
@@ -478,7 +478,7 @@ void TcpConnection::async_await_death(error_handler_fn handlerFn)
     std::lock_guard<std::recursive_mutex> lock{m_mutex};
 
     if (!m_alive) {
-        throw api::ExceptionT<CHIRP_ERR_CONNECTION_DEAD>{};
+        throw api::ExceptionT<YOGI_ERR_CONNECTION_DEAD>{};
     }
     else {
         m_awaitDeathOp.arm(handlerFn);
@@ -488,7 +488,7 @@ void TcpConnection::async_await_death(error_handler_fn handlerFn)
 void TcpConnection::cancel_await_death()
 {
     std::lock_guard<std::recursive_mutex> lock{m_mutex};
-    m_awaitDeathOp.fire<CHIRP_ERR_CANCELED>();
+    m_awaitDeathOp.fire<YOGI_ERR_CANCELED>();
 }
 
 void TcpConnection::send(const interfaces::IMessage& msg)
@@ -539,7 +539,7 @@ void TcpConnection::send(const interfaces::IMessage& msg)
 bool TcpConnection::remote_is_node() const
 {
     if (!m_ready) {
-        throw api::ExceptionT<CHIRP_ERR_NOT_READY>{};
+        throw api::ExceptionT<YOGI_ERR_NOT_READY>{};
     }
 
     return m_remoteIsNode;
@@ -562,4 +562,4 @@ const std::vector<char>& TcpConnection::remote_identification() const
 
 } // namespace tcp
 } // namespace connections
-} // namespace chirp
+} // namespace yogi

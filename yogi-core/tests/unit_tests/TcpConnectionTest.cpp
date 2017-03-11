@@ -1,10 +1,10 @@
 #include "../../src/connections/tcp/TcpConnection.hpp"
 #include "../../src/messaging/messages/ScatterGather.hpp"
 #include "../../src/messaging/messages/ServiceClient.hpp"
-using namespace chirp::base;
-using namespace chirp::interfaces;
-using namespace chirp::messaging;
-using namespace chirp::connections::tcp;
+using namespace yogi::base;
+using namespace yogi::interfaces;
+using namespace yogi::messaging;
+using namespace yogi::connections::tcp;
 
 #include "../helpers/Scheduler.hpp"
 #include "../mocks/CommunicatorMock.hpp"
@@ -31,12 +31,12 @@ struct TcpConnectionTest : public testing::Test
         // connect leafConn and nodeConn via IPv6
         boost::asio::ip::tcp::acceptor acceptor{scheduler->io_service(),
             boost::asio::ip::tcp::endpoint{boost::asio::ip::tcp::v6(),
-            CHIRP_DEFAULT_TCP_PORT}};
+            YOGI_DEFAULT_TCP_PORT}};
 
         boost::asio::ip::tcp::socket socketA{scheduler->io_service()};
         socketA.connect(boost::asio::ip::tcp::endpoint(
             boost::asio::ip::address::from_string("::1"),
-            CHIRP_DEFAULT_TCP_PORT));
+            YOGI_DEFAULT_TCP_PORT));
 
         boost::asio::ip::tcp::socket socketB{scheduler->io_service()};
         acceptor.accept(socketB);
@@ -63,7 +63,7 @@ struct TcpConnectionTest : public testing::Test
                 nodeConn->remote_is_node();
                 break;
             }
-            catch (const api::ExceptionT<CHIRP_ERR_NOT_READY>&) {
+            catch (const api::ExceptionT<YOGI_ERR_NOT_READY>&) {
                 std::this_thread::sleep_for(std::chrono::microseconds(100));
             }
         }
@@ -84,7 +84,7 @@ struct TcpConnectionTest : public testing::Test
 
     void wait_for_error(std::atomic<int>* errorCode)
     {
-        while (*errorCode == CHIRP_OK) {
+        while (*errorCode == YOGI_OK) {
             std::this_thread::sleep_for(std::chrono::microseconds{100});
         }
     }
@@ -112,7 +112,7 @@ TEST_F(TcpConnectionTest, Assign)
     nodeConn->assign(*node, std::chrono::milliseconds::max());
 
     EXPECT_THROW(leafConn->assign(*leaf, std::chrono::milliseconds::max()),
-        api::ExceptionT<CHIRP_ERR_ALREADY_ASSIGNED>);
+        api::ExceptionT<YOGI_ERR_ALREADY_ASSIGNED>);
 
     await_connection_ready();
     EXPECT_EQ(true,  leafConn->remote_is_node());
@@ -153,7 +153,7 @@ TEST_F(TcpConnectionTest, AsyncAwaitDeath)
 {
     prepare_and_await_connection_ready();
 
-    std::atomic<int> errorCode{CHIRP_OK};
+    std::atomic<int> errorCode{YOGI_OK};
     nodeConn->async_await_death([&](const api::Exception& e) {
         errorCode = e.error_code();
     });
@@ -161,26 +161,26 @@ TEST_F(TcpConnectionTest, AsyncAwaitDeath)
     EXPECT_CALL(*leaf, on_connection_destroyed(Ref(*leafConn)));
     leafConn.reset();
     wait_for_error(&errorCode);
-    EXPECT_EQ(CHIRP_ERR_CONNECTION_CLOSED, errorCode);
+    EXPECT_EQ(YOGI_ERR_CONNECTION_CLOSED, errorCode);
 }
 
 TEST_F(TcpConnectionTest, CancelAsyncAwaitDeath)
 {
     prepare_and_await_connection_ready();
 
-    std::atomic<int> errorCode{CHIRP_OK};
+    std::atomic<int> errorCode{YOGI_OK};
     nodeConn->async_await_death([&](const api::Exception& e) {
         errorCode = e.error_code();
     });
 
     nodeConn->cancel_await_death();
     wait_for_error(&errorCode);
-    EXPECT_EQ(CHIRP_ERR_CANCELED, errorCode);
+    EXPECT_EQ(YOGI_ERR_CANCELED, errorCode);
 }
 
 TEST_F(TcpConnectionTest, PreStartTimeout)
 {
-    std::atomic<int> errorCode{CHIRP_OK};
+    std::atomic<int> errorCode{YOGI_OK};
     leafConn->async_await_death([&](const api::Exception& e) {
         errorCode = e.error_code();
     });
@@ -189,7 +189,7 @@ TEST_F(TcpConnectionTest, PreStartTimeout)
     leafConn->assign(*leaf, std::chrono::milliseconds{5});
 
     wait_for_error(&errorCode);
-    EXPECT_EQ(CHIRP_ERR_TIMEOUT, errorCode);
+    EXPECT_EQ(YOGI_ERR_TIMEOUT, errorCode);
 }
 
 TEST_F(TcpConnectionTest, HeartbeatTimeout)
@@ -201,12 +201,12 @@ TEST_F(TcpConnectionTest, HeartbeatTimeout)
     EXPECT_CALL(*node, on_connection_started(Ref(*nodeConn)))
         .Times(AnyNumber());
 
-    std::atomic<int> leafErrorCode{CHIRP_OK};
+    std::atomic<int> leafErrorCode{YOGI_OK};
     leafConn->async_await_death([&](const api::Exception& e) {
         leafErrorCode = e.error_code();
     });
 
-    std::atomic<int> nodeErrorCode{CHIRP_OK};
+    std::atomic<int> nodeErrorCode{YOGI_OK};
     nodeConn->async_await_death([&](const api::Exception& e) {
         nodeErrorCode = e.error_code();
     });
@@ -215,8 +215,8 @@ TEST_F(TcpConnectionTest, HeartbeatTimeout)
     nodeConn->assign(*node, std::chrono::milliseconds{10});
 
     wait_for_error(&leafErrorCode);
-    EXPECT_EQ(CHIRP_ERR_CONNECTION_CLOSED, leafErrorCode);
+    EXPECT_EQ(YOGI_ERR_CONNECTION_CLOSED, leafErrorCode);
 
     wait_for_error(&nodeErrorCode);
-    EXPECT_EQ(CHIRP_ERR_TIMEOUT, nodeErrorCode);
+    EXPECT_EQ(YOGI_ERR_TIMEOUT, nodeErrorCode);
 }

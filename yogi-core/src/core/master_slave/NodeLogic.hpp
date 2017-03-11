@@ -1,12 +1,12 @@
-#ifndef CHIRP_CORE_MASTER_SLAVE_NODELOGIC_HPP
-#define CHIRP_CORE_MASTER_SLAVE_NODELOGIC_HPP
+#ifndef YOGI_CORE_MASTER_SLAVE_NODELOGIC_HPP
+#define YOGI_CORE_MASTER_SLAVE_NODELOGIC_HPP
 
 #include "../../config.h"
 #include "../publish_subscribe/NodeLogic.hpp"
 #include "logic_types.hpp"
 
 
-namespace chirp {
+namespace yogi {
 namespace core {
 namespace master_slave {
 
@@ -28,6 +28,6 @@ protected:
 
 } // namespace master_slave
 } // namespace core
-} // namespace chirp
+} // namespace yogi
 
-#endif // CHIRP_CORE_MASTER_SLAVE_NODELOGIC_HPP
+#endif // YOGI_CORE_MASTER_SLAVE_NODELOGIC_HPP

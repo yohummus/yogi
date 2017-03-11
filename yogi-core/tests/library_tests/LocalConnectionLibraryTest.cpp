@@ -14,7 +14,7 @@ struct LocalConnectionLibraryTest : public testing::Test
 
     virtual void SetUp() override
     {
-        ASSERT_EQ(CHIRP_OK, CHIRP_Initialise());
+        ASSERT_EQ(YOGI_OK, YOGI_Initialise());
 
         scheduler = helpers::make_scheduler();
         leafA     = helpers::make_leaf(scheduler);
@@ -24,7 +24,7 @@ struct LocalConnectionLibraryTest : public testing::Test
 
     virtual void TearDown() override
     {
-        ASSERT_EQ(CHIRP_OK, CHIRP_Shutdown());
+        ASSERT_EQ(YOGI_OK, YOGI_Shutdown());
     }
 };
 
@@ -33,16 +33,16 @@ TEST_F(LocalConnectionLibraryTest, ConnectionInformation)
 {
     char buffer[100];
 
-    int res = CHIRP_GetConnectionDescription(conn, buffer, sizeof(buffer));
-    EXPECT_EQ(CHIRP_OK, res);
+    int res = YOGI_GetConnectionDescription(conn, buffer, sizeof(buffer));
+    EXPECT_EQ(YOGI_OK, res);
     EXPECT_STREQ("Local Connection", buffer);
 
-    res = CHIRP_GetRemoteVersion(conn, buffer, sizeof(buffer));
-    EXPECT_EQ(CHIRP_OK, res);
-    EXPECT_STREQ(CHIRP_GetVersion(), buffer);
+    res = YOGI_GetRemoteVersion(conn, buffer, sizeof(buffer));
+    EXPECT_EQ(YOGI_OK, res);
+    EXPECT_STREQ(YOGI_GetVersion(), buffer);
 
     unsigned n;
-    res = CHIRP_GetRemoteIdentification(conn, buffer, sizeof(buffer), &n);
-    EXPECT_EQ(CHIRP_OK, res);
+    res = YOGI_GetRemoteIdentification(conn, buffer, sizeof(buffer), &n);
+    EXPECT_EQ(YOGI_OK, res);
     EXPECT_EQ(0, n);
 }

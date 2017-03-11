@@ -1,5 +1,5 @@
-#ifndef CHIRP_CORE_CACHED_MASTER_SLAVE_LEAFLOGIC_HPP
-#define CHIRP_CORE_CACHED_MASTER_SLAVE_LEAFLOGIC_HPP
+#ifndef YOGI_CORE_CACHED_MASTER_SLAVE_LEAFLOGIC_HPP
+#define YOGI_CORE_CACHED_MASTER_SLAVE_LEAFLOGIC_HPP
 
 #include "../../config.h"
 #include "../cached_publish_subscribe/LeafLogic.hpp"
@@ -7,7 +7,7 @@
 #include "logic_types.hpp"
 
 
-namespace chirp {
+namespace yogi {
 namespace core {
 namespace cached_master_slave{
 
@@ -61,6 +61,6 @@ protected:
 
 } // namespace cached_master_slave
 } // namespace core
-} // namespace chirp
+} // namespace yogi
 
-#endif // CHIRP_CORE_CACHED_MASTER_SLAVE_LEAFLOGIC_HPP
+#endif // YOGI_CORE_CACHED_MASTER_SLAVE_LEAFLOGIC_HPP

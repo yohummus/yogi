@@ -1,7 +1,7 @@
 #include "../../src/connections/tcp/TcpServer.hpp"
-using namespace chirp::api;
-using namespace chirp::interfaces;
-using namespace chirp::connections::tcp;
+using namespace yogi::api;
+using namespace yogi::interfaces;
+using namespace yogi::connections::tcp;
 
 #include "../helpers/Scheduler.hpp"
 
@@ -52,7 +52,7 @@ struct TcpServerTest : public testing::Test
     {
         clientSocket.connect(boost::asio::ip::tcp::endpoint(
             boost::asio::ip::address::from_string(address),
-            CHIRP_DEFAULT_TCP_PORT));
+            YOGI_DEFAULT_TCP_PORT));
     }
 
     void close_client_connection()
@@ -76,16 +76,16 @@ struct TcpServerTest : public testing::Test
     }
 
     std::vector<char> make_version_buffer(std::string version
-        = CHIRP_VERSION)
+        = YOGI_VERSION)
     {
-        std::vector<char> data(CHIRP_VERSION_INFO_SIZE);
+        std::vector<char> data(YOGI_VERSION_INFO_SIZE);
         std::copy(version.begin(), version.end(), data.begin());
         return data;
     }
 
     static std::string make_compatible_version()
     {
-        static std::string version{CHIRP_VERSION};
+        static std::string version{YOGI_VERSION};
         return version.substr(0, version.find_last_of('.')) + ".999";
     }
 
@@ -118,7 +118,7 @@ struct TcpServerTest : public testing::Test
 
     void test_successful_accept(const char* address)
     {
-        TcpServer server(*scheduler, address, CHIRP_DEFAULT_TCP_PORT,
+        TcpServer server(*scheduler, address, YOGI_DEFAULT_TCP_PORT,
             boost::asio::buffer(serverIdentification));
 
         server.async_accept(acceptHandlerFn, std::chrono::milliseconds::max());
@@ -128,7 +128,7 @@ struct TcpServerTest : public testing::Test
         send_identification_from_client("Hello World");
 
         wait_for_handler_called();
-        EXPECT_EQ(CHIRP_OK, handlerErrorCode);
+        EXPECT_EQ(YOGI_OK, handlerErrorCode);
         ASSERT_TRUE(handlerConnection);
         EXPECT_EQ(make_compatible_version(),
             handlerConnection->remote_version());
@@ -150,7 +150,7 @@ TEST_F(TcpServerTest, SuccessfulAcceptIPv6)
 
 TEST_F(TcpServerTest, DataSentToClient)
 {
-    TcpServer server(*scheduler, "::1", CHIRP_DEFAULT_TCP_PORT,
+    TcpServer server(*scheduler, "::1", YOGI_DEFAULT_TCP_PORT,
         boost::asio::buffer(serverIdentification));
 
     server.async_accept(acceptHandlerFn, std::chrono::milliseconds::max());
@@ -169,7 +169,7 @@ TEST_F(TcpServerTest, DataSentToClient)
 
 TEST_F(TcpServerTest, BrokenSocket)
 {
-    TcpServer server(*scheduler, "::1", CHIRP_DEFAULT_TCP_PORT,
+    TcpServer server(*scheduler, "::1", YOGI_DEFAULT_TCP_PORT,
         boost::asio::buffer(serverIdentification));
 
     server.async_accept(acceptHandlerFn, std::chrono::milliseconds::max());
@@ -177,13 +177,13 @@ TEST_F(TcpServerTest, BrokenSocket)
     close_client_connection();
 
     wait_for_handler_called();
-    EXPECT_EQ(CHIRP_ERR_SOCKET_BROKEN, handlerErrorCode);
+    EXPECT_EQ(YOGI_ERR_SOCKET_BROKEN, handlerErrorCode);
     EXPECT_EQ(tcp_connection_ptr{}, handlerConnection);
 }
 
 TEST_F(TcpServerTest, InvalidMagicPrefix)
 {
-    TcpServer server(*scheduler, "::1", CHIRP_DEFAULT_TCP_PORT,
+    TcpServer server(*scheduler, "::1", YOGI_DEFAULT_TCP_PORT,
         boost::asio::buffer(serverIdentification));
 
     server.async_accept(acceptHandlerFn, std::chrono::milliseconds::max());
@@ -191,13 +191,13 @@ TEST_F(TcpServerTest, InvalidMagicPrefix)
     send_from_client(std::vector<char>(10, 'x'));
 
     wait_for_handler_called();
-    EXPECT_EQ(CHIRP_ERR_INVALID_MAGIC_PREFIX, handlerErrorCode);
+    EXPECT_EQ(YOGI_ERR_INVALID_MAGIC_PREFIX, handlerErrorCode);
     EXPECT_EQ(tcp_connection_ptr{}, handlerConnection);
 }
 
 TEST_F(TcpServerTest, IncompatibleVersion)
 {
-    TcpServer server(*scheduler, "::1", CHIRP_DEFAULT_TCP_PORT,
+    TcpServer server(*scheduler, "::1", YOGI_DEFAULT_TCP_PORT,
         boost::asio::buffer(serverIdentification));
 
     server.async_accept(acceptHandlerFn, std::chrono::milliseconds::max());
@@ -206,13 +206,13 @@ TEST_F(TcpServerTest, IncompatibleVersion)
     send_version_from_client("999.999.999");
 
     wait_for_handler_called();
-    EXPECT_EQ(CHIRP_ERR_INCOMPATIBLE_VERSION, handlerErrorCode);
+    EXPECT_EQ(YOGI_ERR_INCOMPATIBLE_VERSION, handlerErrorCode);
     EXPECT_EQ(tcp_connection_ptr{}, handlerConnection);
 }
 
 TEST_F(TcpServerTest, InvalidIdentificationSize)
 {
-    TcpServer server(*scheduler, "::1", CHIRP_DEFAULT_TCP_PORT,
+    TcpServer server(*scheduler, "::1", YOGI_DEFAULT_TCP_PORT,
         boost::asio::buffer(serverIdentification));
 
     server.async_accept(acceptHandlerFn, std::chrono::milliseconds::max());
@@ -220,7 +220,7 @@ TEST_F(TcpServerTest, InvalidIdentificationSize)
     send_magic_prefix_from_client();
     send_version_from_client();
 
-    std::uint32_t size = htonl(CHIRP_MAX_TCP_IDENTIFICATION_SIZE + 1);
+    std::uint32_t size = htonl(YOGI_MAX_TCP_IDENTIFICATION_SIZE + 1);
     send_from_client({
         reinterpret_cast<const char*>(&size)[0],
         reinterpret_cast<const char*>(&size)[1],
@@ -229,39 +229,39 @@ TEST_F(TcpServerTest, InvalidIdentificationSize)
     });
 
     wait_for_handler_called();
-    EXPECT_EQ(CHIRP_ERR_IDENTIFICATION_TOO_LARGE, handlerErrorCode);
+    EXPECT_EQ(YOGI_ERR_IDENTIFICATION_TOO_LARGE, handlerErrorCode);
     EXPECT_EQ(tcp_connection_ptr{}, handlerConnection);
 }
 
 TEST_F(TcpServerTest, ShakeHandsTimeout)
 {
-    TcpServer server(*scheduler, "::1", CHIRP_DEFAULT_TCP_PORT,
+    TcpServer server(*scheduler, "::1", YOGI_DEFAULT_TCP_PORT,
         boost::asio::buffer(serverIdentification));
 
     server.async_accept(acceptHandlerFn, std::chrono::milliseconds{5});
     connect_client();
 
     wait_for_handler_called();
-    EXPECT_EQ(CHIRP_ERR_TIMEOUT, handlerErrorCode);
+    EXPECT_EQ(YOGI_ERR_TIMEOUT, handlerErrorCode);
     EXPECT_EQ(tcp_connection_ptr{}, handlerConnection);
 }
 
 TEST_F(TcpServerTest, CancelWhileAcceptingConnection)
 {
-    TcpServer server(*scheduler, "::1", CHIRP_DEFAULT_TCP_PORT,
+    TcpServer server(*scheduler, "::1", YOGI_DEFAULT_TCP_PORT,
         boost::asio::buffer(serverIdentification));
 
     server.async_accept(acceptHandlerFn, std::chrono::milliseconds::max());
     server.cancel_accept();
 
     wait_for_handler_called();
-    EXPECT_EQ(CHIRP_ERR_CANCELED, handlerErrorCode);
+    EXPECT_EQ(YOGI_ERR_CANCELED, handlerErrorCode);
     EXPECT_EQ(tcp_connection_ptr{}, handlerConnection);
 }
 
 TEST_F(TcpServerTest, CancelWhileShakingHands)
 {
-    TcpServer server(*scheduler, "::1", CHIRP_DEFAULT_TCP_PORT,
+    TcpServer server(*scheduler, "::1", YOGI_DEFAULT_TCP_PORT,
         boost::asio::buffer(serverIdentification));
 
     server.async_accept(acceptHandlerFn, std::chrono::milliseconds::max());
@@ -270,28 +270,28 @@ TEST_F(TcpServerTest, CancelWhileShakingHands)
     server.cancel_accept();
 
     wait_for_handler_called();
-    EXPECT_EQ(CHIRP_ERR_CANCELED, handlerErrorCode);
+    EXPECT_EQ(YOGI_ERR_CANCELED, handlerErrorCode);
     EXPECT_EQ(tcp_connection_ptr{}, handlerConnection);
 }
 
 TEST_F(TcpServerTest, DestructWhileAcceptingConnection)
 {
     {{
-        TcpServer server(*scheduler, "::1", CHIRP_DEFAULT_TCP_PORT,
+        TcpServer server(*scheduler, "::1", YOGI_DEFAULT_TCP_PORT,
             boost::asio::buffer(serverIdentification));
 
         server.async_accept(acceptHandlerFn, std::chrono::milliseconds::max());
     }}
 
     EXPECT_TRUE(handlerCalled);
-    EXPECT_EQ(CHIRP_ERR_CANCELED, handlerErrorCode);
+    EXPECT_EQ(YOGI_ERR_CANCELED, handlerErrorCode);
     EXPECT_EQ(tcp_connection_ptr{}, handlerConnection);
 }
 
 TEST_F(TcpServerTest, DestructWhileShakingHands)
 {
     {{
-        TcpServer server(*scheduler, "::1", CHIRP_DEFAULT_TCP_PORT,
+        TcpServer server(*scheduler, "::1", YOGI_DEFAULT_TCP_PORT,
             boost::asio::buffer(serverIdentification));
 
         server.async_accept(acceptHandlerFn, std::chrono::milliseconds::max());
@@ -300,7 +300,7 @@ TEST_F(TcpServerTest, DestructWhileShakingHands)
     }}
 
     EXPECT_TRUE(handlerCalled);
-    EXPECT_EQ(CHIRP_ERR_CANCELED, handlerErrorCode);
+    EXPECT_EQ(YOGI_ERR_CANCELED, handlerErrorCode);
     EXPECT_EQ(tcp_connection_ptr{}, handlerConnection);
 }
 

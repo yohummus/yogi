@@ -1,8 +1,8 @@
-#ifndef CHIRP_TESTS_MOCKS_SCHEDULERMOCK_HPP
-#define CHIRP_TESTS_MOCKS_SCHEDULERMOCK_HPP
+#ifndef YOGI_TESTS_MOCKS_SCHEDULERMOCK_HPP
+#define YOGI_TESTS_MOCKS_SCHEDULERMOCK_HPP
 
 #include "../../src/interfaces/IScheduler.hpp"
-using namespace chirp;
+using namespace yogi;
 
 #include <gmock/gmock.h>
 using namespace testing;
@@ -27,4 +27,4 @@ struct SchedulerMock : public interfaces::IScheduler
 
 } // namespace mocks
 
-#endif // CHIRP_TESTS_MOCKS_SCHEDULERMOCK_HPP
+#endif // YOGI_TESTS_MOCKS_SCHEDULERMOCK_HPP

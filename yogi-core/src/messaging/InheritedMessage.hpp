@@ -1,11 +1,11 @@
-#ifndef CHIRP_MESSAGING_INHERITEDMESSAGE_HPP
-#define CHIRP_MESSAGING_INHERITEDMESSAGE_HPP
+#ifndef YOGI_MESSAGING_INHERITEDMESSAGE_HPP
+#define YOGI_MESSAGING_INHERITEDMESSAGE_HPP
 
 #include "../config.h"
 #include "Message.hpp"
 
 
-namespace chirp {
+namespace yogi {
 namespace messaging {
 
 template <typename TFinalMessage, typename TInheritedMessage>
@@ -24,13 +24,13 @@ public:
 
 	virtual interfaces::message_ptr clone() const override
 	{
-		CHIRP_ASSERT(dynamic_cast<const TFinalMessage*>(this) != nullptr);
+		YOGI_ASSERT(dynamic_cast<const TFinalMessage*>(this) != nullptr);
 		return std::make_unique<TFinalMessage>(
 			*static_cast<const TFinalMessage*>(this));
 	}
 };
 
 } // namespace messaging
-} // namespace chirp
+} // namespace yogi
 
-#endif // CHIRP_MESSAGING_INHERITEDMESSAGE_HPP
+#endif // YOGI_MESSAGING_INHERITEDMESSAGE_HPP

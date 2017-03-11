@@ -1,12 +1,12 @@
-#ifndef CHIRP_INTERFACES_ILEAF_HPP
-#define CHIRP_INTERFACES_ILEAF_HPP
+#ifndef YOGI_INTERFACES_ILEAF_HPP
+#define YOGI_INTERFACES_ILEAF_HPP
 
 #include "../config.h"
 #include "ICommunicator.hpp"
 #include "IBinding.hpp"
 
 
-namespace chirp {
+namespace yogi {
 namespace interfaces {
 
 /***************************************************************************//**
@@ -23,6 +23,6 @@ struct ILeaf : public ICommunicator
 typedef std::shared_ptr<ILeaf> leaf_ptr;
 
 } // namespace interfaces
-} // namespace chirp
+} // namespace yogi
 
-#endif // CHIRP_INTERFACES_ILEAF_HPP
+#endif // YOGI_INTERFACES_ILEAF_HPP

@@ -1,11 +1,11 @@
-#ifndef CHIRP_CORE_COMMON_PUBLISHSUBSCRIBENODELOGICBASET_HPP
-#define CHIRP_CORE_COMMON_PUBLISHSUBSCRIBENODELOGICBASET_HPP
+#ifndef YOGI_CORE_COMMON_PUBLISHSUBSCRIBENODELOGICBASET_HPP
+#define YOGI_CORE_COMMON_PUBLISHSUBSCRIBENODELOGICBASET_HPP
 
 #include "../../config.h"
 #include "SubscribableNodeLogicBaseT.hpp"
 
 
-namespace chirp {
+namespace yogi {
 namespace core {
 namespace common {
 
@@ -25,7 +25,7 @@ protected:
         super::template add_msg_handler<typename TTypes::Data>(this,
             &PublishSubscribeNodeLogicBaseT::on_message_received);
     }
-    
+
     void on_message_received(typename TTypes::Data&& msg,
         interfaces::IConnection& origin)
     {
@@ -55,8 +55,8 @@ protected:
         for (auto& subscriber : tm.subscribers) {
             auto conn = const_cast<interfaces::IConnection*>(subscriber.first);
             if (conn != &origin) {
-                CHIRP_ASSERT(tm.usingNodes.count(conn));
-                CHIRP_ASSERT(tm.usingNodes.find(conn)->second.is_mapped());
+                YOGI_ASSERT(tm.usingNodes.count(conn));
+                YOGI_ASSERT(tm.usingNodes.find(conn)->second.is_mapped());
                 fwMsg[fields::subscriptionId] = subscriber.second;
                 conn->send(fwMsg);
             }
@@ -66,7 +66,7 @@ protected:
             auto& bd = super::get_binding_info(tm.binding);
             for (auto& owner : bd.owningLeafs) {
                 if (owner.first != &origin) {
-                    CHIRP_ASSERT(owner.second.is_mapped());
+                    YOGI_ASSERT(owner.second.is_mapped());
                     fwMsg[fields::subscriptionId] = owner.second.mapped_id();
                     owner.first->send(fwMsg);
                 }
@@ -77,6 +77,6 @@ protected:
 
 } // namespace common
 } // namespace core
-} // namespace chirp
+} // namespace yogi
 
-#endif // CHIRP_CORE_COMMON_PUBLISHSUBSCRIBENODELOGICBASET_HPP
+#endif // YOGI_CORE_COMMON_PUBLISHSUBSCRIBENODELOGICBASET_HPP

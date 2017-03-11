@@ -1,8 +1,8 @@
 #include "../../src/messaging/MessageRegister.hpp"
-using namespace chirp::messaging;
-using namespace chirp::interfaces;
-using namespace chirp::base;
-using namespace chirp::core;
+using namespace yogi::messaging;
+using namespace yogi::interfaces;
+using namespace yogi::base;
+using namespace yogi::core;
 
 #include <gmock/gmock.h>
 

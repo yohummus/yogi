@@ -1,5 +1,5 @@
-#ifndef CHIRP_CORE_COMMON_PUBLISHSUBSCRIBETERMINALBASET_HPP
-#define CHIRP_CORE_COMMON_PUBLISHSUBSCRIBETERMINALBASET_HPP
+#ifndef YOGI_CORE_COMMON_PUBLISHSUBSCRIBETERMINALBASET_HPP
+#define YOGI_CORE_COMMON_PUBLISHSUBSCRIBETERMINALBASET_HPP
 
 #include "../../config.h"
 #include "../../base/Buffer.hpp"
@@ -12,7 +12,7 @@
 #include <atomic>
 
 
-namespace chirp {
+namespace yogi {
 namespace core {
 
 class Leaf;
@@ -92,7 +92,7 @@ protected:
 public:
     virtual ~PublishSubscribeTerminalBaseT() override
     {
-        helper::template fire_async_operation<CHIRP_ERR_CANCELED>(
+        helper::template fire_async_operation<YOGI_ERR_CANCELED>(
             &m_rcvPublishedMsgOp, 0, false);
         m_rcvPublishedMsgOp.await_idle();
 
@@ -125,7 +125,7 @@ public:
     {
         auto lock = make_lock_guard();
 
-        helper::template fire_async_operation<CHIRP_ERR_CANCELED>(
+        helper::template fire_async_operation<YOGI_ERR_CANCELED>(
             &m_rcvPublishedMsgOp, 0, false);
 
         m_rcvBuffer = boost::asio::mutable_buffers_1{boost::asio::mutable_buffer{}};
@@ -140,11 +140,11 @@ public:
         m_rcvBuffer = boost::asio::mutable_buffers_1{boost::asio::mutable_buffer{}};
 
         if (n == data.size()) {
-            helper::template fire_async_operation<CHIRP_OK>(
+            helper::template fire_async_operation<YOGI_OK>(
                 &m_rcvPublishedMsgOp, data.size(), cached);
         }
         else {
-            helper::template fire_async_operation<CHIRP_ERR_BUFFER_TOO_SMALL>(
+            helper::template fire_async_operation<YOGI_ERR_BUFFER_TOO_SMALL>(
                 &m_rcvPublishedMsgOp, data.size(), cached);
         }
     }
@@ -152,6 +152,6 @@ public:
 
 } // namespace common
 } // namespace core
-} // namespace chirp
+} // namespace yogi
 
-#endif // CHIRP_CORE_COMMON_PUBLISHSUBSCRIBETERMINALBASET_HPP
+#endif // YOGI_CORE_COMMON_PUBLISHSUBSCRIBETERMINALBASET_HPP

@@ -1,5 +1,5 @@
-#ifndef CHIRP_CORE_COMMON_SUBSCRIBABLE_LOGIC_TYPES_HPP
-#define CHIRP_CORE_COMMON_SUBSCRIBABLE_LOGIC_TYPES_HPP
+#ifndef YOGI_CORE_COMMON_SUBSCRIBABLE_LOGIC_TYPES_HPP
+#define YOGI_CORE_COMMON_SUBSCRIBABLE_LOGIC_TYPES_HPP
 
 #include "../../config.h"
 #include "../../interfaces/IConnection.hpp"
@@ -9,7 +9,7 @@
 #include <unordered_map>
 
 
-namespace chirp {
+namespace yogi {
 namespace core {
 namespace common {
 
@@ -29,6 +29,6 @@ struct subscribable_logic_types : public logic_types
 
 } // namespace common
 } // namespace core
-} // namespace chirp
+} // namespace yogi
 
-#endif // CHIRP_CORE_COMMON_SUBSCRIBABLE_LOGIC_TYPES_HPP
+#endif // YOGI_CORE_COMMON_SUBSCRIBABLE_LOGIC_TYPES_HPP

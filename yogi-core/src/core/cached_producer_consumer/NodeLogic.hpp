@@ -1,12 +1,12 @@
-#ifndef CHIRP_CORE_CACHED_PRODUCER_CONSUMER_NODELOGIC_HPP
-#define CHIRP_CORE_CACHED_PRODUCER_CONSUMER_NODELOGIC_HPP
+#ifndef YOGI_CORE_CACHED_PRODUCER_CONSUMER_NODELOGIC_HPP
+#define YOGI_CORE_CACHED_PRODUCER_CONSUMER_NODELOGIC_HPP
 
 #include "../../config.h"
 #include "../cached_publish_subscribe/NodeLogic.hpp"
 #include "logic_types.hpp"
 
 
-namespace chirp {
+namespace yogi {
 namespace core {
 namespace cached_producer_consumer {
 
@@ -28,6 +28,6 @@ protected:
 
 } // namespace cached_producer_consumer
 } // namespace core
-} // namespace chirp
+} // namespace yogi
 
-#endif // CHIRP_CORE_CACHED_PRODUCER_CONSUMER_NODELOGIC_HPP
+#endif // YOGI_CORE_CACHED_PRODUCER_CONSUMER_NODELOGIC_HPP

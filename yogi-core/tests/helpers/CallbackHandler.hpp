@@ -1,7 +1,7 @@
-#ifndef CHIRP_TESTS_HELPERS_CALLBACKHANDLER_HPP
-#define CHIRP_TESTS_HELPERS_CALLBACKHANDLER_HPP
+#ifndef YOGI_TESTS_HELPERS_CALLBACKHANDLER_HPP
+#define YOGI_TESTS_HELPERS_CALLBACKHANDLER_HPP
 
-#include "../../src/chirp.h"
+#include "../../src/yogi_core.h"
 
 #include <mutex>
 #include <condition_variable>
@@ -45,7 +45,7 @@ public:
 
 struct BindingStateCallbackHandler : public CallbackHandler
 {
-    int  lastErrorCode  = CHIRP_OK;
+    int  lastErrorCode  = YOGI_OK;
     int  newState       = -1;
     bool wasReleased    = false;
     bool wasEstablished = false;
@@ -55,8 +55,8 @@ struct BindingStateCallbackHandler : public CallbackHandler
         auto handler = static_cast<BindingStateCallbackHandler*>(userArg);
 
         switch (newState) {
-        case CHIRP_BD_RELEASED:    handler->wasReleased    = true; break;
-        case CHIRP_BD_ESTABLISHED: handler->wasEstablished = true; break;
+        case YOGI_BD_RELEASED:    handler->wasReleased    = true; break;
+        case YOGI_BD_ESTABLISHED: handler->wasEstablished = true; break;
         }
 
         handler->newState      = newState;
@@ -68,7 +68,7 @@ struct BindingStateCallbackHandler : public CallbackHandler
 
 struct SubscriptionStateCallbackHandler : public CallbackHandler
 {
-    int  lastErrorCode   = CHIRP_OK;
+    int  lastErrorCode   = YOGI_OK;
     int  newState        = -1;
     bool wasUnsubscribed = false;
     bool wasSubscribed   = false;
@@ -78,8 +78,8 @@ struct SubscriptionStateCallbackHandler : public CallbackHandler
         auto handler = static_cast<SubscriptionStateCallbackHandler*>(userArg);
 
         switch (newState) {
-        case CHIRP_SB_UNSUBSCRIBED: handler->wasUnsubscribed = true; break;
-        case CHIRP_SB_SUBSCRIBED:   handler->wasSubscribed   = true; break;
+        case YOGI_SB_UNSUBSCRIBED: handler->wasUnsubscribed = true; break;
+        case YOGI_SB_SUBSCRIBED:   handler->wasSubscribed   = true; break;
         }
 
         handler->newState      = newState;
@@ -91,7 +91,7 @@ struct SubscriptionStateCallbackHandler : public CallbackHandler
 
 struct ReceivePublishedMessageHandler : public CallbackHandler
 {
-    int lastErrorCode = CHIRP_OK;
+    int lastErrorCode = YOGI_OK;
     unsigned size     = 0;
     bool cached       = false;
 
@@ -121,9 +121,9 @@ struct ReceivePublishedMessageHandler : public CallbackHandler
 struct ReceiveGatheredMessageHandler : public CallbackHandler
 {
     int returnValue   = 0;
-    int lastErrorCode = CHIRP_OK;
+    int lastErrorCode = YOGI_OK;
     int operationId   = -1;
-    int flags         = CHIRP_SG_NOFLAGS;
+    int flags         = YOGI_SG_NOFLAGS;
     unsigned size     = 0;
 
     static int fn(int errorCode, int operationId, int flags, unsigned size,
@@ -144,7 +144,7 @@ struct ReceiveGatheredMessageHandler : public CallbackHandler
 
 struct ReceiveScatteredMessageHandler : public CallbackHandler
 {
-    int lastErrorCode = CHIRP_OK;
+    int lastErrorCode = YOGI_OK;
     int operationId   = -1;
     unsigned size     = 0;
 
@@ -162,7 +162,7 @@ struct ReceiveScatteredMessageHandler : public CallbackHandler
 
 struct AwaitDeathHandler : public CallbackHandler
 {
-	int lastErrorCode = CHIRP_OK;
+	int lastErrorCode = YOGI_OK;
 
 	static void fn(int errorCode, void* userArg)
 	{
@@ -182,7 +182,7 @@ private:
 	const success_fn successFn;
 
 public:
-	int   lastErrorCode     = CHIRP_OK;
+	int   lastErrorCode     = YOGI_OK;
 	void* lastTcpConnection = nullptr;
 
 	static void fn(int errorCode, void* connection, void* userArg)
@@ -192,7 +192,7 @@ public:
 		handler->lastErrorCode     = errorCode;
 		handler->lastTcpConnection = connection;
 
-		if (errorCode == CHIRP_OK && handler->successFn) {
+		if (errorCode == YOGI_OK && handler->successFn) {
 			handler->successFn(connection);
 		}
 
@@ -213,7 +213,7 @@ private:
 	const success_fn successFn;
 
 public:
-	int   lastErrorCode     = CHIRP_OK;
+	int   lastErrorCode     = YOGI_OK;
 	void* lastTcpConnection = nullptr;
 
 	static void fn(int errorCode, void* connection, void* userArg)
@@ -223,7 +223,7 @@ public:
 		handler->lastErrorCode     = errorCode;
 		handler->lastTcpConnection = connection;
 
-		if (errorCode == CHIRP_OK && handler->successFn) {
+		if (errorCode == YOGI_OK && handler->successFn) {
 			handler->successFn(connection);
 		}
 
@@ -238,7 +238,7 @@ public:
 
 struct AwaitKnownTerminalsChangeHandler : public CallbackHandler
 {
-    int lastErrorCode = CHIRP_OK;
+    int lastErrorCode = YOGI_OK;
 
     static void fn(int errorCode, void* userArg)
     {
@@ -252,4 +252,4 @@ struct AwaitKnownTerminalsChangeHandler : public CallbackHandler
 
 } // namespace helpers
 
-#endif // CHIRP_TESTS_HELPERS_CALLBACKHANDLER_HPP
+#endif // YOGI_TESTS_HELPERS_CALLBACKHANDLER_HPP

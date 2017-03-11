@@ -1,5 +1,5 @@
-#ifndef CHIRP_MESSAGING_MESSAGEREGISTER_HPP
-#define CHIRP_MESSAGING_MESSAGEREGISTER_HPP
+#ifndef YOGI_MESSAGING_MESSAGEREGISTER_HPP
+#define YOGI_MESSAGING_MESSAGEREGISTER_HPP
 
 #include "../config.h"
 #include "../interfaces/ICommunicator.hpp"
@@ -19,7 +19,7 @@
 #include <array>
 
 
-namespace chirp {
+namespace yogi {
 namespace messaging {
 namespace internal_ {
 
@@ -84,8 +84,8 @@ public:
                 ::deserialize_and_forward_message...
         }};
 
-		CHIRP_ASSERT(msgTypeId.valid());
-		CHIRP_ASSERT(msgTypeId.number() <= lut.size());
+		YOGI_ASSERT(msgTypeId.valid());
+		YOGI_ASSERT(msgTypeId.number() <= lut.size());
 		lut[msgTypeId.number() - 1](buffer, start, communicator, origin);
 	}
 };
@@ -258,6 +258,6 @@ InheritedMessage<TFinalMessage, TInheritedMessage>::type_id() const
 }
 
 } // namespace messaging
-} // namespace chirp
+} // namespace yogi
 
-#endif // CHIRP_MESSAGING_MESSAGEREGISTER_HPP
+#endif // YOGI_MESSAGING_MESSAGEREGISTER_HPP

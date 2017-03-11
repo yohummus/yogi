@@ -1,5 +1,5 @@
-#ifndef CHIRP_API_EXCEPTION_HPP
-#define CHIRP_API_EXCEPTION_HPP
+#ifndef YOGI_API_EXCEPTION_HPP
+#define YOGI_API_EXCEPTION_HPP
 
 #include "../config.h"
 
@@ -7,7 +7,7 @@
 #include <unordered_map>
 
 
-namespace chirp {
+namespace yogi {
 namespace api {
 
 /***************************************************************************//**
@@ -18,7 +18,7 @@ class Exception : public std::exception
 public:
     typedef int         error_code_type;
     typedef const char* description_type;
-    
+
 private:
     typedef std::unordered_map<error_code_type, description_type>
         descriptions_map;
@@ -48,6 +48,6 @@ public:
 };
 
 } // namespace api
-} // namespace chirp
+} // namespace yogi
 
-#endif // CHIRP_API_EXCEPTION_HPP
+#endif // YOGI_API_EXCEPTION_HPP

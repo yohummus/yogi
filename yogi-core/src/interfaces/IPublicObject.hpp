@@ -1,12 +1,12 @@
-#ifndef CHIRP_INTERFACES_IPUBLICOBJECT_HPP
-#define CHIRP_INTERFACES_IPUBLICOBJECT_HPP
+#ifndef YOGI_INTERFACES_IPUBLICOBJECT_HPP
+#define YOGI_INTERFACES_IPUBLICOBJECT_HPP
 
 #include "../config.h"
 
 #include <memory>
 
 
-namespace chirp {
+namespace yogi {
 namespace interfaces {
 
 /***************************************************************************//**
@@ -33,6 +33,6 @@ public:
 typedef std::shared_ptr<IPublicObject> public_object_ptr;
 
 } // namespace interfaces
-} // namespace chirp
+} // namespace yogi
 
-#endif // CHIRP_INTERFACES_IPUBLICOBJECT_HPP
+#endif // YOGI_INTERFACES_IPUBLICOBJECT_HPP

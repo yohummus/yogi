@@ -1,5 +1,5 @@
-#ifndef CHIRP_CORE_COMMON_LEAFLOGICBASE_HPP
-#define CHIRP_CORE_COMMON_LEAFLOGICBASE_HPP
+#ifndef YOGI_CORE_COMMON_LEAFLOGICBASE_HPP
+#define YOGI_CORE_COMMON_LEAFLOGICBASE_HPP
 
 #include "../../config.h"
 #include "../../interfaces/IMessage.hpp"
@@ -8,7 +8,7 @@
 #include <vector>
 
 
-namespace chirp {
+namespace yogi {
 namespace core {
 namespace common {
 
@@ -28,6 +28,6 @@ protected:
 
 } // namespace common
 } // namespace core
-} // namespace chirp
+} // namespace yogi
 
-#endif // CHIRP_CORE_COMMON_LEAFLOGICBASE_HPP
+#endif // YOGI_CORE_COMMON_LEAFLOGICBASE_HPP

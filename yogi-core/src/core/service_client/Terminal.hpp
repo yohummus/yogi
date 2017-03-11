@@ -1,12 +1,12 @@
-#ifndef CHIRP_CORE_SERVICE_CLIENT_TERMINAL_HPP
-#define CHIRP_CORE_SERVICE_CLIENT_TERMINAL_HPP
+#ifndef YOGI_CORE_SERVICE_CLIENT_TERMINAL_HPP
+#define YOGI_CORE_SERVICE_CLIENT_TERMINAL_HPP
 
 #include "../../config.h"
 #include "logic_types.hpp"
 #include "../scatter_gather/Terminal.hpp"
 
 
-namespace chirp {
+namespace yogi {
 namespace core {
 
 class Leaf;
@@ -30,6 +30,6 @@ public:
 
 } // namespace service_client
 } // namespace core
-} // namespace chirp
+} // namespace yogi
 
-#endif // CHIRP_CORE_SERVICE_CLIENT_TERMINAL_HPP
+#endif // YOGI_CORE_SERVICE_CLIENT_TERMINAL_HPP

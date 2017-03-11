@@ -1,5 +1,5 @@
-#ifndef CHIRP_CORE_SCATTER_GATHER_LOGIC_TYPES_HPP
-#define CHIRP_CORE_SCATTER_GATHER_LOGIC_TYPES_HPP
+#ifndef YOGI_CORE_SCATTER_GATHER_LOGIC_TYPES_HPP
+#define YOGI_CORE_SCATTER_GATHER_LOGIC_TYPES_HPP
 
 #include "../../config.h"
 #include "../common/subscribable_logic_types.hpp"
@@ -10,7 +10,7 @@
 #include <algorithm>
 
 
-namespace chirp {
+namespace yogi {
 namespace core {
 namespace scatter_gather {
 
@@ -55,6 +55,6 @@ struct logic_types
 
 } // namespace scatter_gather
 } // namespace core
-} // namespace chirp
+} // namespace yogi
 
-#endif // CHIRP_CORE_SCATTER_GATHER_LOGIC_TYPES_HPP
+#endif // YOGI_CORE_SCATTER_GATHER_LOGIC_TYPES_HPP

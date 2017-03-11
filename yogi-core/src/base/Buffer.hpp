@@ -1,5 +1,5 @@
-#ifndef CHIRP_BASE_BUFFER_HPP
-#define CHIRP_BASE_BUFFER_HPP
+#ifndef YOGI_BASE_BUFFER_HPP
+#define YOGI_BASE_BUFFER_HPP
 
 #include "../config.h"
 
@@ -8,7 +8,7 @@
 #include <ostream>
 
 
-namespace chirp {
+namespace yogi {
 namespace base {
 
 /***************************************************************************//**
@@ -31,7 +31,7 @@ public:
     }
 
     Buffer(const void* data, std::size_t size)
-        : m_data(static_cast<const char*>(data), 
+        : m_data(static_cast<const char*>(data),
             static_cast<const char*>(data) + size)
     {
     }
@@ -85,10 +85,10 @@ public:
 };
 
 } // namespace base
-} // namespace chirp
+} // namespace yogi
 
 inline std::ostream& operator<< (std::ostream& os,
-    const chirp::base::Buffer& buf)
+    const yogi::base::Buffer& buf)
 {
     os << "[" << std::hex << std::setw(2) << std::setfill('0');
     for (std::size_t i = 0; i < buf.size(); ++i) {
@@ -102,4 +102,4 @@ inline std::ostream& operator<< (std::ostream& os,
     return os;
 }
 
-#endif // CHIRP_BASE_BUFFER_HPP
+#endif // YOGI_BASE_BUFFER_HPP

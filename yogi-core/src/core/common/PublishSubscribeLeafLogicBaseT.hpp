@@ -1,11 +1,11 @@
-#ifndef CHIRP_CORE_COMMON_PUBLISHSUBSCRIBELEAFLOGICBASET_HPP
-#define CHIRP_CORE_COMMON_PUBLISHSUBSCRIBELEAFLOGICBASET_HPP
+#ifndef YOGI_CORE_COMMON_PUBLISHSUBSCRIBELEAFLOGICBASET_HPP
+#define YOGI_CORE_COMMON_PUBLISHSUBSCRIBELEAFLOGICBASET_HPP
 
 #include "../../config.h"
 #include "SubscribableLeafLogicBaseT.hpp"
 
 
-namespace chirp {
+namespace yogi {
 namespace core {
 namespace common {
 
@@ -78,6 +78,6 @@ public:
 
 } // namespace common
 } // namespace core
-} // namespace chirp
+} // namespace yogi
 
-#endif // CHIRP_CORE_COMMON_PUBLISHSUBSCRIBELEAFLOGICBASET_HPP
+#endif // YOGI_CORE_COMMON_PUBLISHSUBSCRIBELEAFLOGICBASET_HPP

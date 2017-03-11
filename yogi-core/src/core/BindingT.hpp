@@ -1,5 +1,5 @@
-#ifndef CHIRP_CORE_BINDINGT_HPP
-#define CHIRP_CORE_BINDINGT_HPP
+#ifndef YOGI_CORE_BINDINGT_HPP
+#define YOGI_CORE_BINDINGT_HPP
 
 #include "../config.h"
 #include "../base/AsyncOperation.hpp"
@@ -14,7 +14,7 @@
 #include <condition_variable>
 
 
-namespace chirp {
+namespace yogi {
 namespace core {
 
 /***************************************************************************//**
@@ -29,7 +29,7 @@ private:
     interfaces::ITerminal&                            m_terminal;
     const TTerminalPointerType<interfaces::ITerminal> m_terminalPointerStore;
     const base::Identifier                            m_identifier;
-    
+
     base::Id m_groupId;
 
     mutable std::mutex              m_mutex;
@@ -55,7 +55,7 @@ public:
         , m_state{STATE_RELEASED}
         , m_getStateActive{false}
     {
-        CHIRP_ASSERT(dynamic_cast<Leaf*>(&m_terminal.leaf()));
+        YOGI_ASSERT(dynamic_cast<Leaf*>(&m_terminal.leaf()));
         m_groupId = static_cast<Leaf&>(m_terminal.leaf())
             .TLeafLogic::on_new_binding(*this);
     }
@@ -63,8 +63,8 @@ public:
 public:
     virtual ~BindingT() override
     {
-        m_getStateOp        .fire<CHIRP_ERR_CANCELED>(state_t{});
-        m_awaitStateChangeOp.fire<CHIRP_ERR_CANCELED>(state_t{});
+        m_getStateOp        .fire<YOGI_ERR_CANCELED>(state_t{});
+        m_awaitStateChangeOp.fire<YOGI_ERR_CANCELED>(state_t{});
 
         m_getStateOp        .await_idle();
         m_awaitStateChangeOp.await_idle();
@@ -104,7 +104,7 @@ public:
     virtual void async_get_state(handler_fn handlerFn) override
     {
         m_getStateOp.arm(handlerFn);
-        
+
         {{
             std::lock_guard<std::mutex> lock{m_mutex};
             m_getStateActive = true;
@@ -112,7 +112,7 @@ public:
 
         m_scheduler->post([&] {
             std::lock_guard<std::mutex> lock{m_mutex};
-            m_getStateOp.fire<CHIRP_OK>(m_state);
+            m_getStateOp.fire<YOGI_OK>(m_state);
 
             m_getStateActive = false;
             m_cv.notify_all();
@@ -126,7 +126,7 @@ public:
 
     virtual void cancel_await_state_change() override
     {
-        m_awaitStateChangeOp.fire<CHIRP_ERR_CANCELED>(state_t{});
+        m_awaitStateChangeOp.fire<YOGI_ERR_CANCELED>(state_t{});
     }
 
     virtual void publish_state(state_t state) override
@@ -134,11 +134,11 @@ public:
         std::lock_guard<std::mutex> lock{m_mutex};
         m_state = state;
 
-        m_awaitStateChangeOp.fire<CHIRP_OK>(state);
+        m_awaitStateChangeOp.fire<YOGI_OK>(state);
     }
 };
 
 } // namespace core
-} // namespace chirp
+} // namespace yogi
 
-#endif // CHIRP_CORE_BINDINGT_HPP
+#endif // YOGI_CORE_BINDINGT_HPP

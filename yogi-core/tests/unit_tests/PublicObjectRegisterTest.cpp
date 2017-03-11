@@ -1,6 +1,6 @@
 #include "../../src/api/PublicObjectRegister.hpp"
-using namespace chirp::api;
-using namespace chirp::interfaces;
+using namespace yogi::api;
+using namespace yogi::interfaces;
 
 #include <gmock/gmock.h>
 
@@ -43,10 +43,10 @@ TEST_F(PublicObjectRegisterTest, GetSafe)
     EXPECT_EQ(7, obj.age);
 
     EXPECT_THROW(PublicObjectRegister::get_s<Cat>((void*)555),
-        ExceptionT<CHIRP_ERR_INVALID_HANDLE>);
+        ExceptionT<YOGI_ERR_INVALID_HANDLE>);
 
     EXPECT_THROW(PublicObjectRegister::get_s<Dog>(handle),
-        ExceptionT<CHIRP_ERR_WRONG_OBJECT_TYPE>);
+        ExceptionT<YOGI_ERR_WRONG_OBJECT_TYPE>);
 }
 
 TEST_F(PublicObjectRegisterTest, Create)
@@ -58,12 +58,12 @@ TEST_F(PublicObjectRegisterTest, Create)
 TEST_F(PublicObjectRegisterTest, Destroy)
 {
     EXPECT_THROW(PublicObjectRegister::destroy((void*)555),
-        ExceptionT<CHIRP_ERR_INVALID_HANDLE>);
+        ExceptionT<YOGI_ERR_INVALID_HANDLE>);
 
     auto& obj = PublicObjectRegister::get<Cat>(handle);
     auto  ref = obj.shared_from_this();
     EXPECT_THROW(PublicObjectRegister::destroy(handle),
-        ExceptionT<CHIRP_ERR_OBJECT_STILL_USED>);
+        ExceptionT<YOGI_ERR_OBJECT_STILL_USED>);
     ref.reset();
 
     EXPECT_NO_THROW(PublicObjectRegister::destroy(handle));
@@ -74,5 +74,5 @@ TEST_F(PublicObjectRegisterTest, Clear)
     EXPECT_NO_THROW(PublicObjectRegister::clear());
 
     EXPECT_THROW(PublicObjectRegister::get_s<Cat>(handle),
-        ExceptionT<CHIRP_ERR_INVALID_HANDLE>);
+        ExceptionT<YOGI_ERR_INVALID_HANDLE>);
 }

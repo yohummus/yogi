@@ -1,5 +1,5 @@
-#ifndef CHIRP_CONNECTIONS_TCP_TCPCLIENT_HPP
-#define CHIRP_CONNECTIONS_TCP_TCPCLIENT_HPP
+#ifndef YOGI_CONNECTIONS_TCP_TCPCLIENT_HPP
+#define YOGI_CONNECTIONS_TCP_TCPCLIENT_HPP
 
 #include "../../config.h"
 #include "../../interfaces/IScheduler.hpp"
@@ -7,7 +7,7 @@
 #include "TcpConnectionFactory.hpp"
 
 
-namespace chirp {
+namespace yogi {
 namespace connections {
 namespace tcp {
 
@@ -47,7 +47,7 @@ public:
         identification_buffer identification);
     virtual ~TcpClient();
 
-    void async_connect(std::string host, unsigned short port, 
+    void async_connect(std::string host, unsigned short port,
         connect_handler_fn handlerFn,
         std::chrono::milliseconds handShakeTimeout);
     void cancel_connect();
@@ -55,6 +55,6 @@ public:
 
 } // namespace tcp
 } // namespace connections
-} // namespace chirp
+} // namespace yogi
 
-#endif // CHIRP_CONNECTIONS_TCP_TCPCLIENT_HPP
+#endif // YOGI_CONNECTIONS_TCP_TCPCLIENT_HPP

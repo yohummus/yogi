@@ -1,15 +1,15 @@
-#ifndef CHIRP_SERIALIZATION_DESERIALIZE_HPP
-#define CHIRP_SERIALIZATION_DESERIALIZE_HPP
+#ifndef YOGI_SERIALIZATION_DESERIALIZE_HPP
+#define YOGI_SERIALIZATION_DESERIALIZE_HPP
 
 #include "../config.h"
 #include "deserialize_one.hpp"
 
 
-namespace chirp {
+namespace yogi {
 namespace serialization {
 
 template <typename... TValues>
-std::vector<char>::const_iterator deserialize(const std::vector<char>& buffer, 
+std::vector<char>::const_iterator deserialize(const std::vector<char>& buffer,
     std::vector<char>::const_iterator start, TValues&... values)
 {
     // nasty trick to call deserialize_one() for every field
@@ -18,6 +18,6 @@ std::vector<char>::const_iterator deserialize(const std::vector<char>& buffer,
 }
 
 } // namespace serialization
-} // namespace chirp
+} // namespace yogi
 
-#endif // CHIRP_SERIALIZATION_DESERIALIZE_HPP
+#endif // YOGI_SERIALIZATION_DESERIALIZE_HPP

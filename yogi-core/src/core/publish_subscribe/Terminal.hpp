@@ -1,5 +1,5 @@
-#ifndef CHIRP_CORE_PUBLISH_SUBSCRIBE_TERMINAL_HPP
-#define CHIRP_CORE_PUBLISH_SUBSCRIBE_TERMINAL_HPP
+#ifndef YOGI_CORE_PUBLISH_SUBSCRIBE_TERMINAL_HPP
+#define YOGI_CORE_PUBLISH_SUBSCRIBE_TERMINAL_HPP
 
 #include "../../config.h"
 #include "../../base/Buffer.hpp"
@@ -13,7 +13,7 @@
 #include <atomic>
 
 
-namespace chirp {
+namespace yogi {
 namespace core {
 
 class Leaf;
@@ -41,6 +41,6 @@ public:
 
 } // namespace publish_subscribe
 } // namespace core
-} // namespace chirp
+} // namespace yogi
 
-#endif // CHIRP_CORE_PUBLISH_SUBSCRIBE_TERMINAL_HPP
+#endif // YOGI_CORE_PUBLISH_SUBSCRIBE_TERMINAL_HPP

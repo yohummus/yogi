@@ -1,5 +1,5 @@
-#ifndef CHIRP_INTERFACES_ISCHEDULER_HPP
-#define CHIRP_INTERFACES_ISCHEDULER_HPP
+#ifndef YOGI_INTERFACES_ISCHEDULER_HPP
+#define YOGI_INTERFACES_ISCHEDULER_HPP
 
 #include "../config.h"
 #include "IPublicObject.hpp"
@@ -7,7 +7,7 @@
 #include <boost/asio/io_service.hpp>
 
 
-namespace chirp {
+namespace yogi {
 namespace interfaces {
 
 /***************************************************************************//**
@@ -36,6 +36,6 @@ struct IScheduler : virtual public IPublicObject
 typedef std::shared_ptr<IScheduler> scheduler_ptr;
 
 } // namespace interfaces
-} // namespace chirp
+} // namespace yogi
 
-#endif // CHIRP_INTERFACES_ISCHEDULER_HPP
+#endif // YOGI_INTERFACES_ISCHEDULER_HPP

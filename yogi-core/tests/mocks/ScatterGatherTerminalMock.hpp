@@ -1,8 +1,8 @@
-#ifndef CHIRP_TESTS_MOCKS_SCATTERGATHERTERMINALMOCK_HPP
-#define CHIRP_TESTS_MOCKS_SCATTERGATHERTERMINALMOCK_HPP
+#ifndef YOGI_TESTS_MOCKS_SCATTERGATHERTERMINALMOCK_HPP
+#define YOGI_TESTS_MOCKS_SCATTERGATHERTERMINALMOCK_HPP
 
 #include "../../src/core/scatter_gather/Terminal.hpp"
-using namespace chirp;
+using namespace yogi;
 
 #include <gmock/gmock.h>
 using namespace testing;
@@ -42,4 +42,4 @@ struct ScatterGatherTerminalMock
 
 } // namespace mocks
 
-#endif // CHIRP_TESTS_MOCKS_SCATTERGATHERTERMINALMOCK_HPP
+#endif // YOGI_TESTS_MOCKS_SCATTERGATHERTERMINALMOCK_HPP

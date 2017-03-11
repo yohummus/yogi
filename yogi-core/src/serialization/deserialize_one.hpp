@@ -1,5 +1,5 @@
-#ifndef CHIRP_SERIALIZATION_DESERIALIZE_ONE_HPP
-#define CHIRP_SERIALIZATION_DESERIALIZE_ONE_HPP
+#ifndef YOGI_SERIALIZATION_DESERIALIZE_ONE_HPP
+#define YOGI_SERIALIZATION_DESERIALIZE_ONE_HPP
 
 #include "../config.h"
 #include "../base/Id.hpp"
@@ -10,7 +10,7 @@
 #include <vector>
 
 
-namespace chirp {
+namespace yogi {
 namespace serialization {
 
 template <typename T>
@@ -62,13 +62,13 @@ inline void deserialize_one<base::Identifier>(const std::vector<char>& buffer,
 
     bool hidden;
     deserialize_one(buffer, it, hidden);
-    
+
     std::size_t nameSize;
     deserialize_one(buffer, it, nameSize);
 
     base::Identifier::name_type name;
-    CHIRP_ASSERT(std::distance(it, buffer.end()) >= 0);
-    CHIRP_ASSERT(static_cast<std::size_t>(std::distance(it, buffer.end()))
+    YOGI_ASSERT(std::distance(it, buffer.end()) >= 0);
+    YOGI_ASSERT(static_cast<std::size_t>(std::distance(it, buffer.end()))
         >= nameSize);
     name.assign(it, it + nameSize);
     it += nameSize;
@@ -83,8 +83,8 @@ inline void deserialize_one<base::Buffer>(const std::vector<char>& buffer,
     std::size_t size;
     deserialize_one(buffer, it, size);
 
-    CHIRP_ASSERT(std::distance(it, buffer.end()) >= 0);
-    CHIRP_ASSERT(static_cast<std::size_t>(std::distance(it, buffer.end()))
+    YOGI_ASSERT(std::distance(it, buffer.end()) >= 0);
+    YOGI_ASSERT(static_cast<std::size_t>(std::distance(it, buffer.end()))
         >= size);
     value = base::Buffer{it, it + size};
     it += size;
@@ -100,6 +100,6 @@ inline void deserialize_one<core::scatter_gather::gather_flags>(
 }
 
 } // namespace serialization
-} // namespace chirp
+} // namespace yogi
 
-#endif // CHIRP_SERIALIZATION_DESERIALIZE_ONE_HPP
+#endif // YOGI_SERIALIZATION_DESERIALIZE_ONE_HPP

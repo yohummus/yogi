@@ -1,5 +1,5 @@
-#ifndef CHIRP_MESSAGING_FIELDS_FIELDS_HPP
-#define CHIRP_MESSAGING_FIELDS_FIELDS_HPP
+#ifndef YOGI_MESSAGING_FIELDS_FIELDS_HPP
+#define YOGI_MESSAGING_FIELDS_FIELDS_HPP
 
 #include "../../config.h"
 #include "../../base/Id.hpp"
@@ -8,7 +8,7 @@
 #include "../../core/scatter_gather/gather_flags.hpp"
 
 
-namespace chirp {
+namespace yogi {
 namespace messaging {
 namespace fields {
 
@@ -59,6 +59,6 @@ static struct GatherFlags {
 
 } // namespace fields
 } // namespace messaging
-} // namespace chirp
+} // namespace yogi
 
-#endif // CHIRP_MESSAGING_FIELDS_FIELDS_HPP
+#endif // YOGI_MESSAGING_FIELDS_FIELDS_HPP

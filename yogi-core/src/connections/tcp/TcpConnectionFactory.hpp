@@ -1,5 +1,5 @@
-#ifndef CHIRP_CONNECTIONS_TCP_TCPCONNECTIONFACTORY_HPP
-#define CHIRP_CONNECTIONS_TCP_TCPCONNECTIONFACTORY_HPP
+#ifndef YOGI_CONNECTIONS_TCP_TCPCONNECTIONFACTORY_HPP
+#define YOGI_CONNECTIONS_TCP_TCPCONNECTIONFACTORY_HPP
 
 #include "../../config.h"
 #include "../../interfaces/IScheduler.hpp"
@@ -14,7 +14,7 @@
 #include <memory>
 
 
-namespace chirp {
+namespace yogi {
 namespace connections {
 namespace tcp {
 
@@ -83,6 +83,6 @@ protected:
 
 } // namespace tcp
 } // namespace connections
-} // namespace chirp
+} // namespace yogi
 
-#endif // CHIRP_CONNECTIONS_TCP_TCPCONNECTIONFACTORY_HPP
+#endif // YOGI_CONNECTIONS_TCP_TCPCONNECTIONFACTORY_HPP

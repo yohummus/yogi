@@ -1,5 +1,5 @@
 #include "../../src/scheduling/MultiThreadedScheduler.hpp"
-using namespace chirp::scheduling;
+using namespace yogi::scheduling;
 
 #include <gmock/gmock.h>
 
@@ -49,7 +49,7 @@ struct MultiThreadedSchedulerTest : public testing::Test
 
 TEST_F(MultiThreadedSchedulerTest, DefaultThreadPoolSize)
 {
-    check_parallel_tasks(CHIRP_DEFAULT_SCHEDULER_THREAD_POOL_SIZE);
+    check_parallel_tasks(YOGI_DEFAULT_SCHEDULER_THREAD_POOL_SIZE);
 }
 
 TEST_F(MultiThreadedSchedulerTest, ResizeThreadPool)

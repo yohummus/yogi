@@ -1,12 +1,12 @@
-#ifndef CHIRP_CORE_DEAF_MUTE_NODELOGIC_HPP
-#define CHIRP_CORE_DEAF_MUTE_NODELOGIC_HPP
+#ifndef YOGI_CORE_DEAF_MUTE_NODELOGIC_HPP
+#define YOGI_CORE_DEAF_MUTE_NODELOGIC_HPP
 
 #include "../../config.h"
 #include "../common/NodeLogicBaseT.hpp"
 #include "logic_types.hpp"
 
 
-namespace chirp {
+namespace yogi {
 namespace core {
 namespace deaf_mute {
 
@@ -28,6 +28,6 @@ protected:
 
 } // namespace deaf_mute
 } // namespace core
-} // namespace chirp
+} // namespace yogi
 
-#endif // CHIRP_CORE_DEAF_MUTE_NODELOGIC_HPP
+#endif // YOGI_CORE_DEAF_MUTE_NODELOGIC_HPP

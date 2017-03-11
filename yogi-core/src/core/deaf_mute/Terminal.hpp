@@ -1,12 +1,12 @@
-#ifndef CHIRP_CORE_DEAF_MUTE_TERMINAL_HPP
-#define CHIRP_CORE_DEAF_MUTE_TERMINAL_HPP
+#ifndef YOGI_CORE_DEAF_MUTE_TERMINAL_HPP
+#define YOGI_CORE_DEAF_MUTE_TERMINAL_HPP
 
 #include "../../config.h"
 #include "logic_types.hpp"
 #include "../common/TerminalBaseT.hpp"
 
 
-namespace chirp {
+namespace yogi {
 namespace core {
 
 class Leaf;
@@ -48,6 +48,6 @@ public:
 
 } // namespace deaf_mute
 } // namespace core
-} // namespace chirp
+} // namespace yogi
 
-#endif // CHIRP_CORE_DEAF_MUTE_TERMINAL_HPP
+#endif // YOGI_CORE_DEAF_MUTE_TERMINAL_HPP

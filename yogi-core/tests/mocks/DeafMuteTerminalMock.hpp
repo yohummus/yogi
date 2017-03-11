@@ -1,8 +1,8 @@
-#ifndef CHIRP_TESTS_MOCKS_DEAFMUTETERMINALMOCK_HPP
-#define CHIRP_TESTS_MOCKS_DEAFMUTETERMINALMOCK_HPP
+#ifndef YOGI_TESTS_MOCKS_DEAFMUTETERMINALMOCK_HPP
+#define YOGI_TESTS_MOCKS_DEAFMUTETERMINALMOCK_HPP
 
 #include "../../src/core/deaf_mute/Terminal.hpp"
-using namespace chirp;
+using namespace yogi;
 
 #include <gmock/gmock.h>
 using namespace testing;
@@ -20,4 +20,4 @@ struct DeafMuteTerminalMock : public core::deaf_mute::Terminal<>
 
 } // namespace mocks
 
-#endif // CHIRP_TESTS_MOCKS_DEAFMUTETERMINALMOCK_HPP
+#endif // YOGI_TESTS_MOCKS_DEAFMUTETERMINALMOCK_HPP

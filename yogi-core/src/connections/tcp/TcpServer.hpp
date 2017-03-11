@@ -1,5 +1,5 @@
-#ifndef CHIRP_CONNECTIONS_TCP_TCPSERVER_HPP
-#define CHIRP_CONNECTIONS_TCP_TCPSERVER_HPP
+#ifndef YOGI_CONNECTIONS_TCP_TCPSERVER_HPP
+#define YOGI_CONNECTIONS_TCP_TCPSERVER_HPP
 
 #include "../../config.h"
 #include "../../interfaces/IScheduler.hpp"
@@ -12,7 +12,7 @@
 #include <unordered_map>
 
 
-namespace chirp {
+namespace yogi {
 namespace connections {
 namespace tcp {
 
@@ -60,6 +60,6 @@ public:
 
 } // namespace tcp
 } // namespace connections
-} // namespace chirp
+} // namespace yogi
 
-#endif // CHIRP_CONNECTIONS_TCP_TCPSERVER_HPP
+#endif // YOGI_CONNECTIONS_TCP_TCPSERVER_HPP

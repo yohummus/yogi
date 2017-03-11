@@ -1,5 +1,5 @@
-#ifndef CHIRP_TESTS_SCHEDULER_HPP
-#define CHIRP_TESTS_SCHEDULER_HPP
+#ifndef YOGI_TESTS_SCHEDULER_HPP
+#define YOGI_TESTS_SCHEDULER_HPP
 
 #include "../../src/interfaces/IScheduler.hpp"
 
@@ -10,7 +10,7 @@
 
 namespace helpers {
 
-class Scheduler : public chirp::interfaces::IScheduler
+class Scheduler : public yogi::interfaces::IScheduler
 {
 private:
     boost::asio::io_service       m_ioService;
@@ -40,4 +40,4 @@ public:
 
 } // namespace helpers
 
-#endif // CHIRP_TESTS_SCHEDULER_HPP
+#endif // YOGI_TESTS_SCHEDULER_HPP

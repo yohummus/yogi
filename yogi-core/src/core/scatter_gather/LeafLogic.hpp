@@ -1,5 +1,5 @@
-#ifndef CHIRP_CORE_SCATTER_GATHER_LEAFLOGIC_HPP
-#define CHIRP_CORE_SCATTER_GATHER_LEAFLOGIC_HPP
+#ifndef YOGI_CORE_SCATTER_GATHER_LEAFLOGIC_HPP
+#define YOGI_CORE_SCATTER_GATHER_LEAFLOGIC_HPP
 
 #include "../../config.h"
 #include "../common/SubscribableLeafLogicBaseT.hpp"
@@ -7,7 +7,7 @@
 #include "logic_types.hpp"
 
 
-namespace chirp {
+namespace yogi {
 namespace core {
 namespace scatter_gather {
 
@@ -31,7 +31,7 @@ private:
         const typename TMultiMap::key_type& key,
         const typename TMultiMap::mapped_type& value)
     {
-        CHIRP_ASSERT(map->count(key));
+        YOGI_ASSERT(map->count(key));
 
         auto range = map->equal_range(key);
         auto it = std::find_if(range.first, range.second,
@@ -40,7 +40,7 @@ private:
             }
         );
 
-        CHIRP_ASSERT(it != range.second);
+        YOGI_ASSERT(it != range.second);
         map->erase(it);
     }
 
@@ -50,8 +50,8 @@ private:
             auto& bd = super::get_binding_info(entry.second);
             erase_from_multimap(&m_gatherOperations, entry.first, tm.terminal);
 
-            CHIRP_ASSERT(bd.ext.gatherOperations.count(entry.first));
-            erase_from_multimap(&bd.ext.gatherOperations, entry.first, 
+            YOGI_ASSERT(bd.ext.gatherOperations.count(entry.first));
+            erase_from_multimap(&bd.ext.gatherOperations, entry.first,
                 tm.terminal->id());
         }
     }
@@ -72,9 +72,9 @@ protected:
 
         auto& bd = super::get_binding_info(msg[fields::subscriptionId]);
 
-        //CHIRP_ASSERT(bd.established || bd.fsm.destroyed()); TODO
-        CHIRP_ASSERT(!m_gatherOperations.count(msg[fields::operationId]));
-        CHIRP_ASSERT(!bd.ext.gatherOperations.count(msg[fields::operationId]));
+        //YOGI_ASSERT(bd.established || bd.fsm.destroyed()); TODO
+        YOGI_ASSERT(!m_gatherOperations.count(msg[fields::operationId]));
+        YOGI_ASSERT(!bd.ext.gatherOperations.count(msg[fields::operationId]));
 
         if (!bd.established) {
             return;
@@ -84,7 +84,7 @@ protected:
             auto& tm = super::get_terminal_info(binding->terminal().id());
 
             // store gather operation in leaf
-            m_gatherOperations.insert(std::make_pair(msg[fields::operationId], 
+            m_gatherOperations.insert(std::make_pair(msg[fields::operationId],
                 tm.terminal));
 
             // store gather operation in binding group
@@ -115,11 +115,11 @@ protected:
             if (abort) {
                 auto& tm = super::get_terminal_info(terminal->id());
 
-                CHIRP_ASSERT(tm.ext.scatterOperations.count(
+                YOGI_ASSERT(tm.ext.scatterOperations.count(
 					msg[fields::operationId]));
                 tm.ext.scatterOperations.erase(msg[fields::operationId]);
 
-                CHIRP_ASSERT(m_scatterOperations.count(
+                YOGI_ASSERT(m_scatterOperations.count(
 					msg[fields::operationId]));
                 m_scatterOperations[msg[fields::operationId]] = nullptr;
 
@@ -131,11 +131,11 @@ protected:
             if (terminal) {
                 auto& tm = super::get_terminal_info(terminal->id());
 
-                CHIRP_ASSERT(tm.ext.scatterOperations.count(
+                YOGI_ASSERT(tm.ext.scatterOperations.count(
 					msg[fields::operationId]));
                 tm.ext.scatterOperations.erase(msg[fields::operationId]);
             }
-            
+
             m_scatterOperations.erase(msg[fields::operationId]);
         }
     }
@@ -145,7 +145,7 @@ protected:
     {
         // cleanup scatter operations
         for (auto& operationId : tm.ext.scatterOperations) {
-            CHIRP_ASSERT(m_scatterOperations.count(operationId));
+            YOGI_ASSERT(m_scatterOperations.count(operationId));
             m_scatterOperations[operationId] = nullptr;
         }
 
@@ -160,7 +160,7 @@ protected:
         super::on_terminal_mapping_changed(isMapped, tm);
 
         if (!tm.ext.scatterOperations.empty()) {
-            CHIRP_ASSERT(!super::connected() || !isMapped);
+            YOGI_ASSERT(!super::connected() || !isMapped);
 
             gather_flags flags = super::connected() ? GATHER_BINDINGDESTROYED :
                 GATHER_CONNECTIONLOST;
@@ -169,7 +169,7 @@ protected:
                 tm.terminal->on_gathered_message_received(operationId,
                     flags | GATHER_FINISHED, base::Buffer{});
 
-                CHIRP_ASSERT(m_scatterOperations.count(operationId));
+                YOGI_ASSERT(m_scatterOperations.count(operationId));
                 m_scatterOperations.erase(operationId);
             }
 
@@ -188,11 +188,11 @@ protected:
         super::on_binding_group_mapping_changed(isMapped, bd);
 
         if (!bd.ext.gatherOperations.empty()) {
-            CHIRP_ASSERT(!super::connected() || !isMapped);
+            YOGI_ASSERT(!super::connected() || !isMapped);
 
             for (auto& entry : bd.ext.gatherOperations) {
                 auto& tm = super::get_terminal_info(entry.second);
-                CHIRP_ASSERT(tm.ext.gatherOperations.count(entry.first));
+                YOGI_ASSERT(tm.ext.gatherOperations.count(entry.first));
                 tm.ext.gatherOperations.erase(entry.first);
 
                 erase_from_multimap(&m_gatherOperations, entry.first,
@@ -211,7 +211,7 @@ protected:
         auto it = std::begin(bd.ext.gatherOperations);
         while (it != std::end(bd.ext.gatherOperations)) {
             auto& tm = super::get_terminal_info(it->second);
-            CHIRP_ASSERT(tm.ext.gatherOperations.count(it->first));
+            YOGI_ASSERT(tm.ext.gatherOperations.count(it->first));
 
             if (tm.terminal->id() == binding.terminal().id()) {
                 tm.ext.gatherOperations.erase(it->first);
@@ -248,7 +248,7 @@ public:
 
         auto& info = super::get_terminal_info(terminal.id());
         if (!info.subscribed) {
-            throw api::ExceptionT<CHIRP_ERR_NOT_BOUND>{};
+            throw api::ExceptionT<YOGI_ERR_NOT_BOUND>{};
         }
 
         base::Id id;
@@ -256,7 +256,7 @@ public:
         try {
             id = m_scatterOperations.insert(&terminal);
 
-            CHIRP_ASSERT(!info.ext.scatterOperations.count(id));
+            YOGI_ASSERT(!info.ext.scatterOperations.count(id));
             info.ext.scatterOperations.insert(id);
         }
         catch (...) {
@@ -283,10 +283,10 @@ public:
         auto& info = super::get_terminal_info(terminal.id());
 
         if (!info.ext.scatterOperations.erase(operationId)) {
-            throw api::ExceptionT<CHIRP_ERR_INVALID_ID>{};
+            throw api::ExceptionT<YOGI_ERR_INVALID_ID>{};
         }
 
-        CHIRP_ASSERT(m_scatterOperations.count(operationId));
+        YOGI_ASSERT(m_scatterOperations.count(operationId));
         m_scatterOperations[operationId] = nullptr;
 
         return lock;
@@ -298,16 +298,16 @@ public:
     {
 		using namespace messaging;
 
-        CHIRP_ASSERT(!(flags & GATHER_FINISHED));
-        CHIRP_ASSERT(!(flags & GATHER_BINDINGDESTROYED));
-        CHIRP_ASSERT(!(flags & GATHER_CONNECTIONLOST));
+        YOGI_ASSERT(!(flags & GATHER_FINISHED));
+        YOGI_ASSERT(!(flags & GATHER_BINDINGDESTROYED));
+        YOGI_ASSERT(!(flags & GATHER_CONNECTIONLOST));
 
         auto fn = [&] {
             // find operation in terminal
             auto& tm = super::get_terminal_info(terminal.id());
             auto tmOpIt = tm.ext.gatherOperations.find(operationId);
             if (tmOpIt == tm.ext.gatherOperations.end()) {
-                throw api::ExceptionT<CHIRP_ERR_INVALID_ID>{};
+                throw api::ExceptionT<YOGI_ERR_INVALID_ID>{};
             }
 
             // remove operation from binding
@@ -347,6 +347,6 @@ public:
 
 } // namespace scatter_gather
 } // namespace core
-} // namespace chirp
+} // namespace yogi
 
-#endif // CHIRP_CORE_SCATTER_GATHER_LEAFLOGIC_HPP
+#endif // YOGI_CORE_SCATTER_GATHER_LEAFLOGIC_HPP

@@ -1,12 +1,12 @@
-#ifndef CHIRP_CORE_CACHED_PUBLISH_SUBSCRIBE_LOGIC_TYPES_HPP
-#define CHIRP_CORE_CACHED_PUBLISH_SUBSCRIBE_LOGIC_TYPES_HPP
+#ifndef YOGI_CORE_CACHED_PUBLISH_SUBSCRIBE_LOGIC_TYPES_HPP
+#define YOGI_CORE_CACHED_PUBLISH_SUBSCRIBE_LOGIC_TYPES_HPP
 
 #include "../../config.h"
 #include "../common/subscribable_logic_types.hpp"
 #include "../../messaging/messages/CachedPublishSubscribe.hpp"
 
 
-namespace chirp {
+namespace yogi {
 namespace core {
 namespace cached_publish_subscribe {
 
@@ -45,6 +45,6 @@ struct logic_types
 
 } // namespace cached_publish_subscribe
 } // namespace core
-} // namespace chirp
+} // namespace yogi
 
-#endif // CHIRP_CORE_CACHED_PUBLISH_SUBSCRIBE_LOGIC_TYPES_HPP
+#endif // YOGI_CORE_CACHED_PUBLISH_SUBSCRIBE_LOGIC_TYPES_HPP

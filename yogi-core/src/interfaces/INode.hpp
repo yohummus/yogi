@@ -1,11 +1,11 @@
-#ifndef CHIRP_INTERFACES_INODE_HPP
-#define CHIRP_INTERFACES_INODE_HPP
+#ifndef YOGI_INTERFACES_INODE_HPP
+#define YOGI_INTERFACES_INODE_HPP
 
 #include "../config.h"
 #include "ICommunicator.hpp"
 
 
-namespace chirp {
+namespace yogi {
 namespace interfaces {
 
 /***************************************************************************//**
@@ -21,6 +21,6 @@ struct INode : public ICommunicator
 typedef std::shared_ptr<INode> node_ptr;
 
 } // namespace interfaces
-} // namespace chirp
+} // namespace yogi
 
-#endif // CHIRP_INTERFACES_INODE_HPP
+#endif // YOGI_INTERFACES_INODE_HPP

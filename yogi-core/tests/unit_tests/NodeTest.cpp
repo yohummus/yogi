@@ -1,7 +1,7 @@
 #include "../../src/core/Node.hpp"
-using namespace chirp::base;
-using namespace chirp::core;
-using namespace chirp::messaging::messages;
+using namespace yogi::base;
+using namespace yogi::core;
+using namespace yogi::messaging::messages;
 
 #include "../mocks/SchedulerMock.hpp"
 #include "../mocks/ConnectionMock.hpp"
@@ -827,8 +827,8 @@ TEST_F(NodeTest, AsyncAwaitKnownTerminalsChange)
     int calls = 0;
     auto fn = [&](const api::Exception& e,
         Node::known_terminal_change_info info) {
-            EXPECT_EQ(CHIRP_OK, e.error_code());
-            EXPECT_EQ(CHIRP_TM_PUBLISHSUBSCRIBE, info.type);
+            EXPECT_EQ(YOGI_OK, e.error_code());
+            EXPECT_EQ(YOGI_TM_PUBLISHSUBSCRIBE, info.type);
             EXPECT_EQ(identifier, info.identifier);
 
             if (calls == 0) {
@@ -861,7 +861,7 @@ TEST_F(NodeTest, CancelAwaitKnownTerminalsChange)
     int calls = 0;
     uut->async_await_known_terminals_change(
         [&](const api::Exception& e, Node::known_terminal_change_info info) {
-            EXPECT_EQ(CHIRP_ERR_CANCELED, e.error_code());
+            EXPECT_EQ(YOGI_ERR_CANCELED, e.error_code());
             ++calls;
         }
     );

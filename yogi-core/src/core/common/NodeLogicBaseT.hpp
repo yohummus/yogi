@@ -1,5 +1,5 @@
-#ifndef CHIRP_CORE_COMMON_NODELOGICBASET_HPP
-#define CHIRP_CORE_COMMON_NODELOGICBASET_HPP
+#ifndef YOGI_CORE_COMMON_NODELOGICBASET_HPP
+#define YOGI_CORE_COMMON_NODELOGICBASET_HPP
 
 #include "../../config.h"
 #include "../../interfaces/IScheduler.hpp"
@@ -19,7 +19,7 @@
 #include <functional>
 
 
-namespace chirp {
+namespace yogi {
 namespace core {
 namespace common {
 
@@ -88,11 +88,11 @@ private:
     binding_iterator associate(terminal_iterator tm)
     {
         if (tm->binding) {
-            CHIRP_ASSERT(m_bindings.find(tm->binding) != m_bindings.end());
-            CHIRP_ASSERT(m_bindings.find(tm->binding)->terminal == tm->id());
+            YOGI_ASSERT(m_bindings.find(tm->binding) != m_bindings.end());
+            YOGI_ASSERT(m_bindings.find(tm->binding)->terminal == tm->id());
             return m_bindings.find(tm->binding);
         }
-    
+
         auto bd = m_bindings.find(tm->identifier());
         if (bd != m_bindings.end()) {
             bd->terminal = tm->id();
@@ -105,8 +105,8 @@ private:
     terminal_iterator associate(binding_iterator bd)
     {
         if (bd->terminal) {
-            CHIRP_ASSERT(m_terminals.find(bd->terminal) != m_terminals.end());
-            CHIRP_ASSERT(m_terminals.find(bd->terminal)->binding == bd->id());
+            YOGI_ASSERT(m_terminals.find(bd->terminal) != m_terminals.end());
+            YOGI_ASSERT(m_terminals.find(bd->terminal)->binding == bd->id());
             return m_terminals.find(bd->terminal);
         }
 
@@ -122,7 +122,7 @@ private:
     void disassociate(terminal_iterator tm)
     {
         if (tm->binding) {
-            CHIRP_ASSERT(m_bindings.find(tm->binding) != m_bindings.end());
+            YOGI_ASSERT(m_bindings.find(tm->binding) != m_bindings.end());
             m_bindings[tm->binding].terminal = base::Id{};
             tm->binding = base::Id{};
         }
@@ -155,7 +155,7 @@ private:
                 if (!tm->identifier().hidden()) {
                     m_knownTerminalsChangedFn(tm->identifier(), false);
                 }
-                
+
                 m_terminals.erase(tm);
                 return false;
         }
@@ -187,7 +187,7 @@ private:
         return true;
     }
 
-    void update_users_for_abandoned_terminal(terminal_iterator tm, 
+    void update_users_for_abandoned_terminal(terminal_iterator tm,
         const interfaces::IConnection* exception = nullptr)
     {
 		using namespace messaging;
@@ -198,7 +198,7 @@ private:
                 ++it;
                 continue;
             }
-        
+
             bool alive = it->second.process_object_destroyed(
                 [&](base::Id mappedId) {
                     typename TTypes::TerminalRemoved msg;
@@ -242,7 +242,7 @@ private:
 
                     connection.send(msg);
                 },
-                [&](bool) { 
+                [&](bool) {
                     stillOwned = false;
                 }
             );
@@ -275,7 +275,7 @@ private:
 
         case STATE_AWAIT_ACKS:
         case STATE_JUST_CREATED:
-            CHIRP_NEVER_REACHED;
+            YOGI_NEVER_REACHED;
         }
 
         // update the state of the FSM
@@ -300,7 +300,7 @@ private:
         // that we do not own the terminal any more
         if (tm->state == STATE_OWNERS_0_LEAFS_1_NODES) {
             auto user = tm->usingNodes.find(tm->owningNodes.begin()->first);
-        
+
             if (!user->second.destroyed()) {
                 bool alive = user->second.process_object_destroyed(
                     [&](base::Id mappedId) {
@@ -314,7 +314,7 @@ private:
                 // TODO: I believe, the alive check is not necessary because the
                 // FSM can never be dead here. This would always apply when
                 // calling the process_object_destroyed() function
-                CHIRP_ASSERT(alive);
+                YOGI_ASSERT(alive);
                 if (!alive) {
                     tm->usingNodes.erase(user);
                     on_terminal_user_removed(connection, tm);
@@ -376,7 +376,7 @@ protected:
     }
 
     template <typename TMsg, typename TTgt, typename TO>
-    void add_msg_handler(TTgt* tgt, void (TO::*fn)(TMsg&&, 
+    void add_msg_handler(TTgt* tgt, void (TO::*fn)(TMsg&&,
         interfaces::IConnection&))
     {
         auto msgTypeIdNum = TMsg{}.type_id().number();
@@ -384,7 +384,7 @@ protected:
             m_msgHandlers.resize(msgTypeIdNum + 1);
         }
 
-        CHIRP_ASSERT(!m_msgHandlers[msgTypeIdNum]);
+        YOGI_ASSERT(!m_msgHandlers[msgTypeIdNum]);
 
         m_msgHandlers[msgTypeIdNum] = [=](interfaces::IMessage& msg,
             interfaces::IConnection& origin) {
@@ -428,12 +428,12 @@ protected:
 		using namespace messaging;
 
         auto lock = make_lock_guard();
-        
+
         if (connection.remote_is_node()) {
             // tell the node what we've got
             for (auto tm = m_terminals.begin(); tm != m_terminals.end(); ++tm) {
                 if (!tm->hidden()) {
-                    CHIRP_ASSERT(!tm->usingNodes.count(&connection));
+                    YOGI_ASSERT(!tm->usingNodes.count(&connection));
                     tm->usingNodes[&connection].reset(false, [&] {
                         typename TTypes::TerminalDescription msg;
                         prepare_message(&msg, tm);
@@ -448,12 +448,12 @@ protected:
             }
 
             // store the connection
-            CHIRP_ASSERT(m_nodeConnections.count(&connection) == 0);
+            YOGI_ASSERT(m_nodeConnections.count(&connection) == 0);
             m_nodeConnections.emplace(&connection);
         }
         else {
             // store the connection
-            CHIRP_ASSERT(m_leafConnections.count(&connection) == 0);
+            YOGI_ASSERT(m_leafConnections.count(&connection) == 0);
             m_leafConnections.emplace(&connection);
         }
     }
@@ -470,7 +470,7 @@ protected:
                 return;
             }
         }
-        catch (const api::ExceptionT<CHIRP_ERR_NOT_READY>&) {
+        catch (const api::ExceptionT<YOGI_ERR_NOT_READY>&) {
             // on_connection_started() has not been called
             return;
         }
@@ -558,7 +558,7 @@ public:
     std::vector<base::Identifier> get_known_terminals()
     {
         auto lock = make_lock_guard();
-        
+
         std::vector<base::Identifier> terminals;
         for (auto& tm : m_terminals) {
             if (!tm.identifier().hidden()) {
@@ -569,7 +569,7 @@ public:
         return terminals;
     }
 
-    void on_message_received(typename TTypes::TerminalDescription&& msg, 
+    void on_message_received(typename TTypes::TerminalDescription&& msg,
         interfaces::IConnection& origin)
     {
 		using namespace messaging;
@@ -582,7 +582,7 @@ public:
 
         auto res = ownersMap(tm, origin).insert(std::make_pair(&origin,
             MappedObjectFsm{}));
-        
+
         auto& ownerFsm = res.first->second;
 
         // map the terminal and add the connection as an owner; if we already
@@ -595,8 +595,8 @@ public:
                 reply[fields::mappedId]   = tm->id();
 
                 origin.send(reply);
-            }, 
-            [&](base::Id mId) { 
+            },
+            [&](base::Id mId) {
                 oldMappedId = mId;
 
                 typename TTypes::TerminalRemovedAck reply;
@@ -612,7 +612,7 @@ public:
             on_terminal_owner_remapped(origin, tm, ownerFsm.mapped_id());
             return;
         }
-        
+
         // process the FSM for terminal related stuff
         switch (tm->state) {
         case STATE_JUST_CREATED:
@@ -638,21 +638,21 @@ public:
             msg[fields::id] = tm->id();
 
             interfaces::IConnection* owner = std::find_if(
-                tm->owningNodes.begin(), tm->owningNodes.end(), 
+                tm->owningNodes.begin(), tm->owningNodes.end(),
                 [&](const fsm_map::value_type& val) {
                     return val.first != &origin;
                 }
             )->first;
-            
+
             if (!tm->usingNodes.count(owner)) {
                 tm->usingNodes[owner].reset(false, [&] {owner->send(msg);});
             }
-            
+
             msg[fields::id] = originTerminalId;
             }} break;
 
         case STATE_AWAIT_ACKS:
-            CHIRP_NEVER_REACHED;
+            YOGI_NEVER_REACHED;
         }
 
         // try to associate the terminal with a binding
@@ -685,7 +685,7 @@ public:
                 }
             }
         }
-        
+
         // update the state of the FSM
         update_state(tm);
 
@@ -699,14 +699,14 @@ public:
             m_knownTerminalsChangedFn(tm->identifier(), true);
         }
     }
-    
-    void on_message_received(typename TTypes::TerminalMapping&& msg, 
+
+    void on_message_received(typename TTypes::TerminalMapping&& msg,
         interfaces::IConnection& origin)
     {
 		using namespace messaging;
 
         // we can only receive this message from a node
-        CHIRP_ASSERT(origin.remote_is_node());
+        YOGI_ASSERT(origin.remote_is_node());
 
         // find the endpoint info entry
         auto tm = m_terminals.find(msg[fields::terminalId]);
@@ -714,7 +714,7 @@ public:
         // process the FSM
         switch (tm->state) {
         case STATE_JUST_CREATED:
-            CHIRP_NEVER_REACHED;
+            YOGI_NEVER_REACHED;
 
         case STATE_OWNERS_1_LEAFS_0_NODES:
         case STATE_OWNERS_M_LEAFS_0_NODES:
@@ -731,7 +731,7 @@ public:
                     origin.send(reply);
                 },
                 [&](base::Id) {
-                    CHIRP_NEVER_REACHED;
+                    YOGI_NEVER_REACHED;
                 },
                 [&](bool) {
                 }
@@ -739,8 +739,8 @@ public:
             break;
         }
     }
-    
-    void on_message_received(typename TTypes::TerminalRemoved&& msg, 
+
+    void on_message_received(typename TTypes::TerminalRemoved&& msg,
         interfaces::IConnection& origin)
     {
 		using namespace messaging;
@@ -748,23 +748,23 @@ public:
         auto tm = m_terminals.find(msg[fields::mappedId]);
         remove_terminal_owner(tm, origin, false);
     }
-    
-    void on_message_received(typename TTypes::TerminalRemovedAck&& msg, 
+
+    void on_message_received(typename TTypes::TerminalRemovedAck&& msg,
         interfaces::IConnection& origin)
     {
 		using namespace messaging;
 
         // we can only receive this message from a node
-        CHIRP_ASSERT(origin.remote_is_node());
+        YOGI_ASSERT(origin.remote_is_node());
 
         // find the terminal info entry and the user entry
         auto tm   = m_terminals.find(msg[fields::terminalId]);
         auto user = tm->usingNodes.find(&origin);
-        
+
         // process the FSM
         switch (tm->state) {
         case STATE_JUST_CREATED:
-            CHIRP_NEVER_REACHED;
+            YOGI_NEVER_REACHED;
 
         case STATE_OWNERS_0_LEAFS_M_NODES:
         case STATE_OWNERS_1_LEAFS_0_NODES:
@@ -809,14 +809,14 @@ public:
         // update the FSM state or remove the terminal
         update_state(tm);
     }
-    
-    void on_message_received(typename TTypes::BindingDescription&& msg, 
+
+    void on_message_received(typename TTypes::BindingDescription&& msg,
         interfaces::IConnection& origin)
     {
 		using namespace messaging;
 
         // we can only receive this message from a leaf
-        CHIRP_ASSERT(!origin.remote_is_node());
+        YOGI_ASSERT(!origin.remote_is_node());
 
         // create/get the binding and the owner entry
         auto bd        = m_bindings.insert(msg[fields::identifier]).first;
@@ -832,7 +832,7 @@ public:
                 reply[fields::mappedId]  = bd->id();
 
                 origin.send(reply);
-            }, 
+            },
             [&](base::Id mId) {
                 oldMappedId = mId;
 
@@ -866,14 +866,14 @@ public:
         // inform derived classes that we added a new binding owner
         on_binding_owner_added(origin, bd, ownerFsm.mapped_id());
     }
-    
-    void on_message_received(typename TTypes::BindingRemoved&& msg, 
+
+    void on_message_received(typename TTypes::BindingRemoved&& msg,
         interfaces::IConnection& origin)
     {
 		using namespace messaging;
 
         // we can only receive this message from a leaf
-        CHIRP_ASSERT(!origin.remote_is_node());
+        YOGI_ASSERT(!origin.remote_is_node());
 
         // find the corresponding binding info entry and the owner entry
         auto bd    = m_bindings.find(msg[fields::mappedId]);
@@ -909,6 +909,6 @@ public:
 
 } // namespace common
 } // namespace core
-} // namespace chirp
+} // namespace yogi
 
-#endif // CHIRP_CORE_COMMON_NODELOGICBASET_HPP
+#endif // YOGI_CORE_COMMON_NODELOGICBASET_HPP

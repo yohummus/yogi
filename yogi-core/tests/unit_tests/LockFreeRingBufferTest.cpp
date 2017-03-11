@@ -1,5 +1,5 @@
 #include "../../src/base/LockFreeRingBuffer.hpp"
-using namespace chirp::base;
+using namespace yogi::base;
 
 #include <gmock/gmock.h>
 

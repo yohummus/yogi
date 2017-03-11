@@ -9,10 +9,10 @@ struct ScatterGatherStressTest : helpers::StressTestBase
         add_task(name, [&] {
             std::lock_guard<std::mutex> lock{tm.mutex};
             if (tm.handle) {
-                int res = CHIRP_SG_AsyncScatterGather(tm.handle, "Hello", 
+                int res = YOGI_SG_AsyncScatterGather(tm.handle, "Hello",
                     sizeof("Hello"), nullptr, 0,
                     helpers::ReceiveGatheredMessageHandler::fn, &handlerFn);
-                EXPECT_TRUE(res > 0 || res == CHIRP_ERR_NOT_BOUND) << res;
+                EXPECT_TRUE(res > 0 || res == YOGI_ERR_NOT_BOUND) << res;
                 return res > 0;
             }
 
@@ -25,10 +25,10 @@ struct ScatterGatherStressTest : helpers::StressTestBase
         add_task(name, [&] {
             std::lock_guard<std::mutex> lock{tm.mutex};
             if (tm.handle) {
-                int res = CHIRP_SG_CancelScatterGather(tm.handle, 1);
-                EXPECT_TRUE(res == CHIRP_OK || res == CHIRP_ERR_INVALID_ID)
+                int res = YOGI_SG_CancelScatterGather(tm.handle, 1);
+                EXPECT_TRUE(res == YOGI_OK || res == YOGI_ERR_INVALID_ID)
                     << res;
-                return res == CHIRP_OK;
+                return res == YOGI_OK;
             }
 
             return false;
@@ -49,13 +49,13 @@ struct ScatterGatherStressTest : helpers::StressTestBase
         add_task(name, [&] {
             std::lock_guard<std::mutex> lock{tm.mutex};
             if (tm.handle) {
-                int res = CHIRP_SG_AsyncReceiveScatteredMessage(tm.handle,
+                int res = YOGI_SG_AsyncReceiveScatteredMessage(tm.handle,
                     nullptr, 0, helpers::ReceiveScatteredMessageHandler::fn,
                     &handlerFn);
 
-                EXPECT_TRUE(res == CHIRP_OK || res == CHIRP_ERR_NOT_BOUND
-                    || res == CHIRP_ERR_ASYNC_OPERATION_RUNNING) << res;
-                return res == CHIRP_OK;
+                EXPECT_TRUE(res == YOGI_OK || res == YOGI_ERR_NOT_BOUND
+                    || res == YOGI_ERR_ASYNC_OPERATION_RUNNING) << res;
+                return res == YOGI_OK;
             }
 
             return false;
@@ -67,8 +67,8 @@ struct ScatterGatherStressTest : helpers::StressTestBase
         add_task(name, [&] {
             std::lock_guard<std::mutex> lock{tm.mutex};
             if (tm.handle) {
-                int res = CHIRP_SG_CancelReceiveScatteredMessage(tm.handle);
-                EXPECT_TRUE(res == CHIRP_OK);
+                int res = YOGI_SG_CancelReceiveScatteredMessage(tm.handle);
+                EXPECT_TRUE(res == YOGI_OK);
                 return true;
             }
 
@@ -97,7 +97,7 @@ struct ScatterGatherStressTest : helpers::StressTestBase
 
 TEST_F(ScatterGatherStressTest, Scenario2Leafs)
 {
-    auto& scenario = prepare_2_leafs_scenario(CHIRP_TM_SCATTERGATHER);
+    auto& scenario = prepare_2_leafs_scenario(YOGI_TM_SCATTERGATHER);
 
     helpers::ReceiveScatteredMessageHandler tm1AScatterHandlerFn;
     ADD_RESPOND_TASK(leafA.tm1, tm1AScatterHandlerFn);
@@ -116,8 +116,8 @@ TEST_F(ScatterGatherStressTest, Scenario2Leafs)
 
 TEST_F(ScatterGatherStressTest, Scenario3Leafs1Node)
 {
-    auto& scenario = prepare_3_leafs_1_node_scenario(CHIRP_TM_SCATTERGATHER);
-	
+    auto& scenario = prepare_3_leafs_1_node_scenario(YOGI_TM_SCATTERGATHER);
+
     helpers::ReceiveGatheredMessageHandler tm1AGatherHandlerFn;
     ADD_REQUEST_TASK(leafA.tm1, tm1AGatherHandlerFn);
     helpers::ReceiveScatteredMessageHandler tm2AScatterHandlerFn;
@@ -138,7 +138,7 @@ TEST_F(ScatterGatherStressTest, Scenario3Leafs1Node)
 
 TEST_F(ScatterGatherStressTest, Scenario3Leafs3Nodes)
 {
-    auto& scenario = prepare_3_leafs_3_nodes_scenario(CHIRP_TM_SCATTERGATHER);
+    auto& scenario = prepare_3_leafs_3_nodes_scenario(YOGI_TM_SCATTERGATHER);
 
     helpers::ReceiveGatheredMessageHandler tm1AGatherHandlerFn;
     ADD_REQUEST_TASK(leafA.tm1, tm1AGatherHandlerFn);

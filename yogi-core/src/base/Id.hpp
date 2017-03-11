@@ -1,5 +1,5 @@
-#ifndef CHIRP_BASE_ID_HPP
-#define CHIRP_BASE_ID_HPP
+#ifndef YOGI_BASE_ID_HPP
+#define YOGI_BASE_ID_HPP
 
 #include "../config.h"
 
@@ -8,7 +8,7 @@
 #include <ostream>
 
 
-namespace chirp {
+namespace yogi {
 namespace base {
 
 /***************************************************************************//**
@@ -39,7 +39,7 @@ public:
     explicit Id(number_type number)
         : m_number{number}
     {
-        CHIRP_ASSERT(number != invalid_number());
+        YOGI_ASSERT(number != invalid_number());
     }
 
     Id(const Id& rhs)
@@ -92,20 +92,20 @@ public:
 };
 
 } // namespace base
-} // namespace chirp
+} // namespace yogi
 
 namespace std {
 
 template <>
-struct hash<chirp::base::Id>
+struct hash<yogi::base::Id>
 {
-    std::size_t operator()(const chirp::base::Id& id) const
+    std::size_t operator()(const yogi::base::Id& id) const
     {
         return id.number();
     }
 };
 
-inline std::ostream& operator<< (std::ostream& os, const chirp::base::Id& id)
+inline std::ostream& operator<< (std::ostream& os, const yogi::base::Id& id)
 {
     if (id.valid()) {
         os << id.number();
@@ -119,4 +119,4 @@ inline std::ostream& operator<< (std::ostream& os, const chirp::base::Id& id)
 
 } // namespace std
 
-#endif // CHIRP_BASE_ID_HPP
+#endif // YOGI_BASE_ID_HPP

@@ -86,11 +86,11 @@ struct TcpStressTest : helpers::StressTestBase
         add_task("Accept", [&] {
             std::lock_guard<std::mutex> lock{server.mutex};
             if (server.handle) {
-                int res = CHIRP_AsyncTcpAccept(server.handle, 3,
+                int res = YOGI_AsyncTcpAccept(server.handle, 3,
                     helpers::TcpAcceptHandler::fn, &acceptHandlerFn);
-                EXPECT_TRUE(res == CHIRP_OK
-                    || res == CHIRP_ERR_ASYNC_OPERATION_RUNNING) << res;
-                return res == CHIRP_OK;
+                EXPECT_TRUE(res == YOGI_OK
+                    || res == YOGI_ERR_ASYNC_OPERATION_RUNNING) << res;
+                return res == YOGI_OK;
             }
 
             return false;
@@ -102,9 +102,9 @@ struct TcpStressTest : helpers::StressTestBase
         add_task("Cancel accept", [&] {
             std::lock_guard<std::mutex> lock{server.mutex};
             if (server.handle) {
-                int res = CHIRP_CancelTcpAccept(server.handle);
-                EXPECT_TRUE(res == CHIRP_OK) << res;
-                return res == CHIRP_OK;
+                int res = YOGI_CancelTcpAccept(server.handle);
+                EXPECT_TRUE(res == YOGI_OK) << res;
+                return res == YOGI_OK;
             }
 
             return false;
@@ -124,10 +124,10 @@ struct TcpStressTest : helpers::StressTestBase
 			void* connection = pop_server_connection();
 
 			std::lock_guard<std::mutex> lock{serverLeaf.mutex};
-			int res = CHIRP_AssignConnection(connection, serverLeaf.handle, 3);
+			int res = YOGI_AssignConnection(connection, serverLeaf.handle, 3);
 
 			push_server_connection(connection);
-			return res == CHIRP_OK;
+			return res == YOGI_OK;
 		}, 10);
 	}
 
@@ -136,11 +136,11 @@ struct TcpStressTest : helpers::StressTestBase
         add_task("Await server connection death", [&] {
             void* connection = pop_server_connection();
 
-            int res = CHIRP_AsyncAwaitConnectionDeath(connection,
+            int res = YOGI_AsyncAwaitConnectionDeath(connection,
                 helpers::AwaitDeathHandler::fn, &serverAwaitDeathFn);
 
             push_server_connection(connection);
-            return res == CHIRP_OK;
+            return res == YOGI_OK;
         }, 10);
     }
 
@@ -149,10 +149,10 @@ struct TcpStressTest : helpers::StressTestBase
         add_task("Cancel await server connection death", [&] {
             void* connection = pop_server_connection();
 
-            int res = CHIRP_CancelAwaitConnectionDeath(connection);
+            int res = YOGI_CancelAwaitConnectionDeath(connection);
 
             push_server_connection(connection);
-            return res == CHIRP_OK;
+            return res == YOGI_OK;
         }, 3);
     }
 
@@ -161,12 +161,12 @@ struct TcpStressTest : helpers::StressTestBase
         add_task("Destroy server connection", [&] {
             void* connection = pop_server_connection();
 
-            int res = CHIRP_Destroy(connection);
-            if (res != CHIRP_OK) {
+            int res = YOGI_Destroy(connection);
+            if (res != YOGI_OK) {
                 push_server_connection(connection);
             }
 
-            return res == CHIRP_OK;
+            return res == YOGI_OK;
         }, 30);
     }
 
@@ -189,12 +189,12 @@ struct TcpStressTest : helpers::StressTestBase
         add_task("Connect", [&] {
             std::lock_guard<std::mutex> lock{client.mutex};
             if (client.handle) {
-                int res = CHIRP_AsyncTcpConnect(client.handle, "::1",
-                    CHIRP_DEFAULT_TCP_PORT, 3, helpers::TcpConnectHandler::fn,
+                int res = YOGI_AsyncTcpConnect(client.handle, "::1",
+                    YOGI_DEFAULT_TCP_PORT, 3, helpers::TcpConnectHandler::fn,
                     &connectHandlerFn);
-                EXPECT_TRUE(res == CHIRP_OK
-                    || res == CHIRP_ERR_ASYNC_OPERATION_RUNNING) << res;
-                return res == CHIRP_OK;
+                EXPECT_TRUE(res == YOGI_OK
+                    || res == YOGI_ERR_ASYNC_OPERATION_RUNNING) << res;
+                return res == YOGI_OK;
             }
 
             return false;
@@ -206,9 +206,9 @@ struct TcpStressTest : helpers::StressTestBase
         add_task("Cancel connect", [&] {
             std::lock_guard<std::mutex> lock{client.mutex};
             if (client.handle) {
-                int res = CHIRP_CancelTcpConnect(client.handle);
-                EXPECT_TRUE(res == CHIRP_OK) << res;
-                return res == CHIRP_OK;
+                int res = YOGI_CancelTcpConnect(client.handle);
+                EXPECT_TRUE(res == YOGI_OK) << res;
+                return res == YOGI_OK;
             }
 
             return false;
@@ -228,10 +228,10 @@ struct TcpStressTest : helpers::StressTestBase
 			void* connection = pop_client_connection();
 
 			std::lock_guard<std::mutex> lock{clientLeaf.mutex};
-			int res = CHIRP_AssignConnection(connection, clientLeaf.handle, 3);
+			int res = YOGI_AssignConnection(connection, clientLeaf.handle, 3);
 
 			push_client_connection(connection);
-			return res == CHIRP_OK;
+			return res == YOGI_OK;
 		}, 10);
 	}
 
@@ -240,11 +240,11 @@ struct TcpStressTest : helpers::StressTestBase
         add_task("Await client connection death", [&] {
             void* connection = pop_client_connection();
 
-            int res = CHIRP_AsyncAwaitConnectionDeath(connection,
+            int res = YOGI_AsyncAwaitConnectionDeath(connection,
                 helpers::AwaitDeathHandler::fn, &clientAwaitDeathFn);
 
             push_client_connection(connection);
-            return res == CHIRP_OK;
+            return res == YOGI_OK;
         }, 10);
     }
 
@@ -253,10 +253,10 @@ struct TcpStressTest : helpers::StressTestBase
         add_task("Cancel await client connection death", [&] {
             void* connection = pop_client_connection();
 
-            int res = CHIRP_CancelAwaitConnectionDeath(connection);
+            int res = YOGI_CancelAwaitConnectionDeath(connection);
 
             push_client_connection(connection);
-            return res == CHIRP_OK;
+            return res == YOGI_OK;
         }, 3);
     }
 
@@ -265,12 +265,12 @@ struct TcpStressTest : helpers::StressTestBase
         add_task("Destroy client connection", [&] {
             void* connection = pop_client_connection();
 
-            int res = CHIRP_Destroy(connection);
-            if (res != CHIRP_OK) {
+            int res = YOGI_Destroy(connection);
+            if (res != YOGI_OK) {
                 push_client_connection(connection);
             }
 
-            return res == CHIRP_OK;
+            return res == YOGI_OK;
         }, 30);
     }
 
@@ -279,10 +279,10 @@ struct TcpStressTest : helpers::StressTestBase
         add_task("Publish", [&] {
             std::lock_guard<std::mutex> lock{serverTerminal.mutex};
             if (serverTerminal.handle) {
-                int res = CHIRP_PS_Publish(serverTerminal.handle, "Hello",
+                int res = YOGI_PS_Publish(serverTerminal.handle, "Hello",
                     sizeof("Hello"));
-                EXPECT_TRUE(res == CHIRP_OK || res == CHIRP_ERR_NOT_BOUND);
-                return res == CHIRP_OK;
+                EXPECT_TRUE(res == YOGI_OK || res == YOGI_ERR_NOT_BOUND);
+                return res == YOGI_OK;
             }
 
             return false;
@@ -295,12 +295,12 @@ TEST_F(TcpStressTest, LeafLeafConnection)
 	serverLeaf.sched.handle = helpers::make_scheduler(2);
 	serverLeaf.handle       = helpers::make_leaf(serverLeaf.sched.handle);
     serverTerminal.handle   = helpers::make_terminal(serverTerminal.leaf.handle,
-        CHIRP_TM_PUBLISHSUBSCRIBE, "Server");
+        YOGI_TM_PUBLISHSUBSCRIBE, "Server");
 
 	clientLeaf.sched.handle = helpers::make_scheduler(2);
 	clientLeaf.handle       = helpers::make_leaf(clientLeaf.sched.handle);
     clientTerminal.handle   = helpers::make_terminal(clientTerminal.leaf.handle,
-        CHIRP_TM_PUBLISHSUBSCRIBE, "Client");
+        YOGI_TM_PUBLISHSUBSCRIBE, "Client");
     helpers::make_binding(clientTerminal.handle, "Server");
 
     serverScheduler.handle = helpers::make_scheduler();
@@ -336,8 +336,8 @@ TEST_F(TcpStressTest, ConnectionDestruction)
     auto node      = helpers::make_node(helpers::make_scheduler(1));
     auto leafA     = helpers::make_leaf(helpers::make_scheduler(1));
     auto leafB     = helpers::make_leaf(helpers::make_scheduler(1));
-    auto terminalA = helpers::make_terminal(leafA, CHIRP_TM_PRODUCER, "T");
-    auto terminalB = helpers::make_terminal(leafB, CHIRP_TM_CONSUMER, "T");
+    auto terminalA = helpers::make_terminal(leafA, YOGI_TM_PRODUCER, "T");
+    auto terminalB = helpers::make_terminal(leafB, YOGI_TM_CONSUMER, "T");
     auto server    = helpers::make_tcp_server(helpers::make_scheduler(1));
     auto client    = helpers::make_tcp_client(helpers::make_scheduler(1));
 
@@ -346,9 +346,9 @@ TEST_F(TcpStressTest, ConnectionDestruction)
     std::atomic<int> successfulPub(0);
     std::thread th([&] {
         while (!done) {
-            int res = CHIRP_PC_Publish(terminalA, "Banana", std::strlen("Banana"));
+            int res = YOGI_PC_Publish(terminalA, "Banana", std::strlen("Banana"));
             totalPub++;
-            if (res == CHIRP_OK) {
+            if (res == YOGI_OK) {
                 ++successfulPub;
             }
 
@@ -368,13 +368,13 @@ TEST_F(TcpStressTest, ConnectionDestruction)
 
         helpers::destroy(connectionsA.first, 10);
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        
+
         helpers::destroy(connectionsA.second, 10);
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        
+
         helpers::destroy(connectionsB.first, 10);
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        
+
         helpers::destroy(connectionsB.second, 10);
     }
 

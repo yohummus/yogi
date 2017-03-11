@@ -1,11 +1,11 @@
-#ifndef CHIRP_API_EXCEPTIONT_HPP
-#define CHIRP_API_EXCEPTIONT_HPP
+#ifndef YOGI_API_EXCEPTIONT_HPP
+#define YOGI_API_EXCEPTIONT_HPP
 
 #include "../config.h"
 #include "Exception.hpp"
 
 
-namespace chirp {
+namespace yogi {
 namespace api {
 
 /***************************************************************************//**
@@ -31,6 +31,6 @@ public:
 };
 
 } // namespace api
-} // namespace chirp
+} // namespace yogi
 
-#endif // CHIRP_API_EXCEPTIONT_HPP
+#endif // YOGI_API_EXCEPTIONT_HPP

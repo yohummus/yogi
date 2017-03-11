@@ -1,12 +1,12 @@
-#ifndef CHIRP_API_EVALUATE_HPP
-#define CHIRP_API_EVALUATE_HPP
+#ifndef YOGI_API_EVALUATE_HPP
+#define YOGI_API_EVALUATE_HPP
 
 #include "../config.h"
-#include "../chirp.h"
+#include "../yogi_core.h"
 #include "Exception.hpp"
 
 
-namespace chirp {
+namespace yogi {
 namespace api {
 namespace internal {
 
@@ -19,7 +19,7 @@ struct evaluator<void, TF>
     int operator() (TF fn) const
     {
         fn();
-        return CHIRP_OK;
+        return YOGI_OK;
     }
 };
 
@@ -44,14 +44,14 @@ int evaluate(TF fn)
         return e.error_code();
     }
     catch (const std::bad_alloc&) {
-        return CHIRP_ERR_BAD_ALLOCATION;
+        return YOGI_ERR_BAD_ALLOCATION;
     }
     catch (...) {
-        return CHIRP_ERR_UNKNOWN;
+        return YOGI_ERR_UNKNOWN;
     }
 }
 
 } // namespace api
-} // namespace chirp
+} // namespace yogi
 
-#endif // CHIRP_API_EVALUATE_HPP
+#endif // YOGI_API_EVALUATE_HPP

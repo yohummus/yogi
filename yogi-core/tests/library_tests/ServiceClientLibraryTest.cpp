@@ -25,7 +25,7 @@ struct ServiceClientLibraryTest : public testing::Test
 
     virtual void SetUp() override
     {
-        ASSERT_EQ(CHIRP_OK, CHIRP_Initialise());
+        ASSERT_EQ(YOGI_OK, YOGI_Initialise());
 
         using namespace helpers;
         node        = make_node(make_scheduler());
@@ -35,31 +35,31 @@ struct ServiceClientLibraryTest : public testing::Test
         connectionA = make_connection(leafA, node);
         connectionB = make_connection(leafB, node);
         connectionC = make_connection(leafC, node);
-        terminalA   = make_terminal(leafA, CHIRP_TM_CLIENT, "T");
-        terminalB   = make_terminal(leafB, CHIRP_TM_SERVICE, "T");
-        terminalC   = make_terminal(leafC, CHIRP_TM_SERVICE, "T");
+        terminalA   = make_terminal(leafA, YOGI_TM_CLIENT, "T");
+        terminalB   = make_terminal(leafB, YOGI_TM_SERVICE, "T");
+        terminalC   = make_terminal(leafC, YOGI_TM_SERVICE, "T");
 
         wait_until_system_stable();
     }
 
     virtual void TearDown() override
     {
-        ASSERT_EQ(CHIRP_OK, CHIRP_Shutdown());
+        ASSERT_EQ(YOGI_OK, YOGI_Shutdown());
     }
 
     void wait_until_system_stable()
     {
         while (true) {
             helpers::ReceiveGatheredMessageHandler handlerFn;
-            int res = CHIRP_SC_AsyncRequest(terminalA, nullptr, 0, nullptr,
+            int res = YOGI_SC_AsyncRequest(terminalA, nullptr, 0, nullptr,
                 0, helpers::ReceiveGatheredMessageHandler::fn, &handlerFn);
-            ASSERT_TRUE(res == 1 || res == CHIRP_ERR_NOT_BOUND);
+            ASSERT_TRUE(res == 1 || res == YOGI_ERR_NOT_BOUND);
 
             if (res == 1) {
                 handlerFn.wait();
-                if (!(handlerFn.flags & CHIRP_SG_FINISHED)) {
+                if (!(handlerFn.flags & YOGI_SG_FINISHED)) {
                     handlerFn.wait();
-                    ASSERT_TRUE(handlerFn.flags & CHIRP_SG_FINISHED);
+                    ASSERT_TRUE(handlerFn.flags & YOGI_SG_FINISHED);
                     return;
                 }
             }
@@ -72,37 +72,37 @@ struct ServiceClientLibraryTest : public testing::Test
 TEST_F(ServiceClientLibraryTest, SuccessfulScatterGatherOperation)
 {
     char gathBuffer[10] = {0};
-    int res = CHIRP_SC_AsyncReceiveRequest(terminalC, gathBuffer,
+    int res = YOGI_SC_AsyncReceiveRequest(terminalC, gathBuffer,
         sizeof(gathBuffer), helpers::ReceiveScatteredMessageHandler::fn,
         &rcvScatteredMsgFn);
-    ASSERT_EQ(CHIRP_OK, res);
+    ASSERT_EQ(YOGI_OK, res);
 
     char scatBuffer[10] = {0};
-    int id = CHIRP_SC_AsyncRequest(terminalA, "Hi", 3, scatBuffer,
+    int id = YOGI_SC_AsyncRequest(terminalA, "Hi", 3, scatBuffer,
         sizeof(scatBuffer),
         helpers::ReceiveGatheredMessageHandler::fn, &rcvGatheredMsgFn);
     ASSERT_GT(id, 0);
 
     rcvScatteredMsgFn.wait();
     EXPECT_GT(rcvScatteredMsgFn.operationId, 0);
-    EXPECT_EQ(CHIRP_OK, rcvScatteredMsgFn.lastErrorCode);
+    EXPECT_EQ(YOGI_OK, rcvScatteredMsgFn.lastErrorCode);
     EXPECT_EQ(3, rcvScatteredMsgFn.size);
     EXPECT_STREQ("Hi", gathBuffer);
 
     rcvGatheredMsgFn.wait();
     EXPECT_EQ(id, rcvGatheredMsgFn.operationId);
-    EXPECT_EQ(CHIRP_SG_DEAF, rcvGatheredMsgFn.flags);
-    EXPECT_EQ(CHIRP_OK, rcvGatheredMsgFn.lastErrorCode);
+    EXPECT_EQ(YOGI_SG_DEAF, rcvGatheredMsgFn.flags);
+    EXPECT_EQ(YOGI_OK, rcvGatheredMsgFn.lastErrorCode);
     EXPECT_EQ(0, rcvGatheredMsgFn.size);
 
-    res = CHIRP_SC_RespondToRequest(terminalC,
+    res = YOGI_SC_RespondToRequest(terminalC,
         rcvScatteredMsgFn.operationId, "X", 2);
-    EXPECT_EQ(CHIRP_OK, res);
+    EXPECT_EQ(YOGI_OK, res);
 
     rcvGatheredMsgFn.wait();
     EXPECT_EQ(id, rcvGatheredMsgFn.operationId);
-    EXPECT_EQ(CHIRP_SG_FINISHED, rcvGatheredMsgFn.flags);
-    EXPECT_EQ(CHIRP_OK, rcvGatheredMsgFn.lastErrorCode);
+    EXPECT_EQ(YOGI_SG_FINISHED, rcvGatheredMsgFn.flags);
+    EXPECT_EQ(YOGI_OK, rcvGatheredMsgFn.lastErrorCode);
     EXPECT_EQ(2, rcvGatheredMsgFn.size);
     EXPECT_STREQ("X", scatBuffer);
 }
@@ -110,74 +110,74 @@ TEST_F(ServiceClientLibraryTest, SuccessfulScatterGatherOperation)
 TEST_F(ServiceClientLibraryTest, IgnoreScatteredMessage)
 {
     char gathBuffer[10] = {0};
-    int res = CHIRP_SC_AsyncReceiveRequest(terminalC, gathBuffer,
+    int res = YOGI_SC_AsyncReceiveRequest(terminalC, gathBuffer,
         sizeof(gathBuffer), helpers::ReceiveScatteredMessageHandler::fn,
         &rcvScatteredMsgFn);
-    ASSERT_EQ(CHIRP_OK, res);
+    ASSERT_EQ(YOGI_OK, res);
 
     char scatBuffer[10] = {0};
-    int id = CHIRP_SC_AsyncRequest(terminalA, "Hi", 3, scatBuffer,
+    int id = YOGI_SC_AsyncRequest(terminalA, "Hi", 3, scatBuffer,
         sizeof(scatBuffer),
         helpers::ReceiveGatheredMessageHandler::fn, &rcvGatheredMsgFn);
     ASSERT_GT(id, 0);
 
     rcvScatteredMsgFn.wait();
     EXPECT_GT(rcvScatteredMsgFn.operationId, 0);
-    EXPECT_EQ(CHIRP_OK, rcvScatteredMsgFn.lastErrorCode);
+    EXPECT_EQ(YOGI_OK, rcvScatteredMsgFn.lastErrorCode);
     EXPECT_EQ(3, rcvScatteredMsgFn.size);
     EXPECT_STREQ("Hi", gathBuffer);
 
     rcvGatheredMsgFn.wait();
     EXPECT_EQ(id, rcvGatheredMsgFn.operationId);
-    EXPECT_EQ(CHIRP_SG_DEAF, rcvGatheredMsgFn.flags);
-    EXPECT_EQ(CHIRP_OK, rcvGatheredMsgFn.lastErrorCode);
+    EXPECT_EQ(YOGI_SG_DEAF, rcvGatheredMsgFn.flags);
+    EXPECT_EQ(YOGI_OK, rcvGatheredMsgFn.lastErrorCode);
     EXPECT_EQ(0, rcvGatheredMsgFn.size);
 
-    res = CHIRP_SC_IgnoreRequest(terminalC, rcvScatteredMsgFn.operationId);
-    EXPECT_EQ(CHIRP_OK, res);
+    res = YOGI_SC_IgnoreRequest(terminalC, rcvScatteredMsgFn.operationId);
+    EXPECT_EQ(YOGI_OK, res);
 
     rcvGatheredMsgFn.wait();
     EXPECT_EQ(id, rcvGatheredMsgFn.operationId);
-    EXPECT_EQ(CHIRP_SG_FINISHED | CHIRP_SG_IGNORED, rcvGatheredMsgFn.flags);
-    EXPECT_EQ(CHIRP_OK, rcvGatheredMsgFn.lastErrorCode);
+    EXPECT_EQ(YOGI_SG_FINISHED | YOGI_SG_IGNORED, rcvGatheredMsgFn.flags);
+    EXPECT_EQ(YOGI_OK, rcvGatheredMsgFn.lastErrorCode);
     EXPECT_EQ(0, rcvGatheredMsgFn.size);
 }
 
 TEST_F(ServiceClientLibraryTest, DeafRemoteTerminals)
 {
-    int id = CHIRP_SC_AsyncRequest(terminalA, "Hi", 3, nullptr, 0,
+    int id = YOGI_SC_AsyncRequest(terminalA, "Hi", 3, nullptr, 0,
         helpers::ReceiveGatheredMessageHandler::fn, &rcvGatheredMsgFn);
     ASSERT_GT(id, 0);
 
     rcvGatheredMsgFn.wait(2);
     EXPECT_EQ(id, rcvGatheredMsgFn.operationId);
-    EXPECT_EQ(CHIRP_SG_DEAF | CHIRP_SG_FINISHED,
+    EXPECT_EQ(YOGI_SG_DEAF | YOGI_SG_FINISHED,
         rcvGatheredMsgFn.flags);
-    EXPECT_EQ(CHIRP_OK, rcvGatheredMsgFn.lastErrorCode);
+    EXPECT_EQ(YOGI_OK, rcvGatheredMsgFn.lastErrorCode);
     EXPECT_EQ(0, rcvGatheredMsgFn.size);
 }
 
 TEST_F(ServiceClientLibraryTest, AbortAfterFirstGatheredMessage)
 {
     rcvGatheredMsgFn.returnValue = 1;
-    int id = CHIRP_SC_AsyncRequest(terminalA, "Hi", 3, nullptr, 0,
+    int id = YOGI_SC_AsyncRequest(terminalA, "Hi", 3, nullptr, 0,
         helpers::ReceiveGatheredMessageHandler::fn, &rcvGatheredMsgFn);
     ASSERT_GT(id, 0);
 
     rcvGatheredMsgFn.wait();
     EXPECT_EQ(id, rcvGatheredMsgFn.operationId);
-    EXPECT_EQ(CHIRP_SG_DEAF, rcvGatheredMsgFn.flags);
-    EXPECT_EQ(CHIRP_OK, rcvGatheredMsgFn.lastErrorCode);
+    EXPECT_EQ(YOGI_SG_DEAF, rcvGatheredMsgFn.flags);
+    EXPECT_EQ(YOGI_OK, rcvGatheredMsgFn.lastErrorCode);
     EXPECT_EQ(0, rcvGatheredMsgFn.size);
 }
 
 TEST_F(ServiceClientLibraryTest, CancelScatterGatherOperation)
 {
-    int res = CHIRP_SC_AsyncReceiveRequest(terminalB, nullptr, 0,
+    int res = YOGI_SC_AsyncReceiveRequest(terminalB, nullptr, 0,
         helpers::ReceiveScatteredMessageHandler::fn, &rcvScatteredMsgFn);
-    ASSERT_EQ(CHIRP_OK, res);
+    ASSERT_EQ(YOGI_OK, res);
 
-    int id = CHIRP_SC_AsyncRequest(terminalA, "Hi", 3, nullptr, 0,
+    int id = YOGI_SC_AsyncRequest(terminalA, "Hi", 3, nullptr, 0,
         helpers::ReceiveGatheredMessageHandler::fn, &rcvGatheredMsgFn);
     ASSERT_GT(id, 0);
 
@@ -185,43 +185,43 @@ TEST_F(ServiceClientLibraryTest, CancelScatterGatherOperation)
 
     rcvGatheredMsgFn.wait();
     EXPECT_EQ(id, rcvGatheredMsgFn.operationId);
-    EXPECT_EQ(CHIRP_SG_DEAF, rcvGatheredMsgFn.flags);
-    EXPECT_EQ(CHIRP_OK, rcvGatheredMsgFn.lastErrorCode);
+    EXPECT_EQ(YOGI_SG_DEAF, rcvGatheredMsgFn.flags);
+    EXPECT_EQ(YOGI_OK, rcvGatheredMsgFn.lastErrorCode);
     EXPECT_EQ(0, rcvGatheredMsgFn.size);
 
-    res = CHIRP_SC_CancelRequest(terminalA, id);
-    ASSERT_EQ(CHIRP_OK, res);
+    res = YOGI_SC_CancelRequest(terminalA, id);
+    ASSERT_EQ(YOGI_OK, res);
 
     rcvGatheredMsgFn.wait();
     EXPECT_EQ(id, rcvGatheredMsgFn.operationId);
-    EXPECT_EQ(CHIRP_SG_NOFLAGS, rcvGatheredMsgFn.flags);
-    EXPECT_EQ(CHIRP_ERR_CANCELED, rcvGatheredMsgFn.lastErrorCode);
+    EXPECT_EQ(YOGI_SG_NOFLAGS, rcvGatheredMsgFn.flags);
+    EXPECT_EQ(YOGI_ERR_CANCELED, rcvGatheredMsgFn.lastErrorCode);
     EXPECT_EQ(0, rcvGatheredMsgFn.size);
 }
 
 TEST_F(ServiceClientLibraryTest, CancelReceiveScatteredMessageOperation)
 {
     char gathBuffer[10] = {0};
-    int res = CHIRP_SC_AsyncReceiveRequest(terminalC, gathBuffer,
+    int res = YOGI_SC_AsyncReceiveRequest(terminalC, gathBuffer,
         sizeof(gathBuffer), helpers::ReceiveScatteredMessageHandler::fn,
         &rcvScatteredMsgFn);
-    ASSERT_EQ(CHIRP_OK, res);
+    ASSERT_EQ(YOGI_OK, res);
 
-    res = CHIRP_SC_CancelReceiveRequest(terminalC);
-    ASSERT_EQ(CHIRP_OK, res);
+    res = YOGI_SC_CancelReceiveRequest(terminalC);
+    ASSERT_EQ(YOGI_OK, res);
 
     rcvScatteredMsgFn.wait();
-    EXPECT_EQ(CHIRP_ERR_CANCELED, rcvScatteredMsgFn.lastErrorCode);
+    EXPECT_EQ(YOGI_ERR_CANCELED, rcvScatteredMsgFn.lastErrorCode);
     EXPECT_EQ(0, rcvScatteredMsgFn.size);
 }
 
 TEST_F(ServiceClientLibraryTest, DestroyBindingDuringScatterGatherOperation)
 {
-    int res = CHIRP_SC_AsyncReceiveRequest(terminalB, nullptr, 0,
+    int res = YOGI_SC_AsyncReceiveRequest(terminalB, nullptr, 0,
         helpers::ReceiveScatteredMessageHandler::fn, &rcvScatteredMsgFn);
-    ASSERT_EQ(CHIRP_OK, res);
+    ASSERT_EQ(YOGI_OK, res);
 
-    int id = CHIRP_SC_AsyncRequest(terminalA, "Hi", 3, nullptr, 0,
+    int id = YOGI_SC_AsyncRequest(terminalA, "Hi", 3, nullptr, 0,
         helpers::ReceiveGatheredMessageHandler::fn, &rcvGatheredMsgFn);
     ASSERT_GT(id, 0);
 
@@ -229,28 +229,28 @@ TEST_F(ServiceClientLibraryTest, DestroyBindingDuringScatterGatherOperation)
 
     rcvGatheredMsgFn.wait();
     EXPECT_EQ(id, rcvGatheredMsgFn.operationId);
-    EXPECT_EQ(CHIRP_SG_DEAF, rcvGatheredMsgFn.flags);
-    EXPECT_EQ(CHIRP_OK, rcvGatheredMsgFn.lastErrorCode);
+    EXPECT_EQ(YOGI_SG_DEAF, rcvGatheredMsgFn.flags);
+    EXPECT_EQ(YOGI_OK, rcvGatheredMsgFn.lastErrorCode);
     EXPECT_EQ(0, rcvGatheredMsgFn.size);
 
-    res = CHIRP_Destroy(terminalB);
-    ASSERT_EQ(CHIRP_OK, res);
+    res = YOGI_Destroy(terminalB);
+    ASSERT_EQ(YOGI_OK, res);
 
     rcvGatheredMsgFn.wait();
     EXPECT_EQ(id, rcvGatheredMsgFn.operationId);
-    EXPECT_EQ(CHIRP_SG_BINDINGDESTROYED | CHIRP_SG_FINISHED,
+    EXPECT_EQ(YOGI_SG_BINDINGDESTROYED | YOGI_SG_FINISHED,
         rcvGatheredMsgFn.flags);
-    EXPECT_EQ(CHIRP_OK, rcvGatheredMsgFn.lastErrorCode);
+    EXPECT_EQ(YOGI_OK, rcvGatheredMsgFn.lastErrorCode);
     EXPECT_EQ(0, rcvGatheredMsgFn.size);
 }
 
 TEST_F(ServiceClientLibraryTest, DestroyConnectionDuringScatterGatherOperation)
 {
-    int res = CHIRP_SC_AsyncReceiveRequest(terminalB, nullptr, 0,
+    int res = YOGI_SC_AsyncReceiveRequest(terminalB, nullptr, 0,
         helpers::ReceiveScatteredMessageHandler::fn, &rcvScatteredMsgFn);
-    ASSERT_EQ(CHIRP_OK, res);
+    ASSERT_EQ(YOGI_OK, res);
 
-    int id = CHIRP_SC_AsyncRequest(terminalA, "Hi", 3, nullptr, 0,
+    int id = YOGI_SC_AsyncRequest(terminalA, "Hi", 3, nullptr, 0,
         helpers::ReceiveGatheredMessageHandler::fn, &rcvGatheredMsgFn);
     ASSERT_GT(id, 0);
 
@@ -258,17 +258,17 @@ TEST_F(ServiceClientLibraryTest, DestroyConnectionDuringScatterGatherOperation)
 
     rcvGatheredMsgFn.wait();
     EXPECT_EQ(id, rcvGatheredMsgFn.operationId);
-    EXPECT_EQ(CHIRP_SG_DEAF, rcvGatheredMsgFn.flags);
-    EXPECT_EQ(CHIRP_OK, rcvGatheredMsgFn.lastErrorCode);
+    EXPECT_EQ(YOGI_SG_DEAF, rcvGatheredMsgFn.flags);
+    EXPECT_EQ(YOGI_OK, rcvGatheredMsgFn.lastErrorCode);
     EXPECT_EQ(0, rcvGatheredMsgFn.size);
 
-    res = CHIRP_Destroy(connectionB);
-    ASSERT_EQ(CHIRP_OK, res);
+    res = YOGI_Destroy(connectionB);
+    ASSERT_EQ(YOGI_OK, res);
 
     rcvGatheredMsgFn.wait();
     EXPECT_EQ(id, rcvGatheredMsgFn.operationId);
-    EXPECT_EQ(CHIRP_SG_CONNECTIONLOST | CHIRP_SG_FINISHED,
+    EXPECT_EQ(YOGI_SG_CONNECTIONLOST | YOGI_SG_FINISHED,
         rcvGatheredMsgFn.flags);
-    EXPECT_EQ(CHIRP_OK, rcvGatheredMsgFn.lastErrorCode);
+    EXPECT_EQ(YOGI_OK, rcvGatheredMsgFn.lastErrorCode);
     EXPECT_EQ(0, rcvGatheredMsgFn.size);
 }

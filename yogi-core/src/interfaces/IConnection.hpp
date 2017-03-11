@@ -1,12 +1,12 @@
-#ifndef CHIRP_INTERFACES_ICONNECTION_HPP
-#define CHIRP_INTERFACES_ICONNECTION_HPP
+#ifndef YOGI_INTERFACES_ICONNECTION_HPP
+#define YOGI_INTERFACES_ICONNECTION_HPP
 
 #include "../config.h"
 #include "IMessage.hpp"
 #include "IConnectionLike.hpp"
 
 
-namespace chirp {
+namespace yogi {
 namespace interfaces {
 
 /***************************************************************************//**
@@ -24,6 +24,6 @@ struct IConnection : public IConnectionLike
 typedef std::shared_ptr<IConnection> connection_ptr;
 
 } // namespace interfaces
-} // namespace chirp
+} // namespace yogi
 
-#endif // CHIRP_INTERFACES_ICONNECTION_HPP
+#endif // YOGI_INTERFACES_ICONNECTION_HPP

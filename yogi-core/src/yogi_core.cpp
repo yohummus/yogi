@@ -18,7 +18,7 @@
 #include "api/PublicObjectRegister.hpp"
 #include "api/TerminalWithBindingT.hpp"
 #include "api/evaluate.hpp"
-using namespace chirp;
+using namespace yogi;
 
 #include <boost/log/core.hpp>
 #include <boost/log/sinks.hpp>
@@ -33,21 +33,21 @@ using namespace chirp;
 #define CHECK_INITIALIZED()                                \
 {{                                                         \
     if (!global::initialised) {                            \
-        return CHIRP_ERR_NOT_INITIALISED;                  \
+        return YOGI_ERR_NOT_INITIALISED;                  \
     }                                                      \
 }}
 
 #define CHECK_HANDLE(handle)                               \
 {{                                                         \
     if (!(handle)) {                                       \
-        return CHIRP_ERR_INVALID_HANDLE;                   \
+        return YOGI_ERR_INVALID_HANDLE;                   \
     }                                                      \
 }}
 
 #define CHECK_PARAM(cond)                                  \
 {{                                                         \
     if (!(cond)) {                                         \
-        return CHIRP_ERR_INVALID_PARAM;                    \
+        return YOGI_ERR_INVALID_PARAM;                    \
     }                                                      \
 }}
 
@@ -60,14 +60,14 @@ using namespace chirp;
 #define CHECK_ID(id)                                       \
 {{                                                         \
     if (id <= 0) {                                         \
-        return CHIRP_ERR_INVALID_ID;                       \
+        return YOGI_ERR_INVALID_ID;                       \
     }                                                      \
 }}
 
 #define CHECK_FLAGS_THROW(flags, validFlags)               \
 {{                                                         \
     if (flags & ~(validFlags)) {                           \
-        throw api::ExceptionT<CHIRP_ERR_INVALID_PARAM>{};  \
+        throw api::ExceptionT<YOGI_ERR_INVALID_PARAM>{};  \
     }                                                      \
 }}
 
@@ -168,13 +168,13 @@ int state_to_int(interfaces::IBinding::state_t state)
 {
     switch (state) {
     case interfaces::IBinding::STATE_RELEASED:
-        return CHIRP_BD_RELEASED;
+        return YOGI_BD_RELEASED;
 
     case interfaces::IBinding::STATE_ESTABLISHED:
-        return CHIRP_BD_ESTABLISHED;
+        return YOGI_BD_ESTABLISHED;
 
     default:
-        CHIRP_NEVER_REACHED;
+        YOGI_NEVER_REACHED;
         return -1;
     }
 }
@@ -183,13 +183,13 @@ int state_to_int(interfaces::ISubscribableTerminal::state_t state)
 {
     switch (state) {
     case interfaces::ISubscribableTerminal::STATE_UNSUBSCRIBED:
-        return CHIRP_BD_RELEASED;
+        return YOGI_BD_RELEASED;
 
     case interfaces::ISubscribableTerminal::STATE_SUBSCRIBED:
-        return CHIRP_BD_ESTABLISHED;
+        return YOGI_BD_ESTABLISHED;
 
     default:
-        CHIRP_NEVER_REACHED;
+        YOGI_NEVER_REACHED;
         return -1;
     }
 }
@@ -206,17 +206,17 @@ std::chrono::milliseconds int_to_timeout(int timeout)
 
 } // anonymous namespace
 
-CHIRP_API const char* CHIRP_GetVersion()
+YOGI_API const char* YOGI_GetVersion()
 {
-    return CHIRP_VERSION;
+    return YOGI_VERSION;
 }
 
-CHIRP_API const char* CHIRP_GetErrorString(int errCode)
+YOGI_API const char* YOGI_GetErrorString(int errCode)
 {
     return api::Exception::get_description(errCode);
 }
 
-CHIRP_API int CHIRP_SetLogFile(const char* file, int verbosity)
+YOGI_API int YOGI_SetLogFile(const char* file, int verbosity)
 {
     return evaluate([&] {
         namespace logging  = boost::log;
@@ -224,13 +224,13 @@ CHIRP_API int CHIRP_SetLogFile(const char* file, int verbosity)
 
         logging::trivial::severity_level severity_;
         switch (verbosity) {
-        case CHIRP_VB_FATAL:   severity_ = logging::trivial::fatal;   break;
-        case CHIRP_VB_ERROR:   severity_ = logging::trivial::error;   break;
-        case CHIRP_VB_WARNING: severity_ = logging::trivial::warning; break;
-        case CHIRP_VB_INFO:    severity_ = logging::trivial::info;    break;
-        case CHIRP_VB_DEBUG:   severity_ = logging::trivial::debug;   break;
-        case CHIRP_VB_TRACE:   severity_ = logging::trivial::trace;   break;
-        default: throw api::ExceptionT<CHIRP_ERR_INVALID_PARAM>{};
+        case YOGI_VB_FATAL:   severity_ = logging::trivial::fatal;   break;
+        case YOGI_VB_ERROR:   severity_ = logging::trivial::error;   break;
+        case YOGI_VB_WARNING: severity_ = logging::trivial::warning; break;
+        case YOGI_VB_INFO:    severity_ = logging::trivial::info;    break;
+        case YOGI_VB_DEBUG:   severity_ = logging::trivial::debug;   break;
+        case YOGI_VB_TRACE:   severity_ = logging::trivial::trace;   break;
+        default: throw api::ExceptionT<YOGI_ERR_INVALID_PARAM>{};
         }
 
         try {
@@ -256,36 +256,36 @@ CHIRP_API int CHIRP_SetLogFile(const char* file, int verbosity)
         }
         catch (...) {
             boost::log::core::get()->set_logging_enabled(false);
-            throw api::ExceptionT<CHIRP_ERR_CANNOT_CREATE_LOG_FILE>{};
+            throw api::ExceptionT<YOGI_ERR_CANNOT_CREATE_LOG_FILE>{};
         }
     }, __FUNCTION__, file, verbosity);
 }
 
-CHIRP_API int CHIRP_Initialise()
+YOGI_API int YOGI_Initialise()
 {
     if (global::initialised.exchange(true)) {
-        return CHIRP_ERR_ALREADY_INITIALISED;
+        return YOGI_ERR_ALREADY_INITIALISED;
     }
 
     if (!global::logSink) {
         boost::log::core::get()->set_logging_enabled(false);
     }
 
-    return CHIRP_OK;
+    return YOGI_OK;
 }
 
-CHIRP_API int CHIRP_Shutdown()
+YOGI_API int YOGI_Shutdown()
 {
     if (!global::initialised.exchange(false)) {
-        return CHIRP_ERR_NOT_INITIALISED;
+        return YOGI_ERR_NOT_INITIALISED;
     }
 
     api::PublicObjectRegister::clear();
 
-    return CHIRP_OK;
+    return YOGI_OK;
 }
 
-CHIRP_API int CHIRP_Destroy(void* handle)
+YOGI_API int YOGI_Destroy(void* handle)
 {
     CHECK_INITIALIZED();
     CHECK_HANDLE(handle);
@@ -295,7 +295,7 @@ CHIRP_API int CHIRP_Destroy(void* handle)
     }, __FUNCTION__, handle);
 }
 
-CHIRP_API int CHIRP_CreateScheduler(void** scheduler)
+YOGI_API int YOGI_CreateScheduler(void** scheduler)
 {
     CHECK_INITIALIZED();
     CHECK_PARAM(scheduler);
@@ -306,7 +306,7 @@ CHIRP_API int CHIRP_CreateScheduler(void** scheduler)
     }, __FUNCTION__, scheduler);
 }
 
-CHIRP_API int CHIRP_SetSchedulerThreadPoolSize(void* scheduler,
+YOGI_API int YOGI_SetSchedulerThreadPoolSize(void* scheduler,
     unsigned numThreads)
 {
     CHECK_INITIALIZED();
@@ -319,7 +319,7 @@ CHIRP_API int CHIRP_SetSchedulerThreadPoolSize(void* scheduler,
     }, __FUNCTION__, scheduler, numThreads);
 }
 
-CHIRP_API int CHIRP_CreateNode(void** node, void* scheduler)
+YOGI_API int YOGI_CreateNode(void** node, void* scheduler)
 {
     CHECK_INITIALIZED();
     CHECK_PARAM(node);
@@ -333,7 +333,7 @@ CHIRP_API int CHIRP_CreateNode(void** node, void* scheduler)
     }, __FUNCTION__, node, scheduler);
 }
 
-CHIRP_API int CHIRP_GetKnownTerminals(void* node, void* buffer,
+YOGI_API int YOGI_GetKnownTerminals(void* node, void* buffer,
     unsigned bufferSize, unsigned* numTerminals)
 {
     CHECK_INITIALIZED();
@@ -354,7 +354,7 @@ CHIRP_API int CHIRP_GetKnownTerminals(void* node, void* buffer,
             for (auto& identifier : tms) {
                 tmp.resize(1 + 4 + identifier.name().size() + 1);
                 if (tmp.size() > bufferSize_ - bufferOffset) {
-                    throw api::ExceptionT<CHIRP_ERR_BUFFER_TOO_SMALL>{};
+                    throw api::ExceptionT<YOGI_ERR_BUFFER_TOO_SMALL>{};
                 }
 
                 tmp[0] = type;
@@ -376,19 +376,19 @@ CHIRP_API int CHIRP_GetKnownTerminals(void* node, void* buffer,
         };
 
         auto v = node_.get_known_terminals();
-        convertFn(CHIRP_TM_DEAFMUTE,               v.deafMute);
-        convertFn(CHIRP_TM_PUBLISHSUBSCRIBE,       v.publishSubscribe);
-        convertFn(CHIRP_TM_SCATTERGATHER,          v.scatterGather);
-        convertFn(CHIRP_TM_CACHEDPUBLISHSUBSCRIBE, v.cachedPublishSubscribe);
-        convertFn(CHIRP_TM_PRODUCER,               v.producerConsumer);
-        convertFn(CHIRP_TM_CACHEDPRODUCER,         v.cachedProducerConsumer);
-        convertFn(CHIRP_TM_MASTER,                 v.masterSlave);
-        convertFn(CHIRP_TM_CACHEDMASTER,           v.cachedMasterSlave);
-        convertFn(CHIRP_TM_SERVICE,                v.serviceClient);
+        convertFn(YOGI_TM_DEAFMUTE,               v.deafMute);
+        convertFn(YOGI_TM_PUBLISHSUBSCRIBE,       v.publishSubscribe);
+        convertFn(YOGI_TM_SCATTERGATHER,          v.scatterGather);
+        convertFn(YOGI_TM_CACHEDPUBLISHSUBSCRIBE, v.cachedPublishSubscribe);
+        convertFn(YOGI_TM_PRODUCER,               v.producerConsumer);
+        convertFn(YOGI_TM_CACHEDPRODUCER,         v.cachedProducerConsumer);
+        convertFn(YOGI_TM_MASTER,                 v.masterSlave);
+        convertFn(YOGI_TM_CACHEDMASTER,           v.cachedMasterSlave);
+        convertFn(YOGI_TM_SERVICE,                v.serviceClient);
     }, __FUNCTION__, node, buffer, bufferSize, numTerminals);
 }
 
-CHIRP_API int CHIRP_AsyncAwaitKnownTerminalsChange(void* node, void* buffer,
+YOGI_API int YOGI_AsyncAwaitKnownTerminalsChange(void* node, void* buffer,
     unsigned bufferSize, void (*handlerFn)(int, void*), void* userArg)
 {
     CHECK_INITIALIZED();
@@ -405,7 +405,7 @@ CHIRP_API int CHIRP_AsyncAwaitKnownTerminalsChange(void* node, void* buffer,
             [=](const api::Exception& e,
                 core::Node::known_terminal_change_info info) {
                     if (bufferSize_ < info.identifier.name().size() + 7) {
-                        handlerFn(CHIRP_ERR_BUFFER_TOO_SMALL, userArg);
+                        handlerFn(YOGI_ERR_BUFFER_TOO_SMALL, userArg);
                     }
                     else {
                         buffer_[0] = (info.added ? 1 : 0);
@@ -422,7 +422,7 @@ CHIRP_API int CHIRP_AsyncAwaitKnownTerminalsChange(void* node, void* buffer,
     }, __FUNCTION__, node, buffer, bufferSize, handlerFn, userArg);
 }
 
-CHIRP_API int CHIRP_CancelAwaitKnownTerminalsChange(void* node)
+YOGI_API int YOGI_CancelAwaitKnownTerminalsChange(void* node)
 {
     CHECK_INITIALIZED();
     CHECK_HANDLE(node);
@@ -434,7 +434,7 @@ CHIRP_API int CHIRP_CancelAwaitKnownTerminalsChange(void* node)
     }, __FUNCTION__, node);
 }
 
-CHIRP_API int CHIRP_CreateLeaf(void** leaf, void* scheduler)
+YOGI_API int YOGI_CreateLeaf(void** leaf, void* scheduler)
 {
     CHECK_INITIALIZED();
     CHECK_PARAM(leaf);
@@ -448,7 +448,7 @@ CHIRP_API int CHIRP_CreateLeaf(void** leaf, void* scheduler)
     }, __FUNCTION__, leaf, scheduler);
 }
 
-CHIRP_API int CHIRP_CreateTerminal(void** terminal, void* leaf, int type,
+YOGI_API int YOGI_CreateTerminal(void** terminal, void* leaf, int type,
     const char* name, unsigned signature)
 {
     CHECK_INITIALIZED();
@@ -463,37 +463,37 @@ CHIRP_API int CHIRP_CreateTerminal(void** terminal, void* leaf, int type,
             signature);
 
         switch (type) {
-        case CHIRP_TM_DEAFMUTE:
+        case YOGI_TM_DEAFMUTE:
             *terminal = api::PublicObjectRegister::create<
                 core::deaf_mute::Terminal<>>(leaf_,
                     base::Identifier{signature_, name, false});
             break;
 
-        case CHIRP_TM_PUBLISHSUBSCRIBE:
+        case YOGI_TM_PUBLISHSUBSCRIBE:
             *terminal = api::PublicObjectRegister::create<
                 core::publish_subscribe::Terminal<>>(leaf_,
                     base::Identifier{signature_, name, false});
             break;
 
-        case CHIRP_TM_SCATTERGATHER:
+        case YOGI_TM_SCATTERGATHER:
             *terminal = api::PublicObjectRegister::create<
                 core::scatter_gather::Terminal<>>(leaf_,
                     base::Identifier{signature_, name, false});
             break;
 
-        case CHIRP_TM_CACHEDPUBLISHSUBSCRIBE:
+        case YOGI_TM_CACHEDPUBLISHSUBSCRIBE:
             *terminal = api::PublicObjectRegister::create<
                 core::cached_publish_subscribe::Terminal<>>(leaf_,
                     base::Identifier{signature_, name, false});
             break;
 
-        case CHIRP_TM_PRODUCER:
+        case YOGI_TM_PRODUCER:
             *terminal = api::PublicObjectRegister::create<
                 core::producer_consumer::Terminal<>>(leaf_,
                     base::Identifier{signature_, name, false});
             break;
 
-        case CHIRP_TM_CONSUMER: {{
+        case YOGI_TM_CONSUMER: {{
             auto tm = std::make_shared<api::TerminalWithBindingT<
                 core::producer_consumer::logic_types<>>>(leaf_,
                     signature_, name, true);
@@ -502,13 +502,13 @@ CHIRP_API int CHIRP_CreateTerminal(void** terminal, void* leaf, int type,
             *terminal = api::PublicObjectRegister::add(tm);
             }} break;
 
-        case CHIRP_TM_CACHEDPRODUCER:
+        case YOGI_TM_CACHEDPRODUCER:
             *terminal = api::PublicObjectRegister::create<
                 core::cached_producer_consumer::Terminal<>>(leaf_,
                     base::Identifier{signature_, name, false});
             break;
 
-        case CHIRP_TM_CACHEDCONSUMER: {{
+        case YOGI_TM_CACHEDCONSUMER: {{
             auto tm = std::make_shared<api::TerminalWithBindingT<
                 core::cached_producer_consumer::logic_types<>>>(leaf_,
                     signature_, name, true);
@@ -517,7 +517,7 @@ CHIRP_API int CHIRP_CreateTerminal(void** terminal, void* leaf, int type,
             *terminal = api::PublicObjectRegister::add(tm);
             }} break;
 
-        case CHIRP_TM_MASTER: {{
+        case YOGI_TM_MASTER: {{
                 auto tm = std::make_shared<api::TerminalWithBindingT<
                     core::master_slave::logic_types<>>>(leaf_,
                         signature_, name, false);
@@ -526,7 +526,7 @@ CHIRP_API int CHIRP_CreateTerminal(void** terminal, void* leaf, int type,
                 *terminal = api::PublicObjectRegister::add(tm);
             }} break;
 
-        case CHIRP_TM_SLAVE: {{
+        case YOGI_TM_SLAVE: {{
                 auto tm = std::make_shared<api::TerminalWithBindingT<
                     core::master_slave::logic_types<>>>(leaf_,
                         signature_, name, true);
@@ -535,7 +535,7 @@ CHIRP_API int CHIRP_CreateTerminal(void** terminal, void* leaf, int type,
                 *terminal = api::PublicObjectRegister::add(tm);
             }} break;
 
-        case CHIRP_TM_CACHEDMASTER: {{
+        case YOGI_TM_CACHEDMASTER: {{
                 auto tm = std::make_shared<api::TerminalWithBindingT<
                     core::cached_master_slave::logic_types<>>>(leaf_,
                         signature_, name, false);
@@ -544,7 +544,7 @@ CHIRP_API int CHIRP_CreateTerminal(void** terminal, void* leaf, int type,
                 *terminal = api::PublicObjectRegister::add(tm);
             }} break;
 
-        case CHIRP_TM_CACHEDSLAVE: {{
+        case YOGI_TM_CACHEDSLAVE: {{
                 auto tm = std::make_shared<api::TerminalWithBindingT<
                     core::cached_master_slave::logic_types<>>>(leaf_,
                         signature_, name, true);
@@ -553,7 +553,7 @@ CHIRP_API int CHIRP_CreateTerminal(void** terminal, void* leaf, int type,
                 *terminal = api::PublicObjectRegister::add(tm);
             }} break;
 
-        case CHIRP_TM_SERVICE: {{
+        case YOGI_TM_SERVICE: {{
             auto tm = std::make_shared<api::TerminalWithBindingT<
                 core::service_client::logic_types<>>>(leaf_,
                     signature_, name, false);
@@ -562,19 +562,19 @@ CHIRP_API int CHIRP_CreateTerminal(void** terminal, void* leaf, int type,
             *terminal = api::PublicObjectRegister::add(tm);
             }} break;
 
-        case CHIRP_TM_CLIENT:
+        case YOGI_TM_CLIENT:
             *terminal = api::PublicObjectRegister::create<
                 core::service_client::Terminal<>>(leaf_,
                     base::Identifier{signature_, name, true});
             break;
 
         default:
-            throw api::ExceptionT<CHIRP_ERR_INVALID_PARAM>{};
+            throw api::ExceptionT<YOGI_ERR_INVALID_PARAM>{};
         }
     }, __FUNCTION__, terminal, leaf, type, name, signature);
 }
 
-CHIRP_API int CHIRP_GetSubscriptionState(void* terminal, int* state)
+YOGI_API int YOGI_GetSubscriptionState(void* terminal, int* state)
 {
     CHECK_INITIALIZED();
     CHECK_HANDLE(terminal);
@@ -588,7 +588,7 @@ CHIRP_API int CHIRP_GetSubscriptionState(void* terminal, int* state)
     }, __FUNCTION__, terminal, state);
 }
 
-CHIRP_API int CHIRP_AsyncGetSubscriptionState(void* terminal,
+YOGI_API int YOGI_AsyncGetSubscriptionState(void* terminal,
     void (*handlerFn)(int, int, void*), void* userArg)
 {
     CHECK_INITIALIZED();
@@ -606,7 +606,7 @@ CHIRP_API int CHIRP_AsyncGetSubscriptionState(void* terminal,
     }, __FUNCTION__, terminal, handlerFn, userArg);
 }
 
-CHIRP_API int CHIRP_AsyncAwaitSubscriptionStateChange(void* terminal,
+YOGI_API int YOGI_AsyncAwaitSubscriptionStateChange(void* terminal,
     void (*handlerFn)(int, int, void*), void* userArg)
 {
     CHECK_INITIALIZED();
@@ -625,7 +625,7 @@ CHIRP_API int CHIRP_AsyncAwaitSubscriptionStateChange(void* terminal,
     }, __FUNCTION__, terminal, handlerFn, userArg);
 }
 
-CHIRP_API int CHIRP_CancelAwaitSubscriptionStateChange(void* terminal)
+YOGI_API int YOGI_CancelAwaitSubscriptionStateChange(void* terminal)
 {
     CHECK_INITIALIZED();
     CHECK_HANDLE(terminal);
@@ -638,7 +638,7 @@ CHIRP_API int CHIRP_CancelAwaitSubscriptionStateChange(void* terminal)
     }, __FUNCTION__, terminal);
 }
 
-CHIRP_API int CHIRP_CreateBinding(void** binding, void* terminal,
+YOGI_API int YOGI_CreateBinding(void** binding, void* terminal,
     const char* targets)
 {
     CHECK_INITIALIZED();
@@ -680,12 +680,12 @@ CHIRP_API int CHIRP_CreateBinding(void** binding, void* terminal,
                 static_cast<tm_type&>(terminal_), targets, false);
         }
         else {
-            throw api::ExceptionT<CHIRP_ERR_INVALID_HANDLE>{};
+            throw api::ExceptionT<YOGI_ERR_INVALID_HANDLE>{};
         }
     }, __FUNCTION__, binding, terminal, targets);
 }
 
-CHIRP_API int CHIRP_GetBindingState(void* object, int* state)
+YOGI_API int YOGI_GetBindingState(void* object, int* state)
 {
     CHECK_INITIALIZED();
     CHECK_HANDLE(object);
@@ -699,7 +699,7 @@ CHIRP_API int CHIRP_GetBindingState(void* object, int* state)
     }, __FUNCTION__, object, state);
 }
 
-CHIRP_API int CHIRP_AsyncGetBindingState(void* binding,
+YOGI_API int YOGI_AsyncGetBindingState(void* binding,
     void (*handlerFn)(int, int, void*), void* userArg)
 {
     CHECK_INITIALIZED();
@@ -717,7 +717,7 @@ CHIRP_API int CHIRP_AsyncGetBindingState(void* binding,
     }, __FUNCTION__, binding, handlerFn, userArg);
 }
 
-CHIRP_API int CHIRP_AsyncAwaitBindingStateChange(void* binding,
+YOGI_API int YOGI_AsyncAwaitBindingStateChange(void* binding,
     void (*handlerFn)(int, int, void*), void* userArg)
 {
     CHECK_INITIALIZED();
@@ -735,7 +735,7 @@ CHIRP_API int CHIRP_AsyncAwaitBindingStateChange(void* binding,
     }, __FUNCTION__, binding, handlerFn, userArg);
 }
 
-CHIRP_API int CHIRP_CancelAwaitBindingStateChange(void* binding)
+YOGI_API int YOGI_CancelAwaitBindingStateChange(void* binding)
 {
     CHECK_INITIALIZED();
     CHECK_HANDLE(binding);
@@ -748,7 +748,7 @@ CHIRP_API int CHIRP_CancelAwaitBindingStateChange(void* binding)
     }, __FUNCTION__, binding);
 }
 
-CHIRP_API int CHIRP_CreateLocalConnection(void** connection, void* leafNodeA,
+YOGI_API int YOGI_CreateLocalConnection(void** connection, void* leafNodeA,
     void* leafNodeB)
 {
     CHECK_INITIALIZED();
@@ -767,7 +767,7 @@ CHIRP_API int CHIRP_CreateLocalConnection(void** connection, void* leafNodeA,
     }, __FUNCTION__, connection, leafNodeA, leafNodeB);
 }
 
-CHIRP_API int CHIRP_CreateTcpServer(void** tcpServer, void* scheduler,
+YOGI_API int YOGI_CreateTcpServer(void** tcpServer, void* scheduler,
 	const char* address, unsigned port, const void* ident, unsigned identSize)
 {
 	CHECK_INITIALIZED();
@@ -788,7 +788,7 @@ CHIRP_API int CHIRP_CreateTcpServer(void** tcpServer, void* scheduler,
 	}, __FUNCTION__, tcpServer, scheduler, address, port, ident, identSize);
 }
 
-CHIRP_API int CHIRP_AsyncTcpAccept(void* tcpServer, int hsTimeout,
+YOGI_API int YOGI_AsyncTcpAccept(void* tcpServer, int hsTimeout,
 	void (*handlerFn)(int, void*, void*), void* userArg)
 {
 	CHECK_INITIALIZED();
@@ -812,7 +812,7 @@ CHIRP_API int CHIRP_AsyncTcpAccept(void* tcpServer, int hsTimeout,
 	}, __FUNCTION__, tcpServer, hsTimeout, handlerFn, userArg);
 }
 
-CHIRP_API int CHIRP_CancelTcpAccept(void* tcpServer)
+YOGI_API int YOGI_CancelTcpAccept(void* tcpServer)
 {
 	CHECK_INITIALIZED();
 	CHECK_HANDLE(tcpServer);
@@ -825,7 +825,7 @@ CHIRP_API int CHIRP_CancelTcpAccept(void* tcpServer)
 	}, __FUNCTION__, tcpServer);
 }
 
-CHIRP_API int CHIRP_CreateTcpClient(void** tcpClient, void* scheduler,
+YOGI_API int YOGI_CreateTcpClient(void** tcpClient, void* scheduler,
 	const void* ident, unsigned identSize)
 {
 	CHECK_INITIALIZED();
@@ -843,7 +843,7 @@ CHIRP_API int CHIRP_CreateTcpClient(void** tcpClient, void* scheduler,
 	}, __FUNCTION__, tcpClient, scheduler, ident, identSize);
 }
 
-CHIRP_API int CHIRP_AsyncTcpConnect(void* tcpClient, const char* host,
+YOGI_API int YOGI_AsyncTcpConnect(void* tcpClient, const char* host,
     unsigned port, int hsTimeout, void (*handlerFn)(int, void*, void*),
     void* userArg)
 {
@@ -871,7 +871,7 @@ CHIRP_API int CHIRP_AsyncTcpConnect(void* tcpClient, const char* host,
 	}, __FUNCTION__, tcpClient, host, port, hsTimeout, handlerFn, userArg);
 }
 
-CHIRP_API int CHIRP_CancelTcpConnect(void* tcpClient)
+YOGI_API int YOGI_CancelTcpConnect(void* tcpClient)
 {
 	CHECK_INITIALIZED();
 	CHECK_HANDLE(tcpClient);
@@ -884,7 +884,7 @@ CHIRP_API int CHIRP_CancelTcpConnect(void* tcpClient)
 	}, __FUNCTION__, tcpClient);
 }
 
-CHIRP_API int CHIRP_GetConnectionDescription(void* connection, char* buffer,
+YOGI_API int YOGI_GetConnectionDescription(void* connection, char* buffer,
     unsigned bufferSize)
 {
 	CHECK_INITIALIZED();
@@ -903,12 +903,12 @@ CHIRP_API int CHIRP_GetConnectionDescription(void* connection, char* buffer,
 		}
 		else {
 			std::copy_n(s.begin(), bufferSize_, buffer);
-			throw api::ExceptionT<CHIRP_ERR_BUFFER_TOO_SMALL>{};
+			throw api::ExceptionT<YOGI_ERR_BUFFER_TOO_SMALL>{};
 		}
 	}, __FUNCTION__, connection, buffer, bufferSize);
 }
 
-CHIRP_API int CHIRP_GetRemoteVersion(void* connection, char* buffer,
+YOGI_API int YOGI_GetRemoteVersion(void* connection, char* buffer,
     unsigned bufferSize)
 {
 	CHECK_INITIALIZED();
@@ -928,12 +928,12 @@ CHIRP_API int CHIRP_GetRemoteVersion(void* connection, char* buffer,
 		}
 		else {
 			std::copy_n(s.begin(), bufferSize_, buffer_);
-			throw api::ExceptionT<CHIRP_ERR_BUFFER_TOO_SMALL>{};
+			throw api::ExceptionT<YOGI_ERR_BUFFER_TOO_SMALL>{};
 		}
 	}, __FUNCTION__, connection, buffer, bufferSize);
 }
 
-CHIRP_API int CHIRP_GetRemoteIdentification(void* connection, void* buffer,
+YOGI_API int YOGI_GetRemoteIdentification(void* connection, void* buffer,
     unsigned bufferSize, unsigned* size)
 {
 	CHECK_INITIALIZED();
@@ -957,12 +957,12 @@ CHIRP_API int CHIRP_GetRemoteIdentification(void* connection, void* buffer,
 		}
 		else {
 			std::copy_n(data.begin(), bufferSize_, buffer_);
-			throw api::ExceptionT<CHIRP_ERR_BUFFER_TOO_SMALL>{};
+			throw api::ExceptionT<YOGI_ERR_BUFFER_TOO_SMALL>{};
 		}
 	}, __FUNCTION__, connection, buffer, bufferSize, size);
 }
 
-CHIRP_API int CHIRP_AssignConnection(void* connection, void* leafNode,
+YOGI_API int YOGI_AssignConnection(void* connection, void* leafNode,
     int timeout)
 {
 	CHECK_INITIALIZED();
@@ -980,7 +980,7 @@ CHIRP_API int CHIRP_AssignConnection(void* connection, void* leafNode,
 	}, __FUNCTION__, connection, leafNode, timeout);
 }
 
-CHIRP_API int CHIRP_AsyncAwaitConnectionDeath(void* connection,
+YOGI_API int YOGI_AsyncAwaitConnectionDeath(void* connection,
 	void (*handlerFn)(int, void*), void* userArg)
 {
 	CHECK_INITIALIZED();
@@ -997,7 +997,7 @@ CHIRP_API int CHIRP_AsyncAwaitConnectionDeath(void* connection,
 	}, __FUNCTION__, connection, handlerFn, userArg);
 }
 
-CHIRP_API int CHIRP_CancelAwaitConnectionDeath(void* connection)
+YOGI_API int YOGI_CancelAwaitConnectionDeath(void* connection)
 {
 	CHECK_INITIALIZED();
 	CHECK_HANDLE(connection);
@@ -1010,7 +1010,7 @@ CHIRP_API int CHIRP_CancelAwaitConnectionDeath(void* connection)
 	}, __FUNCTION__, connection);
 }
 
-CHIRP_API int CHIRP_PS_Publish(void* terminal, const void* buffer,
+YOGI_API int YOGI_PS_Publish(void* terminal, const void* buffer,
     unsigned bufferSize)
 {
     CHECK_INITIALIZED();
@@ -1024,11 +1024,11 @@ CHIRP_API int CHIRP_PS_Publish(void* terminal, const void* buffer,
         bool ok = terminal_.publish(base::Buffer{buffer,
             static_cast<std::size_t>(bufferSize)});
 
-        return ok ? CHIRP_OK : CHIRP_ERR_NOT_BOUND;
+        return ok ? YOGI_OK : YOGI_ERR_NOT_BOUND;
     }, __FUNCTION__, terminal, buffer, bufferSize);
 }
 
-CHIRP_API int CHIRP_PS_AsyncReceiveMessage(void* terminal, void* buffer,
+YOGI_API int YOGI_PS_AsyncReceiveMessage(void* terminal, void* buffer,
     unsigned bufferSize, void (*handlerFn)(int, unsigned, void*),
     void* userArg)
 {
@@ -1050,7 +1050,7 @@ CHIRP_API int CHIRP_PS_AsyncReceiveMessage(void* terminal, void* buffer,
     }, __FUNCTION__, terminal, buffer, bufferSize, handlerFn, userArg);
 }
 
-CHIRP_API int CHIRP_PS_CancelReceiveMessage(void* terminal)
+YOGI_API int YOGI_PS_CancelReceiveMessage(void* terminal)
 {
     CHECK_INITIALIZED();
     CHECK_HANDLE(terminal);
@@ -1063,7 +1063,7 @@ CHIRP_API int CHIRP_PS_CancelReceiveMessage(void* terminal)
     }, __FUNCTION__, terminal);
 }
 
-CHIRP_API int CHIRP_SG_AsyncScatterGather(void* terminal, const void* scatBuf,
+YOGI_API int YOGI_SG_AsyncScatterGather(void* terminal, const void* scatBuf,
     unsigned scatSize, void* gathBuf, unsigned gathSize,
     int (*handlerFn)(int, int, int, unsigned, void*), void* userArg)
 {
@@ -1094,7 +1094,7 @@ CHIRP_API int CHIRP_SG_AsyncScatterGather(void* terminal, const void* scatBuf,
         userArg);
 }
 
-CHIRP_API int CHIRP_SG_CancelScatterGather(void* terminal, int operationId)
+YOGI_API int YOGI_SG_CancelScatterGather(void* terminal, int operationId)
 {
     CHECK_INITIALIZED();
     CHECK_HANDLE(terminal);
@@ -1109,7 +1109,7 @@ CHIRP_API int CHIRP_SG_CancelScatterGather(void* terminal, int operationId)
     }, __FUNCTION__, terminal, operationId);
 }
 
-CHIRP_API int CHIRP_SG_AsyncReceiveScatteredMessage(void* terminal,
+YOGI_API int YOGI_SG_AsyncReceiveScatteredMessage(void* terminal,
     void* buffer, unsigned bufferSize,
     void (*handlerFn)(int, int, unsigned, void*), void* userArg)
 {
@@ -1134,7 +1134,7 @@ CHIRP_API int CHIRP_SG_AsyncReceiveScatteredMessage(void* terminal,
     }, __FUNCTION__, terminal, buffer, bufferSize, handlerFn, userArg);
 }
 
-CHIRP_API int CHIRP_SG_CancelReceiveScatteredMessage(void* terminal)
+YOGI_API int YOGI_SG_CancelReceiveScatteredMessage(void* terminal)
 {
     CHECK_INITIALIZED();
     CHECK_HANDLE(terminal);
@@ -1147,7 +1147,7 @@ CHIRP_API int CHIRP_SG_CancelReceiveScatteredMessage(void* terminal)
     }, __FUNCTION__, terminal);
 }
 
-CHIRP_API int CHIRP_SG_RespondToScatteredMessage(void* terminal,
+YOGI_API int YOGI_SG_RespondToScatteredMessage(void* terminal,
     int operationId, const void* buffer, unsigned bufferSize)
 {
     CHECK_INITIALIZED();
@@ -1165,7 +1165,7 @@ CHIRP_API int CHIRP_SG_RespondToScatteredMessage(void* terminal,
     }, __FUNCTION__, terminal, operationId, buffer, bufferSize);
 }
 
-CHIRP_API int CHIRP_SG_IgnoreScatteredMessage(void* terminal, int operationId)
+YOGI_API int YOGI_SG_IgnoreScatteredMessage(void* terminal, int operationId)
 {
     CHECK_INITIALIZED();
     CHECK_HANDLE(terminal);
@@ -1180,7 +1180,7 @@ CHIRP_API int CHIRP_SG_IgnoreScatteredMessage(void* terminal, int operationId)
     }, __FUNCTION__, terminal, operationId);
 }
 
-CHIRP_API int CHIRP_CPS_Publish(void* terminal, const void* buffer,
+YOGI_API int YOGI_CPS_Publish(void* terminal, const void* buffer,
     unsigned bufferSize)
 {
     CHECK_INITIALIZED();
@@ -1194,11 +1194,11 @@ CHIRP_API int CHIRP_CPS_Publish(void* terminal, const void* buffer,
         bool ok = terminal_.publish(base::Buffer{buffer,
             static_cast<std::size_t>(bufferSize)});
 
-        return ok ? CHIRP_OK : CHIRP_ERR_NOT_BOUND;
+        return ok ? YOGI_OK : YOGI_ERR_NOT_BOUND;
     }, __FUNCTION__, terminal, buffer, bufferSize);
 }
 
-CHIRP_API int CHIRP_CPS_GetCachedMessage(void* terminal, void* buffer,
+YOGI_API int YOGI_CPS_GetCachedMessage(void* terminal, void* buffer,
     unsigned bufferSize, unsigned* bytesWritten)
 {
     CHECK_INITIALIZED();
@@ -1217,16 +1217,16 @@ CHIRP_API int CHIRP_CPS_GetCachedMessage(void* terminal, void* buffer,
             res = terminal_.get_cache(buffer_);
             *bytesWritten = static_cast<unsigned>(res.second);
         }
-        catch (const api::ExceptionT<CHIRP_ERR_BUFFER_TOO_SMALL>&) {
+        catch (const api::ExceptionT<YOGI_ERR_BUFFER_TOO_SMALL>&) {
             *bytesWritten = bufferSize;
             throw;
         }
 
-        return res.first ? CHIRP_OK : CHIRP_ERR_UNINITIALIZED;
+        return res.first ? YOGI_OK : YOGI_ERR_UNINITIALIZED;
     }, __FUNCTION__, terminal, buffer, bufferSize, bytesWritten);
 }
 
-CHIRP_API int CHIRP_CPS_AsyncReceiveMessage(void* terminal, void* buffer,
+YOGI_API int YOGI_CPS_AsyncReceiveMessage(void* terminal, void* buffer,
     unsigned bufferSize, void (*handlerFn)(int, unsigned, int, void*),
     void* userArg)
 {
@@ -1249,7 +1249,7 @@ CHIRP_API int CHIRP_CPS_AsyncReceiveMessage(void* terminal, void* buffer,
     }, __FUNCTION__, terminal, buffer, bufferSize, handlerFn, userArg);
 }
 
-CHIRP_API int CHIRP_CPS_CancelReceiveMessage(void* terminal)
+YOGI_API int YOGI_CPS_CancelReceiveMessage(void* terminal)
 {
     CHECK_INITIALIZED();
     CHECK_HANDLE(terminal);
@@ -1262,7 +1262,7 @@ CHIRP_API int CHIRP_CPS_CancelReceiveMessage(void* terminal)
     }, __FUNCTION__, terminal);
 }
 
-CHIRP_API int CHIRP_PC_Publish(void* terminal, const void* buffer,
+YOGI_API int YOGI_PC_Publish(void* terminal, const void* buffer,
     unsigned bufferSize)
 {
     CHECK_INITIALIZED();
@@ -1275,17 +1275,17 @@ CHIRP_API int CHIRP_PC_Publish(void* terminal, const void* buffer,
 
         // allow only Producer Terminals
         if (terminal_.identifier().hidden()) {
-            return CHIRP_ERR_WRONG_OBJECT_TYPE;
+            return YOGI_ERR_WRONG_OBJECT_TYPE;
         }
 
         bool ok = terminal_.publish(base::Buffer{buffer,
             static_cast<std::size_t>(bufferSize)});
 
-        return ok ? CHIRP_OK : CHIRP_ERR_NOT_BOUND;
+        return ok ? YOGI_OK : YOGI_ERR_NOT_BOUND;
     }, __FUNCTION__, terminal, buffer, bufferSize);
 }
 
-CHIRP_API int CHIRP_PC_AsyncReceiveMessage(void* terminal, void* buffer,
+YOGI_API int YOGI_PC_AsyncReceiveMessage(void* terminal, void* buffer,
     unsigned bufferSize, void (*handlerFn)(int, unsigned, void*),
     void* userArg)
 {
@@ -1302,7 +1302,7 @@ CHIRP_API int CHIRP_PC_AsyncReceiveMessage(void* terminal, void* buffer,
 
         // allow only Consumer Terminals
         if (!terminal_.identifier().hidden()) {
-            throw api::ExceptionT<CHIRP_ERR_WRONG_OBJECT_TYPE>{};
+            throw api::ExceptionT<YOGI_ERR_WRONG_OBJECT_TYPE>{};
         }
 
         terminal_.async_receive_published_message(buffer_, [=](
@@ -1312,7 +1312,7 @@ CHIRP_API int CHIRP_PC_AsyncReceiveMessage(void* terminal, void* buffer,
     }, __FUNCTION__, terminal, buffer, bufferSize, handlerFn, userArg);
 }
 
-CHIRP_API int CHIRP_PC_CancelReceiveMessage(void* terminal)
+YOGI_API int YOGI_PC_CancelReceiveMessage(void* terminal)
 {
     CHECK_INITIALIZED();
     CHECK_HANDLE(terminal);
@@ -1323,14 +1323,14 @@ CHIRP_API int CHIRP_PC_CancelReceiveMessage(void* terminal)
 
         // allow only Consumer Terminals
         if (!terminal_.identifier().hidden()) {
-            throw api::ExceptionT<CHIRP_ERR_WRONG_OBJECT_TYPE>{};
+            throw api::ExceptionT<YOGI_ERR_WRONG_OBJECT_TYPE>{};
         }
 
         terminal_.cancel_receive_published_message();
     }, __FUNCTION__, terminal);
 }
 
-CHIRP_API int CHIRP_CPC_Publish(void* terminal, const void* buffer,
+YOGI_API int YOGI_CPC_Publish(void* terminal, const void* buffer,
     unsigned bufferSize)
 {
     CHECK_INITIALIZED();
@@ -1343,17 +1343,17 @@ CHIRP_API int CHIRP_CPC_Publish(void* terminal, const void* buffer,
 
         // allow only Cached Producer Terminals
         if (terminal_.identifier().hidden()) {
-            return CHIRP_ERR_WRONG_OBJECT_TYPE;
+            return YOGI_ERR_WRONG_OBJECT_TYPE;
         }
 
         bool ok = terminal_.publish(base::Buffer{buffer,
             static_cast<std::size_t>(bufferSize)});
 
-        return ok ? CHIRP_OK : CHIRP_ERR_NOT_BOUND;
+        return ok ? YOGI_OK : YOGI_ERR_NOT_BOUND;
     }, __FUNCTION__, terminal, buffer, bufferSize);
 }
 
-CHIRP_API int CHIRP_CPC_GetCachedMessage(void* terminal, void* buffer,
+YOGI_API int YOGI_CPC_GetCachedMessage(void* terminal, void* buffer,
     unsigned bufferSize, unsigned* bytesWritten)
 {
     CHECK_INITIALIZED();
@@ -1369,7 +1369,7 @@ CHIRP_API int CHIRP_CPC_GetCachedMessage(void* terminal, void* buffer,
 
         // allow only Cached Consumer Terminals
         if (!terminal_.identifier().hidden()) {
-            return CHIRP_ERR_WRONG_OBJECT_TYPE;
+            return YOGI_ERR_WRONG_OBJECT_TYPE;
         }
 
         std::pair<bool, std::size_t> res;
@@ -1377,16 +1377,16 @@ CHIRP_API int CHIRP_CPC_GetCachedMessage(void* terminal, void* buffer,
             res = terminal_.get_cache(buffer_);
             *bytesWritten = static_cast<unsigned>(res.second);
         }
-        catch (const api::ExceptionT<CHIRP_ERR_BUFFER_TOO_SMALL>&) {
+        catch (const api::ExceptionT<YOGI_ERR_BUFFER_TOO_SMALL>&) {
             *bytesWritten = bufferSize;
             throw;
         }
 
-        return res.first ? CHIRP_OK : CHIRP_ERR_UNINITIALIZED;
+        return res.first ? YOGI_OK : YOGI_ERR_UNINITIALIZED;
     }, __FUNCTION__, terminal, buffer, bufferSize, bytesWritten);
 }
 
-CHIRP_API int CHIRP_CPC_AsyncReceiveMessage(void* terminal, void* buffer,
+YOGI_API int YOGI_CPC_AsyncReceiveMessage(void* terminal, void* buffer,
     unsigned bufferSize, void (*handlerFn)(int, unsigned, int, void*),
     void* userArg)
 {
@@ -1403,7 +1403,7 @@ CHIRP_API int CHIRP_CPC_AsyncReceiveMessage(void* terminal, void* buffer,
 
         // allow only Cached Consumer Terminals
         if (!terminal_.identifier().hidden()) {
-            throw api::ExceptionT<CHIRP_ERR_WRONG_OBJECT_TYPE>{};
+            throw api::ExceptionT<YOGI_ERR_WRONG_OBJECT_TYPE>{};
         }
 
         terminal_.async_receive_published_message(buffer_, [=](
@@ -1414,7 +1414,7 @@ CHIRP_API int CHIRP_CPC_AsyncReceiveMessage(void* terminal, void* buffer,
     }, __FUNCTION__, terminal, buffer, bufferSize, handlerFn, userArg);
 }
 
-CHIRP_API int CHIRP_CPC_CancelReceiveMessage(void* terminal)
+YOGI_API int YOGI_CPC_CancelReceiveMessage(void* terminal)
 {
     CHECK_INITIALIZED();
     CHECK_HANDLE(terminal);
@@ -1425,14 +1425,14 @@ CHIRP_API int CHIRP_CPC_CancelReceiveMessage(void* terminal)
 
         // allow only Cached Consumer Terminals
         if (!terminal_.identifier().hidden()) {
-            throw api::ExceptionT<CHIRP_ERR_WRONG_OBJECT_TYPE>{};
+            throw api::ExceptionT<YOGI_ERR_WRONG_OBJECT_TYPE>{};
         }
 
         terminal_.cancel_receive_published_message();
     }, __FUNCTION__, terminal);
 }
 
-CHIRP_API int CHIRP_MS_Publish(void* terminal, const void* buffer,
+YOGI_API int YOGI_MS_Publish(void* terminal, const void* buffer,
     unsigned bufferSize)
 {
     CHECK_INITIALIZED();
@@ -1446,11 +1446,11 @@ CHIRP_API int CHIRP_MS_Publish(void* terminal, const void* buffer,
         bool ok = terminal_.publish(base::Buffer{buffer,
             static_cast<std::size_t>(bufferSize)});
 
-        return ok ? CHIRP_OK : CHIRP_ERR_NOT_BOUND;
+        return ok ? YOGI_OK : YOGI_ERR_NOT_BOUND;
     }, __FUNCTION__, terminal, buffer, bufferSize);
 }
 
-CHIRP_API int CHIRP_MS_AsyncReceiveMessage(void* terminal, void* buffer,
+YOGI_API int YOGI_MS_AsyncReceiveMessage(void* terminal, void* buffer,
     unsigned bufferSize, void (*handlerFn)(int, unsigned, void*),
     void* userArg)
 {
@@ -1472,7 +1472,7 @@ CHIRP_API int CHIRP_MS_AsyncReceiveMessage(void* terminal, void* buffer,
     }, __FUNCTION__, terminal, buffer, bufferSize, handlerFn, userArg);
 }
 
-CHIRP_API int CHIRP_MS_CancelReceiveMessage(void* terminal)
+YOGI_API int YOGI_MS_CancelReceiveMessage(void* terminal)
 {
     CHECK_INITIALIZED();
     CHECK_HANDLE(terminal);
@@ -1485,7 +1485,7 @@ CHIRP_API int CHIRP_MS_CancelReceiveMessage(void* terminal)
     }, __FUNCTION__, terminal);
 }
 
-CHIRP_API int CHIRP_CMS_Publish(void* terminal, const void* buffer,
+YOGI_API int YOGI_CMS_Publish(void* terminal, const void* buffer,
     unsigned bufferSize)
 {
     CHECK_INITIALIZED();
@@ -1499,11 +1499,11 @@ CHIRP_API int CHIRP_CMS_Publish(void* terminal, const void* buffer,
         bool ok = terminal_.publish(base::Buffer{buffer,
             static_cast<std::size_t>(bufferSize)});
 
-        return ok ? CHIRP_OK : CHIRP_ERR_NOT_BOUND;
+        return ok ? YOGI_OK : YOGI_ERR_NOT_BOUND;
     }, __FUNCTION__, terminal, buffer, bufferSize);
 }
 
-CHIRP_API int CHIRP_CMS_GetCachedMessage(void* terminal, void* buffer,
+YOGI_API int YOGI_CMS_GetCachedMessage(void* terminal, void* buffer,
     unsigned bufferSize, unsigned* bytesWritten)
 {
     CHECK_INITIALIZED();
@@ -1522,16 +1522,16 @@ CHIRP_API int CHIRP_CMS_GetCachedMessage(void* terminal, void* buffer,
             res = terminal_.get_cache(buffer_);
             *bytesWritten = static_cast<unsigned>(res.second);
         }
-        catch (const api::ExceptionT<CHIRP_ERR_BUFFER_TOO_SMALL>&) {
+        catch (const api::ExceptionT<YOGI_ERR_BUFFER_TOO_SMALL>&) {
             *bytesWritten = bufferSize;
             throw;
         }
 
-        return res.first ? CHIRP_OK : CHIRP_ERR_UNINITIALIZED;
+        return res.first ? YOGI_OK : YOGI_ERR_UNINITIALIZED;
     }, __FUNCTION__, terminal, buffer, bufferSize, bytesWritten);
 }
 
-CHIRP_API int CHIRP_CMS_AsyncReceiveMessage(void* terminal, void* buffer,
+YOGI_API int YOGI_CMS_AsyncReceiveMessage(void* terminal, void* buffer,
     unsigned bufferSize, void (*handlerFn)(int, unsigned, int, void*),
     void* userArg)
 {
@@ -1554,7 +1554,7 @@ CHIRP_API int CHIRP_CMS_AsyncReceiveMessage(void* terminal, void* buffer,
     }, __FUNCTION__, terminal, buffer, bufferSize, handlerFn, userArg);
 }
 
-CHIRP_API int CHIRP_CMS_CancelReceiveMessage(void* terminal)
+YOGI_API int YOGI_CMS_CancelReceiveMessage(void* terminal)
 {
     CHECK_INITIALIZED();
     CHECK_HANDLE(terminal);
@@ -1567,7 +1567,7 @@ CHIRP_API int CHIRP_CMS_CancelReceiveMessage(void* terminal)
     }, __FUNCTION__, terminal);
 }
 
-CHIRP_API int CHIRP_SC_AsyncRequest(void* terminal, const void* reqBuf,
+YOGI_API int YOGI_SC_AsyncRequest(void* terminal, const void* reqBuf,
     unsigned reqSize, void* respBuf, unsigned respSize,
     int (*handlerFn)(int, int, int, unsigned, void*), void* userArg)
 {
@@ -1585,7 +1585,7 @@ CHIRP_API int CHIRP_SC_AsyncRequest(void* terminal, const void* reqBuf,
 
         // allow only Client Terminals
         if (!terminal_.identifier().hidden()) {
-            throw api::ExceptionT<CHIRP_ERR_WRONG_OBJECT_TYPE>{};
+            throw api::ExceptionT<YOGI_ERR_WRONG_OBJECT_TYPE>{};
         }
 
         base::Id id = terminal_.async_scatter_gather(base::Buffer{reqBuf,
@@ -1603,7 +1603,7 @@ CHIRP_API int CHIRP_SC_AsyncRequest(void* terminal, const void* reqBuf,
         userArg);
 }
 
-CHIRP_API int CHIRP_SC_CancelRequest(void* terminal, int operationId)
+YOGI_API int YOGI_SC_CancelRequest(void* terminal, int operationId)
 {
     CHECK_INITIALIZED();
     CHECK_HANDLE(terminal);
@@ -1615,7 +1615,7 @@ CHIRP_API int CHIRP_SC_CancelRequest(void* terminal, int operationId)
 
         // allow only Client Terminals
         if (!terminal_.identifier().hidden()) {
-            throw api::ExceptionT<CHIRP_ERR_WRONG_OBJECT_TYPE>{};
+            throw api::ExceptionT<YOGI_ERR_WRONG_OBJECT_TYPE>{};
         }
 
         terminal_.cancel_scatter_gather(base::Id{
@@ -1623,7 +1623,7 @@ CHIRP_API int CHIRP_SC_CancelRequest(void* terminal, int operationId)
     }, __FUNCTION__, terminal, operationId);
 }
 
-CHIRP_API int CHIRP_SC_AsyncReceiveRequest(void* terminal, void* buffer,
+YOGI_API int YOGI_SC_AsyncReceiveRequest(void* terminal, void* buffer,
     unsigned bufferSize, void (*handlerFn)(int, int, unsigned, void*),
     void* userArg)
 {
@@ -1640,7 +1640,7 @@ CHIRP_API int CHIRP_SC_AsyncReceiveRequest(void* terminal, void* buffer,
 
         // allow only Service Terminals
         if (terminal_.identifier().hidden()) {
-            throw api::ExceptionT<CHIRP_ERR_WRONG_OBJECT_TYPE>{};
+            throw api::ExceptionT<YOGI_ERR_WRONG_OBJECT_TYPE>{};
         }
 
         terminal_.async_receive_scattered_message(buffer_, [=](
@@ -1653,7 +1653,7 @@ CHIRP_API int CHIRP_SC_AsyncReceiveRequest(void* terminal, void* buffer,
     }, __FUNCTION__, terminal, buffer, bufferSize, handlerFn, userArg);
 }
 
-CHIRP_API int CHIRP_SC_CancelReceiveRequest(void* terminal)
+YOGI_API int YOGI_SC_CancelReceiveRequest(void* terminal)
 {
     CHECK_INITIALIZED();
     CHECK_HANDLE(terminal);
@@ -1664,14 +1664,14 @@ CHIRP_API int CHIRP_SC_CancelReceiveRequest(void* terminal)
 
         // allow only Service Terminals
         if (terminal_.identifier().hidden()) {
-            throw api::ExceptionT<CHIRP_ERR_WRONG_OBJECT_TYPE>{};
+            throw api::ExceptionT<YOGI_ERR_WRONG_OBJECT_TYPE>{};
         }
 
         terminal_.cancel_receive_scattered_message();
     }, __FUNCTION__, terminal);
 }
 
-CHIRP_API int CHIRP_SC_RespondToRequest(void* terminal,
+YOGI_API int YOGI_SC_RespondToRequest(void* terminal,
     int operationId, const void* buffer, unsigned bufferSize)
 {
     CHECK_INITIALIZED();
@@ -1685,7 +1685,7 @@ CHIRP_API int CHIRP_SC_RespondToRequest(void* terminal,
 
         // allow only Service Terminals
         if (terminal_.identifier().hidden()) {
-            throw api::ExceptionT<CHIRP_ERR_WRONG_OBJECT_TYPE>{};
+            throw api::ExceptionT<YOGI_ERR_WRONG_OBJECT_TYPE>{};
         }
 
         terminal_.respond_to_scattered_message(
@@ -1694,7 +1694,7 @@ CHIRP_API int CHIRP_SC_RespondToRequest(void* terminal,
     }, __FUNCTION__, terminal, operationId, buffer, bufferSize);
 }
 
-CHIRP_API int CHIRP_SC_IgnoreRequest(void* terminal, int operationId)
+YOGI_API int YOGI_SC_IgnoreRequest(void* terminal, int operationId)
 {
     CHECK_INITIALIZED();
     CHECK_HANDLE(terminal);
@@ -1706,7 +1706,7 @@ CHIRP_API int CHIRP_SC_IgnoreRequest(void* terminal, int operationId)
 
         // allow only Service Terminals
         if (terminal_.identifier().hidden()) {
-            throw api::ExceptionT<CHIRP_ERR_WRONG_OBJECT_TYPE>{};
+            throw api::ExceptionT<YOGI_ERR_WRONG_OBJECT_TYPE>{};
         }
 
         terminal_.ignore_scattered_message(

@@ -1,5 +1,5 @@
-#ifndef CHIRP_INTERFACES_ITERMINAL_HPP
-#define CHIRP_INTERFACES_ITERMINAL_HPP
+#ifndef YOGI_INTERFACES_ITERMINAL_HPP
+#define YOGI_INTERFACES_ITERMINAL_HPP
 
 #include "../config.h"
 #include "../base/Id.hpp"
@@ -7,7 +7,7 @@
 #include "IPublicObject.hpp"
 
 
-namespace chirp {
+namespace yogi {
 namespace interfaces {
 
 struct ILeaf;
@@ -28,6 +28,6 @@ struct ITerminal : virtual public IPublicObject
 typedef std::shared_ptr<ITerminal> terminal_ptr;
 
 } // namespace interfaces
-} // namespace chirp
+} // namespace yogi
 
-#endif // CHIRP_INTERFACES_ITERMINAL_HPP
+#endif // YOGI_INTERFACES_ITERMINAL_HPP

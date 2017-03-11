@@ -1,5 +1,5 @@
-#ifndef CHIRP_BASE_LOCKFREERINGBUFFER_HPP
-#define CHIRP_BASE_LOCKFREERINGBUFFER_HPP
+#ifndef YOGI_BASE_LOCKFREERINGBUFFER_HPP
+#define YOGI_BASE_LOCKFREERINGBUFFER_HPP
 
 #include "../config.h"
 
@@ -9,7 +9,7 @@
 #include <atomic>
 
 
-namespace chirp {
+namespace yogi {
 namespace base {
 
 /***************************************************************************//**
@@ -20,11 +20,11 @@ namespace base {
  ******************************************************************************/
 class LockFreeRingBuffer
 {
-    enum { MAX_SIZE = CHIRP_RING_BUFFER_SIZE + 1 };
+    enum { MAX_SIZE = YOGI_RING_BUFFER_SIZE + 1 };
 
 private:
     std::atomic<std::size_t> m_writeIdx;
-    char m_padding[CHIRP_CACHELINE_SIZE - sizeof(std::size_t)];
+    char m_padding[YOGI_CACHELINE_SIZE - sizeof(std::size_t)];
     std::atomic<std::size_t> m_readIdx;
     std::array<char, MAX_SIZE> m_data;
 
@@ -97,7 +97,7 @@ public:
         auto wi = m_writeIdx.load(std::memory_order_acquire);
         auto ri = m_readIdx.load(std::memory_order_relaxed);
 
-        CHIRP_ASSERT(!empty());
+        YOGI_ASSERT(!empty());
 
         auto next = next_index(ri);
         m_readIdx.store(next, std::memory_order_release);
@@ -139,7 +139,7 @@ public:
 
     void commit_first_read_array(std::size_t n)
     {
-        CHIRP_ASSERT(n <= boost::asio::buffer_size(first_read_array()));
+        YOGI_ASSERT(n <= boost::asio::buffer_size(first_read_array()));
 
         auto wi = m_writeIdx.load(std::memory_order_acquire);
         auto ri = m_readIdx.load(std::memory_order_relaxed);
@@ -205,7 +205,7 @@ public:
 
     void commit_first_write_array(std::size_t n)
     {
-        CHIRP_ASSERT(n <= boost::asio::buffer_size(first_write_array()));
+        YOGI_ASSERT(n <= boost::asio::buffer_size(first_write_array()));
 
         auto wi = m_writeIdx.load(std::memory_order_relaxed);
         auto ri = m_readIdx.load(std::memory_order_acquire);
@@ -233,6 +233,6 @@ public:
 };
 
 } // namespace base
-} // namespace chirp
+} // namespace yogi
 
-#endif // CHIRP_BASE_LOCKFREERINGBUFFER_HPP
+#endif // YOGI_BASE_LOCKFREERINGBUFFER_HPP

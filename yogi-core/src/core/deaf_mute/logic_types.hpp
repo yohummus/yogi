@@ -1,12 +1,12 @@
-#ifndef CHIRP_CORE_DEAF_MUTE_LOGIC_TYPES_HPP
-#define CHIRP_CORE_DEAF_MUTE_LOGIC_TYPES_HPP
+#ifndef YOGI_CORE_DEAF_MUTE_LOGIC_TYPES_HPP
+#define YOGI_CORE_DEAF_MUTE_LOGIC_TYPES_HPP
 
 #include "../../config.h"
 #include "../../messaging/messages/DeafMute.hpp"
 #include "../common/logic_types.hpp"
 
 
-namespace chirp {
+namespace yogi {
 namespace core {
 namespace deaf_mute {
 
@@ -31,6 +31,6 @@ struct logic_types
 
 } // namespace deaf_mute
 } // namespace core
-} // namespace chirp
+} // namespace yogi
 
-#endif // CHIRP_CORE_DEAF_MUTE_LOGIC_TYPES_HPP
+#endif // YOGI_CORE_DEAF_MUTE_LOGIC_TYPES_HPP

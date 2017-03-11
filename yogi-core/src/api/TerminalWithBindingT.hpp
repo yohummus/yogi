@@ -1,10 +1,10 @@
-#ifndef CHIRP_API_TERMINALWITHBINDINGT_HPP
-#define CHIRP_API_TERMINALWITHBINDINGT_HPP
+#ifndef YOGI_API_TERMINALWITHBINDINGT_HPP
+#define YOGI_API_TERMINALWITHBINDINGT_HPP
 
 #include "../core/BindingT.hpp"
 
 
-namespace chirp {
+namespace yogi {
 namespace api {
 
 template <typename TTypes>
@@ -78,6 +78,6 @@ public:
 };
 
 } // namespace api
-} // namespace chirp
+} // namespace yogi
 
-#endif // CHIRP_API_TERMINALWITHBINDINGT_HPP
+#endif // YOGI_API_TERMINALWITHBINDINGT_HPP

@@ -1,5 +1,5 @@
-#ifndef CHIRP_SERIALIZATION_CAN_DESERIALIZE_ONE_HPP
-#define CHIRP_SERIALIZATION_CAN_DESERIALIZE_ONE_HPP
+#ifndef YOGI_SERIALIZATION_CAN_DESERIALIZE_ONE_HPP
+#define YOGI_SERIALIZATION_CAN_DESERIALIZE_ONE_HPP
 
 #include "../config.h"
 #include "../base/Id.hpp"
@@ -10,7 +10,7 @@
 #include <vector>
 
 
-namespace chirp {
+namespace yogi {
 namespace serialization {
 
 template <typename T>
@@ -32,6 +32,6 @@ inline bool can_deserialize_one<std::size_t>(const std::vector<char>& buffer,
 }
 
 } // namespace serialization
-} // namespace chirp
+} // namespace yogi
 
-#endif // CHIRP_SERIALIZATION_CAN_DESERIALIZE_ONE_HPP
+#endif // YOGI_SERIALIZATION_CAN_DESERIALIZE_ONE_HPP

@@ -11,19 +11,19 @@ struct CommonLogicLibraryTest : public testing::Test
 
     virtual void SetUp() override
     {
-        ASSERT_EQ(CHIRP_OK, CHIRP_Initialise());
+        ASSERT_EQ(YOGI_OK, YOGI_Initialise());
     }
 
     virtual void TearDown() override
     {
-        ASSERT_EQ(CHIRP_OK, CHIRP_Shutdown());
+        ASSERT_EQ(YOGI_OK, YOGI_Shutdown());
     }
 
     void async_await_state_change(void* binding)
     {
-        int res = CHIRP_AsyncAwaitBindingStateChange(binding,
+        int res = YOGI_AsyncAwaitBindingStateChange(binding,
             helpers::BindingStateCallbackHandler::fn, &stateFn);
-        EXPECT_EQ(CHIRP_OK, res);
+        EXPECT_EQ(YOGI_OK, res);
     }
 
     void await_state_change(int state)
@@ -35,27 +35,27 @@ struct CommonLogicLibraryTest : public testing::Test
     void run_two_leafs_test(void* leafA, void* leafB)
     {
         // create identical terminals on both leafs
-        void* tmAx0 = helpers::make_terminal(leafA, CHIRP_TM_DEAFMUTE, "x");
-        void* tmBx0 = helpers::make_terminal(leafB, CHIRP_TM_DEAFMUTE, "x");
+        void* tmAx0 = helpers::make_terminal(leafA, YOGI_TM_DEAFMUTE, "x");
+        void* tmBx0 = helpers::make_terminal(leafB, YOGI_TM_DEAFMUTE, "x");
 
         // create a binding on leaf A for terminals named "x"
         void* bndAx0x = helpers::make_binding(tmAx0, "x");
-        helpers::await_binding_state(bndAx0x, CHIRP_BD_ESTABLISHED);
+        helpers::await_binding_state(bndAx0x, YOGI_BD_ESTABLISHED);
 
         // destroy the terminal on leaf B
         async_await_state_change(bndAx0x);
         helpers::destroy(tmBx0);
-        await_state_change(CHIRP_BD_RELEASED);
+        await_state_change(YOGI_BD_RELEASED);
 
         // re-create the terminal on leaf B
         async_await_state_change(bndAx0x);
-        tmBx0 = helpers::make_terminal(leafB, CHIRP_TM_DEAFMUTE, "x");
-        await_state_change(CHIRP_BD_ESTABLISHED);
+        tmBx0 = helpers::make_terminal(leafB, YOGI_TM_DEAFMUTE, "x");
+        await_state_change(YOGI_BD_ESTABLISHED);
 
         // destroy and re-create the binding
         helpers::destroy(bndAx0x);
         bndAx0x = helpers::make_binding(tmAx0, "x");
-        helpers::await_binding_state(bndAx0x, CHIRP_BD_ESTABLISHED);
+        helpers::await_binding_state(bndAx0x, YOGI_BD_ESTABLISHED);
 
         // check number of callback function invocations
         EXPECT_EQ(2, stateFn.calls());
@@ -146,54 +146,54 @@ TEST_F(CommonLogicLibraryTest, BindingState)
     helpers::make_connection(leafB, node);
 
     // create terminal and binding on leaf A
-    void* dummy   = helpers::make_terminal(leafA, CHIRP_TM_DEAFMUTE, "x");
+    void* dummy   = helpers::make_terminal(leafA, YOGI_TM_DEAFMUTE, "x");
     void* binding = helpers::make_binding(dummy, "x");
 
     // check the binding's state
     int res;
     int state;
-    res = CHIRP_GetBindingState(binding, &state);
-    EXPECT_EQ(CHIRP_OK, res);
-    EXPECT_EQ(CHIRP_BD_RELEASED, state);
+    res = YOGI_GetBindingState(binding, &state);
+    EXPECT_EQ(YOGI_OK, res);
+    EXPECT_EQ(YOGI_BD_RELEASED, state);
 
     // check the binding's state asynchronously
-    res = CHIRP_AsyncGetBindingState(binding, helpers::BindingStateCallbackHandler::fn,
+    res = YOGI_AsyncGetBindingState(binding, helpers::BindingStateCallbackHandler::fn,
         &stateFn);
-    EXPECT_EQ(CHIRP_OK, res);
+    EXPECT_EQ(YOGI_OK, res);
 
     stateFn.wait();
-    EXPECT_EQ(CHIRP_BD_RELEASED, stateFn.newState);
-    EXPECT_EQ(CHIRP_OK, stateFn.lastErrorCode);
+    EXPECT_EQ(YOGI_BD_RELEASED, stateFn.newState);
+    EXPECT_EQ(YOGI_OK, stateFn.lastErrorCode);
 
     // create terminal on leaf B and check for state change
-    res = CHIRP_AsyncAwaitBindingStateChange(binding,
+    res = YOGI_AsyncAwaitBindingStateChange(binding,
         helpers::BindingStateCallbackHandler::fn, &stateFn);
-    EXPECT_EQ(CHIRP_OK, res);
+    EXPECT_EQ(YOGI_OK, res);
 
-    void* terminal = helpers::make_terminal(leafB, CHIRP_TM_DEAFMUTE, "x");
+    void* terminal = helpers::make_terminal(leafB, YOGI_TM_DEAFMUTE, "x");
     stateFn.wait();
-    EXPECT_EQ(CHIRP_OK, stateFn.lastErrorCode);
-    EXPECT_EQ(CHIRP_BD_ESTABLISHED, stateFn.newState);
+    EXPECT_EQ(YOGI_OK, stateFn.lastErrorCode);
+    EXPECT_EQ(YOGI_BD_ESTABLISHED, stateFn.newState);
 
     // check the binding's state again
-    res = CHIRP_GetBindingState(binding, &state);
-    EXPECT_EQ(CHIRP_OK, res);
-    EXPECT_EQ(CHIRP_BD_ESTABLISHED, state);
+    res = YOGI_GetBindingState(binding, &state);
+    EXPECT_EQ(YOGI_OK, res);
+    EXPECT_EQ(YOGI_BD_ESTABLISHED, state);
 
     // check number of callback function invocations
     EXPECT_EQ(2, stateFn.calls());
 
     // wait for a change in the binding's state asynchronously and cancel the
     // operation
-    res = CHIRP_AsyncAwaitBindingStateChange(binding,
+    res = YOGI_AsyncAwaitBindingStateChange(binding,
         helpers::BindingStateCallbackHandler::fn, &stateFn);
-    EXPECT_EQ(CHIRP_OK, res);
+    EXPECT_EQ(YOGI_OK, res);
 
-    res = CHIRP_CancelAwaitBindingStateChange(binding);
-    EXPECT_EQ(CHIRP_OK, res);
+    res = YOGI_CancelAwaitBindingStateChange(binding);
+    EXPECT_EQ(YOGI_OK, res);
 
     stateFn.wait();
-    EXPECT_EQ(CHIRP_ERR_CANCELED, stateFn.lastErrorCode);
+    EXPECT_EQ(YOGI_ERR_CANCELED, stateFn.lastErrorCode);
 
     // destroy the terminal on leaf B
     helpers::destroy(terminal);
@@ -215,54 +215,54 @@ TEST_F(CommonLogicLibraryTest, SubscriptionState)
     helpers::make_connection(leafB, node);
 
     // create terminals and on both leafs
-    void* dummy    = helpers::make_terminal(leafA, CHIRP_TM_PUBLISHSUBSCRIBE,
+    void* dummy    = helpers::make_terminal(leafA, YOGI_TM_PUBLISHSUBSCRIBE,
         "x");
-    void* terminal = helpers::make_terminal(leafB, CHIRP_TM_PUBLISHSUBSCRIBE,
+    void* terminal = helpers::make_terminal(leafB, YOGI_TM_PUBLISHSUBSCRIBE,
         "x");
 
     // check the subscription state
     int res;
     int state;
-    res = CHIRP_GetSubscriptionState(terminal, &state);
-    EXPECT_EQ(CHIRP_OK, res);
-    EXPECT_EQ(CHIRP_SB_UNSUBSCRIBED, state);
+    res = YOGI_GetSubscriptionState(terminal, &state);
+    EXPECT_EQ(YOGI_OK, res);
+    EXPECT_EQ(YOGI_SB_UNSUBSCRIBED, state);
 
     // check the subscription state asynchronously
-    res = CHIRP_AsyncGetSubscriptionState(terminal,
+    res = YOGI_AsyncGetSubscriptionState(terminal,
         helpers::SubscriptionStateCallbackHandler::fn, &subscriptionStateFn);
-    EXPECT_EQ(CHIRP_OK, res);
+    EXPECT_EQ(YOGI_OK, res);
 
     subscriptionStateFn.wait();
-    EXPECT_EQ(CHIRP_SB_UNSUBSCRIBED, subscriptionStateFn.newState);
-    EXPECT_EQ(CHIRP_OK, subscriptionStateFn.lastErrorCode);
+    EXPECT_EQ(YOGI_SB_UNSUBSCRIBED, subscriptionStateFn.newState);
+    EXPECT_EQ(YOGI_OK, subscriptionStateFn.lastErrorCode);
 
     // create a binding and check the subscription state
-    res = CHIRP_AsyncAwaitSubscriptionStateChange(terminal,
+    res = YOGI_AsyncAwaitSubscriptionStateChange(terminal,
         helpers::SubscriptionStateCallbackHandler::fn, &subscriptionStateFn);
     void* binding = helpers::make_binding(dummy, "x");
     subscriptionStateFn.wait();
-    EXPECT_EQ(CHIRP_OK, subscriptionStateFn.lastErrorCode);
-    EXPECT_EQ(CHIRP_SB_SUBSCRIBED, subscriptionStateFn.newState);
+    EXPECT_EQ(YOGI_OK, subscriptionStateFn.lastErrorCode);
+    EXPECT_EQ(YOGI_SB_SUBSCRIBED, subscriptionStateFn.newState);
 
     // check the subscription state again
-    res = CHIRP_GetSubscriptionState(terminal, &state);
-    EXPECT_EQ(CHIRP_OK, res);
-    EXPECT_EQ(CHIRP_SB_SUBSCRIBED, state);
+    res = YOGI_GetSubscriptionState(terminal, &state);
+    EXPECT_EQ(YOGI_OK, res);
+    EXPECT_EQ(YOGI_SB_SUBSCRIBED, state);
 
     // check number of callback function invocations
     EXPECT_EQ(2, subscriptionStateFn.calls());
 
     // wait for a change in the subscription state asynchronously and cancel the
     // operation
-    res = CHIRP_AsyncAwaitSubscriptionStateChange(terminal,
+    res = YOGI_AsyncAwaitSubscriptionStateChange(terminal,
         helpers::SubscriptionStateCallbackHandler::fn, &subscriptionStateFn);
-    EXPECT_EQ(CHIRP_OK, res);
+    EXPECT_EQ(YOGI_OK, res);
 
-    res = CHIRP_CancelAwaitSubscriptionStateChange(terminal);
-    EXPECT_EQ(CHIRP_OK, res);
+    res = YOGI_CancelAwaitSubscriptionStateChange(terminal);
+    EXPECT_EQ(YOGI_OK, res);
 
     subscriptionStateFn.wait();
-    EXPECT_EQ(CHIRP_ERR_CANCELED, subscriptionStateFn.lastErrorCode);
+    EXPECT_EQ(YOGI_ERR_CANCELED, subscriptionStateFn.lastErrorCode);
 
     // destroy the terminal
     helpers::destroy(terminal);

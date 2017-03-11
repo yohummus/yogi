@@ -1,7 +1,7 @@
-#ifndef CHIRP_TESTS_HELPERS_STRESSTESTBASE_HPP
-#define CHIRP_TESTS_HELPERS_STRESSTESTBASE_HPP
+#ifndef YOGI_TESTS_HELPERS_STRESSTESTBASE_HPP
+#define YOGI_TESTS_HELPERS_STRESSTESTBASE_HPP
 
-#include "../../src/chirp.h"
+#include "../../src/yogi_core.h"
 #include "library_helpers.hpp"
 #include "CallbackHandler.hpp"
 
@@ -242,4 +242,4 @@ protected:
 
 } // namespace helpers
 
-#endif // CHIRP_TESTS_HELPERS_STRESSTESTBASE_HPP
+#endif // YOGI_TESTS_HELPERS_STRESSTESTBASE_HPP

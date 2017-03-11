@@ -1,12 +1,12 @@
-#ifndef CHIRP_CORE_CACHED_PRODUCER_CONSUMER_TERMINAL_HPP
-#define CHIRP_CORE_CACHED_PRODUCER_CONSUMER_TERMINAL_HPP
+#ifndef YOGI_CORE_CACHED_PRODUCER_CONSUMER_TERMINAL_HPP
+#define YOGI_CORE_CACHED_PRODUCER_CONSUMER_TERMINAL_HPP
 
 #include "../../config.h"
 #include "../cached_publish_subscribe/Terminal.hpp"
 #include "logic_types.hpp"
 
 
-namespace chirp {
+namespace yogi {
 namespace core {
 
 class Leaf;
@@ -30,6 +30,6 @@ public:
 
 } // namespace cached_producer_consumer
 } // namespace core
-} // namespace chirp
+} // namespace yogi
 
-#endif // CHIRP_CORE_CACHED_PRODUCER_CONSUMER_TERMINAL_HPP
+#endif // YOGI_CORE_CACHED_PRODUCER_CONSUMER_TERMINAL_HPP

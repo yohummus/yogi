@@ -1,5 +1,5 @@
-#ifndef CHIRP_BASE_OBJECTREGISTER_HPP
-#define CHIRP_BASE_OBJECTREGISTER_HPP
+#ifndef YOGI_BASE_OBJECTREGISTER_HPP
+#define YOGI_BASE_OBJECTREGISTER_HPP
 
 #include "../config.h"
 #include "Id.hpp"
@@ -9,7 +9,7 @@
 #include <memory>
 
 
-namespace chirp {
+namespace yogi {
 namespace base {
 
 /***************************************************************************//**
@@ -68,7 +68,7 @@ public:
 
     void erase(id_type id)
     {
-        CHIRP_ASSERT(is_valid(id));
+        YOGI_ASSERT(is_valid(id));
 
         m_lut[id.number() - 1] = data_type{};
         m_freeIds.push(id);
@@ -84,20 +84,20 @@ public:
 
     const data_type& operator[] (id_type id) const
     {
-        CHIRP_ASSERT(is_valid(id));
+        YOGI_ASSERT(is_valid(id));
 
         return m_lut[id.number() - 1];
     }
 
     data_type& operator[] (id_type id)
     {
-        CHIRP_ASSERT(is_valid(id));
+        YOGI_ASSERT(is_valid(id));
 
         return m_lut[id.number() - 1];
     }
 };
 
 } // namespace base
-} // namespace chirp
+} // namespace yogi
 
-#endif // CHIRP_BASE_OBJECTREGISTER_HPP
+#endif // YOGI_BASE_OBJECTREGISTER_HPP

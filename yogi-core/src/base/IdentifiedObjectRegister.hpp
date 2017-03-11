@@ -1,5 +1,5 @@
-#ifndef CHIRP_BASE_IDENTIFIEDOBJECTREGISTER_HPP
-#define CHIRP_BASE_IDENTIFIEDOBJECTREGISTER_HPP
+#ifndef YOGI_BASE_IDENTIFIEDOBJECTREGISTER_HPP
+#define YOGI_BASE_IDENTIFIEDOBJECTREGISTER_HPP
 
 #include "../config.h"
 #include "Id.hpp"
@@ -11,7 +11,7 @@
 #include <memory>
 
 
-namespace chirp {
+namespace yogi {
 namespace base {
 
 /***************************************************************************//**
@@ -118,7 +118,7 @@ public:
     public:
         const_iterator& operator++ ()
         {
-            CHIRP_ASSERT(m_element != nullptr);
+            YOGI_ASSERT(m_element != nullptr);
 
             auto idn = m_element->id().number();
 
@@ -155,7 +155,7 @@ public:
 
         const element_type* operator-> ()
         {
-            CHIRP_ASSERT(m_element != nullptr);
+            YOGI_ASSERT(m_element != nullptr);
             return m_element;
         }
 
@@ -245,7 +245,7 @@ public:
         // try to insert new entry in the map
         auto res = m_map.emplace(identifier, nullptr);
 
-        // if element was inserted, we construct a new element and update both 
+        // if element was inserted, we construct a new element and update both
         // the map and the lookup table entries
         if (res.second) {
             element_type* element;
@@ -280,7 +280,7 @@ public:
      */
     iterator erase(iterator element)
     {
-        CHIRP_ASSERT(is_valid(element));
+        YOGI_ASSERT(is_valid(element));
 
         iterator tmp = element;
         ++tmp;
@@ -301,8 +301,8 @@ public:
      */
     void hide(iterator element)
     {
-        CHIRP_ASSERT(is_valid(element));
-        CHIRP_ASSERT(element->hidden() || m_map.count(element->identifier()));
+        YOGI_ASSERT(is_valid(element));
+        YOGI_ASSERT(element->hidden() || m_map.count(element->identifier()));
 
         if (!element->hidden()) {
             m_map.erase(element->identifier());
@@ -331,7 +331,7 @@ public:
      * Searches for an element using its identifier
      *
      * @param identifier Identifier of the element
-     * @return Iterator of the element with the matching identifier or an 
+     * @return Iterator of the element with the matching identifier or an
      *         iterator of the end of the register if no such element exists
      */
     iterator find(const identifier_type& identifier)
@@ -353,21 +353,21 @@ public:
      */
     element_type& operator[] (id_type id)
     {
-        CHIRP_ASSERT(find(id) != end());
+        YOGI_ASSERT(find(id) != end());
         return *m_lut[id.number() - 1];
     }
 
     /**
      * Finds an element using its identifier
      *
-     * An element with a matching identifier must exist when calling this 
+     * An element with a matching identifier must exist when calling this
      * function.
      *
      * @param identifier Identifier of the element
      */
     element_type& operator[] (identifier_type identifier)
     {
-        CHIRP_ASSERT(find(identifier) != end());
+        YOGI_ASSERT(find(identifier) != end());
         return *m_map[identifier];
     }
 
@@ -400,6 +400,6 @@ public:
 };
 
 } // namespace base
-} // namespace chirp
+} // namespace yogi
 
-#endif // CHIRP_BASE_IDENTIFIEDOBJECTREGISTER_HPP
+#endif // YOGI_BASE_IDENTIFIEDOBJECTREGISTER_HPP

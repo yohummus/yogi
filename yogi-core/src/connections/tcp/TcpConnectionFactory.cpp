@@ -1,11 +1,11 @@
 #include "TcpConnectionFactory.hpp"
-#include "../../chirp.h"
+#include "../../yogi_core.h"
 
 #include <boost/log/trivial.hpp>
 #include <boost/asio.hpp>
 
 
-namespace chirp {
+namespace yogi {
 namespace connections {
 namespace tcp {
 
@@ -19,9 +19,9 @@ std::vector<char> TcpConnectionFactory::make_magic_prefix()
 
 std::vector<char> TcpConnectionFactory::make_version_info()
 {
-    static std::string s{CHIRP_VERSION};
-    CHIRP_ASSERT(s.size() < CHIRP_VERSION_INFO_SIZE);
-    std::vector<char> info(CHIRP_VERSION_INFO_SIZE);
+    static std::string s{YOGI_VERSION};
+    YOGI_ASSERT(s.size() < YOGI_VERSION_INFO_SIZE);
+    std::vector<char> info(YOGI_VERSION_INFO_SIZE);
     std::copy(s.begin(), s.end(), info.begin());
     return info;
 }
@@ -30,8 +30,8 @@ std::vector<char> TcpConnectionFactory::make_identification(
     identification_buffer buffer)
 {
     const std::size_t bufSize = boost::asio::buffer_size(buffer);
-    if (bufSize > CHIRP_MAX_TCP_IDENTIFICATION_SIZE) {
-        throw api::ExceptionT<CHIRP_ERR_IDENTIFICATION_TOO_LARGE>{};
+    if (bufSize > YOGI_MAX_TCP_IDENTIFICATION_SIZE) {
+        throw api::ExceptionT<YOGI_ERR_IDENTIFICATION_TOO_LARGE>{};
     }
 
     const std::size_t n = sizeof(std::uint32_t);
@@ -46,7 +46,7 @@ std::vector<char> TcpConnectionFactory::make_identification(
 
 bool TcpConnectionFactory::versions_are_compatible()
 {
-    static std::string version{CHIRP_VERSION};
+    static std::string version{YOGI_VERSION};
     static std::string majorMinor = version.substr(0,
         version.find_last_of('.'));
 
@@ -71,16 +71,16 @@ void TcpConnectionFactory::completion_handler(
         if (m_firstResult) {
             tcp_connection_ptr conn;
             // timeout
-            if (m_firstResult->error_code() == CHIRP_ERR_TIMEOUT) {
-                on_shake_hands_completed(api::ExceptionT<CHIRP_ERR_TIMEOUT>{},
+            if (m_firstResult->error_code() == YOGI_ERR_TIMEOUT) {
+                on_shake_hands_completed(api::ExceptionT<YOGI_ERR_TIMEOUT>{},
                     std::move(conn));
                 m_socket.close();
             }
             // all good
-            else if (m_firstResult->error_code() == CHIRP_ERR_CANCELED) {
+            else if (m_firstResult->error_code() == YOGI_ERR_CANCELED) {
                 conn = std::make_shared<TcpConnection>(*m_scheduler,
                     std::move(m_socket), m_remoteVersion, m_buffer);
-                on_shake_hands_completed(api::ExceptionT<CHIRP_OK>{}, std::move(conn));
+                on_shake_hands_completed(api::ExceptionT<YOGI_OK>{}, std::move(conn));
             }
             // some weird system error
             else {
@@ -90,7 +90,7 @@ void TcpConnectionFactory::completion_handler(
         }
         else {
             m_firstResult = std::make_unique<api::ExceptionT<
-                CHIRP_ERR_CANCELED>>();
+                YOGI_ERR_CANCELED>>();
             m_timer.cancel();
         }
     }
@@ -102,11 +102,11 @@ void TcpConnectionFactory::completion_handler(
         auto lock = make_lock_guard();
         if (m_firstResult) {
             on_shake_hands_completed(api::ExceptionT<
-                CHIRP_ERR_SOCKET_BROKEN>{}, tcp_connection_ptr{});
+                YOGI_ERR_SOCKET_BROKEN>{}, tcp_connection_ptr{});
         }
         else {
             m_firstResult = std::make_unique<api::ExceptionT<
-                CHIRP_ERR_SOCKET_BROKEN>>();
+                YOGI_ERR_SOCKET_BROKEN>>();
             m_timer.cancel();
         }
     }
@@ -130,7 +130,7 @@ void TcpConnectionFactory::handle_protocol_error()
 {
     auto lock = make_lock_guard();
     if (m_firstResult) {
-        on_shake_hands_completed(api::ExceptionT<CHIRP_ERR_TIMEOUT>{},
+        on_shake_hands_completed(api::ExceptionT<YOGI_ERR_TIMEOUT>{},
             tcp_connection_ptr{});
         m_socket.close();
     }
@@ -180,7 +180,7 @@ void TcpConnectionFactory::on_receive_magic_prefix_succeeded()
     else {
         BOOST_LOG_TRIVIAL(error) << "Invalid magic prefix received: "
             << std::string(m_buffer.begin(), m_buffer.end());
-        handle_protocol_error<CHIRP_ERR_INVALID_MAGIC_PREFIX>();
+        handle_protocol_error<YOGI_ERR_INVALID_MAGIC_PREFIX>();
     }
 }
 
@@ -207,7 +207,7 @@ void TcpConnectionFactory::on_receive_version_info_succeeded()
     else {
         BOOST_LOG_TRIVIAL(error) << "Incompatible version received: "
             << m_remoteVersion;
-        handle_protocol_error<CHIRP_ERR_INCOMPATIBLE_VERSION>();
+        handle_protocol_error<YOGI_ERR_INCOMPATIBLE_VERSION>();
     }
 }
 
@@ -225,20 +225,20 @@ void TcpConnectionFactory::start_async_receive_identification_size()
 
 void TcpConnectionFactory::on_receive_identification_size_succeeded()
 {
-    CHIRP_ASSERT(m_buffer.size() == sizeof(std::uint32_t));
+    YOGI_ASSERT(m_buffer.size() == sizeof(std::uint32_t));
 
     std::uint32_t size;
     std::copy(m_buffer.begin(), m_buffer.end(), reinterpret_cast<char*>(&size));
     size = ntohl(size);
 
-    if (size <= CHIRP_MAX_TCP_IDENTIFICATION_SIZE) {
+    if (size <= YOGI_MAX_TCP_IDENTIFICATION_SIZE) {
         m_buffer.resize(size);
         start_async_receive_identification_data();
     }
     else {
         BOOST_LOG_TRIVIAL(error) << "Invalid identification size received: "
             << size << " bytes";
-        handle_protocol_error<CHIRP_ERR_IDENTIFICATION_TOO_LARGE>();
+        handle_protocol_error<YOGI_ERR_IDENTIFICATION_TOO_LARGE>();
     }
 }
 
@@ -261,7 +261,7 @@ void TcpConnectionFactory::on_receive_identification_data_succeeded()
         m_socket.close();
     }
     else {
-        m_firstResult = std::make_unique<api::ExceptionT<CHIRP_OK>>();
+        m_firstResult = std::make_unique<api::ExceptionT<YOGI_OK>>();
         m_timer.cancel();
     }
 }
@@ -272,7 +272,7 @@ void TcpConnectionFactory::on_timeout(const boost::system::error_code& ec)
 
     if (m_firstResult) {
         tcp_connection_ptr conn;
-        if (m_firstResult->error_code() == CHIRP_OK) {
+        if (m_firstResult->error_code() == YOGI_OK) {
             conn = make_connection();
         }
         else {
@@ -284,12 +284,12 @@ void TcpConnectionFactory::on_timeout(const boost::system::error_code& ec)
         // timeout
         if (!ec) {
             m_firstResult = std::make_unique<api::ExceptionT<
-                CHIRP_ERR_TIMEOUT>>();
+                YOGI_ERR_TIMEOUT>>();
         }
         // canceled (or some other error)
         else {
             m_firstResult = std::make_unique<api::ExceptionT<
-                CHIRP_ERR_CANCELED>>();
+                YOGI_ERR_CANCELED>>();
         }
 
         cancel_socket();
@@ -358,4 +358,4 @@ void TcpConnectionFactory::cancel_shake_hands()
 
 } // namespace tcp
 } // namespace connections
-} // namespace chirp
+} // namespace yogi

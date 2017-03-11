@@ -1,5 +1,5 @@
-#ifndef CHIRP_BASE_ASYNCHRONOUSOPERATION_HPP
-#define CHIRP_BASE_ASYNCHRONOUSOPERATION_HPP
+#ifndef YOGI_BASE_ASYNCHRONOUSOPERATION_HPP
+#define YOGI_BASE_ASYNCHRONOUSOPERATION_HPP
 
 #include "../config.h"
 #include "../api/ExceptionT.hpp"
@@ -10,7 +10,7 @@
 #include <condition_variable>
 
 
-namespace chirp {
+namespace yogi {
 namespace base {
 namespace internal {
 
@@ -48,7 +48,7 @@ public:
 
     ~AsyncOperationBase()
     {
-        CHIRP_ASSERT(!m_runningOperations);
+        YOGI_ASSERT(!m_runningOperations);
     }
 
     bool armed() const
@@ -62,7 +62,7 @@ public:
     {
         std::lock_guard<std::mutex> lock{m_mutex};
         if (m_armedHandler) {
-            throw api::ExceptionT<CHIRP_ERR_ASYNC_OPERATION_RUNNING>{};
+            throw api::ExceptionT<YOGI_ERR_ASYNC_OPERATION_RUNNING>{};
         }
 
         m_armedHandler = std::forward<THandlerFn_>(handlerFn);
@@ -195,6 +195,6 @@ class AsyncOperation : public internal::AsyncOperationHelper<
 };
 
 } // namespace base
-} // namespace chirp
+} // namespace yogi
 
-#endif // CHIRP_BASE_ASYNCHRONOUSOPERATION_HPP
+#endif // YOGI_BASE_ASYNCHRONOUSOPERATION_HPP

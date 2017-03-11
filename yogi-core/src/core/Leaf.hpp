@@ -1,5 +1,5 @@
-#ifndef CHIRP_CORE_LEAF_HPP
-#define CHIRP_CORE_LEAF_HPP
+#ifndef YOGI_CORE_LEAF_HPP
+#define YOGI_CORE_LEAF_HPP
 
 #include "../config.h"
 #include "../interfaces/ILeaf.hpp"
@@ -16,7 +16,7 @@
 #include <mutex>
 
 
-namespace chirp {
+namespace yogi {
 namespace core {
 
 /***************************************************************************//**
@@ -61,6 +61,6 @@ public:
 };
 
 } // namespace core
-} // namespace chirp
+} // namespace yogi
 
-#endif // CHIRP_CORE_LEAF_HPP
+#endif // YOGI_CORE_LEAF_HPP

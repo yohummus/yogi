@@ -1,11 +1,11 @@
-#ifndef CHIRP_CORE_MAPPEDOBJECTFSM_HPP
-#define CHIRP_CORE_MAPPEDOBJECTFSM_HPP
+#ifndef YOGI_CORE_MAPPEDOBJECTFSM_HPP
+#define YOGI_CORE_MAPPEDOBJECTFSM_HPP
 
 #include "../../config.h"
 #include "../../base/Id.hpp"
 
 
-namespace chirp {
+namespace yogi {
 namespace core {
 namespace common {
 
@@ -66,7 +66,7 @@ public:
             return true;
         }
 
-        CHIRP_NEVER_REACHED;
+        YOGI_NEVER_REACHED;
         return false;
     }
 
@@ -113,7 +113,7 @@ public:
             break;
 
         default:
-            CHIRP_NEVER_REACHED;
+            YOGI_NEVER_REACHED;
         }
 
         return true;
@@ -121,7 +121,7 @@ public:
 
     template <typename TSendMappFn, typename TSendRemAckFn,
         typename TMappStateChangedFn>
-    void process_rcvd_description(id_type remoteId, TSendMappFn sendMappFn, 
+    void process_rcvd_description(id_type remoteId, TSendMappFn sendMappFn,
         TSendRemAckFn sendRemAckFn, TMappStateChangedFn mappStChFn)
     {
         switch (m_state) {
@@ -150,7 +150,7 @@ public:
             break;
 
         default:
-            CHIRP_NEVER_REACHED;
+            YOGI_NEVER_REACHED;
         }
     }
 
@@ -167,7 +167,7 @@ public:
             break;
 
         case STATE_MAPPED_UNCONFIRMED:
-            CHIRP_ASSERT(remoteId == m_mappedId);
+            YOGI_ASSERT(remoteId == m_mappedId);
             m_state = STATE_MAPPED_CONFIRMED;
             break;
 
@@ -187,7 +187,7 @@ public:
             break;
 
         default:
-            CHIRP_NEVER_REACHED;
+            YOGI_NEVER_REACHED;
         }
     }
 
@@ -221,7 +221,7 @@ public:
             break;
 
         default:
-            CHIRP_NEVER_REACHED;
+            YOGI_NEVER_REACHED;
         }
 
         return true;
@@ -233,7 +233,7 @@ public:
     {
         switch (m_state) {
         case STATE_UNUSED_CONFIRMED:
-            CHIRP_ASSERT(m_skipRemovedAcks > 0);
+            YOGI_ASSERT(m_skipRemovedAcks > 0);
             m_skipRemovedAcks--;
             break;
 
@@ -251,11 +251,11 @@ public:
 
         case STATE_AWAIT_ACK:
             if (m_skipRemovedAcks > 0) {
-                CHIRP_ASSERT(m_mappedId);
+                YOGI_ASSERT(m_mappedId);
                 m_skipRemovedAcks--;
             }
             else {
-                CHIRP_ASSERT(m_mappedId);
+                YOGI_ASSERT(m_mappedId);
                 sendRemAckFn(m_mappedId);
                 m_mappedId = id_type{};
             }
@@ -266,13 +266,13 @@ public:
                 m_skipRemovedAcks--;
             }
             else {
-                CHIRP_ASSERT(m_skipRemovedAcks == 1);
+                YOGI_ASSERT(m_skipRemovedAcks == 1);
                 return false;
             }
             break;
 
         default:
-            CHIRP_NEVER_REACHED;
+            YOGI_NEVER_REACHED;
         }
 
         return true;
@@ -282,11 +282,11 @@ public:
     {
         switch (m_state) {
         case STATE_AWAIT_ACK:
-            CHIRP_ASSERT(m_skipRemovedAcks == 0);
+            YOGI_ASSERT(m_skipRemovedAcks == 0);
             return false;
 
         default:
-            CHIRP_NEVER_REACHED;
+            YOGI_NEVER_REACHED;
         }
 
         return true;
@@ -295,6 +295,6 @@ public:
 
 } // namespace common
 } // namespace core
-} // namespace chirp
+} // namespace yogi
 
-#endif // CHIRP_CORE_MAPPEDOBJECTFSM_HPP
+#endif // YOGI_CORE_MAPPEDOBJECTFSM_HPP

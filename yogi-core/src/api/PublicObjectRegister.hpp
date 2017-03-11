@@ -1,9 +1,9 @@
-#ifndef CHIRP_API_PUBLICOBJECTREGISTER_HPP
-#define CHIRP_API_PUBLICOBJECTREGISTER_HPP
+#ifndef YOGI_API_PUBLICOBJECTREGISTER_HPP
+#define YOGI_API_PUBLICOBJECTREGISTER_HPP
 
 #include "../config.h"
 #include "../interfaces/IPublicObject.hpp"
-#include "../chirp.h"
+#include "../yogi_core.h"
 #include "ExceptionT.hpp"
 
 #include <mutex>
@@ -11,7 +11,7 @@
 #include <algorithm>
 
 
-namespace chirp {
+namespace yogi {
 namespace api {
 
 /***************************************************************************//**
@@ -42,12 +42,12 @@ public:
         auto obj = ms_objects.find(handle);
 
         if (obj == ms_objects.end()) {
-            throw ExceptionT<CHIRP_ERR_INVALID_HANDLE>{};
+            throw ExceptionT<YOGI_ERR_INVALID_HANDLE>{};
         }
 
         TO* p = dynamic_cast<TO*>(obj->second.get());
         if (!p) {
-            throw ExceptionT<CHIRP_ERR_WRONG_OBJECT_TYPE>{};
+            throw ExceptionT<YOGI_ERR_WRONG_OBJECT_TYPE>{};
         }
 
         return *p;
@@ -72,7 +72,7 @@ public:
         std::lock_guard<std::mutex> lock(ms_mutex);
 
         handle_type handle = static_cast<handle_type>(obj.get());
-        CHIRP_ASSERT(!ms_objects.count(handle));
+        YOGI_ASSERT(!ms_objects.count(handle));
         ms_objects[handle] = obj;
 
         return handle;
@@ -83,6 +83,6 @@ public:
 };
 
 } // namespace api
-} // namespace chirp
+} // namespace yogi
 
-#endif // CHIRP_API_PUBLICOBJECTREGISTER_HPP
+#endif // YOGI_API_PUBLICOBJECTREGISTER_HPP

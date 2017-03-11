@@ -1,5 +1,5 @@
-#ifndef CHIRP_SCHEDULING_MULTITHREADEDSCHEDULER_HPP
-#define CHIRP_SCHEDULING_MULTITHREADEDSCHEDULER_HPP
+#ifndef YOGI_SCHEDULING_MULTITHREADEDSCHEDULER_HPP
+#define YOGI_SCHEDULING_MULTITHREADEDSCHEDULER_HPP
 
 #include "../config.h"
 #include "../interfaces/IScheduler.hpp"
@@ -10,7 +10,7 @@
 #include <condition_variable>
 
 
-namespace chirp {
+namespace yogi {
 namespace scheduling {
 
 /***************************************************************************//**
@@ -41,6 +41,6 @@ public:
 };
 
 } // namespace scheduling
-} // namespace chirp
+} // namespace yogi
 
-#endif // CHIRP_SCHEDULING_MULTITHREADEDSCHEDULER_HPP
+#endif // YOGI_SCHEDULING_MULTITHREADEDSCHEDULER_HPP

@@ -1,5 +1,5 @@
-#ifndef CHIRP_INTERFACES_ICONNECTIONLIKE_HPP
-#define CHIRP_INTERFACES_ICONNECTIONLIKE_HPP
+#ifndef YOGI_INTERFACES_ICONNECTIONLIKE_HPP
+#define YOGI_INTERFACES_ICONNECTIONLIKE_HPP
 
 #include "../config.h"
 #include "IPublicObject.hpp"
@@ -7,7 +7,7 @@
 #include <vector>
 
 
-namespace chirp {
+namespace yogi {
 namespace interfaces {
 
 /***************************************************************************//**
@@ -23,6 +23,6 @@ struct IConnectionLike : virtual public IPublicObject
 typedef std::shared_ptr<IConnectionLike> connection_like_ptr;
 
 } // namespace interfaces
-} // namespace chirp
+} // namespace yogi
 
-#endif // CHIRP_INTERFACES_ICONNECTIONLIKE_HPP
+#endif // YOGI_INTERFACES_ICONNECTIONLIKE_HPP

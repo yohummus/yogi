@@ -1,5 +1,5 @@
-#ifndef CHIRP_INTERFACES_IMESSAGE_HPP
-#define CHIRP_INTERFACES_IMESSAGE_HPP
+#ifndef YOGI_INTERFACES_IMESSAGE_HPP
+#define YOGI_INTERFACES_IMESSAGE_HPP
 
 #include "../config.h"
 #include "../base/Id.hpp"
@@ -10,7 +10,7 @@
 #include <vector>
 
 
-namespace chirp {
+namespace yogi {
 namespace interfaces {
 
 struct IMessage;
@@ -40,13 +40,13 @@ struct IMessage
 };
 
 } // namespace interfaces
-} // namespace chirp
+} // namespace yogi
 
-inline std::ostream& operator<< (std::ostream& os, 
-    const chirp::interfaces::IMessage& msg)
+inline std::ostream& operator<< (std::ostream& os,
+    const yogi::interfaces::IMessage& msg)
 {
     os << msg.to_string();
     return os;
 }
 
-#endif // CHIRP_INTERFACES_IMESSAGE_HPP
+#endif // YOGI_INTERFACES_IMESSAGE_HPP

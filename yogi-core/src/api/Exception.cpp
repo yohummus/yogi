@@ -1,7 +1,7 @@
 #include "Exception.hpp"
 
 
-namespace chirp {
+namespace yogi {
 namespace api {
 
 Exception::descriptions_map& Exception::descriptions()
@@ -13,7 +13,7 @@ Exception::descriptions_map& Exception::descriptions()
 Exception Exception::register_exception(error_code_type errorCode,
     description_type description)
 {
-    CHIRP_ASSERT(!descriptions().count(errorCode));
+    YOGI_ASSERT(!descriptions().count(errorCode));
     descriptions()[errorCode] = description;
     return Exception(errorCode);
 }
@@ -31,4 +31,4 @@ Exception::description_type Exception::get_description(
 }
 
 } // namespace api
-} // namespace chirp
+} // namespace yogi

@@ -1,12 +1,12 @@
-#ifndef CHIRP_CORE_CACHED_PUBLISH_SUBSCRIBE_NODELOGIC_HPP
-#define CHIRP_CORE_CACHED_PUBLISH_SUBSCRIBE_NODELOGIC_HPP
+#ifndef YOGI_CORE_CACHED_PUBLISH_SUBSCRIBE_NODELOGIC_HPP
+#define YOGI_CORE_CACHED_PUBLISH_SUBSCRIBE_NODELOGIC_HPP
 
 #include "../../config.h"
 #include "../common/PublishSubscribeNodeLogicBaseT.hpp"
 #include "logic_types.hpp"
 
 
-namespace chirp {
+namespace yogi {
 namespace core {
 namespace cached_publish_subscribe {
 
@@ -97,6 +97,6 @@ protected:
 
 } // namespace cached_publish_subscribe
 } // namespace core
-} // namespace chirp
+} // namespace yogi
 
-#endif // CHIRP_CORE_CACHED_PUBLISH_SUBSCRIBE_NODELOGIC_HPP
+#endif // YOGI_CORE_CACHED_PUBLISH_SUBSCRIBE_NODELOGIC_HPP

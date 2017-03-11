@@ -1,10 +1,10 @@
-#ifndef CHIRP_TESTS_MOCKS_COMMUNICATORMOCK_HPP
-#define CHIRP_TESTS_MOCKS_COMMUNICATORMOCK_HPP
+#ifndef YOGI_TESTS_MOCKS_COMMUNICATORMOCK_HPP
+#define YOGI_TESTS_MOCKS_COMMUNICATORMOCK_HPP
 
 #include "../../src/interfaces/ILeaf.hpp"
 #include "../../src/interfaces/INode.hpp"
 #include "../../src/interfaces/IScheduler.hpp"
-using namespace chirp;
+using namespace yogi;
 
 #include <gmock/gmock.h>
 using namespace testing;
@@ -47,4 +47,4 @@ typedef CommunicatorMockT<interfaces::INode>         NodeCommunicatorMock;
 
 } // namespace mocks
 
-#endif // CHIRP_TESTS_MOCKS_COMMUNICATORMOCK_HPP
+#endif // YOGI_TESTS_MOCKS_COMMUNICATORMOCK_HPP

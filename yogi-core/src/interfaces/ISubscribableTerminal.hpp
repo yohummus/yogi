@@ -1,5 +1,5 @@
-#ifndef CHIRP_INTERFACES_ISUBSCRIBABLETERMINAL_HPP
-#define CHIRP_INTERFACES_ISUBSCRIBABLETERMINAL_HPP
+#ifndef YOGI_INTERFACES_ISUBSCRIBABLETERMINAL_HPP
+#define YOGI_INTERFACES_ISUBSCRIBABLETERMINAL_HPP
 
 #include "../config.h"
 #include "../api/ExceptionT.hpp"
@@ -8,7 +8,7 @@
 #include <functional>
 
 
-namespace chirp {
+namespace yogi {
 namespace interfaces {
 
 /***************************************************************************//**
@@ -34,6 +34,6 @@ struct ISubscribableTerminal : public ITerminal
 typedef std::shared_ptr<ISubscribableTerminal> subscribable_terminal_ptr;
 
 } // namespace interfaces
-} // namespace chirp
+} // namespace yogi
 
-#endif // CHIRP_INTERFACES_ISUBSCRIBABLETERMINAL_HPP
+#endif // YOGI_INTERFACES_ISUBSCRIBABLETERMINAL_HPP

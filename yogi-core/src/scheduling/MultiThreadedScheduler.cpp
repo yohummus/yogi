@@ -4,7 +4,7 @@
 #include <algorithm>
 
 
-namespace chirp {
+namespace yogi {
 namespace scheduling {
 
 void MultiThreadedScheduler::thread_fn()
@@ -22,7 +22,7 @@ void MultiThreadedScheduler::thread_fn()
 MultiThreadedScheduler::MultiThreadedScheduler()
     : m_work{m_ioService}
 {
-    resize_thread_pool(CHIRP_DEFAULT_SCHEDULER_THREAD_POOL_SIZE);
+    resize_thread_pool(YOGI_DEFAULT_SCHEDULER_THREAD_POOL_SIZE);
 }
 
 MultiThreadedScheduler::~MultiThreadedScheduler()
@@ -35,8 +35,8 @@ MultiThreadedScheduler::~MultiThreadedScheduler()
 
 void MultiThreadedScheduler::resize_thread_pool(std::size_t numThreads)
 {
-    if (numThreads < 1 || numThreads > CHIRP_MAX_SCHEDULER_THREAD_POOL_SIZE) {
-        throw api::ExceptionT<CHIRP_ERR_INVALID_PARAM>{};
+    if (numThreads < 1 || numThreads > YOGI_MAX_SCHEDULER_THREAD_POOL_SIZE) {
+        throw api::ExceptionT<YOGI_ERR_INVALID_PARAM>{};
     }
 
     std::unique_lock<std::mutex> lock{m_mutex};
@@ -54,7 +54,7 @@ void MultiThreadedScheduler::resize_thread_pool(std::size_t numThreads)
 
         // join the terminated threads
         for (auto& id : m_terminatedThreads) {
-            auto it = std::find_if(m_threads.begin(), m_threads.end(), 
+            auto it = std::find_if(m_threads.begin(), m_threads.end(),
                 [&](const std::thread& th){ return th.get_id() == id; });
             it->join();
             m_threads.erase(it);
@@ -77,4 +77,4 @@ boost::asio::io_service& MultiThreadedScheduler::io_service()
 }
 
 } // namespace scheduling
-} // namespace chirp
+} // namespace yogi

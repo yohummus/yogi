@@ -1,5 +1,5 @@
-#ifndef CHIRP_BASE_IDENTIFIER_HPP
-#define CHIRP_BASE_IDENTIFIER_HPP
+#ifndef YOGI_BASE_IDENTIFIER_HPP
+#define YOGI_BASE_IDENTIFIER_HPP
 
 #include "../config.h"
 
@@ -8,7 +8,7 @@
 #include <ostream>
 
 
-namespace chirp {
+namespace yogi {
 namespace base {
 
 /***************************************************************************//**
@@ -66,16 +66,16 @@ public:
 };
 
 } // namespace base
-} // namespace chirp
+} // namespace yogi
 
 namespace std {
 
 template <>
-struct hash<chirp::base::Identifier>
+struct hash<yogi::base::Identifier>
 {
-    size_t operator() (const chirp::base::Identifier& identifier) const
+    size_t operator() (const yogi::base::Identifier& identifier) const
     {
-        using namespace chirp::base;
+        using namespace yogi::base;
         return hash<Identifier::signature_type>{}(identifier.signature())
             ^ hash<Identifier::name_type>{}(identifier.name());
     }
@@ -83,8 +83,8 @@ struct hash<chirp::base::Identifier>
 
 } // namespace std
 
-inline std::ostream& operator<< (std::ostream& os, 
-    const chirp::base::Identifier& identifier)
+inline std::ostream& operator<< (std::ostream& os,
+    const yogi::base::Identifier& identifier)
 {
     os << '(' << identifier.signature() << ", " << identifier.name();
     if (identifier.hidden()) {
@@ -97,4 +97,4 @@ inline std::ostream& operator<< (std::ostream& os,
     return os;
 }
 
-#endif // CHIRP_BASE_IDENTIFIER_HPP
+#endif // YOGI_BASE_IDENTIFIER_HPP

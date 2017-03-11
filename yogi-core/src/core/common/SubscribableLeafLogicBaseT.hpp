@@ -1,5 +1,5 @@
-#ifndef CHIRP_CORE_COMMON_SUBSCRIBABLELEAFLOGICBASET_HPP
-#define CHIRP_CORE_COMMON_SUBSCRIBABLELEAFLOGICBASET_HPP
+#ifndef YOGI_CORE_COMMON_SUBSCRIBABLELEAFLOGICBASET_HPP
+#define YOGI_CORE_COMMON_SUBSCRIBABLELEAFLOGICBASET_HPP
 
 #include "../../config.h"
 #include "../../interfaces/ISubscribableTerminal.hpp"
@@ -7,7 +7,7 @@
 #include "subscribable_logic_types.hpp"
 
 
-namespace chirp {
+namespace yogi {
 namespace core {
 namespace common {
 
@@ -54,8 +54,8 @@ protected:
     {
 		using namespace messaging;
 
-        CHIRP_ASSERT(super::connection().remote_is_node());
-        CHIRP_ASSERT(!super::get_terminal_info(msg[fields::terminalId])
+        YOGI_ASSERT(super::connection().remote_is_node());
+        YOGI_ASSERT(!super::get_terminal_info(msg[fields::terminalId])
 			.subscribed);
 
         auto& tm = super::get_terminal_info(msg[fields::terminalId]);
@@ -67,8 +67,8 @@ protected:
     {
 		using namespace messaging;
 
-        CHIRP_ASSERT(super::connection().remote_is_node());
-        CHIRP_ASSERT(super::get_terminal_info(msg[fields::terminalId])
+        YOGI_ASSERT(super::connection().remote_is_node());
+        YOGI_ASSERT(super::get_terminal_info(msg[fields::terminalId])
 			.subscribed);
 
         auto& tm = super::get_terminal_info(msg[fields::terminalId]);
@@ -95,6 +95,6 @@ protected:
 
 } // namespace common
 } // namespace core
-} // namespace chirp
+} // namespace yogi
 
-#endif // CHIRP_CORE_COMMON_SUBSCRIBABLELEAFLOGICBASET_HPP
+#endif // YOGI_CORE_COMMON_SUBSCRIBABLELEAFLOGICBASET_HPP

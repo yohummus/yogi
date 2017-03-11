@@ -1,10 +1,10 @@
-#ifndef CHIRP_CORE_COMMON_LOGIC_TYPES_HPP
-#define CHIRP_CORE_COMMON_LOGIC_TYPES_HPP
+#ifndef YOGI_CORE_COMMON_LOGIC_TYPES_HPP
+#define YOGI_CORE_COMMON_LOGIC_TYPES_HPP
 
 #include "../../config.h"
 
 
-namespace chirp {
+namespace yogi {
 namespace core {
 namespace common {
 
@@ -45,6 +45,6 @@ struct logic_types
 
 } // namespace common
 } // namespace core
-} // namespace chirp
+} // namespace yogi
 
-#endif // CHIRP_CORE_COMMON_LOGIC_TYPES_HPP
+#endif // YOGI_CORE_COMMON_LOGIC_TYPES_HPP

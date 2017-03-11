@@ -1,12 +1,12 @@
-#ifndef CHIRP_CORE_PUBLISH_SUBSCRIBE_LOGIC_TYPES_HPP
-#define CHIRP_CORE_PUBLISH_SUBSCRIBE_LOGIC_TYPES_HPP
+#ifndef YOGI_CORE_PUBLISH_SUBSCRIBE_LOGIC_TYPES_HPP
+#define YOGI_CORE_PUBLISH_SUBSCRIBE_LOGIC_TYPES_HPP
 
 #include "../../config.h"
 #include "../common/subscribable_logic_types.hpp"
 #include "../../messaging/messages/PublishSubscribe.hpp"
 
 
-namespace chirp {
+namespace yogi {
 namespace core {
 namespace publish_subscribe {
 
@@ -31,6 +31,6 @@ struct logic_types
 
 } // namespace publish_subscribe
 } // namespace core
-} // namespace chirp
+} // namespace yogi
 
-#endif // CHIRP_CORE_PUBLISH_SUBSCRIBE_LOGIC_TYPES_HPP
+#endif // YOGI_CORE_PUBLISH_SUBSCRIBE_LOGIC_TYPES_HPP

@@ -8,9 +8,9 @@ struct PublishSubscribeStressTest : helpers::StressTestBase
         add_task(name, [&] {
             std::lock_guard<std::mutex> lock{tm.mutex};
             if (tm.handle) {
-                int res = CHIRP_PS_Publish(tm.handle, "Hello", sizeof("Hello"));
-                EXPECT_TRUE(res == CHIRP_OK || res == CHIRP_ERR_NOT_BOUND);
-                return res == CHIRP_OK;
+                int res = YOGI_PS_Publish(tm.handle, "Hello", sizeof("Hello"));
+                EXPECT_TRUE(res == YOGI_OK || res == YOGI_ERR_NOT_BOUND);
+                return res == YOGI_OK;
             }
 
             return false;
@@ -23,12 +23,12 @@ struct PublishSubscribeStressTest : helpers::StressTestBase
         add_task(name, [&] {
             std::lock_guard<std::mutex> lock{tm.mutex};
             if (tm.handle) {
-                int res = CHIRP_PS_AsyncReceiveMessage(tm.handle,
+                int res = YOGI_PS_AsyncReceiveMessage(tm.handle,
                     nullptr, 0, helpers::ReceivePublishedMessageHandler::fn,
                     &handlerFn);
-                EXPECT_TRUE(res == CHIRP_OK
-                    || res == CHIRP_ERR_ASYNC_OPERATION_RUNNING);
-                return res == CHIRP_OK;
+                EXPECT_TRUE(res == YOGI_OK
+                    || res == YOGI_ERR_ASYNC_OPERATION_RUNNING);
+                return res == YOGI_OK;
             }
 
             return false;
@@ -40,9 +40,9 @@ struct PublishSubscribeStressTest : helpers::StressTestBase
         add_task(name, [&] {
             std::lock_guard<std::mutex> lock{tm.mutex};
             if (tm.handle) {
-                int res = CHIRP_PS_CancelReceiveMessage(tm.handle);
-                EXPECT_EQ(CHIRP_OK, res);
-                return res == CHIRP_OK;
+                int res = YOGI_PS_CancelReceiveMessage(tm.handle);
+                EXPECT_EQ(YOGI_OK, res);
+                return res == YOGI_OK;
             }
 
             return false;
@@ -68,7 +68,7 @@ struct PublishSubscribeStressTest : helpers::StressTestBase
 
 TEST_F(PublishSubscribeStressTest, Scenario2Leafs)
 {
-    auto& scenario = prepare_2_leafs_scenario(CHIRP_TM_PUBLISHSUBSCRIBE);
+    auto& scenario = prepare_2_leafs_scenario(YOGI_TM_PUBLISHSUBSCRIBE);
 
     helpers::ReceivePublishedMessageHandler tm1AHandlerFn;
     ADD_RECEIVE_TASKS(leafA.tm1, tm1AHandlerFn);
@@ -84,7 +84,7 @@ TEST_F(PublishSubscribeStressTest, Scenario2Leafs)
 
 TEST_F(PublishSubscribeStressTest, Scenario3Leafs1Node)
 {
-    auto& scenario = prepare_3_leafs_1_node_scenario(CHIRP_TM_PUBLISHSUBSCRIBE);
+    auto& scenario = prepare_3_leafs_1_node_scenario(YOGI_TM_PUBLISHSUBSCRIBE);
 
     helpers::ReceivePublishedMessageHandler tm2AHandlerFn;
     ADD_RECEIVE_TASKS(leafA.tm2, tm2AHandlerFn);
@@ -103,7 +103,7 @@ TEST_F(PublishSubscribeStressTest, Scenario3Leafs1Node)
 TEST_F(PublishSubscribeStressTest, Scenario3Leafs3Nodes)
 {
     auto& scenario = prepare_3_leafs_3_nodes_scenario(
-        CHIRP_TM_PUBLISHSUBSCRIBE);
+        YOGI_TM_PUBLISHSUBSCRIBE);
 
     helpers::ReceivePublishedMessageHandler tm2AHandlerFn;
     ADD_RECEIVE_TASKS(leafA.tm2, tm2AHandlerFn);

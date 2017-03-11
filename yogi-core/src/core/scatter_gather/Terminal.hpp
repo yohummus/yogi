@@ -1,5 +1,5 @@
-#ifndef CHIRP_CORE_SCATTER_GATHER_TERMINAL_HPP
-#define CHIRP_CORE_SCATTER_GATHER_TERMINAL_HPP
+#ifndef YOGI_CORE_SCATTER_GATHER_TERMINAL_HPP
+#define YOGI_CORE_SCATTER_GATHER_TERMINAL_HPP
 
 #include "../../config.h"
 #include "../../base/Buffer.hpp"
@@ -17,7 +17,7 @@
 #include <unordered_map>
 
 
-namespace chirp {
+namespace yogi {
 namespace core {
 
 class Leaf;
@@ -73,12 +73,12 @@ public:
 
         for (auto& entry : m_tasks) {
             auto& task = *entry.second;
-            task.operation.template fire<CHIRP_ERR_CANCELED>(entry.first,
+            task.operation.template fire<YOGI_ERR_CANCELED>(entry.first,
                 GATHER_NO_FLAGS, 0);
             task.operation.await_idle();
         }
 
-        m_replyOp.fire<CHIRP_ERR_CANCELED>(base::Id{}, 0);
+        m_replyOp.fire<YOGI_ERR_CANCELED>(base::Id{}, 0);
         m_replyOp.await_idle();
     }
 
@@ -100,7 +100,7 @@ public:
 
         std::lock_guard<std::recursive_mutex> lock{m_tasksMutex};
 
-        CHIRP_ASSERT(!m_tasks.count(id));
+        YOGI_ASSERT(!m_tasks.count(id));
         auto taskIt = m_tasks.emplace(std::make_pair(id,
             std::make_unique<task_type>())).first;
         auto& task = *taskIt->second;
@@ -127,10 +127,10 @@ public:
         std::lock_guard<std::recursive_mutex> lock{m_tasksMutex};
 
         auto taskIt = m_tasks.find(operationId);
-        CHIRP_ASSERT(taskIt != m_tasks.end());
+        YOGI_ASSERT(taskIt != m_tasks.end());
         auto& task = *taskIt->second;
 
-        task.operation.template fire<CHIRP_ERR_CANCELED>(operationId,
+        task.operation.template fire<YOGI_ERR_CANCELED>(operationId,
             GATHER_NO_FLAGS, 0);
 
         m_tasks.erase(taskIt);
@@ -149,7 +149,7 @@ public:
     {
         std::lock_guard<std::recursive_mutex> lock{m_replyMutex};
 
-        m_replyOp.fire<CHIRP_ERR_CANCELED>(base::Id{}, 0);
+        m_replyOp.fire<YOGI_ERR_CANCELED>(base::Id{}, 0);
         m_replyBuffer = boost::asio::mutable_buffers_1{
             boost::asio::mutable_buffer{}};
     }
@@ -193,10 +193,10 @@ public:
         }
 
         if (n == data.size()) {
-            m_replyOp.fire<CHIRP_OK>(operationId, data.size());
+            m_replyOp.fire<YOGI_OK>(operationId, data.size());
         }
         else {
-            m_replyOp.fire<CHIRP_ERR_BUFFER_TOO_SMALL>(operationId,
+            m_replyOp.fire<YOGI_ERR_BUFFER_TOO_SMALL>(operationId,
                 data.size());
         }
 
@@ -211,7 +211,7 @@ public:
         std::lock_guard<std::recursive_mutex> lock{m_tasksMutex};
 
         auto taskIt = m_tasks.find(operationId);
-        CHIRP_ASSERT(taskIt != m_tasks.end());
+        YOGI_ASSERT(taskIt != m_tasks.end());
         auto& task = *taskIt->second;
 
         std::size_t n = boost::asio::buffer_copy(task.gatherBuffer,
@@ -219,11 +219,11 @@ public:
 
         bool abort;
         if (n == data.size()) {
-            abort = !task.operation.template fire_and_reload<CHIRP_OK>(operationId,
+            abort = !task.operation.template fire_and_reload<YOGI_OK>(operationId,
                 flags, data.size());
         }
         else {
-            abort = !task.operation.template fire_and_reload<CHIRP_ERR_BUFFER_TOO_SMALL>(
+            abort = !task.operation.template fire_and_reload<YOGI_ERR_BUFFER_TOO_SMALL>(
                 operationId, flags, data.size());
         }
 
@@ -243,6 +243,6 @@ thread_local bool Terminal<TTypes>::mst_threadHasLeafLock;
 
 } // namespace scatter_gather
 } // namespace core
-} // namespace chirp
+} // namespace yogi
 
-#endif // CHIRP_CORE_SCATTER_GATHER_TERMINAL_HPP
+#endif // YOGI_CORE_SCATTER_GATHER_TERMINAL_HPP

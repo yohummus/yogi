@@ -4,7 +4,7 @@
 #include <vector>
 
 
-namespace chirp {
+namespace yogi {
 namespace core {
 
 void Leaf::merge_message_handlers(
@@ -64,7 +64,7 @@ void Leaf::on_new_connection(interfaces::IConnection& connection)
 {
     std::lock_guard<std::mutex> lock{m_mutex};
     if (m_connection) {
-        throw api::ExceptionT<CHIRP_ERR_ALREADY_CONNECTED>{};
+        throw api::ExceptionT<YOGI_ERR_ALREADY_CONNECTED>{};
     }
     else {
         m_connection = &connection;
@@ -75,9 +75,9 @@ void Leaf::on_connection_started(interfaces::IConnection& connection)
 {
     std::lock_guard<std::mutex> lock{m_mutex};
 
-    CHIRP_ASSERT(m_connection == &connection);
+    YOGI_ASSERT(m_connection == &connection);
 
-#define CHIRP_CONNECTION_STARTED(type_namespace, try_body)                     \
+#define YOGI_CONNECTION_STARTED(type_namespace, try_body)                     \
     type_namespace::LeafLogic<>::on_connection_started(connection);            \
     try {                                                                      \
         try_body                                                               \
@@ -86,19 +86,19 @@ void Leaf::on_connection_started(interfaces::IConnection& connection)
         type_namespace::LeafLogic<>::on_connection_destroyed();                \
         throw;                                                                 \
     }
-    
-    CHIRP_CONNECTION_STARTED(deaf_mute,
-        CHIRP_CONNECTION_STARTED(publish_subscribe,
-        CHIRP_CONNECTION_STARTED(scatter_gather,
-        CHIRP_CONNECTION_STARTED(cached_publish_subscribe,
-        CHIRP_CONNECTION_STARTED(producer_consumer,
-        CHIRP_CONNECTION_STARTED(cached_producer_consumer,
-        CHIRP_CONNECTION_STARTED(master_slave,
-        CHIRP_CONNECTION_STARTED(cached_master_slave,
-        CHIRP_CONNECTION_STARTED(service_client,
+
+    YOGI_CONNECTION_STARTED(deaf_mute,
+        YOGI_CONNECTION_STARTED(publish_subscribe,
+        YOGI_CONNECTION_STARTED(scatter_gather,
+        YOGI_CONNECTION_STARTED(cached_publish_subscribe,
+        YOGI_CONNECTION_STARTED(producer_consumer,
+        YOGI_CONNECTION_STARTED(cached_producer_consumer,
+        YOGI_CONNECTION_STARTED(master_slave,
+        YOGI_CONNECTION_STARTED(cached_master_slave,
+        YOGI_CONNECTION_STARTED(service_client,
     )))))))));
 
-#undef CHIRP_CONNECTION_STARTED
+#undef YOGI_CONNECTION_STARTED
 
     m_connectionStarted = true;
 }
@@ -140,4 +140,4 @@ void Leaf::on_message_received(interfaces::IMessage&& msg,
 }
 
 } // namespace core
-} // namespace chirp
+} // namespace yogi
