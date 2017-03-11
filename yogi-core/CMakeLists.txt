@@ -19,38 +19,39 @@ set(CMAKE_CXX_FLAGS_DEBUG     "-g")
 set(CMAKE_CXX_FLAGS_RELEASE   "-O2 -DNDEBUG")
 set(CMAKE_SHARED_LINKER_FLAGS "${export_map}")
 
-file(GLOB_RECURSE dll_files           src/yogi_core.cpp)
-file(GLOB_RECURSE include_files       src/yogi_core.h)
-file(GLOB_RECURSE lib_files           src/config.h src/**/*.hpp src/**/*.cpp)
-file(GLOB_RECURSE common_tests_files  tests/helpers/*.hpp tests/helpers/*.cpp tests/mocks/*.hpp)
-file(GLOB_RECURSE unit_tests_files    tests/unit_tests/*.cpp)
-file(GLOB_RECURSE library_tests_files tests/library_tests/*.cpp)
-file(GLOB_RECURSE stress_tests_files  tests/stress_tests/*.cpp)
-
-add_subdirectory(/usr/src/googletest googletest)
+add_subdirectory(/usr/src/googletest googletest EXCLUDE_FROM_ALL)
 enable_testing()
 
-#===== libyogi_core_lib.a =====
-add_library(yogi_core_lib STATIC ${include_files} ${lib_files})
+#===== libcommon.a =====
+file(GLOB_RECURSE files src/*.h src/**/*.hpp src/**/*.cpp)
+add_library(common STATIC ${files})
 
 #===== libyogi_core.so =====
-add_library(yogi_core SHARED ${dll_files})
-target_link_libraries(yogi_core ${CMAKE_THREAD_LIBS_INIT} ${Boost_LIBRARIES} yogi_core_lib)
+file(GLOB_RECURSE files src/yogi_core.cpp)
+add_library(yogi_core SHARED ${files})
+target_link_libraries(yogi_core ${CMAKE_THREAD_LIBS_INIT} ${Boost_LIBRARIES} common)
 
 install(TARGETS yogi_core DESTINATION lib)
 install(FILES src/yogi_core.h DESTINATION include)
 
+#===== libtestbase.a =====
+file(GLOB_RECURSE files tests/helpers/*.hpp tests/helpers/*.cpp tests/mocks/*.hpp)
+add_library(testbase STATIC ${files})
+
 #===== unit_tests =====
-add_executable(unit_tests ${unit_tests_files} ${common_tests_files} ${yogi_core})
-target_link_libraries(unit_tests yogi_core_lib gmock gmock_main ${CMAKE_THREAD_LIBS_INIT} ${Boost_LIBRARIES} yogi_core)
+file(GLOB_RECURSE files tests/unit_tests/*.cpp)
+add_executable(unit_tests ${files} ${testbase} ${yogi_core})
+target_link_libraries(unit_tests common gmock gmock_main ${CMAKE_THREAD_LIBS_INIT} ${Boost_LIBRARIES} yogi_core)
 add_test(NAME unit_tests COMMAND unit_tests)
 
 #===== library_tests =====
-add_executable(library_tests ${library_tests_files} ${common_tests_files} ${yogi_core})
+file(GLOB_RECURSE files tests/library_tests/*.cpp)
+add_executable(library_tests ${files} ${testbase} ${yogi_core})
 target_link_libraries(library_tests yogi_core gmock gmock_main)
 add_test(NAME library_tests COMMAND library_tests)
 
 #===== stress_tests =====
-add_executable(stress_tests ${stress_tests_files} ${common_tests_files} ${yogi_core})
-target_link_libraries(stress_tests yogi_core gmock gmock_main)
+file(GLOB_RECURSE files tests/stress_tests/*.cpp)
+add_executable(stress_tests ${files} ${testbase} ${yogi_core})
+target_link_libraries(stress_tests yogi_core gmock gmock_main testbase)
 add_test(NAME stress_tests COMMAND stress_tests)
