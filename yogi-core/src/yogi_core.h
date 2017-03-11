@@ -1,5 +1,5 @@
-#ifndef YOGI_H
-#define YOGI_H
+#ifndef YOGI_CORE_H
+#define YOGI_CORE_H
 
 //! @defgroup ERRORCODES Error codes
 //!
@@ -1702,4 +1702,4 @@ YOGI_API int YOGI_SC_IgnoreRequest(void* terminal, int operationId);
 } // extern "C"
 #endif
 
-#endif // YOGI_H
+#endif // YOGI_CORE_H

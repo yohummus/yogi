@@ -1,2 +1,5 @@
 # CMake
 */build/
+
+# Visual Studio Code
+.vscode/
