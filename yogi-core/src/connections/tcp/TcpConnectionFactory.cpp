@@ -14,7 +14,7 @@ std::vector<char> TcpConnectionFactory::ms_versionInfo = make_version_info();
 
 std::vector<char> TcpConnectionFactory::make_magic_prefix()
 {
-    return std::vector<char>{'C', 'H', 'I', 'R', 'P', ' '};
+    return std::vector<char>{'Y', 'O', 'G', 'I', ' '};
 }
 
 std::vector<char> TcpConnectionFactory::make_version_info()

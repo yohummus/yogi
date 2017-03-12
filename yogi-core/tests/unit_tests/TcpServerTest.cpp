@@ -67,7 +67,7 @@ struct TcpServerTest : public testing::Test
 
     std::vector<char> make_magic_prefix_buffer()
     {
-        return std::vector<char>{'C', 'H', 'I', 'R', 'P', ' '};
+        return std::vector<char>{'Y', 'O', 'G', 'I', ' '};
     }
 
     void send_magic_prefix_from_client()
@@ -156,7 +156,7 @@ TEST_F(TcpServerTest, DataSentToClient)
     server.async_accept(acceptHandlerFn, std::chrono::milliseconds::max());
     connect_client();
 
-    std::vector<char> expectedData = {'C', 'H', 'I', 'R', 'P', ' '};
+    std::vector<char> expectedData = {'Y', 'O', 'G', 'I', ' '};
     auto version = make_version_buffer();
     expectedData.insert(expectedData.end(), version.begin(), version.end());
     auto ident = make_identification_buffer(serverIdentification);
