@@ -17,6 +17,7 @@ set(ignored_warnings          "-Wno-unused-variable -Wno-unused-function -Wno-ov
 set(CMAKE_CXX_FLAGS           "-std=c++14 -Wall -Werror ${ignored_warnings} -fvisibility=hidden -fPIC")
 set(CMAKE_CXX_FLAGS_DEBUG     "-g")
 set(CMAKE_CXX_FLAGS_RELEASE   "-O2 -DNDEBUG")
+set(CMAKE_CXX_STANDARD        14)
 
 add_subdirectory(/usr/src/googletest googletest EXCLUDE_FROM_ALL)
 enable_testing()
@@ -25,12 +26,12 @@ enable_testing()
 file(GLOB_RECURSE files yogi_cpp/*.h yogi_cpp/*.hpp yogi_cpp/*.cpp yogi_cpp/*.cc)
 add_library(yogi_cpp STATIC ${files})
 
-install(TARGETS yogi_cpp DESTINATION lib)
-install(FILES yogi_cpp.hpp DESTINATION include)
+install(TARGETS yogi_cpp DESTINATION /usr/lib)
+install(FILES yogi_cpp.hpp DESTINATION /usr/include)
 file(GLOB files yogi_cpp/*.hpp)
-install(FILES ${files} DESTINATION include/yogi_cpp)
+install(FILES ${files} DESTINATION /usr/include/yogi_cpp)
 file(GLOB files yogi_cpp/internal/*.hpp)
-install(FILES ${files} DESTINATION include/yogi_cpp/internal)
+install(FILES ${files} DESTINATION /usr/include/yogi_cpp/internal)
 
 #===== tests =====
 file(GLOB_RECURSE files tests/*.h tests/*.hpp tests/*.cpp tests/*.cc)

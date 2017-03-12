@@ -1,0 +1,95 @@
+{
+  "yogi": {
+    "location": "/Hubs/Main"
+  },
+  "logging": {
+    "stdout": {
+      "colourised": true,
+      "max-verbosity": "TRACE",
+      "component-verbosity": {
+        "App": "TRACE",
+        "Yogi": "DEBUG",
+        "HTTP Server": "TRACE",
+        "WS Server": "TRACE",
+        "Proto Compiler": "TRACE",
+        "Known Terminals Monitor": "TRACE",
+        "Test Service": "TRACE",
+        "Yogi Session": "TRACE",
+        "Yogi TCP Server": "TRACE",
+        "Yogi TCP Client": "TRACE"
+      }
+    }
+  },
+  "performance": {
+    "scheduler-thread-pool-size": 3
+  },
+  "http-servers": [
+    {
+      "enabled": true,
+      "address": "127.0.0.1",
+      "port": 1234,
+      "queries": {
+        "/query/ws-uri": "ws://${HOST}:3000"
+      },
+      "routes": {
+        "/": ".",
+        "/src": "../src",
+        "/lib": "../build",
+        "/node_modules": "../node_modules"
+      }
+    }
+  ],
+  "http-compression": {
+    "enabled": true,
+    "gzip-executable": "/bin/gzip"
+  },
+  "ws-servers": [
+    {
+      "enabled": true,
+      "address": "any",
+      "port": 3000,
+      "update-interval": 0.1
+    }
+  ],
+  "yogi-tcp-servers": [
+    {
+      "enabled": true,
+      "address": "0.0.0.0",
+      "port": 10000,
+      "identification": null,
+      "timeout": null
+    }
+  ],
+  "yogi-tcp-clients": [
+    {
+      "enabled": false,
+      "host": "::1",
+      "port": 44444,
+      "identification": null,
+      "timeout": null
+    }
+  ],
+  "proto-compiler": {
+    "enabled": true,
+    "executable": "/usr/bin/protoc"
+  },
+  "test-service": {
+    "enabled": true
+  },
+  "custom-commands": {
+    "talk-to-me": {
+      "enabled": true,
+      "executable": "/bin/echo",
+      "arguments": [ "hi", "${2}", "${>0}", "${<2}", "${*}" ],
+      "working-directory": ".",
+      "max-runtime": 5.0
+    },
+    "cat": {
+      "enabled": true,
+      "executable": "/bin/cat",
+      "arguments": [],
+      "working-directory": ".",
+      "max-runtime":  10.0
+    }
+  }
+}
