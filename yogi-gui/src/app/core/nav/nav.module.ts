@@ -1,0 +1,54 @@
+import {
+  NgModule,
+} from '@angular/core';
+
+import {
+  CommonModule,
+} from '@angular/common';
+
+import {
+  RouterModule,
+} from '@angular/router';
+
+import {
+  NavComponent,
+} from './nav.component';
+
+import {
+  StatusDisplayComponent,
+} from './status-display/status-display.component';
+
+import {
+  ErrorDisplayService,
+} from './error-display/error-display.service';
+
+import {
+  ErrorDisplayComponent,
+} from './error-display/error-display.component';
+
+@NgModule({
+  imports: [
+    CommonModule,
+    RouterModule,
+  ],
+  exports: [
+    NavComponent,
+  ],
+  declarations: [
+    NavComponent,
+    StatusDisplayComponent,
+    ErrorDisplayComponent,
+  ],
+  providers: [
+    ErrorDisplayService,
+  ],
+})
+export class NavModule {}
+
+export {
+  NavComponent,
+} from './nav.component';
+
+export {
+  ErrorDisplayService
+} from './error-display/error-display.service';

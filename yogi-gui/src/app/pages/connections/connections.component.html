@@ -1,0 +1,29 @@
+<div class="row">
+  <div class="col-md-6">
+    <div *ngFor="let factory of tcpServers" class="factory-panel">
+      <div class="factory-info">
+        <span>TCP server listening on {{factory.address}} port {{factory.port}}</span>
+      </div>
+      <div *ngFor="let connection of factory.connections" class="connection-panel" [class.connected]="connection.connected">
+        <span><i class="fa fa-fw" [class.fa-chain]="connection.connected" [class.fa-chain-broken]="!connection.connected"></i></span>
+        <span [title]="connection.description"><strong>{{connection.remoteHost}}</strong></span>
+        <span *ngIf="connection.connected">connected for {{connection.durationString}} since {{connection.timeString}}</span>
+        <span *ngIf="!connection.connected">disconnected for {{connection.durationString}} since {{connection.timeString}}</span>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div *ngFor="let factory of tcpClients" class="factory-panel">
+      <div class="factory-info">
+        <span>TCP client connecting to {{factory.address}} port {{factory.port}}</span>
+      </div>
+      <div *ngFor="let connection of factory.connections" class="connection-panel" [class.connected]="connection.connected">
+        <span><i class="fa fa-fw" [class.fa-chain]="connection.connected" [class.fa-chain-broken]="!connection.connected"></i></span>
+        <span><strong>{{connection.remoteHost}}</strong></span>
+        <span *ngIf="connection.connected">connected for {{connection.durationString}} since {{connection.timeString}}</span>
+        <span *ngIf="!connection.connected && connection.stateChangeTime.getTime()">disconnected for {{connection.durationString}} since {{connection.timeString}}</span>
+        <span *ngIf="!connection.connected && !connection.stateChangeTime.getTime()">never connected</span>
+      </div>
+    </div>
+  </div>
+</div>

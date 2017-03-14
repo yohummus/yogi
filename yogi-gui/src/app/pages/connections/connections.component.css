@@ -1,0 +1,29 @@
+.factory-panel {
+  margin: 5px 3px;
+  padding: 5px;
+  border: 1px solid #eee;
+  border-radius: .25rem;
+  background-color: #f9f9f9;
+}
+
+.factory-info {
+  font-size: 15px;
+  margin-bottom: 5px;
+  margin-left: 5px;
+  font-weight: bold;
+}
+
+.connection-panel {
+  margin: 5px 3px;
+  padding: 2px 3px;
+  border: 1px solid #eee;
+  border-left-width: .35rem;
+  border-radius: .25rem;
+  border-left-color: #ccc;
+  background-color: #f2f2f2;
+}
+
+.connection-panel.connected {
+  border-left-color: #5bc0de;
+  background-color: #d8e7ff;
+}

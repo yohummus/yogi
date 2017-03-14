@@ -1,0 +1,48 @@
+:host {
+  display: inline-block;
+}
+
+.list-element-button {
+  background: white;
+}
+
+.list-append-button {
+  margin-left: 5px;
+  color: #55595c;
+}
+
+.input-group-addon,
+input,
+button {
+  padding: 1px 3px;
+  font-size: 14px;
+}
+
+.primitive-control {
+  background-color: white;
+  height: 21px;
+}
+
+#component.disabled * {
+  color: lightgrey;
+}
+
+.dropdown-menu {
+  padding-top: 5px;
+  padding-bottom: 5px;
+}
+
+.dropdown-item {
+  display: block;
+  padding: 1px 5px;
+}
+
+.dropdown-button {
+  background: white;
+  cursor: pointer;
+  padding-top: 0px;
+}
+
+.dropdown-button:hover {
+  background: #e6e6e6;
+}

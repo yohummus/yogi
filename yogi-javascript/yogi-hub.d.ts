@@ -1,4 +1,4 @@
-declare module chirp {
+declare module yogi {
     const hubProtocol: string;
     const hubHost: string;
     const hubPort: number;
@@ -358,7 +358,7 @@ declare module chirp {
 
         onBindingStateChanged: (established: boolean) => any;
         onRequestReceived: (msg: ScatterMessage) => any;
-        
+
         makeGatherMessage(): Message;
     }
 
@@ -378,7 +378,7 @@ declare module chirp {
 
     export class Binding {
         constructor(terminal: PrimitiveTerminal, targets: string);
-        
+
         readonly terminal: PrimitiveTerminal;
         readonly targets: string;
         readonly alive: boolean;

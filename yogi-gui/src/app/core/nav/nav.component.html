@@ -1,0 +1,27 @@
+<nav>
+  <ul>
+    <!-- main pages -->
+    <li *ngFor="let page of mainPages">
+      <a *ngIf="!page.icon" class="text" routerLink="{{page.routerLink}}" routerLinkActive="active">{{page.title}}</a>
+      <a *ngIf="page.icon" class="icon fa fa-fw {{page.icon}}" routerLink="{{page.routerLink}}" routerLinkActive="active"></a>
+    </li>
+
+    <!-- dropdown button for additional pages -->
+    <li class="dropdown-button">
+      <a id="dropdown-button"><i class="fa fa-bars"></i></a>
+      <div class="dropdown-content">
+        <a *ngFor="let page of addonPages" class="text" routerLink="{{page.routerLink}}" routerLinkActive="active">{{page.title}}</a>
+      </div>
+    </li>
+
+    <!-- connection status -->
+    <li class="display">
+      <ce-status-display></ce-status-display>
+    </li>
+
+    <!-- errors -->
+    <li class="display">
+      <ce-error-display></ce-error-display>
+    </li>
+  </ul>
+</nav>

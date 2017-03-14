@@ -1,0 +1,15 @@
+span {
+  display: inline-block;
+  vertical-align: middle;
+}
+
+#name {
+  margin-left: -4px;
+}
+
+.fa-stack {
+  width: 1.5em;
+  height: 1.5em;
+  line-height: inherit;
+  margin-top: 2px;
+}

@@ -1,0 +1,77 @@
+#page-panel {
+  position: fixed;
+  top: 35px;
+  left: 3px;
+  width: calc(100% - 6px);
+  height: 32px;
+}
+
+.page-panel-element {
+  height: 100%;
+  line-height: 32px;
+  float: right;
+  margin-left: 3px;
+  background-color: #333;
+  border-color: #333;
+  border-radius: 4px;
+  color: white;
+  padding: 0 6px;
+  text-align: center;
+}
+
+.page-panel-button:hover {
+  background-color: #555;
+}
+
+.entry {
+  margin: 5px 3px;
+  padding: 2px 3px;
+  border: 1px solid #eee;
+  border-left-width: .35rem;
+  border-radius: .25rem;
+}
+
+.info-row {
+  font-size: 10px;
+  line-height: 10px;
+  margin-bottom: 2px;
+}
+
+.info-row > span {
+  margin-right: 10px;
+}
+
+.message-row {
+  font-size: 14px;
+  line-height: 14px;
+}
+
+.severity-trace {
+  border-left-color: #ccc;
+  background-color: #f2f2f2;
+}
+
+.severity-debug {
+  border-left-color: #5cb85c;
+  background-color: #f3ffe6;
+}
+
+.severity-info {
+  border-left-color: #5bc0de;
+}
+
+.severity-warning {
+  border-left-color: #f0ad4e;
+  background-color: #ffffe6;
+}
+
+.severity-error {
+  border-left-color: #d9534f;
+  background-color: #ffe6e6;
+}
+
+.severity-fatal {
+  border-left-color: #d9534f;
+  background-color: #ff6666;
+  color: white;
+}

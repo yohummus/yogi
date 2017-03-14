@@ -1,0 +1,65 @@
+<ce-input-group *ngIf="canReceivePublishMsg"
+  label="Received"
+  [enabled]="bound"
+  [signatureHalf]="signature.lowerHalf"
+  [timestamp]="lastReceivedPublishMessage?.timestamp"
+  [value]="lastReceivedPublishMessage?.value"
+  [isReadonly]="true"
+></ce-input-group>
+
+<ce-input-group *ngIf="canReceiveCachedPublishMsg"
+  label="Cached"
+  [enabled]="bound"
+  [signatureHalf]="signature.lowerHalf"
+  [timestamp]="lastReceivedCachedPublishMessage?.timestamp"
+  [value]="lastReceivedCachedPublishMessage?.value"
+  [isReadonly]="true"
+></ce-input-group>
+
+<ce-input-group *ngIf="canSendPublishMsg"
+  label="Send"
+  [enabled]="subscribed"
+  [signatureHalf]="signature.lowerHalf"
+  [hasSendButton]="true"
+  [timestamp]="dummyLowerTimestamp"
+  [value]="dummyLowerValue"
+  (changed)="onPublishMessageChanged($event)"
+  (sendButtonClicked)="onSendButtonClicked()"
+></ce-input-group>
+
+<ce-input-group *ngIf="canReceiveScatterMsg"
+  label="Received"
+  [enabled]="bound"
+  [signatureHalf]="signature.upperHalf"
+  [timestamp]="lastReceivedScatterMessage?.message.timestamp"
+  [value]="lastReceivedScatterMessage?.message.value"
+  [isReadonly]="true"
+></ce-input-group>
+
+<ce-input-group *ngIf="canSendGatherMsg"
+  label="Reply"
+  [enabled]="bound"
+  [signatureHalf]="signature.lowerHalf"
+  [hasReplyButton]="true"
+  [timestamp]="dummyLowerTimestamp"
+  [value]="dummyLowerValue"
+></ce-input-group>
+
+<ce-input-group *ngIf="canReceiveGatherMsg"
+  label="Response"
+  [enabled]="subscribed"
+  [signatureHalf]="signature.lowerHalf"
+  [timestamp]="lastReceivedGatherMessage?.message.timestamp"
+  [value]="lastReceivedGatherMessage?.message.value"
+  [isReadonly]="true"
+  [hasGatherButton]="true"
+></ce-input-group>
+
+<ce-input-group *ngIf="canSendScatterMsg"
+  label="Request"
+  [enabled]="subscribed"
+  [signatureHalf]="signature.lowerHalf"
+  [hasSendButton]="true"
+  [timestamp]="dummyUpperTimestamp"
+  [value]="dummyUpperValue"
+></ce-input-group>

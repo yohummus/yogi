@@ -1,0 +1,6 @@
+#error-display {
+  height: 100%;
+  color: red;
+  font-size: 16px;
+  line-height: 32px;
+}

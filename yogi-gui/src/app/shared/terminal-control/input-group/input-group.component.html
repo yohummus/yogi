@@ -1,0 +1,133 @@
+<div id="component" class="input-group" [class.disabled]="!enabled">
+  <!-- Insert and remove buttons for list elements -->
+  <template [ngIf]="isListElement && !isReadonly">
+    <span
+      class="input-group-addon list-element-button"
+      title="Insert element"
+      (click)="onListInsertButtonClicked()"
+    ><i class="fa fa-fw fa-plus"></i></span>
+    <span
+      class="input-group-addon list-element-button"
+      title="Remove element"
+      (click)="onListRemoveButtonClicked()"
+    ><i class="fa fa-fw fa-minus"></i></span>
+  </template>
+
+  <!-- Label -->
+  <span class="input-group-addon">{{label}}</span>
+
+  <!-- Timestamp -->
+  <input *ngIf="hasTimestamp"
+    type="datetime-local"
+    step=".001"
+    class="form-control primitive-control"
+    [title]="timestampTitle"
+    [readonly]="isReadonly || null"
+    [ngModel]="timestampString"
+    (ngModelChange)="onTimestampChanged($event)"
+  >
+
+  <!-- List button and dropdown menu -->
+  <span *ngIf="isList" ngbDropdown #listDropdown="ngbDropdown" class="input-group-addon dropdown-button" (click)="$event.stopPropagation(); listDropdown.open();">
+    <span
+      class="tag tag-default"
+      [class.bg-inverse]="enabled"
+      [class.bg-faded]="!enabled"
+    >{{viewValue ? viewValue.length : '.'}}</span>
+    <div *ngIf="viewValue" class="dropdown-menu">
+      <ce-input-group *ngFor="let element of viewValue; let idx = index"
+        class="dropdown-item"
+        [label]="idx"
+        [signatureHalf]="signatureHalf"
+        [value]="element"
+        [isListElement]="true"
+        [isReadonly]="isReadonly"
+        (listModificationButtonClicked)="onListModificationButtonClicked(idx, $event)"
+        (changed)="onListElementChanged(idx, $event)"
+      ></ce-input-group>
+      <button *ngIf="!isReadonly"
+        type="button"
+        class="btn btn-secondary list-append-button"
+        title="Append element"
+        (click)="onListAppendButtonClicked()"
+      ><i class="fa fa-fw fa-plus"></i></button>
+    </div>
+  </span>
+
+  <!-- Primitives -->
+  <template [ngIf]="!isList">
+    <template ngFor let-pv [ngForOf]="primitiveValues" let-idx="index">
+      <span *ngIf="pv.guiPrimitiveType === GuiPrimitiveType.VOID_PRIMITIVE"
+        class="input-group-addon primitive-control"
+        title="void"
+      ><i class="fa fa-fw fa-ban"></i></span>
+
+      <span *ngIf="pv.guiPrimitiveType === GuiPrimitiveType.BUTTON_PRIMITIVE"
+        class="input-group-addon primitive-control"
+        [title]="pv.tooltip"
+        (click)="pv.onBoolButtonClicked()"
+      ><i class="fa fa-fw {{pv.valueString}}"></i></span>
+
+      <input *ngIf="pv.guiPrimitiveType === GuiPrimitiveType.NUMBER_PRIMITIVE"
+        type="number"
+        class="form-control primitive-control"
+        [class.text-white]="!pv.isValid"
+        [class.bg-danger]="!pv.isValid"
+        [title]="pv.tooltip"
+        [readonly]="isReadonly || null"
+        [ngModel]="pv.valueString"
+        (ngModelChange)="pv.onValueInputChanged($event)"
+        (keydown.Enter)="onSendButtonClickedOrEnterPressed()"
+      >
+
+      <input *ngIf="pv.guiPrimitiveType === GuiPrimitiveType.TEXT_PRIMITIVE"
+        type="text"
+        class="form-control primitive-control"
+        [class.text-white]="!pv.isValid"
+        [class.bg-danger]="!pv.isValid"
+        [title]="pv.tooltip"
+        [readonly]="isReadonly || null"
+        [value]="pv.valueString"
+        [ngModel]="pv.valueString"
+        (ngModelChange)="pv.onValueInputChanged($event)"
+        (keydown.Enter)="onSendButtonClickedOrEnterPressed()"
+      >
+
+      <input *ngIf="pv.guiPrimitiveType === GuiPrimitiveType.TIMESTAMP_PRIMITIVE"
+        type="datetime-local"
+        step=".001"
+        class="form-control primitive-control"
+        [title]="pv.tooltip"
+        [readonly]="isReadonly || null"
+        [value]="pv.valueString"
+        [ngModel]="pv.valueString"
+        (ngModelChange)="pv.onValueInputChanged($event)"
+        (keydown.Enter)="onSendButtonClickedOrEnterPressed()"
+      >
+    </template>
+  </template>
+
+  <!-- Reply button -->
+  <span *ngIf="hasReplyButton"
+    class="input-group-addon"
+    title="TODO"
+    (click)="onReplyButtonClicked()"
+  ><i class="fa fa-fw fa-trash-o"></i></span>
+
+  <!-- Gather button -->
+  <span *ngIf="hasGatherButton" class="input-group-btn">
+    <button class="btn btn-secondary" type="button">
+      <i class="fa fa-fw fa-tasks"></i>
+    </button>
+  </span>
+
+  <!-- Send button -->
+  <span *ngIf="hasSendButton" class="input-group-btn">
+    <button
+      type="button"
+      class="btn btn-secondary"
+      [class.disabled]="!enabled"
+      (click)="onSendButtonClickedOrEnterPressed()"
+    ><i class="fa fa-fw fa-envelope"></i></button>
+  </span>
+</div>

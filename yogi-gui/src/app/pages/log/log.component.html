@@ -1,0 +1,19 @@
+<div id="page-panel">
+  <a class="page-panel-element page-panel-button" href="#" (click)="onDownloadButtonClicked($event)">
+    <i class="fa fa-fw fa-download"></i>
+  </a>
+  <span class="page-panel-element page-panel-tag" title="{{terminalsTagTitle}}">
+    {{terminalsTagText}}
+  </span>
+</div>
+
+<div *ngFor="let entry of entries" class="entry severity-{{entry.severity.toLowerCase()}}" [title]="entry.description">
+  <div class="info-row">
+    <span>{{entry.timestamp}}</span>
+    <span>{{entry.processPath}}</span>
+    <span>{{entry.component}}</span>
+  </div>
+  <div class="message-row">
+    <span>{{entry.message}}</span>
+  </div>
+</div>

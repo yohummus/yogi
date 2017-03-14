@@ -1,0 +1,11 @@
+<ce-terminal-control *ngIf="!hidden"
+  [terminalType]="terminalType"
+  [signature]="signature"
+  [bound]="bound"
+  [subscribed]="subscribed"
+  [lastReceivedPublishMessage]="lastReceivedPublishMessage"
+  [lastReceivedCachedPublishMessage]="lastReceivedCachedPublishMessage"
+  [lastReceivedScatterMessage]="lastReceivedScatterMessage"
+  [lastReceivedGatherMessage]="lastReceivedGatherMessage"
+  (sendPublishMessage)="sendPublishMessage($event)"
+></ce-terminal-control>

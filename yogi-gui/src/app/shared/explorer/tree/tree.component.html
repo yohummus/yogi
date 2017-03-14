@@ -1,0 +1,76 @@
+<!-- Include the view of the node (terminal or folder) if the node is not the root node -->
+<div *ngIf="!isRoot">
+  <!-- Include terminal type template -->
+  <div *ngIf="!isFolder">
+    <div *ngFor="let terminal of subtreeInfo.terminals" class="terminal-container">
+      <ce-header
+        [name]="name"
+        [tooltip]="makeTerminalHeaderTooltip(terminal)"
+        [icon]="makeTerminalIcon(terminal.type)"
+        [loading]="childrenLoading"
+        [greyedOut]="!terminalComponent.bound && !terminalComponent.subscribed"
+        (clicked)="onClicked()"
+      ></ce-header>
+      <ce-terminal #terminalComponent
+        [terminalType]="terminal.type.CompatibleTerminalType"
+        [terminalName]="path"
+        [signature]="terminal.signature"
+        [hidden]="!expanded"
+      ></ce-terminal>
+    </div>
+  </div>
+
+  <!-- Include folder template -->
+  <div *ngIf="isFolder">
+    <ce-header
+      [name]="name"
+      [tooltip]="path"
+      fontWeight="bold"
+      [icon]="expanded ? 'fa-folder-open' : 'fa-folder'"
+      iconColor="#ffc300"
+      [loading]="childrenLoading"
+      [greyedOut]="false"
+      (clicked)="onClicked()"
+    ></ce-header>
+  </div>
+</div>
+
+<!-- Recursively include children if root is not shown -->
+<ul *ngIf="!rootIsShown && expanded" id="children-list">
+  <li *ngFor="let child of children">
+    <ce-tree
+      [path]="child.path"
+      [subtreeInfo]="child.subtreeInfo"
+      [expandAll]="expandAll"
+    ></ce-tree>
+  </li>
+</ul>
+
+<!-- Recursively include children if root is shown -->
+<ul *ngIf="rootIsShown">
+  <li>
+    <div>
+      <div>
+        <ce-header
+          [name]="rootName"
+          [tooltip]="path"
+          fontWeight="bold"
+          [icon]="expanded ? 'fa-folder-open' : 'fa-folder'"
+          iconColor="#ffc300"
+          [loading]="childrenLoading"
+          [greyedOut]="false"
+          (clicked)="onClicked()"
+        ></ce-header>
+      </div>
+    </div>
+    <ul *ngIf="expanded" id="children-list">
+      <li *ngFor="let child of children">
+        <ce-tree
+          [path]="child.path"
+          [subtreeInfo]="child.subtreeInfo"
+          [expandAll]="expandAll"
+        ></ce-tree>
+      </li>
+    </ul>
+  </li>
+</ul>

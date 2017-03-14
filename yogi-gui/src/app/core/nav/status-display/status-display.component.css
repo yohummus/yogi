@@ -1,0 +1,12 @@
+#status-display {
+  height: 100%;
+  color: white;
+  font-size: 14px;
+  line-height: 32px;
+}
+
+#status-display .failed,
+#status-display .lost {
+  color: red;
+  font-size: 16px;
+}

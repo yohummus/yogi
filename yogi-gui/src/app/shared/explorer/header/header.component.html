@@ -1,0 +1,9 @@
+<div (click)="clicked.emit($event)" placement="right" title="{{tooltip}}">
+  <span class="fa-stack">
+    <i class="fa fa-fw fa-stack-1x {{icon}}" [style.color]="greyedOut ? 'darkgrey' : iconColor" [style.opacity]="iconOpacity"> </i>
+    <i *ngIf="loading" class="fa fa-fw fa-spinner fa-stack-1x fa-spin"> </i>
+  </span>
+  <span id="name" [style.color]="greyedOut ? 'darkgrey' : 'inherit'" [style.font-weight]="fontWeight">
+    {{name}}
+  </span>
+</div>
