@@ -10,6 +10,6 @@ or RPC-like methods. This virtual network, a.k.a. YOGI network, is the
 foundation of the YOGI framework.
 
 ## Installing on Debian 9 (Stretch)
-1. sudo apt install cmake g++ libboost-all-dev googletest libprotobuf-dev protobuf-compiler libqt5core5a libqt5network5 libqt5websockets5-dev nodejs nodejs-legacy npm
+1. sudo apt install cmake g++ libboost-all-dev googletest libprotobuf-dev protobuf-compiler libqt5core5a libqt5network5 libqt5websockets5-dev nodejs nodejs-legacy npm python3-protobuf python3-setuptools python3-future
 2. sudo npm install -g npm
 3. TBD...

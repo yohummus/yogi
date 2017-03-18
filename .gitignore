@@ -1,9 +1,21 @@
 # CMake
-*/build/
+build/
 
 # Visual Studio Code
 .vscode/
 
 # NodeJS
-*/node_modules/
-*/typings/
+node_modules/
+typings/
+
+# Python
+__pycache__/
+*.pyc
+dist/
+*.egg-info/
+
+# Logfiles
+*.log
+
+# C++
+*.dll
