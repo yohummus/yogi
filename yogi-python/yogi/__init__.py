@@ -1,7 +1,8 @@
 import sys as __sys
 
-assert __sys.version_info >= (3, 5), "YOGI for Python requires Python version 3.5 or higher. This is version {}.{}." \
-    .format(__sys.version_info.major, __sys.version_info.minor)
+if __sys.version_info.major == 3:
+    assert __sys.version_info.minor >= 5, "YOGI for Python requires Python version 3.5 or higher." \
+        " This is version {}.{}.".format(__sys.version_info.major, __sys.version_info.minor)
 
 from .private.binding import Binding
 from .private.configuration import BadCommandLine, BadConfiguration, Configuration

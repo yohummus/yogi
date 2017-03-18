@@ -2,8 +2,9 @@
 import sys
 import setuptools
 
-assert sys.version_info >= (3, 5), "YOGI for Python requires Python version 3.5 or higher. This is version {}.{}." \
-    .format(sys.version_info.major, sys.version_info.minor)
+if sys.version_info.major == 3:
+    assert sys.version_info.minor >= 5, "YOGI for Python requires Python version 3.5 or higher." \
+        " This is version {}.{}.".format(sys.version_info.major, sys.version_info.minor)
 
 config = {
     'description'     : 'Python bindings for the YOGI framework',
