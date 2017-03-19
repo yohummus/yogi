@@ -1,11 +1,6 @@
 cmake_minimum_required(VERSION 2.8)
 project(YogiJavascript NONE)
 
-cmake_policy(SET CMP0022 OLD)
-if (${CMAKE_MAJOR_VERSION} GREATER 2)
-    cmake_policy(SET CMP0038 NEW)
-endif (${CMAKE_MAJOR_VERSION} GREATER 2)
-
 #===== download node modules =====
 set(npm_ok_file
     node_modules_installed_successfully
@@ -15,7 +10,7 @@ add_custom_command(
     OUTPUT ${npm_ok_file}
     COMMAND npm install
     COMMAND echo > build/${npm_ok_file}
-    WORKING_DIRECTORY ".."
+    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
 )
 
 #===== build Javascript bundles =====
@@ -34,7 +29,7 @@ add_custom_command(
     OUTPUT ${bundle_files}
     COMMAND node node_modules/gulp/bin/gulp.js
     DEPENDS gulpfile.js ${src_files} ${npm_ok_file}
-    WORKING_DIRECTORY ".."
+    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
 )
 
 add_custom_target(bundles

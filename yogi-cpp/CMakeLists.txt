@@ -20,7 +20,6 @@ set(CMAKE_CXX_FLAGS_RELEASE   "-O2 -DNDEBUG")
 set(CMAKE_CXX_STANDARD        14)
 
 add_subdirectory(/usr/src/googletest googletest EXCLUDE_FROM_ALL)
-enable_testing()
 
 #===== libyogi_cpp.a =====
 file(GLOB_RECURSE files yogi_cpp/*.h yogi_cpp/*.hpp yogi_cpp/*.cpp yogi_cpp/*.cc)
@@ -34,6 +33,8 @@ file(GLOB files yogi_cpp/internal/*.hpp)
 install(FILES ${files} DESTINATION /usr/include/yogi_cpp/internal)
 
 #===== tests =====
+enable_testing()
+
 file(GLOB_RECURSE files tests/*.h tests/*.hpp tests/*.cpp tests/*.cc)
 add_executable(tests ${files} ${yogi_cpp})
 target_link_libraries(tests yogi_cpp yogi_core gtest gtest_main ${CMAKE_THREAD_LIBS_INIT} ${Boost_LIBRARIES} ${PROTOBUF_LIBRARIES} pthread)

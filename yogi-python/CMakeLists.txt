@@ -1,18 +1,16 @@
 cmake_minimum_required(VERSION 2.8)
 project(YogiPython NONE)
 
-cmake_policy(SET CMP0022 OLD)
-if (${CMAKE_MAJOR_VERSION} GREATER 2)
-    cmake_policy(SET CMP0038 NEW)
-endif (${CMAKE_MAJOR_VERSION} GREATER 2)
-
-enable_testing()
-
 #===== convert to Python 2 (pasteurize) =====
 set(output_files "")
-file(GLOB_RECURSE files ${CMAKE_SOURCE_DIR}/setup.py ${CMAKE_SOURCE_DIR}/yogi/*.py ${CMAKE_SOURCE_DIR}/tests/*.py ${CMAKE_SOURCE_DIR}/tests/*.json)
+file(GLOB_RECURSE files ${PROJECT_SOURCE_DIR}/setup.py ${PROJECT_SOURCE_DIR}/yogi/*.py ${PROJECT_SOURCE_DIR}/tests/*.py ${PROJECT_SOURCE_DIR}/tests/*.json)
 foreach(file ${files})
-    file(RELATIVE_PATH output ${CMAKE_SOURCE_DIR} ${file})
+    # workaround; seems to be a but in CMake
+    if (${file} MATCHES .*/build/setup.py)
+        continue()
+    endif (${file} MATCHES .*/build/setup.py)
+
+    file(RELATIVE_PATH output ${PROJECT_SOURCE_DIR} ${file})
     get_filename_component(dir ${output} DIRECTORY)
     list(APPEND output_files ${output})
 
@@ -41,9 +39,11 @@ add_custom_target(pasteurization
 )
 
 #===== tests =====
-file(GLOB_RECURSE files ${CMAKE_SOURCE_DIR}/tests/test_*.py)
+enable_testing()
+
+file(GLOB_RECURSE files ${PROJECT_SOURCE_DIR}/tests/test_*.py)
 foreach(file ${files})
-    file(RELATIVE_PATH rel_file ${CMAKE_SOURCE_DIR} ${file})
+    file(RELATIVE_PATH rel_file ${PROJECT_SOURCE_DIR} ${file})
     get_filename_component(name ${file} NAME_WE)
 
     add_test(NAME ${name}_py3 COMMAND python3 ${file})
@@ -52,9 +52,9 @@ endforeach()
 
 #===== install package =====
 install(
-    CODE "execute_process(COMMAND python3 setup.py install WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})"
+    CODE "execute_process(COMMAND python3 setup.py install WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})"
 )
 
 install(
-    CODE "execute_process(COMMAND python2 setup.py install WORKING_DIRECTORY ${CMAKE_BINARY_DIR})"
+    CODE "execute_process(COMMAND python2 setup.py install WORKING_DIRECTORY ${PROJECT_BINARY_DIR})"
 )
