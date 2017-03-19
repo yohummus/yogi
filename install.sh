@@ -1,17 +1,80 @@
-#!/bin/sh
+#!/bin/bash
+set -e
 
-set -e # exit on error of any command
+REQUIRED_PACKAGES=(
+    cmake
+    g++
+    libboost-all-dev
+    googletest
+    libprotobuf-dev
+    protobuf-compiler
+    libqt5core5a
+    libqt5network5
+    libqt5websockets5-dev
+    nodejs
+    nodejs-legacy
+    npm
+    python3-protobuf
+    python-protobuf
+    python3-setuptools
+    python-setuptools
+    python3-future
+    python-future
+    python-typing
+    python-enum34
+)
 
-for PROJECT in yogi-core yogi-cpp yogi-python yogi-hub yogi-javascript; do
-    echo "===== Building $PROJECT ====="
+PROJECTS=(
+    yogi-core
+    yogi-cpp
+    yogi-python
+    yogi-hub
+    yogi-javascript
+)
+
+function install_required_packages {
+    PACKAGE_LIST=""
+    for PACKAGE in "${REQUIRED_PACKAGES[@]}"
+    do
+        PACKAGE_LIST="$PACKAGE_LIST $PACKAGE"
+    done
+    sudo apt-get install $PACKAGE_LIST
+}
+
+function install_newer_npm {
+    sudo npm install -g npm
+}
+
+function build_project {
+    PROJECT=$1
     cd $PROJECT
     mkdir -p build
     cd build
     cmake ..
     make
-    echo "===== Installing $PROJECT ====="
+    cd ../..
+}
+
+function install_project {
+    PROJECT=$1
+    cd $PROJECT/build
     sudo make install
     cd ../..
-done
+}
+
+function build_and_install_all_projects {
+    for PROJECT in "${PROJECTS[@]}"
+    do
+        build_project $PROJECT
+        install_project $PROJECT
+    done
+}
+
+#==============================================================================
+# MAIN CODE
+#==============================================================================
+install_required_packages
+install_newer_npm
+build_and_install_all_projects
 
 echo "===== All done ====="
