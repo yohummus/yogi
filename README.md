@@ -43,9 +43,31 @@ channels. The available message passing schemes are:
 - **Scatter-Gather.** Using this method, a sender can request information from
   an arbitrary number of clients. It is a request-response scheme that supports
   one or more responders. This method is basically RPC on steroids.
+
 The currently available communication channels are TCP/IP and process-local
 connections.
 
+#### Leafs and Nodes
+Logically, a YOGI Network consists of two different types of entities: Leafs
+and Nodes. A Leaf can only connect to a single other entity (either another Leaf
+or a Node) and supports so-called Terminals which represent communication
+endpoints for a process. Nodes, on the other hand, support an arbitrary number
+of connections to either type of entity and know every available Terminal in the
+network. Nodes are responsible for routing messages between Terminals and should
+be used sparsely and strategically in order to reduce communication overhead.
+A single, central Node (see YOGI-Hub below) is often sufficient in a YOGI
+Network. However, it is worth considering using additional Nodes if Leafs
+running on the same system communicate with each other.
+
+**Example.** A Raspberry Pi runs a number of processes, each connecting via
+TCP/IP to a central server running a Node. The processes need to exchange a lot
+of data which is currently flowing over ethernet to the server, then back to the
+Raspberry Pi and finally into the target process. This potentially unnecessary
+load on the physical network can be reduced by introducing a new Node on the
+Raspberry Pi. This new Node would then connect to the central server and all
+other processes would connect to the new Node instead. By doing so, messages
+which only flow between two processes on the Raspberry Pi are kept within the
+system and do not propagate onto the physical network.
 
 TODO: Leafs, Nodes, Terminals, Bindings, Hub, TCP, Messaging, Protobuf, ...
 
