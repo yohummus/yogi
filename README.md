@@ -9,7 +9,7 @@ loosely coupled, single-purpose processes that are easier to develop, maintain
 and test. These simpler processes can be written in different languages and
 communicate with each other on a virtual network, using a variety of message
 passing schemes such as publish-subscribe or RPC-like methods. This virtual
-network, a.k.a. YOGI network, is the foundation of the YOGI framework.
+network, a.k.a. _YOGI network_, is the foundation of the YOGI framework.
 
 **Example.** Industrial machines are often very complex systems that require a
 lot of software distributed on various computers or embedded systems. The
@@ -48,14 +48,14 @@ The currently available communication channels are TCP/IP and process-local
 connections.
 
 #### Leafs and Nodes
-Logically, a YOGI Network consists of two different types of entities: Leafs
-and Nodes. A Leaf can only connect to a single other entity (either another Leaf
-or a Node) and supports so-called Terminals which represent communication
+Logically, a YOGI Network consists of two different types of entities: _Leafs_
+and _Nodes_. A Leaf can only connect to a single other entity (either another
+Leaf or a Node) and supports so-called _Terminals_ which represent communication
 endpoints for a process. Nodes, on the other hand, support an arbitrary number
 of connections to either type of entity and know every available Terminal in the
 network. Nodes are responsible for routing messages between Terminals and should
 be used sparsely and strategically in order to reduce communication overhead.
-A single, central Node (see YOGI-Hub below) is often sufficient in a YOGI
+A single, central Node (see _YOGI-Hub_ below) is often sufficient in a YOGI
 Network. However, it is worth considering using additional Nodes if Leafs
 running on the same system communicate with each other.
 
@@ -65,9 +65,9 @@ of data which is currently flowing over ethernet to the server, then back to the
 Raspberry Pi and finally into the target process. This potentially unnecessary
 load on the physical network can be reduced by introducing a new Node on the
 Raspberry Pi. This new Node would then connect to the central server and all
-other processes would connect to the new Node instead. By doing so, messages
-which only flow between two processes on the Raspberry Pi are kept within the
-system and do not propagate onto the physical network.
+other processes connect to the new Node instead. By doing so, messages which
+only flow between two processes on the Raspberry Pi are kept within the system
+and do not propagate onto the physical network.
 
 TODO: Leafs, Nodes, Terminals, Bindings, Hub, TCP, Messaging, Protobuf, ...
 
