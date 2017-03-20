@@ -34,6 +34,19 @@ the additional ready-to-use processes that come with the YOGI framework.
 
 ### YOGI Network
 
+The YOGI Network is the core of the YOGI framework. It is a virtual network
+interconnecting a set of processes. These processes can communicate with each
+other using different message passing schemes over different communication
+channels. The available message passing schemes are:
+- **Publish-Subscribe.** This scheme allows a sender to send a message to an
+  arbitrary number of receivers.
+- **Scatter-Gather.** Using this method, a sender can request information from
+  an arbitrary number of clients. It is a request-response scheme that supports
+  one or more responders. This method is basically RPC on steroids.
+The currently available communication channels are TCP/IP and process-local
+connections.
+
+
 TODO: Leafs, Nodes, Terminals, Bindings, Hub, TCP, Messaging, Protobuf, ...
 
 ### Framework for Processes
