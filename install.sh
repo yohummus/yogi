@@ -33,6 +33,7 @@ PROJECTS=(
 )
 
 function install_required_packages {
+    echo "===== Installing required packages ====="
     PACKAGE_LIST=""
     for PACKAGE in "${REQUIRED_PACKAGES[@]}"
     do
@@ -42,10 +43,12 @@ function install_required_packages {
 }
 
 function install_newer_npm {
+    echo "===== Installing newer version of npm ====="
     sudo npm install -g npm
 }
 
 function build_project {
+    echo "===== Building $PROJECT ====="
     PROJECT=$1
     cd $PROJECT
     mkdir -p build
@@ -56,6 +59,7 @@ function build_project {
 }
 
 function install_project {
+    echo "===== Installing $PROJECT ====="
     PROJECT=$1
     cd $PROJECT/build
     sudo make install

@@ -1,7 +1,9 @@
 # YOGI
+
 YOGI - A framework for software decoupling
 
 ## Introduction
+
 YOGI is a framework for breaking complex software up into several smaller,
 loosely coupled, single-purpose processes that are easier to develop, maintain
 and test. These simpler processes can be written in different languages and
@@ -21,10 +23,56 @@ into separate processes, each using the most natural language for its task.
 Legacy code can be wrapped up into its own process and thus isolated from the
 rest of the design.
 
+## Overview
+
+This section provides an overview of the different core parts of the YOGI
+framework, starting with a description of its virtual network along with the
+design of processes using the framework. It then summarises the language and
+operating system support before discussing the built-in development tools and
+the design of graphical user interfaces. Finally, this section briefly explains
+the additional ready-to-use processes that come with the YOGI framework.
+
+### YOGI Network
+
+TODO: Leafs, Nodes, Terminals, Bindings, Hub, TCP, Messaging, Protobuf, ...
+
+### Framework for Processes
+
+TODO: ProcessInterface, TCP client, configuration, logging, ...
+
+### Supported Languages and Operating Systems
+
+TODO: Linux, Windows, ARM
+
+### Development Tools
+
+TODO: Hub, yogi-gui
+
+### Designing User Interfaces
+
+TODO: Hub, yogi-gui, JS, nodejs
+
+### Ready-to-use Processes
+
+TODO: Watcher
+
 ## Installation
+
+This section describes how to setup and build YOGI for the purpose of working
+on the framework itself. For developing applications using the framework, please
+use one of the provided pre-built packages.
+
+
+### Installation on Debian 9 (Stretch)
+
+The install.sh file in the top level directory can be used to install the
+required dependencies, build all sub-projects and install them on a Debian 9
+(Stretch) system. The script may work on other Debian-based distributions but
+this has not been tested. The install script first installs the required
+Debian packages, updates npm (NodeJS' package manager) to a more recent version
+and then builds and installs all sub-projects.
+
+## Examples
+
 TODO
 
-### Installing on Debian 9 (Stretch)
-1. sudo apt-get install cmake g++ libboost-all-dev googletest libprotobuf-dev protobuf-compiler libqt5core5a libqt5network5 libqt5websockets5-dev nodejs nodejs-legacy npm python3-protobuf python-protobuf python3-setuptools python-setuptools python3-future python-future python-typing python-enum34
-2. sudo npm install -g npm
-3. TBD...
