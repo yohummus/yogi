@@ -9,7 +9,7 @@ loosely coupled, single-purpose processes that are easier to develop, maintain
 and test. These simpler processes can be written in different languages and
 communicate with each other on a virtual network, using a variety of message
 passing schemes such as publish-subscribe or RPC-like methods. This virtual
-network, a.k.a. _YOGI network_, is the foundation of the YOGI framework.
+network, a.k.a. _YOGI Network_, is the foundation of the YOGI framework.
 
 **Example.** Industrial machines are often very complex systems that require a
 lot of software distributed on various computers or embedded systems. The
@@ -68,6 +68,26 @@ Raspberry Pi. This new Node would then connect to the central server and all
 other processes connect to the new Node instead. By doing so, messages which
 only flow between two processes on the Raspberry Pi are kept within the system
 and do not propagate onto the physical network.
+
+#### Terminals and Bindings
+_Terminals_ are communication endpoints used in user processes. Processes
+typically create many Terminals, some for control data, some for process
+data and some for debugging or logging purposes.
+
+Terminals have three main properties: A _name_, a _signature_ and a _type_. The
+name of a Terminal is a path-like string used to identify the Terminal within
+the network (e.g. _/Left Motor/Voltage_). Signatures identify the structure of
+the messages that are transmitted over the Terminal. There are pre-defined
+(a.k.a. _official_) signatures for messages representing common data types like
+integers or a list of strings. If none of the official signatures are suitable,
+custom messages with a user-defined signature can be created. Lastly, Terminals
+have a certain type denoting how they exchange messages. The different types
+are:
+- **Deaf-Mute Terminals.** Those Terminals do not exchange data at all. They are
+  useful when a process only needs to detect the presence of a Terminal.
+- TODO
+- TODO
+
 
 TODO: Leafs, Nodes, Terminals, Bindings, Hub, TCP, Messaging, Protobuf, ...
 
