@@ -72,7 +72,12 @@ and do not propagate onto the physical network.
 #### Terminals and Bindings
 _Terminals_ are communication endpoints used in user processes. Processes
 typically create many Terminals, some for control data, some for process
-data and some for debugging or logging purposes.
+data and some for debugging or logging purposes. A _Binding_, on the other
+hand, ties a local Terminal (i.e. the Terminal for which the Binding is created
+for) to remote Terminals (i.e. Terminals which are not on the local leaf). The
+local Terminal can receive messages from the remote Terminal(s) once the
+Binding has been established. A Terminal which has an established Binding is
+called a _bound_ Terminal.
 
 Terminals have three main properties: A _name_, a _signature_ and a _type_. The
 name of a Terminal is a path-like string used to identify the Terminal within
@@ -83,13 +88,61 @@ integers or a list of strings. If none of the official signatures are suitable,
 custom messages with a user-defined signature can be created. Lastly, Terminals
 have a certain type denoting how they exchange messages. The different types
 are:
-- **Deaf-Mute Terminals.** Those Terminals do not exchange data at all. They are
-  useful when a process only needs to detect the presence of a Terminal.
-- TODO
-- TODO
+- **Deaf-Mute (DM) Terminals.** Those Terminals do not exchange data at all.
+  They are useful when a process only needs to detect the presence of a
+  Terminal.
+- **Publish-Subscribe (PS) Terminals.** As their name suggests,
+  Publish-Subscribe Terminals follow the publish-subscribe messaging pattern,
+  i.e. a message published via a Terminal T will be sent to all remote Terminals
+  which are bound to T. This Terminal type is a low-level building block for
+  more complex types and is rarely used on its own.
+- **Cached Publish-Subscribe (CPS) Terminals.** Same behaviour as
+  Publish-Subscribe Terminals with the addition of a cache which always contains
+  the last message a Terminal received. This is useful for distributing values
+  that do not change very often. This Terminal type is also a low-level building
+  block.
+- **Scatter-Gather (SG) Terminals.** Scatter-Gather Terminals implement Remote
+  Procedure Calls (RPCs). A scatter-gather operation consists of two phases,
+  the _scatter phase_ and the _gather phase_. During the scatter phase, the
+  initiating Terminal sends a message to all bound remote Terminals (using
+  the publish-subscribe pattern). During the gather phase, the initiating
+  Terminal waits for responses from all remote Terminals that it sent the
+  message to. Once all those responses have been received, the scatter-gather
+  operation has completed. Also a low-level building block.
+- **Producer-Consumer (PC) Terminals.** A Producer Terminal only publishes
+  messages while a Consumer Terminal only receives messages. Consumer
+  Terminals automatically bind to Producer Terminals with the same name and
+  the publish-subscribe pattern is used for messaging.
+- **Cached Producer-Consumer (CPC) Terminals.** Same as Producer-Consumer
+  Terminals but with a cache containing the most recent message the Terminal
+  received. Useful for distributing values that do not change very often.
+- **Master-Slave (MS) Terminals.** Master Terminals send messages of type A to
+  all bound Slave Terminals and Slave Terminals send messages of type B to all
+  bound Master Terminals. Both Master and Slave Terminals automatically bind to
+  their counterpart with the same name. Use Master Terminals for the "owner" or
+  source of the data and Slave Terminals for users of the data.
+- **Cached Master-Slave (CMS) Terminals.** Same as Master-Slave Terminals but
+  with a cache containing the most recent message the Terminal received. Useful
+  for distributing values that do not change very often.
+- **Service-Client (SC) Terminals.** These Terminals behave like Scatter-Gather
+  Terminals whereby only the Client Terminals can send requests and only the
+  Service Terminals can respond to those requests.
 
+_Bindings_ can only be used for Terminals which do not automatically bind
+themselves, i.e. only for DM, PS, CPS and SG Terminals. As opposed to other
+Terminals, Those low-level Terminals can be bound to Terminals with a name
+different from the local Terminal's name. When creating a Binding, the name
+of the remote Terminals has to specified in the _target_ parameter. An
+arbitrary number of Bindings can be created for the same Terminal, thus
+allowing to bind a local Terminal to remote Terminals with different names.
 
-TODO: Leafs, Nodes, Terminals, Bindings, Hub, TCP, Messaging, Protobuf, ...
+_Messages_ are most commonly encoded using the
+[Protocol Buffers](https://developers.google.com/protocol-buffers/) library. A
+reserved range of official signatures represent most commonly used data types
+like integers or a list of strings. If a more sophisticated type is required,
+then user-defined messages can be used, either using Procol Buffers or any
+other custom format. However, official signatures should be preferred due to
+their interation into the development tools that come with the YOGI framework.
 
 ### Framework for Processes
 
