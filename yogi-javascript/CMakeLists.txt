@@ -9,7 +9,7 @@ set(npm_ok_file
 add_custom_command(
     OUTPUT ${npm_ok_file}
     COMMAND npm install
-    COMMAND echo > build/${npm_ok_file}
+    COMMAND echo > ${PROJECT_BINARY_DIR}/${npm_ok_file}
     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
 )
 
@@ -39,12 +39,13 @@ add_custom_target(bundles
 
 #===== install bundles =====
 set(yogi_hub_base /usr/share/yogi-hub/www)
-file(GLOB files build/*.min.js build/*.min.js.map)
 
-install(
-    FILES ${files}
-    DESTINATION ${yogi_hub_base}/lib
-)
+foreach(file ${bundle_files})
+    install(
+        FILES ${PROJECT_BINARY_DIR}/${file}
+        DESTINATION ${yogi_hub_base}/lib/
+    )    
+endforeach()
 
 install(
     FILES index.html
