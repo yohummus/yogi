@@ -72,8 +72,8 @@ yogi.YOGI_CreateTerminal.argtypes = [POINTER(c_void_p), c_void_p, c_int, c_char_
 class Terminal(Object):
     RECEIVE_MESSAGE_BUFFER_SIZE = 1024 * 64
 
-    def __init__(self, type: TerminalType, name_or_path: Union[Path, str], proto_module: Any, *,
-                 leaf: Optional[Leaf] = None):
+    def __init__(self, type: TerminalType, name_or_path: Union[Path, str], signature: Union[Signature, int],
+                 *, leaf: Optional[Leaf] = None):
         if leaf is None:
             from .process import ProcessInterface
             if ProcessInterface._instance is None:
@@ -86,8 +86,13 @@ class Terminal(Object):
         else:
             self._leaf = leaf
             self._name = str(name_or_path)
-        self._proto_module = proto_module
-        self._signature = Signature(proto_module.PublishMessage.SIGNATURE)
+
+        self._proto_module = None
+
+        if isinstance(signature, Signature):
+            self._signature = signature
+        else:
+            self._signature = Signature(signature);
 
         handle = c_void_p()
         yogi.YOGI_CreateTerminal(byref(handle), self._leaf._handle, type.value, self._name.encode('utf-8'),
@@ -107,14 +112,33 @@ class Terminal(Object):
         return self._signature
 
 
+class ProtoTerminal(Terminal):
+    def __init__(self, type: TerminalType, name_or_path: Union[Path, str], proto_module: Any, *,
+                 leaf: Optional[Leaf] = None):
+        signature = Signature(proto_module.PublishMessage.SIGNATURE)
+        Terminal.__init__(self, type, name_or_path, signature, leaf=leaf)
+        self._proto_module = proto_module
+
+
 class PrimitiveTerminal(Terminal):
     def __init__(self, *args, **kwargs):
         Terminal.__init__(self, *args, **kwargs)
 
 
+class PrimitiveProtoTerminal(ProtoTerminal):
+    def __init__(self, *args, **kwargs):
+        ProtoTerminal.__init__(self, *args, **kwargs)
+
+
 class ConvenienceTerminal(Terminal):
     def __init__(self, *args, **kwargs):
         Terminal.__init__(self, *args, **kwargs)
+
+
+class ConvenienceProtoTerminal(ProtoTerminal):
+    def __init__(self, *args, **kwargs):
+        ProtoTerminal.__init__(self, *args, **kwargs)
+
 
 # ======================================================================================================================
 # Scatter-Gather-related classes
@@ -145,9 +169,12 @@ class ScatteredMessage:
         self._terminal = terminal
         self._operation_id = operation_id
 
-        data = (c_byte * bytes_written).from_buffer(buffer)
-        self._msg = self._terminal._proto_module.ScatterMessage()
-        self._msg.ParseFromString(bytes(bytearray(data)))
+        data = bytes(bytearray((c_byte * bytes_written).from_buffer(buffer)))
+        if self._terminal._proto_module:
+            self._msg = self._terminal._proto_module.ScatterMessage()
+            self._msg.ParseFromString(data)
+        else:
+            self._msg = data
 
     @property
     def terminal(self):
@@ -162,9 +189,14 @@ class ScatteredMessage:
         return self._operation_id
 
     def respond(self, msg):
-        data = create_string_buffer(msg.SerializeToString())
-        self._terminal._respond_to_scattered_message_api_fn(self._terminal._handle, self._operation_id, data,
-                                                            sizeof(data) - 1)
+        if self._terminal._proto_module:
+            data = msg.SerializeToString()
+        else:
+            data = msg
+
+        buffer = create_string_buffer(data)
+        self._terminal._respond_to_scattered_message_api_fn(self._terminal._handle, self._operation_id, buffer,
+                                                            sizeof(buffer) - 1)
         self._operation_id = None
 
     def ignore(self):
@@ -178,9 +210,12 @@ class GatheredMessage:
         self._operation_id = operation_id
         self._flags = flags
 
-        data = (c_byte * bytes_written).from_buffer(buffer)
-        self._msg = self._terminal._proto_module.GatherMessage()
-        self._msg.ParseFromString(bytes(bytearray(data)))
+        data = bytes(bytearray((c_byte * bytes_written).from_buffer(buffer)))
+        if self._terminal._proto_module:
+            self._msg = self._terminal._proto_module.GatherMessage()
+            self._msg.ParseFromString(data)
+        else:
+            self._msg = data
 
     @property
     def terminal(self):
@@ -288,11 +323,16 @@ class PublishMixin:
         return self._proto_module.PublishMessage(**kwargs)
 
     def publish(self, msg):
-        if not isinstance(msg, self._proto_module.PublishMessage):
-            raise Exception('Invalid parameter: {} is not of type {}'
-                            .format(type(msg), self._proto_module.PublishMessage))
-        data = create_string_buffer(msg.SerializeToString())
-        self._publish_api_fn(self._handle, data, sizeof(data) - 1)
+        if self._proto_module:
+            if not isinstance(msg, self._proto_module.PublishMessage):
+                raise Exception('Invalid parameter: {} is not of type {}'
+                                .format(type(msg), self._proto_module.PublishMessage))
+            data = msg.SerializeToString()
+        else:
+            data = msg
+
+        buffer = create_string_buffer(data)
+        self._publish_api_fn(self._handle, buffer, sizeof(buffer) - 1)
 
     def try_publish(self, msg) -> bool:
         try:
@@ -308,9 +348,12 @@ class PublishMessageReceiverMixin:
 
         def fn(res, bytes_written, cached=None):
             if res:
-                data = (c_byte * bytes_written).from_buffer(buffer)
-                msg = self._proto_module.PublishMessage()
-                msg.ParseFromString(bytes(bytearray(data)))
+                data = bytes(bytearray((c_byte * bytes_written).from_buffer(buffer)))
+                if self._proto_module:
+                    msg = self._proto_module.PublishMessage()
+                    msg.ParseFromString(data)
+                else:
+                    msg = data
             else:
                 msg = None
 
@@ -331,9 +374,14 @@ class CacheMixin:
         buffer = create_string_buffer(Terminal.RECEIVE_MESSAGE_BUFFER_SIZE)
         bytes_written = c_uint()
         self._get_cached_message_api_fn(self._handle, buffer, sizeof(buffer), byref(bytes_written))
-        data = (c_byte * bytes_written.value).from_buffer(buffer)
-        msg = self._proto_module.PublishMessage()
-        msg.ParseFromString(bytes(bytearray(data)))
+        
+        data = bytes(bytearray((c_byte * bytes_written.value).from_buffer(buffer)))
+        if self._proto_module:
+            msg = self._proto_module.PublishMessage()
+            msg.ParseFromString(data)
+        else:
+            msg = data
+
         return msg
 
 
@@ -354,7 +402,12 @@ class ServiceMixin:
 
 class ClientMixin:
     def _async_scatter_gather(self, msg, completion_handler: Callable[[Result, Any], ControlFlow]) -> Operation:
-        scatter_buffer = create_string_buffer(msg.SerializeToString())
+        if self._proto_module:
+            data = msg.SerializeToString()
+        else:
+            data = msg
+
+        scatter_buffer = create_string_buffer(data)
         gather_buffer = create_string_buffer(Terminal.RECEIVE_MESSAGE_BUFFER_SIZE)
 
         def fn(res, operation_id, flags, bytes_written):
@@ -372,9 +425,14 @@ class ClientMixin:
 # ======================================================================================================================
 # Deaf-Mute Terminals
 # ======================================================================================================================
-class DeafMuteTerminal(PrimitiveTerminal):
+class DeafMuteTerminal(PrimitiveProtoTerminal):
     def __init__(self, name: str, proto_module: Any, *, leaf: Optional[Leaf] = None):
-        PrimitiveTerminal.__init__(self, TerminalType.DEAF_MUTE, name, proto_module, leaf=leaf)
+        PrimitiveProtoTerminal.__init__(self, TerminalType.DEAF_MUTE, name, proto_module, leaf=leaf)
+
+
+class RawDeafMuteTerminal(PrimitiveTerminal):
+    def __init__(self, name: str, signature: Union[Signature, int], *, leaf: Optional[Leaf] = None):
+        PrimitiveTerminal.__init__(self, TerminalType.DEAF_MUTE, name, signature, leaf=leaf)
 
 
 # ======================================================================================================================
@@ -391,13 +449,23 @@ yogi.YOGI_PS_CancelReceiveMessage.restype = api_result_handler
 yogi.YOGI_PS_CancelReceiveMessage.argtypes = [c_void_p]
 
 
-class PublishSubscribeTerminal(PublishMixin, PublishMessageReceiverMixin, SubscribableMixin, PrimitiveTerminal):
+class PublishSubscribeTerminal(PublishMixin, PublishMessageReceiverMixin, SubscribableMixin, PrimitiveProtoTerminal):
     _publish_api_fn = yogi.YOGI_PS_Publish
     _async_receive_message_api_fn = yogi.YOGI_PS_AsyncReceiveMessage
     _cancel_receive_message_api_fn = yogi.YOGI_PS_CancelReceiveMessage
 
     def __init__(self, name: str, proto_module: Any, *, leaf: Optional[Leaf] = None):
-        PrimitiveTerminal.__init__(self, TerminalType.PUBLISH_SUBSCRIBE, name, proto_module, leaf=leaf)
+        PrimitiveProtoTerminal.__init__(self, TerminalType.PUBLISH_SUBSCRIBE, name, proto_module, leaf=leaf)
+        self._is_cached = False
+
+
+class RawPublishSubscribeTerminal(PublishMixin, PublishMessageReceiverMixin, SubscribableMixin, PrimitiveTerminal):
+    _publish_api_fn = yogi.YOGI_PS_Publish
+    _async_receive_message_api_fn = yogi.YOGI_PS_AsyncReceiveMessage
+    _cancel_receive_message_api_fn = yogi.YOGI_PS_CancelReceiveMessage
+
+    def __init__(self, name: str, signature: Union[Signature, int], *, leaf: Optional[Leaf] = None):
+        PrimitiveTerminal.__init__(self, TerminalType.PUBLISH_SUBSCRIBE, name, signature, leaf=leaf)
         self._is_cached = False
 
 
@@ -419,14 +487,26 @@ yogi.YOGI_CPS_CancelReceiveMessage.argtypes = [c_void_p]
 
 
 class CachedPublishSubscribeTerminal(CacheMixin, PublishMixin, PublishMessageReceiverMixin, SubscribableMixin,
-                                     PrimitiveTerminal):
+                                     PrimitiveProtoTerminal):
     _get_cached_message_api_fn = yogi.YOGI_CPS_GetCachedMessage
     _publish_api_fn = yogi.YOGI_CPS_Publish
     _async_receive_message_api_fn = yogi.YOGI_CPS_AsyncReceiveMessage
     _cancel_receive_message_api_fn = yogi.YOGI_CPS_CancelReceiveMessage
 
     def __init__(self, name: str, proto_module: Any, *, leaf: Optional[Leaf] = None):
-        PrimitiveTerminal.__init__(self, TerminalType.CACHED_PUBLISH_SUBSCRIBE, name, proto_module, leaf=leaf)
+        PrimitiveProtoTerminal.__init__(self, TerminalType.CACHED_PUBLISH_SUBSCRIBE, name, proto_module, leaf=leaf)
+        self._is_cached = True
+
+
+class RawCachedPublishSubscribeTerminal(CacheMixin, PublishMixin, PublishMessageReceiverMixin, SubscribableMixin,
+                                     PrimitiveTerminal):
+    _get_cached_message_api_fn = yogi.YOGI_CPS_GetCachedMessage
+    _publish_api_fn = yogi.YOGI_CPS_Publish
+    _async_receive_message_api_fn = yogi.YOGI_CPS_AsyncReceiveMessage
+    _cancel_receive_message_api_fn = yogi.YOGI_CPS_CancelReceiveMessage
+
+    def __init__(self, name: str, signature: Union[Signature, int], *, leaf: Optional[Leaf] = None):
+        PrimitiveTerminal.__init__(self, TerminalType.CACHED_PUBLISH_SUBSCRIBE, name, signature, leaf=leaf)
         self._is_cached = True
 
 
@@ -454,7 +534,7 @@ yogi.YOGI_SG_IgnoreScatteredMessage.restype = api_result_handler
 yogi.YOGI_SG_IgnoreScatteredMessage.argtypes = [c_void_p, c_int]
 
 
-class ScatterGatherTerminal(ServiceMixin, ClientMixin, SubscribableMixin, PrimitiveTerminal):
+class ScatterGatherTerminal(ServiceMixin, ClientMixin, SubscribableMixin, PrimitiveProtoTerminal):
     _async_scatter_gather_api_fn = yogi.YOGI_SG_AsyncScatterGather
     _cancel_scatter_gather_api_fn = yogi.YOGI_SG_CancelScatterGather
     _async_receive_scattered_message_api_fn = yogi.YOGI_SG_AsyncReceiveScatteredMessage
@@ -463,7 +543,7 @@ class ScatterGatherTerminal(ServiceMixin, ClientMixin, SubscribableMixin, Primit
     _ignore_scattered_message_api_fn = yogi.YOGI_SG_IgnoreScatteredMessage
 
     def __init__(self, name: str, proto_module: Any, *, leaf: Optional[Leaf] = None):
-        PrimitiveTerminal.__init__(self, TerminalType.SCATTER_GATHER, name, proto_module, leaf=leaf)
+        PrimitiveProtoTerminal.__init__(self, TerminalType.SCATTER_GATHER, name, proto_module, leaf=leaf)
 
     def make_scatter_message(self, **kwargs) -> Any:
         return self._proto_module.ScatterMessage(**kwargs)
@@ -493,6 +573,39 @@ ScatterGatherTerminal.ScatteredMessage = ScatteredMessage
 ScatterGatherTerminal.GatheredMessage = GatheredMessage
 
 
+class RawScatterGatherTerminal(ServiceMixin, ClientMixin, SubscribableMixin, PrimitiveTerminal):
+    _async_scatter_gather_api_fn = yogi.YOGI_SG_AsyncScatterGather
+    _cancel_scatter_gather_api_fn = yogi.YOGI_SG_CancelScatterGather
+    _async_receive_scattered_message_api_fn = yogi.YOGI_SG_AsyncReceiveScatteredMessage
+    _cancel_receive_scattered_message_api_fn = yogi.YOGI_SG_CancelReceiveScatteredMessage
+    _respond_to_scattered_message_api_fn = yogi.YOGI_SG_RespondToScatteredMessage
+    _ignore_scattered_message_api_fn = yogi.YOGI_SG_IgnoreScatteredMessage
+
+    def __init__(self, name: str, signature: Union[Signature, int], *, leaf: Optional[Leaf] = None):
+        PrimitiveTerminal.__init__(self, TerminalType.SCATTER_GATHER, name, signature, leaf=leaf)
+
+    def async_scatter_gather(self, msg, completion_handler: Callable[[Result, Optional[GatheredMessage]],
+                                                                     ControlFlow])-> Operation:
+        return self._async_scatter_gather(msg, completion_handler)
+
+    def try_async_scatter_gather(self, msg, completion_handler: Callable[[Result, Optional[GatheredMessage]],
+                                                                         ControlFlow]) -> Operation:
+        try:
+            return self.async_scatter_gather(msg, completion_handler)
+        except Failure:
+            return Operation(self)
+
+    def async_receive_scattered_message(self, completion_handler: Callable[[Result, Optional[ScatteredMessage]], None]):
+        self._async_receive_scattered_message(completion_handler)
+
+    def cancel_receive_scattered_message(self):
+        self._cancel_receive_scattered_message()
+
+RawScatterGatherTerminal.Operation = Operation
+RawScatterGatherTerminal.ScatteredMessage = ScatteredMessage
+RawScatterGatherTerminal.GatheredMessage = GatheredMessage
+
+
 # ======================================================================================================================
 # Producer/Consumer Terminals
 # ======================================================================================================================
@@ -506,20 +619,37 @@ yogi.YOGI_PC_CancelReceiveMessage.restype = yogi.YOGI_PS_CancelReceiveMessage.re
 yogi.YOGI_PC_CancelReceiveMessage.argtypes = yogi.YOGI_PS_CancelReceiveMessage.argtypes
 
 
-class ProducerTerminal(PublishMixin, SubscribableMixin, ConvenienceTerminal):
+class ProducerTerminal(PublishMixin, SubscribableMixin, ConvenienceProtoTerminal):
     _publish_api_fn = yogi.YOGI_PC_Publish
 
     def __init__(self, name: str, proto_module: Any, *, leaf: Optional[Leaf] = None):
-        ConvenienceTerminal.__init__(self, TerminalType.PRODUCER, name, proto_module, leaf=leaf)
+        ConvenienceProtoTerminal.__init__(self, TerminalType.PRODUCER, name, proto_module, leaf=leaf)
         self._is_cached = False
 
 
-class ConsumerTerminal(PublishMessageReceiverMixin, BinderMixin, ConvenienceTerminal):
+class RawProducerTerminal(PublishMixin, SubscribableMixin, ConvenienceTerminal):
+    _publish_api_fn = yogi.YOGI_PC_Publish
+
+    def __init__(self, name: str, signature: Union[Signature, int], *, leaf: Optional[Leaf] = None):
+        ConvenienceTerminal.__init__(self, TerminalType.PRODUCER, name, signature, leaf=leaf)
+        self._is_cached = False
+
+
+class ConsumerTerminal(PublishMessageReceiverMixin, BinderMixin, ConvenienceProtoTerminal):
     _async_receive_message_api_fn = yogi.YOGI_PC_AsyncReceiveMessage
     _cancel_receive_message_api_fn = yogi.YOGI_PC_CancelReceiveMessage
 
     def __init__(self, name: str, proto_module: Any, *, leaf: Optional[Leaf] = None):
-        ConvenienceTerminal.__init__(self, TerminalType.CONSUMER, name, proto_module, leaf=leaf)
+        ConvenienceProtoTerminal.__init__(self, TerminalType.CONSUMER, name, proto_module, leaf=leaf)
+        self._is_cached = False
+
+
+class RawConsumerTerminal(PublishMessageReceiverMixin, BinderMixin, ConvenienceTerminal):
+    _async_receive_message_api_fn = yogi.YOGI_PC_AsyncReceiveMessage
+    _cancel_receive_message_api_fn = yogi.YOGI_PC_CancelReceiveMessage
+
+    def __init__(self, name: str, signature: Union[Signature, int], *, leaf: Optional[Leaf] = None):
+        ConvenienceTerminal.__init__(self, TerminalType.CONSUMER, name, signature, leaf=leaf)
         self._is_cached = False
 
 
@@ -539,21 +669,39 @@ yogi.YOGI_CPC_CancelReceiveMessage.restype = yogi.YOGI_CPS_CancelReceiveMessage.
 yogi.YOGI_CPC_CancelReceiveMessage.argtypes = yogi.YOGI_CPS_CancelReceiveMessage.argtypes
 
 
-class CachedProducerTerminal(PublishMixin, SubscribableMixin, ConvenienceTerminal):
+class CachedProducerTerminal(PublishMixin, SubscribableMixin, ConvenienceProtoTerminal):
     _publish_api_fn = yogi.YOGI_CPC_Publish
 
     def __init__(self, name: str, proto_module: Any, *, leaf: Optional[Leaf] = None):
-        ConvenienceTerminal.__init__(self, TerminalType.CACHED_PRODUCER, name, proto_module, leaf=leaf)
+        ConvenienceProtoTerminal.__init__(self, TerminalType.CACHED_PRODUCER, name, proto_module, leaf=leaf)
         self._is_cached = True
 
 
-class CachedConsumerTerminal(CacheMixin, PublishMessageReceiverMixin, BinderMixin, ConvenienceTerminal):
+class RawCachedProducerTerminal(PublishMixin, SubscribableMixin, ConvenienceTerminal):
+    _publish_api_fn = yogi.YOGI_CPC_Publish
+
+    def __init__(self, name: str, signature: Union[Signature, int], *, leaf: Optional[Leaf] = None):
+        ConvenienceTerminal.__init__(self, TerminalType.CACHED_PRODUCER, name, signature, leaf=leaf)
+        self._is_cached = True
+
+
+class CachedConsumerTerminal(CacheMixin, PublishMessageReceiverMixin, BinderMixin, ConvenienceProtoTerminal):
     _get_cached_message_api_fn = yogi.YOGI_CPC_GetCachedMessage
     _async_receive_message_api_fn = yogi.YOGI_CPC_AsyncReceiveMessage
     _cancel_receive_message_api_fn = yogi.YOGI_CPC_CancelReceiveMessage
 
     def __init__(self, name: str, proto_module: Any, *, leaf: Optional[Leaf] = None):
-        ConvenienceTerminal.__init__(self, TerminalType.CACHED_CONSUMER, name, proto_module, leaf=leaf)
+        ConvenienceProtoTerminal.__init__(self, TerminalType.CACHED_CONSUMER, name, proto_module, leaf=leaf)
+        self._is_cached = True
+
+
+class RawCachedConsumerTerminal(CacheMixin, PublishMessageReceiverMixin, BinderMixin, ConvenienceTerminal):
+    _get_cached_message_api_fn = yogi.YOGI_CPC_GetCachedMessage
+    _async_receive_message_api_fn = yogi.YOGI_CPC_AsyncReceiveMessage
+    _cancel_receive_message_api_fn = yogi.YOGI_CPC_CancelReceiveMessage
+
+    def __init__(self, name: str, signature: Union[Signature, int], *, leaf: Optional[Leaf] = None):
+        ConvenienceTerminal.__init__(self, TerminalType.CACHED_CONSUMER, name, signature, leaf=leaf)
         self._is_cached = True
 
 
@@ -570,23 +718,43 @@ yogi.YOGI_MS_CancelReceiveMessage.restype = yogi.YOGI_PS_CancelReceiveMessage.re
 yogi.YOGI_MS_CancelReceiveMessage.argtypes = yogi.YOGI_PS_CancelReceiveMessage.argtypes
 
 
-class MasterTerminal(PublishMixin, PublishMessageReceiverMixin, SubscribableMixin, BinderMixin, ConvenienceTerminal):
+class MasterTerminal(PublishMixin, PublishMessageReceiverMixin, SubscribableMixin, BinderMixin, ConvenienceProtoTerminal):
     _publish_api_fn = yogi.YOGI_MS_Publish
     _async_receive_message_api_fn = yogi.YOGI_MS_AsyncReceiveMessage
     _cancel_receive_message_api_fn = yogi.YOGI_MS_CancelReceiveMessage
 
     def __init__(self, name: str, proto_module: Any, *, leaf: Optional[Leaf] = None):
-        ConvenienceTerminal.__init__(self, TerminalType.MASTER, name, proto_module, leaf=leaf)
+        ConvenienceProtoTerminal.__init__(self, TerminalType.MASTER, name, proto_module, leaf=leaf)
         self._is_cached = False
 
 
-class SlaveTerminal(PublishMixin, PublishMessageReceiverMixin, SubscribableMixin, BinderMixin, ConvenienceTerminal):
+class RawMasterTerminal(PublishMixin, PublishMessageReceiverMixin, SubscribableMixin, BinderMixin, ConvenienceTerminal):
+    _publish_api_fn = yogi.YOGI_MS_Publish
+    _async_receive_message_api_fn = yogi.YOGI_MS_AsyncReceiveMessage
+    _cancel_receive_message_api_fn = yogi.YOGI_MS_CancelReceiveMessage
+
+    def __init__(self, name: str, signature: Union[Signature, int], *, leaf: Optional[Leaf] = None):
+        ConvenienceTerminal.__init__(self, TerminalType.MASTER, name, signature, leaf=leaf)
+        self._is_cached = False
+
+
+class SlaveTerminal(PublishMixin, PublishMessageReceiverMixin, SubscribableMixin, BinderMixin, ConvenienceProtoTerminal):
     _publish_api_fn = yogi.YOGI_MS_Publish
     _async_receive_message_api_fn = yogi.YOGI_MS_AsyncReceiveMessage
     _cancel_receive_message_api_fn = yogi.YOGI_MS_CancelReceiveMessage
 
     def __init__(self, name: str, proto_module: Any, *, leaf: Optional[Leaf] = None):
-        ConvenienceTerminal.__init__(self, TerminalType.SLAVE, name, proto_module, leaf=leaf)
+        ConvenienceProtoTerminal.__init__(self, TerminalType.SLAVE, name, proto_module, leaf=leaf)
+        self._is_cached = False
+
+
+class RawSlaveTerminal(PublishMixin, PublishMessageReceiverMixin, SubscribableMixin, BinderMixin, ConvenienceTerminal):
+    _publish_api_fn = yogi.YOGI_MS_Publish
+    _async_receive_message_api_fn = yogi.YOGI_MS_AsyncReceiveMessage
+    _cancel_receive_message_api_fn = yogi.YOGI_MS_CancelReceiveMessage
+
+    def __init__(self, name: str, signature: Union[Signature, int], *, leaf: Optional[Leaf] = None):
+        ConvenienceTerminal.__init__(self, TerminalType.SLAVE, name, signature, leaf=leaf)
         self._is_cached = False
 
 
@@ -607,26 +775,50 @@ yogi.YOGI_CMS_CancelReceiveMessage.argtypes = yogi.YOGI_CPS_CancelReceiveMessage
 
 
 class CachedMasterTerminal(CacheMixin, PublishMixin, PublishMessageReceiverMixin, SubscribableMixin, BinderMixin,
-                           ConvenienceTerminal):
+                           ConvenienceProtoTerminal):
     _get_cached_message_api_fn = yogi.YOGI_CMS_GetCachedMessage
     _publish_api_fn = yogi.YOGI_CMS_Publish
     _async_receive_message_api_fn = yogi.YOGI_CMS_AsyncReceiveMessage
     _cancel_receive_message_api_fn = yogi.YOGI_CMS_CancelReceiveMessage
 
     def __init__(self, name: str, proto_module: Any, *, leaf: Optional[Leaf] = None):
-        ConvenienceTerminal.__init__(self, TerminalType.CACHED_MASTER, name, proto_module, leaf=leaf)
+        ConvenienceProtoTerminal.__init__(self, TerminalType.CACHED_MASTER, name, proto_module, leaf=leaf)
+        self._is_cached = True
+
+
+class RawCachedMasterTerminal(CacheMixin, PublishMixin, PublishMessageReceiverMixin, SubscribableMixin, BinderMixin,
+                              ConvenienceTerminal):
+    _get_cached_message_api_fn = yogi.YOGI_CMS_GetCachedMessage
+    _publish_api_fn = yogi.YOGI_CMS_Publish
+    _async_receive_message_api_fn = yogi.YOGI_CMS_AsyncReceiveMessage
+    _cancel_receive_message_api_fn = yogi.YOGI_CMS_CancelReceiveMessage
+
+    def __init__(self, name: str, signature: Union[Signature, int], *, leaf: Optional[Leaf] = None):
+        ConvenienceTerminal.__init__(self, TerminalType.CACHED_MASTER, name, signature, leaf=leaf)
         self._is_cached = True
 
 
 class CachedSlaveTerminal(CacheMixin, PublishMixin, PublishMessageReceiverMixin, SubscribableMixin, BinderMixin,
-                          ConvenienceTerminal):
+                          ConvenienceProtoTerminal):
     _get_cached_message_api_fn = yogi.YOGI_CMS_GetCachedMessage
     _publish_api_fn = yogi.YOGI_CMS_Publish
     _async_receive_message_api_fn = yogi.YOGI_CMS_AsyncReceiveMessage
     _cancel_receive_message_api_fn = yogi.YOGI_CMS_CancelReceiveMessage
 
     def __init__(self, name: str, proto_module: Any, *, leaf: Optional[Leaf] = None):
-        ConvenienceTerminal.__init__(self, TerminalType.CACHED_SLAVE, name, proto_module, leaf=leaf)
+        ConvenienceProtoTerminal.__init__(self, TerminalType.CACHED_SLAVE, name, proto_module, leaf=leaf)
+        self._is_cached = True
+
+
+class RawCachedSlaveTerminal(CacheMixin, PublishMixin, PublishMessageReceiverMixin, SubscribableMixin, BinderMixin,
+                             ConvenienceTerminal):
+    _get_cached_message_api_fn = yogi.YOGI_CMS_GetCachedMessage
+    _publish_api_fn = yogi.YOGI_CMS_Publish
+    _async_receive_message_api_fn = yogi.YOGI_CMS_AsyncReceiveMessage
+    _cancel_receive_message_api_fn = yogi.YOGI_CMS_CancelReceiveMessage
+
+    def __init__(self, name: str, signature: Union[Signature, int], *, leaf: Optional[Leaf] = None):
+        ConvenienceTerminal.__init__(self, TerminalType.CACHED_SLAVE, name, signature, leaf=leaf)
         self._is_cached = True
 
 
@@ -652,14 +844,14 @@ yogi.YOGI_SC_IgnoreRequest.restype = yogi.YOGI_SG_IgnoreScatteredMessage.restype
 yogi.YOGI_SC_IgnoreRequest.argtypes = yogi.YOGI_SG_IgnoreScatteredMessage.argtypes
 
 
-class ServiceTerminal(ServiceMixin, BinderMixin, ConvenienceTerminal):
+class ServiceTerminal(ServiceMixin, BinderMixin, ConvenienceProtoTerminal):
     _async_receive_scattered_message_api_fn = yogi.YOGI_SC_AsyncReceiveRequest
     _cancel_receive_scattered_message_api_fn = yogi.YOGI_SC_CancelReceiveRequest
     _respond_to_scattered_message_api_fn = yogi.YOGI_SC_RespondToRequest
     _ignore_scattered_message_api_fn = yogi.YOGI_SC_IgnoreRequest
 
     def __init__(self, name: str, proto_module: Any, *, leaf: Optional[Leaf] = None):
-        ConvenienceTerminal.__init__(self, TerminalType.SERVICE, name, proto_module, leaf=leaf)
+        ConvenienceProtoTerminal.__init__(self, TerminalType.SERVICE, name, proto_module, leaf=leaf)
 
     def make_request_message(self, **kwargs) -> Any:
         return self._proto_module.ScatterMessage(**kwargs)
@@ -676,12 +868,30 @@ class ServiceTerminal(ServiceMixin, BinderMixin, ConvenienceTerminal):
 ServiceTerminal.Request = ScatteredMessage
 
 
-class ClientTerminal(ClientMixin, SubscribableMixin, ConvenienceTerminal):
+class RawServiceTerminal(ServiceMixin, BinderMixin, ConvenienceTerminal):
+    _async_receive_scattered_message_api_fn = yogi.YOGI_SC_AsyncReceiveRequest
+    _cancel_receive_scattered_message_api_fn = yogi.YOGI_SC_CancelReceiveRequest
+    _respond_to_scattered_message_api_fn = yogi.YOGI_SC_RespondToRequest
+    _ignore_scattered_message_api_fn = yogi.YOGI_SC_IgnoreRequest
+
+    def __init__(self, name: str, signature: Union[Signature, int], *, leaf: Optional[Leaf] = None):
+        ConvenienceTerminal.__init__(self, TerminalType.SERVICE, name, signature, leaf=leaf)
+
+    def async_receive_request(self, completion_handler: Callable[[Result, Optional[ScatteredMessage]], None]):
+        self._async_receive_scattered_message(completion_handler)
+
+    def cancel_receive_request(self):
+        self._cancel_receive_scattered_message()
+
+RawServiceTerminal.Request = ScatteredMessage
+
+
+class ClientTerminal(ClientMixin, SubscribableMixin, ConvenienceProtoTerminal):
     _async_scatter_gather_api_fn = yogi.YOGI_SC_AsyncRequest
     _cancel_scatter_gather_api_fn = yogi.YOGI_SC_CancelRequest
 
     def __init__(self, name: str, proto_module: Any, *, leaf: Optional[Leaf] = None):
-        ConvenienceTerminal.__init__(self, TerminalType.CLIENT, name, proto_module, leaf=leaf)
+        ConvenienceProtoTerminal.__init__(self, TerminalType.CLIENT, name, proto_module, leaf=leaf)
 
     def make_request_message(self, **kwargs) -> Any:
         return self._proto_module.ScatterMessage(**kwargs)
@@ -702,3 +912,25 @@ class ClientTerminal(ClientMixin, SubscribableMixin, ConvenienceTerminal):
 
 ScatterGatherTerminal.Operation = Operation
 ScatterGatherTerminal.Response = GatheredMessage
+
+
+class RawClientTerminal(ClientMixin, SubscribableMixin, ConvenienceTerminal):
+    _async_scatter_gather_api_fn = yogi.YOGI_SC_AsyncRequest
+    _cancel_scatter_gather_api_fn = yogi.YOGI_SC_CancelRequest
+
+    def __init__(self, name: str, signature: Union[Signature, int], *, leaf: Optional[Leaf] = None):
+        ConvenienceTerminal.__init__(self, TerminalType.CLIENT, name, signature, leaf=leaf)
+
+    def async_request(self, msg, completion_handler: Callable[[Result, Optional[GatheredMessage]],
+                                                              ControlFlow])-> Operation:
+        return self._async_scatter_gather(msg, completion_handler)
+
+    def try_async_request(self, msg, completion_handler: Callable[[Result, Optional[GatheredMessage]],
+                                                                  ControlFlow]) -> Operation:
+        try:
+            return self.async_request(msg, completion_handler)
+        except Failure:
+            return Operation(self)
+
+RawScatterGatherTerminal.Operation = Operation
+RawScatterGatherTerminal.Response = GatheredMessage
