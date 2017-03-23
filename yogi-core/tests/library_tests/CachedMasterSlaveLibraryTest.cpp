@@ -90,20 +90,13 @@ TEST_F(CachedMasterSlaveLibraryTest, SendFromMaster)
 TEST_F(CachedMasterSlaveLibraryTest, SendFromSlave)
 {
     async_receive_master(sizeof(masterBuffer));
-    async_receive_slave(sizeof(slaveBuffer));
     publish(terminalA, "Hello");
     masterRcvMsgFn.wait();
-    slaveRcvMsgFn.wait();
 
     EXPECT_EQ(YOGI_OK, masterRcvMsgFn.lastErrorCode);
     EXPECT_EQ(6, masterRcvMsgFn.size);
     EXPECT_STREQ("Hello", masterBuffer);
     EXPECT_FALSE(masterRcvMsgFn.cached);
-
-    EXPECT_EQ(YOGI_OK, slaveRcvMsgFn.lastErrorCode);
-    EXPECT_EQ(6, slaveRcvMsgFn.size);
-    EXPECT_STREQ("Hello", slaveBuffer);
-    EXPECT_FALSE(slaveRcvMsgFn.cached);
 }
 
 TEST_F(CachedMasterSlaveLibraryTest, BufferTooSmall)

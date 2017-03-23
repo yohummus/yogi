@@ -25,38 +25,6 @@ protected:
         : super{scheduler}
     {
     }
-
-    virtual void on_data_received(const typename super::terminal_info& tm,
-        base::Buffer&& data) override
-    {
-        using namespace messaging;
-
-        if (!tm.terminal->identifier().hidden() && tm.subscribed) {
-            typename TTypes::Data msg;
-            msg[fields::subscriptionId] = tm.fsm.mapped_id();
-            msg[fields::data]           = data;
-
-            super::connection().send(msg);
-        }
-
-        super::on_data_received(tm, std::move(data));
-    }
-
-    virtual void on_cached_data_received(const typename super::terminal_info& tm,
-        base::Buffer&& data) override
-    {
-        using namespace messaging;
-
-        if (!tm.terminal->identifier().hidden() && tm.subscribed) {
-            typename TTypes::CachedData msg;
-            msg[fields::subscriptionId] = tm.fsm.mapped_id();
-            msg[fields::data]           = data;
-
-            super::connection().send(msg);
-        }
-
-        super::on_cached_data_received(tm, std::move(data));
-    }
 };
 
 } // namespace cached_master_slave
