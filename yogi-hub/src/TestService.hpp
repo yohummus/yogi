@@ -4,7 +4,7 @@
 #include "YogiTcpServer.hpp"
 #include "YogiTcpClient.hpp"
 
-#include <yogi_cpp.hpp>
+#include <yogi.hpp>
 
 #include <memory>
 #include <atomic>

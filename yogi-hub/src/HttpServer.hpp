@@ -1,7 +1,7 @@
 #ifndef HTTPSERVER_HPP
 #define HTTPSERVER_HPP
 
-#include <yogi_cpp.hpp>
+#include <yogi.hpp>
 
 #include <QTcpServer>
 #include <QTcpSocket>

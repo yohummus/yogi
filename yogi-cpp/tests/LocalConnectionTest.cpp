@@ -1,9 +1,9 @@
 #include <gtest/gtest.h>
 
-#include "../yogi_cpp/api.hpp"
-#include "../yogi_cpp/connection.hpp"
-#include "../yogi_cpp/scheduler.hpp"
-#include "../yogi_cpp/leaf.hpp"
+#include "../yogi/api.hpp"
+#include "../yogi/connection.hpp"
+#include "../yogi/scheduler.hpp"
+#include "../yogi/leaf.hpp"
 using namespace yogi;
 
 #include <atomic>

@@ -1,7 +1,7 @@
 #ifndef WEBSOCKETSERVER_HPP
 #define WEBSOCKETSERVER_HPP
 
-#include <yogi_cpp.hpp>
+#include <yogi.hpp>
 
 #include <QWebSocketServer>
 #include <QWebSocket>

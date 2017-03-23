@@ -1,8 +1,8 @@
 #include <gtest/gtest.h>
 
-#include "../yogi_cpp/tcp.hpp"
-#include "../yogi_cpp/scheduler.hpp"
-#include "../yogi_cpp/leaf.hpp"
+#include "../yogi/tcp.hpp"
+#include "../yogi/scheduler.hpp"
+#include "../yogi/leaf.hpp"
 using namespace yogi;
 
 #include <atomic>

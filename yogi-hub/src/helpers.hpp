@@ -1,7 +1,7 @@
 #ifndef HELPERS_HPP
 #define HELPERS_HPP
 
-#include <yogi_cpp.hpp>
+#include <yogi.hpp>
 
 #include <QByteArray>
 #include <QDataStream>

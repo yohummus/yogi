@@ -1,13 +1,13 @@
 #include <gtest/gtest.h>
 
-#include "../yogi_cpp/logging.hpp"
-#include "../yogi_cpp/configuration.hpp"
-#include "../yogi_cpp/process.hpp"
-#include "../yogi_cpp/leaf.hpp"
-#include "../yogi_cpp/connection.hpp"
-#include "../yogi_cpp/terminals.hpp"
-#include "../yogi_cpp/internal/proto/yogi_00000004.h"
-#include "../yogi_cpp/internal/proto/yogi_000009cd.h"
+#include "../yogi/logging.hpp"
+#include "../yogi/configuration.hpp"
+#include "../yogi/process.hpp"
+#include "../yogi/leaf.hpp"
+#include "../yogi/connection.hpp"
+#include "../yogi/terminals.hpp"
+#include "../yogi/internal/proto/yogi_00000004.h"
+#include "../yogi/internal/proto/yogi_000009cd.h"
 using namespace yogi;
 
 #include <boost/property_tree/json_parser.hpp>

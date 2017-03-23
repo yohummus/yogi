@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "../yogi_cpp/configuration.hpp"
+#include "../yogi/configuration.hpp"
 using namespace yogi;
 
 #include <boost/property_tree/ptree.hpp>

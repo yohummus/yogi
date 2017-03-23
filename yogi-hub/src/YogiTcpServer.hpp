@@ -1,7 +1,7 @@
 #ifndef YOGITCPSERVER_HPP
 #define YOGITCPSERVER_HPP
 
-#include <yogi_cpp.hpp>
+#include <yogi.hpp>
 
 #include <QObject>
 #include <QMap>

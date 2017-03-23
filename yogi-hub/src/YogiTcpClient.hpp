@@ -1,7 +1,7 @@
 #ifndef YOGITCPCLIENT_HPP
 #define YOGITCPCLIENT_HPP
 
-#include <yogi_cpp.hpp>
+#include <yogi.hpp>
 
 #include <QObject>
 #include <QVector>

@@ -1,7 +1,7 @@
 #ifndef PROTOCOMPILER_HPP
 #define PROTOCOMPILER_HPP
 
-#include <yogi_cpp.hpp>
+#include <yogi.hpp>
 
 #include <QMap>
 #include <QByteArray>

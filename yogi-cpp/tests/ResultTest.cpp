@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "../yogi_cpp/result.hpp"
+#include "../yogi/result.hpp"
 
 #include <yogi_core.h>
 

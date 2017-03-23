@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
-#include "../yogi_cpp/api.hpp"
-#include "../yogi_cpp/scheduler.hpp"
+#include "../yogi/api.hpp"
+#include "../yogi/scheduler.hpp"
 
 #include <yogi_core.h>
 

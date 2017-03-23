@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
-#include "../yogi_cpp/configuration.hpp"
-#include "../yogi_cpp/internal/glob.hpp"
+#include "../yogi/configuration.hpp"
+#include "../yogi/internal/glob.hpp"
 using namespace yogi;
 
 #include <boost/filesystem.hpp>

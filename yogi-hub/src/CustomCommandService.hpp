@@ -1,7 +1,7 @@
 #ifndef CUSTOMCOMMANDSERVICE_HPP
 #define CUSTOMCOMMANDSERVICE_HPP
 
-#include <yogi_cpp.hpp>
+#include <yogi.hpp>
 
 #include <QByteArray>
 #include <QStringList>

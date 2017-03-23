@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "../yogi_cpp/optional.hpp"
+#include "../yogi/optional.hpp"
 using namespace yogi;
 
 

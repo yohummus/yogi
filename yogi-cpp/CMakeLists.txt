@@ -22,20 +22,20 @@ set(CMAKE_CXX_STANDARD        14)
 add_subdirectory(/usr/src/googletest googletest EXCLUDE_FROM_ALL)
 
 #===== libyogi_cpp.a =====
-file(GLOB_RECURSE files yogi_cpp/*.h yogi_cpp/*.hpp yogi_cpp/*.cpp yogi_cpp/*.cc)
-add_library(yogi_cpp STATIC ${files})
+file(GLOB_RECURSE files yogi/*.h yogi/*.hpp yogi/*.cpp yogi/*.cc)
+add_library(yogi STATIC ${files})
 
-install(TARGETS yogi_cpp DESTINATION /usr/lib)
-install(FILES yogi_cpp.hpp DESTINATION /usr/include)
-file(GLOB files yogi_cpp/*.hpp)
-install(FILES ${files} DESTINATION /usr/include/yogi_cpp)
-file(GLOB files yogi_cpp/internal/*.hpp)
-install(FILES ${files} DESTINATION /usr/include/yogi_cpp/internal)
+install(TARGETS yogi DESTINATION /usr/lib)
+install(FILES yogi.hpp DESTINATION /usr/include)
+file(GLOB files yogi/*.hpp)
+install(FILES ${files} DESTINATION /usr/include/yogi)
+file(GLOB files yogi/internal/*.hpp)
+install(FILES ${files} DESTINATION /usr/include/yogi/internal)
 
 #===== tests =====
 enable_testing()
 
 file(GLOB_RECURSE files tests/*.h tests/*.hpp tests/*.cpp tests/*.cc)
 add_executable(tests ${files} ${yogi_cpp})
-target_link_libraries(tests yogi_cpp yogi_core gtest gtest_main ${CMAKE_THREAD_LIBS_INIT} ${Boost_LIBRARIES} ${PROTOBUF_LIBRARIES} pthread)
+target_link_libraries(tests yogi yogi_core gtest gtest_main ${CMAKE_THREAD_LIBS_INIT} ${Boost_LIBRARIES} ${PROTOBUF_LIBRARIES} pthread)
 add_test(NAME tests COMMAND tests)

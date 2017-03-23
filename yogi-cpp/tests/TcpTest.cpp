@@ -1,10 +1,10 @@
 #include <gtest/gtest.h>
 
-#include "../yogi_cpp/api.hpp"
-#include "../yogi_cpp/tcp.hpp"
-#include "../yogi_cpp/scheduler.hpp"
-#include "../yogi_cpp/leaf.hpp"
-#include "../yogi_cpp/errors.hpp"
+#include "../yogi/api.hpp"
+#include "../yogi/tcp.hpp"
+#include "../yogi/scheduler.hpp"
+#include "../yogi/leaf.hpp"
+#include "../yogi/errors.hpp"
 using namespace yogi;
 using namespace yogi::errors;
 

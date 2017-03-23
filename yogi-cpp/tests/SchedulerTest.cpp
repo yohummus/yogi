@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "../yogi_cpp/scheduler.hpp"
+#include "../yogi/scheduler.hpp"
 using namespace yogi;
 
 

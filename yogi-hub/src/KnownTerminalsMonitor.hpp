@@ -1,7 +1,7 @@
 #ifndef KNOWNTERMINALSMONITOR_HPP
 #define KNOWNTERMINALSMONITOR_HPP
 
-#include <yogi_cpp.hpp>
+#include <yogi.hpp>
 
 #include <QObject>
 #include <QByteArray>

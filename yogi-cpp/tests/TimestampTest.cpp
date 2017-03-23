@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "../yogi_cpp/timestamp.hpp"
+#include "../yogi/timestamp.hpp"
 using namespace yogi;
 
 #include <thread>

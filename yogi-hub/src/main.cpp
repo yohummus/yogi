@@ -7,7 +7,7 @@
 #include "ProtoCompiler.hpp"
 #include "CustomCommandService.hpp"
 
-#include <yogi_cpp.hpp>
+#include <yogi.hpp>
 
 #include <QCoreApplication>
 #include <QtDebug>

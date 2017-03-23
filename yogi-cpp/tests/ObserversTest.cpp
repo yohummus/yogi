@@ -1,11 +1,11 @@
 #include <gtest/gtest.h>
 
-#include "../yogi_cpp/scheduler.hpp"
-#include "../yogi_cpp/leaf.hpp"
-#include "../yogi_cpp/binding.hpp"
-#include "../yogi_cpp/terminals.hpp"
-#include "../yogi_cpp/observers.hpp"
-#include "../yogi_cpp/connection.hpp"
+#include "../yogi/scheduler.hpp"
+#include "../yogi/leaf.hpp"
+#include "../yogi/binding.hpp"
+#include "../yogi/terminals.hpp"
+#include "../yogi/observers.hpp"
+#include "../yogi/connection.hpp"
 using namespace yogi;
 
 #include "proto/yogi_0000d007.h"
