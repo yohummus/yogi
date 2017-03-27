@@ -44,6 +44,7 @@ function install_required_packages {
 
 function install_newer_npm {
     echo "===== Installing newer version of npm ====="
+    sudo npm config set registry http://registry.npmjs.org/
     sudo npm install -g npm
 }
 
