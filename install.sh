@@ -14,6 +14,7 @@ REQUIRED_PACKAGES=(
     nodejs
     nodejs-legacy
     npm
+    phantomjs
     python3-protobuf
     python-protobuf
     python3-setuptools
