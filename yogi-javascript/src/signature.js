@@ -267,6 +267,8 @@
             this._content += this._makeMessageDefinition('ScatterMessage', this._signature.upperHalf);
             this._content += this._makeMessageDefinition('GatherMessage',  this._signature.lowerHalf);
             this._content += this._makeMessageDefinition('PublishMessage', this._signature.lowerHalf);
+            this._content += this._makeMessageDefinition('MasterMessage',  this._signature.upperHalf);
+            this._content += this._makeMessageDefinition('SlaveMessage',   this._signature.lowerHalf);
         }
 
         get signature() {

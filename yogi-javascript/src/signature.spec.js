@@ -133,5 +133,7 @@ describe("ProtoFile", () => {
         expect(file.content.indexOf('ScatterMessage'))   .toBeGreaterThan(-1);
         expect(file.content.indexOf('GatherMessage'))    .toBeGreaterThan(-1);
         expect(file.content.indexOf('PublishMessage'))   .toBeGreaterThan(-1);
+        expect(file.content.indexOf('MasterMessage'))    .toBeGreaterThan(-1);
+        expect(file.content.indexOf('SlaveMessage'))     .toBeGreaterThan(-1);
     });
 });

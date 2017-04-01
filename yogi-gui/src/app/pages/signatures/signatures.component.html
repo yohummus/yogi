@@ -36,7 +36,7 @@
   <div *ngIf="signature && !signature.isCustom">
     <div class="container">
       <div class="row flex-items-xs-center">
-        <div *ngFor="let prefix of ['Scatter', 'Gather & Publish']; let msgIdx=index">
+        <div *ngFor="let prefix of ['Master / Scatter', 'Publish / Slave / Gather']; let msgIdx=index">
           <div class="input-group input-group-sm">
             <span class="input-group-addon">{{prefix}} Message</span>
             <div class="input-group-btn">
