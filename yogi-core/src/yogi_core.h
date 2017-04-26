@@ -161,17 +161,17 @@
 
 //! Deaf-Mute Terminal.
 //!
-//! Deaf-Mute Terminals are used to indicate if a resource is available in the
-//! virtual network; they cannot be used to transfer data. Bindings are used to
-//! observe whether a resource is available or not.
+//! Those Terminals do not exchange data at all. They are useful when a process
+//! only needs to detect the presence of a Terminal.
 #define YOGI_TM_DEAFMUTE 0
 
 //! Publish-Subscribe Terminal.
 //!
 //! As their name suggests, Publish-Subscribe Terminals follow the
 //! publish-subscribe messaging pattern, i.e. a message published via a Terminal
-//! T will be sent to all remote Terminals which have an established Binding
-//! targeting T.
+//! T will be sent to all remote Terminals which are bound to T. This Terminal
+//! type is a low-level building block for more complex types and is rarely used
+//! on its own.
 #define YOGI_TM_PUBLISHSUBSCRIBE 1
 
 //! Scatter-Gather Terminal.
@@ -179,87 +179,95 @@
 //! Scatter-Gather Terminals implement Remote Procedure Calls (RPCs). A
 //! scatter-gather operation consists of two phases, the scatter phase and the
 //! gather phase. During the scatter phase, the initiating Terminal sends a
-//! message to all bound remote Terminals (publish-subscribe pattern). During
-//! the gather phase, the initiating Terminal waits for responses from all
-//! remote Terminals that it sent data to. Once all those responses have been
-//! received, the scatter-gather operation has completed.
+//! message to all bound remote Terminals (using the publish-subscribe pattern).
+//! During the gather phase, the initiating Terminal waits for responses from
+//! all remote Terminals that it sent the message to. Once all those responses
+//! have been received, the scatter-gather operation has completed. Also a
+//! low-level building block.
 #define YOGI_TM_SCATTERGATHER 2
 
 //! Cached Publish-Subscribe Terminal.
 //!
-//! Cached version of a Publish-Subscribe Terminal, i.e. the Terminal keeps a
-//! copy of the last received message to ensure that, after having been
-//! initialized, it always has a "current value".
+//! Same behaviour as Publish-Subscribe Terminals with the addition of a cache
+//! which always contains the last message a Terminal received. This is useful
+//! for distributing values that do not change very often. This Terminal type is
+//! also a low-level building block.
 #define YOGI_TM_CACHEDPUBLISHSUBSCRIBE 3
 
 //! Producer Terminal.
 //!
-//! A Producer Terminal is a terminal which only publishes messages. Only
-//! Consumer Terminals can be bound to Producer Terminals.
+//! A Producer Terminal only publishes messages while a Consumer Terminal only
+//! receives messages. Consumer Terminals automatically bind to Producer
+//! Terminals with the same name and the publish-subscribe pattern is used for
+//! messaging.
 #define YOGI_TM_PRODUCER 4
 
 //! Consumer Terminal.
 //!
-//! Consumer Terminals receive messages from Producer Terminals. They are
-//! bound automatically to the Producer Terminals with the same name and
-//! signature.
+//! A Producer Terminal only publishes messages while a Consumer Terminal only
+//! receives messages. Consumer Terminals automatically bind to Producer
+//! Terminals with the same name and the publish-subscribe pattern is used for
+//! messaging.
 #define YOGI_TM_CONSUMER 5
 
 //! Cached Producer Terminal.
 //!
-//! Cached version of the Producer Terminal, i.e. the Terminal keeps a copy of
-//! the last sent message to ensure that bound Consumer Terminals always have
-//! a "current value" after having been initialized.
+//! Same as Producer-Consumer Terminals but with a cache containing the most
+//! recent message the Terminal received. Useful for distributing values that do
+//! not change very often.
 #define YOGI_TM_CACHEDPRODUCER 6
 
 //! Cached Consumer Terminal.
 //!
-//! Cached version of the Consumer Terminal, i.e. the Terminal keeps a copy of
-//! the last received message to ensure that it always has a "current value"
-//! after having been initialized.
+//! Same as Producer-Consumer Terminals but with a cache containing the most
+//! recent message the Terminal received. Useful for distributing values that do
+//! not change very often.
 #define YOGI_TM_CACHEDCONSUMER 7
 
 //! Master Terminal.
 //!
-//! Master Terminals act like Publish-Subscribe Terminals with the difference
-//! that they re-publish any received messages. For example, if a Master
-//! Terminal M has two bound Slave Terminals S1 and S2 and it receives a
-//! message from S1, it will re-publish this message to both S1 and S2.
+//! Master Terminals send messages of type A to all bound Slave Terminals and
+//! Slave Terminals send messages of type B to all bound Master Terminals. Both
+//! Master and Slave Terminals automatically bind to their counterpart with the
+//! same name. Use Master Terminals for the "owner" or source of the data and
+//! Slave Terminals for users of the data.
 #define YOGI_TM_MASTER 8
 
 //! Slave Terminal.
 //!
-//! A Slave Terminal automatically binds to Master Terminals with the same name
-//! and is used to publish and receive messages. Published messages will be sent
-//! back to the Slave Terminal by all bound Master Terminals.
+//! Master Terminals send messages of type A to all bound Slave Terminals and
+//! Slave Terminals send messages of type B to all bound Master Terminals. Both
+//! Master and Slave Terminals automatically bind to their counterpart with the
+//! same name. Use Master Terminals for the "owner" or source of the data and
+//! Slave Terminals for users of the data.
 #define YOGI_TM_SLAVE 9
 
 //! Cached Master Terminal.
 //!
-//! Cached version of the Master Terminal, i.e. the Terminal keeps a copy of the
-//! last received message to ensure that it always has a "current value" after
-//! having been initialized.
+//! Same as Master-Slave Terminals but with a cache containing the most recent
+//! message the Terminal received. Useful for distributing values that do not
+//! change very often.
 #define YOGI_TM_CACHEDMASTER 10
 
 //! Cached Slave Terminal.
 //!
-//! Cached version of the Slave Terminal, i.e. the Terminal keeps a copy of
-//! the last received message to ensure that it always has a "current value"
-//! after having been initialized.
+//! Same as Master-Slave Terminals but with a cache containing the most recent
+//! message the Terminal received. Useful for distributing values that do not
+//! change very often.
 #define YOGI_TM_CACHEDSLAVE 11
 
 //! Service Terminal.
 //!
-//! Service Terminals implement the behavior of Scatter-Gather Terminals but
-//! only allow listening for incoming requests from Client Terminals. Service
-//! Terminals automatically bind to Client Terminals with the same name and
-//! signature.
+//! These Terminals behave like Scatter-Gather Terminals whereby only the Client
+//! Terminals can send requests and only the Service Terminals can respond to
+//! those requests.
 #define YOGI_TM_SERVICE 12
 
 //! Client Terminal.
 //!
-//! Client Terminals automatically bind to Service Terminals with the same name
-//! and signature and allow for sending requests and their response.
+//! These Terminals behave like Scatter-Gather Terminals whereby only the Client
+//! Terminals can send requests and only the Service Terminals can respond to
+//! those requests.
 #define YOGI_TM_CLIENT 13
 
 //! @}
@@ -1404,8 +1412,8 @@ YOGI_API int YOGI_CPC_CancelReceiveMessage(void* terminal);
  * Publishes a message on a Master or Slave Terminal.
  *
  * Sends the given data to all remote Slave Terminals if \p terminal is a
- * Master Terminal, or to all remote Master Terminals - which themselves re-send
- * the data to all Slave Terminals - if \p terminal is a Slave Terminal.
+ * Master Terminal, or to all remote Master Terminals if \p terminal is a Slave
+ * Terminal.
  *
  * @param[in] terminal   Handle of the Master or Slave Terminal
  * @param[in] buffer     Pointer to the beginning of the data to send
@@ -1471,9 +1479,8 @@ YOGI_API int YOGI_MS_CancelReceiveMessage(void* terminal);
  * Publishes a message on a Cached Master or Cached Slave Terminal.
  *
  * Sends the given data to all remote Cached Slave Terminals if \p terminal is a
- * Cached Master Terminal, or to all remote Cached Master Terminals - which
- * themselves re-send the data to all Cached Slave Terminals - if \p terminal is
- * a Cached Slave Terminal.
+ * Cached Master Terminal, or to all remote Cached Master Terminals if
+ * \p terminal is a Cached Slave Terminal.
  *
  * @param[in] terminal   Handle of the Cached Master or Cached Slave Terminal
  * @param[in] buffer     Pointer to the beginning of the data to send
