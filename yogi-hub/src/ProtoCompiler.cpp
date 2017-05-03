@@ -38,7 +38,8 @@ void ProtoCompiler::check_temp_dir_valid(const QTemporaryDir& dir)
 
 QString ProtoCompiler::extract_proto_package(const QByteArray& protoFileContent)
 {
-	QRegExp rx("package (yogi_?([0-9a-f]{8}));", Qt::CaseInsensitive);
+	QRegExp rx("package [\\w+\\.]*(yogi_([0-9a-f]{8}));", Qt::CaseInsensitive);
+	rx.setMinimal(true);
 	if (rx.indexIn(protoFileContent) == -1) {
 		log_and_throw("Could not extract proto package from generated file");
 	}
@@ -144,23 +145,26 @@ void ProtoCompiler::post_process_generated_files(const QByteArray& protoFileCont
 			content += "ScatterMessage.SIGNATURE = 0x" + signature + "\r\n";
 			content += "GatherMessage.SIGNATURE = 0x" + signature + "\r\n";
 			content += "PublishMessage.SIGNATURE = 0x" + signature + "\r\n";
+			content += "MasterMessage.SIGNATURE = 0x" + signature + "\r\n";
+			content += "SlaveMessage.SIGNATURE = 0x" + signature + "\r\n";
 		}
 		else if (filename.endsWith(".h")) {
 			content.replace(QByteArray(":") + package, QByteArray(":") + package.toUtf8() + "_ns");
 			content.replace(QByteArray("namespace ") + package, QByteArray("namespace ") + package.toUtf8() + "_ns");
 			QString structStr;
-			structStr += "struct " + package + "\n";
+			structStr += "\n\nstruct " + package + "\n";
 			structStr += "{\n";
 			structStr += "    typedef " + package + "_ns::PublishMessage PublishMessage;\n";
 			structStr += "    typedef " + package + "_ns::ScatterMessage ScatterMessage;\n";
 			structStr += "    typedef " + package + "_ns::GatherMessage  GatherMessage;\n";
+			structStr += "    typedef " + package + "_ns::MasterMessage  MasterMessage;\n";
+			structStr += "    typedef " + package + "_ns::SlaveMessage   SlaveMessage;\n";
 			structStr += "\n";
 			structStr += "    enum {\n";
 			structStr += "        SIGNATURE = 0x" + signature + "\n";
 			structStr += "    };\n";
-			structStr += "};\n";
-			structStr += "\n";
-			insert_before(&content, structStr, "// @@protoc_insertion_point(global_scope)");
+			structStr += "};";
+			insert_after(&content, structStr, QString("}  // namespace ") + package + "_ns");
 		}
 		else if (filename.endsWith(".cc")) {
 			content.replace(QByteArray(":") + package, QByteArray(":") + package.toUtf8() + "_ns");
@@ -169,9 +173,12 @@ void ProtoCompiler::post_process_generated_files(const QByteArray& protoFileCont
 		}
 		else if (filename.endsWith(".cs")) {
 			auto sigStr = QString("public const int SIGNATURE = 0x") + signature + ";\r\n    ";
+			// TODO: This does not look like it would work
 			insert_before(&content, sigStr, "public ScatterMessage()");
 			insert_before(&content, sigStr, "public GatherMessage()");
 			insert_before(&content, sigStr, "public PublishMessage()");
+			insert_before(&content, sigStr, "public MasterMessage()");
+			insert_before(&content, sigStr, "public SlaveMessage()");
 		}
 	}
 }
@@ -180,7 +187,7 @@ QString ProtoCompiler::extract_signature_from_generated_file(const QByteArray& c
 {
     YOGI_LOG_TRACE(m_logger, "Extracting signature from generated files...");
 
-	QRegExp rx("yogi_?([0-9a-f]{8})", Qt::CaseInsensitive);
+	QRegExp rx("yogi_([0-9a-f]{8})", Qt::CaseInsensitive);
 	if (rx.indexIn(content) == -1) {
 		log_and_throw("Could not extract signature from generated files");
 	}
@@ -203,6 +210,16 @@ void ProtoCompiler::insert_before(QByteArray* content, const QString& str, const
 	}
 
 	content->insert(pos, str);
+}
+
+void ProtoCompiler::insert_after(QByteArray* content, const QString& str, const QString& where)
+{
+	auto pos = content->indexOf(where);
+	if (pos == -1) {
+		log_and_throw("Could not find '"s + where.toStdString() + "' in generated file");
+	}
+
+	content->insert(pos + where.size(), str);
 }
 
 ProtoCompiler& ProtoCompiler::instance()

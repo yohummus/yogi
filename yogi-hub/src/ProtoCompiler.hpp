@@ -36,6 +36,7 @@ private:
 	QString extract_signature_from_generated_file(const QByteArray& content);
 	void escape_file_contents(QMap<QString, QByteArray>* files);
 	void insert_before(QByteArray* content, const QString& str, const QString& where);
+    void insert_after(QByteArray* content, const QString& str, const QString& where);
 
 public:
     static ProtoCompiler& instance();
