@@ -1,26 +1,26 @@
 #include "TestService.hpp"
 #include "helpers.hpp"
-#include "proto/chirp_00000000.h"
-#include "proto/chirp_00000001.h"
-#include "proto/chirp_00000002.h"
-#include "proto/chirp_00000003.h"
-#include "proto/chirp_00000004.h"
-#include "proto/chirp_00000005.h"
-#include "proto/chirp_00000006.h"
-#include "proto/chirp_00000007.h"
-#include "proto/chirp_00000008.h"
-#include "proto/chirp_00000009.h"
-#include "proto/chirp_0000000a.h"
-#include "proto/chirp_0000000b.h"
-#include "proto/chirp_0000000c.h"
-#include "proto/chirp_0000000d.h"
-#include "proto/chirp_0000000e.h"
-#include "proto/chirp_0000000f.h"
-#include "proto/chirp_00000010.h"
-#include "proto/chirp_000000e1.h"
-#include "proto/chirp_00000c07.h"
-#include "proto/chirp_0000c00c.h"
-#include "proto/chirp_0000d007.h"
+#include "proto/yogi_00000000.h"
+#include "proto/yogi_00000001.h"
+#include "proto/yogi_00000002.h"
+#include "proto/yogi_00000003.h"
+#include "proto/yogi_00000004.h"
+#include "proto/yogi_00000005.h"
+#include "proto/yogi_00000006.h"
+#include "proto/yogi_00000007.h"
+#include "proto/yogi_00000008.h"
+#include "proto/yogi_00000009.h"
+#include "proto/yogi_0000000a.h"
+#include "proto/yogi_0000000b.h"
+#include "proto/yogi_0000000c.h"
+#include "proto/yogi_0000000d.h"
+#include "proto/yogi_0000000e.h"
+#include "proto/yogi_0000000f.h"
+#include "proto/yogi_00000010.h"
+#include "proto/yogi_000000e1.h"
+#include "proto/yogi_00000c07.h"
+#include "proto/yogi_0000c00c.h"
+#include "proto/yogi_0000d007.h"
 
 #include <QtDebug>
 
@@ -475,82 +475,82 @@ bool TestService::handle_create_signature_test_terminals_command(QStringList arg
 {
     std::lock_guard<std::mutex> lock(m_signatureTestMutex);
 
-    create_signature_test_ps_terminal<chirp_00000000>("/PS void", [](auto* msg) {
+    create_signature_test_ps_terminal<yogi_00000000>("/PS void", [](auto* msg) {
     });
 
-    create_signature_test_ps_terminal<chirp_00000001>("/PS bool", [](auto* msg) {
+    create_signature_test_ps_terminal<yogi_00000001>("/PS bool", [](auto* msg) {
         static bool val;
         val = !val;
         msg->set_value(val);
     });
 
-    create_signature_test_ps_terminal<chirp_00000002>("/PS tribool", [](auto* msg) {
+    create_signature_test_ps_terminal<yogi_00000002>("/PS tribool", [](auto* msg) {
         static int val;
         val = (val + 1) % 3;
-        msg->set_value(static_cast<chirp_00000002_ns::Tribool>(val));
+        msg->set_value(static_cast<yogi_00000002_ns::Tribool>(val));
     });
 
-    create_signature_test_ps_terminal<chirp_00000003>("/PS int8", [](auto* msg) {
+    create_signature_test_ps_terminal<yogi_00000003>("/PS int8", [](auto* msg) {
         static std::int8_t val;
         ++val;
         msg->set_value(val);
     });
 
-    create_signature_test_ps_terminal<chirp_00000004>("/PS uint8", [](auto* msg) {
+    create_signature_test_ps_terminal<yogi_00000004>("/PS uint8", [](auto* msg) {
         static std::uint8_t val;
         ++val;
         msg->set_value(val);
     });
 
-    create_signature_test_ps_terminal<chirp_00000005>("/PS int16", [](auto* msg) {
+    create_signature_test_ps_terminal<yogi_00000005>("/PS int16", [](auto* msg) {
         static std::int16_t val;
         ++val;
         msg->set_value(val);
     });
 
-    create_signature_test_ps_terminal<chirp_00000006>("/PS uint16", [](auto* msg) {
+    create_signature_test_ps_terminal<yogi_00000006>("/PS uint16", [](auto* msg) {
         static std::uint16_t val;
         ++val;
         msg->set_value(val);
     });
 
-    create_signature_test_ps_terminal<chirp_00000007>("/PS int32", [](auto* msg) {
+    create_signature_test_ps_terminal<yogi_00000007>("/PS int32", [](auto* msg) {
         static std::int32_t val;
         ++val;
         msg->set_value(val);
     });
 
-    create_signature_test_ps_terminal<chirp_00000008>("/PS uint32", [](auto* msg) {
+    create_signature_test_ps_terminal<yogi_00000008>("/PS uint32", [](auto* msg) {
         static std::uint32_t val;
         ++val;
         msg->set_value(val);
     });
 
-    create_signature_test_ps_terminal<chirp_00000009>("/PS int64", [](auto* msg) {
+    create_signature_test_ps_terminal<yogi_00000009>("/PS int64", [](auto* msg) {
         static std::int64_t val;
         ++val;
         msg->set_value(val);
     });
 
-    create_signature_test_ps_terminal<chirp_0000000a>("/PS uint64", [](auto* msg) {
+    create_signature_test_ps_terminal<yogi_0000000a>("/PS uint64", [](auto* msg) {
         static std::uint64_t val;
         ++val;
         msg->set_value(val);
     });
 
-    create_signature_test_ps_terminal<chirp_0000000b>("/PS float", [](auto* msg) {
+    create_signature_test_ps_terminal<yogi_0000000b>("/PS float", [](auto* msg) {
         static float val;
         val += 0.1;
         msg->set_value(val);
     });
 
-    create_signature_test_ps_terminal<chirp_0000000c>("/PS double", [](auto* msg) {
+    create_signature_test_ps_terminal<yogi_0000000c>("/PS double", [](auto* msg) {
         static double val;
         val += 0.1;
         msg->set_value(val);
     });
 
-    create_signature_test_ps_terminal<chirp_0000000d>("/PS string", [](auto* msg) {
+    create_signature_test_ps_terminal<yogi_0000000d>("/PS string", [](auto* msg) {
         static const char one[] = "One";
         static const char two[] = "Two";
         static const char* val = one;
@@ -558,7 +558,7 @@ bool TestService::handle_create_signature_test_terminals_command(QStringList arg
         msg->set_value(val);
     });
 
-    create_signature_test_ps_terminal<chirp_0000000e>("/PS JSON", [](auto* msg) {
+    create_signature_test_ps_terminal<yogi_0000000e>("/PS JSON", [](auto* msg) {
         static const char one[] = "{\"x\": 123}";
         static const char two[] = "{\"bla\": \"hello\"}";
         static const char* val = one;
@@ -566,7 +566,7 @@ bool TestService::handle_create_signature_test_terminals_command(QStringList arg
         msg->set_value(val);
     });
 
-    create_signature_test_ps_terminal<chirp_0000000f>("/PS BLOB", [](auto* msg) {
+    create_signature_test_ps_terminal<yogi_0000000f>("/PS BLOB", [](auto* msg) {
         static const char one[] = "123";
         static const char two[] = "456";
         static const char* val = one;
@@ -574,20 +574,20 @@ bool TestService::handle_create_signature_test_terminals_command(QStringList arg
         msg->set_value(val);
     });
 
-    create_signature_test_ps_terminal<chirp_00000010>("/PS Timestamp", [](auto* msg) {
+    create_signature_test_ps_terminal<yogi_00000010>("/PS Timestamp", [](auto* msg) {
         static std::uint64_t val;
         ++val;
         msg->set_value(val);
     });
 
-    create_signature_test_ps_terminal<chirp_000000e1>("/PS pair<bool, int32>", [](auto* msg) {
-        static chirp_000000e1_ns::PublishMessage::Pair val;
+    create_signature_test_ps_terminal<yogi_000000e1>("/PS pair<bool, int32>", [](auto* msg) {
+        static yogi_000000e1_ns::PublishMessage::Pair val;
         val.set_first(!val.first());
         val.set_second(val.second() + 1);
         msg->set_allocated_value(new decltype(val)(val));
     });
 
-    create_signature_test_ps_terminal<chirp_00000c07>("/PS list<int32> with timestamp", [](auto* msg) {
+    create_signature_test_ps_terminal<yogi_00000c07>("/PS list<int32> with timestamp", [](auto* msg) {
         static bool x;
         x = !x;
         if (x) {
@@ -600,7 +600,7 @@ bool TestService::handle_create_signature_test_terminals_command(QStringList arg
         msg->set_timestamp(msg->timestamp() + 1);
     });
 
-    create_signature_test_sg_terminal<chirp_0000d007>("/SG int32");
+    create_signature_test_sg_terminal<yogi_0000d007>("/SG int32");
 
     return true;
 }
