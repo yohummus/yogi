@@ -38,7 +38,7 @@ void ProtoCompiler::check_temp_dir_valid(const QTemporaryDir& dir)
 
 QString ProtoCompiler::extract_proto_package(const QByteArray& protoFileContent)
 {
-	QRegExp rx("package [\\w+\\.]*(yogi_([0-9a-f]{8}));", Qt::CaseInsensitive);
+	QRegExp rx("package ([\\w+\\.]*yogi_([0-9a-f]{8}));", Qt::CaseInsensitive);
 	rx.setMinimal(true);
 	if (rx.indexIn(protoFileContent) == -1) {
 		log_and_throw("Could not extract proto package from generated file");
@@ -47,9 +47,15 @@ QString ProtoCompiler::extract_proto_package(const QByteArray& protoFileContent)
 	return rx.cap(1);
 }
 
+QString ProtoCompiler::extract_innermost_proto_package(const QByteArray& protoFileContent)
+{
+	auto package = extract_proto_package(protoFileContent);
+	return package.mid(package.lastIndexOf("yogi_"));
+}
+
 QString ProtoCompiler::write_proto_file(const QTemporaryDir& dir, const QByteArray& protoFileContent)
 {
-	auto filename = extract_proto_package(protoFileContent) + ".proto";
+	auto filename = extract_proto_package(protoFileContent).replace('.', "__") + ".proto";
 
 	QFile protoFile(QDir(dir.path()).filePath(filename));
 	protoFile.open(QIODevice::WriteOnly | QIODevice::Text);
@@ -136,11 +142,15 @@ void ProtoCompiler::post_process_generated_files(const QByteArray& protoFileCont
 {
     YOGI_LOG_TRACE(m_logger, "Post-processing generated files...");
 
-	auto package = extract_proto_package(protoFileContent);
+	auto package = extract_innermost_proto_package(protoFileContent);
 
 	for (auto& filename : files->keys()) {
+		auto filenameBase = filename.left(filename.indexOf("."));
+		auto shortFilenameBase = filenameBase.mid(filenameBase.lastIndexOf("yogi_"));
+
 		auto& content = (*files)[filename];
 		auto signature = extract_signature_from_generated_file(content);
+
 		if (filename.endsWith(".py")) {
 			content += "ScatterMessage.SIGNATURE = 0x" + signature + "\r\n";
 			content += "GatherMessage.SIGNATURE = 0x" + signature + "\r\n";
@@ -170,6 +180,7 @@ void ProtoCompiler::post_process_generated_files(const QByteArray& protoFileCont
 			content.replace(QByteArray(":") + package, QByteArray(":") + package.toUtf8() + "_ns");
 			content.replace(QByteArray("namespace ") + package, QByteArray("namespace ") + package.toUtf8() + "_ns");
 			content.replace(package + ".pb.", package.toUtf8() + ".");
+			content.replace(QByteArray("#include \"") + filenameBase.toUtf8() + ".h\"", QByteArray("#include \"") + shortFilenameBase.toUtf8() + ".h\"");
 		}
 		else if (filename.endsWith(".cs")) {
 			auto sigStr = QString("public const int SIGNATURE = 0x") + signature + ";\r\n    ";
@@ -180,6 +191,9 @@ void ProtoCompiler::post_process_generated_files(const QByteArray& protoFileCont
 			insert_before(&content, sigStr, "public MasterMessage()");
 			insert_before(&content, sigStr, "public SlaveMessage()");
 		}
+
+		(*files)[filename.mid(filename.lastIndexOf("yogi_"))] = content;
+		files->remove(filename);
 	}
 }
 

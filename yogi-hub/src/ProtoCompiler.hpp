@@ -29,6 +29,7 @@ private:
 	void check_protoc_exists();
 	void check_temp_dir_valid(const QTemporaryDir& dir);
 	QString extract_proto_package(const QByteArray& protoFileContent);
+    QString extract_innermost_proto_package(const QByteArray& protoFileContent);
 	QString write_proto_file(const QTemporaryDir& dir, const QByteArray& protoFileContent);
 	void run_protoc(const QTemporaryDir& dir, const QString& protoFilename, Language targetLanguage);
 	QMap<QString, QByteArray> read_generated_files(const QTemporaryDir& dir, const QString& protoFilename);
