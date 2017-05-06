@@ -6,7 +6,7 @@
 #include "terminals.hpp"
 #include "logging.hpp"
 #include "internal/proto/yogi_00000001.h"
-#include "internal/proto/yogi_00000004.h"
+#include "internal/proto/yogi_00004004.h"
 #include "internal/proto/yogi_0000040d.h"
 #include "internal/proto/yogi_000009cd.h"
 
@@ -39,11 +39,11 @@ struct ProcessInterface::Implementation {
     CachedProducerTerminal<internal::yogi_0000040d> warningsTerminal;
     ProducerTerminal<internal::yogi_000009cd>       logTerminal;
 
-    std::mutex                                                                                logVerbosityTerminalsMutex;
-    CachedMasterTerminal<internal::yogi_00000004>                                         maxStdoutLogVerbosityTerminal;
-    CachedMasterTerminal<internal::yogi_00000004>                                         maxYogiLogVerbosityTerminal;
-    std::map<std::string, std::unique_ptr<CachedMasterTerminal<internal::yogi_00000004>>> stdoutLogVerbosityTerminals;
-    std::map<std::string, std::unique_ptr<CachedMasterTerminal<internal::yogi_00000004>>> yogiLogVerbosityTerminals;
+    std::mutex                                                                            logVerbosityTerminalsMutex;
+    CachedMasterTerminal<internal::yogi_00004004>                                         maxStdoutLogVerbosityTerminal;
+    CachedMasterTerminal<internal::yogi_00004004>                                         maxYogiLogVerbosityTerminal;
+    std::map<std::string, std::unique_ptr<CachedMasterTerminal<internal::yogi_00004004>>> stdoutLogVerbosityTerminals;
+    std::map<std::string, std::unique_ptr<CachedMasterTerminal<internal::yogi_00004004>>> yogiLogVerbosityTerminals;
 
     std::mutex                  anomaliesMutex;
     std::condition_variable     anomaliesCv;
@@ -62,7 +62,7 @@ struct ProcessInterface::Implementation {
     , warningsTerminal             (leaf, config.location() / "Process/Warnings")
     , logTerminal                  (leaf, config.location() / "Process/Log")
     , maxStdoutLogVerbosityTerminal(leaf, config.location() / "Process/Standard Output Log Verbosity/Max Verbosity")
-    , maxYogiLogVerbosityTerminal (leaf, config.location() / "Process/YOGI Log Verbosity/Max Verbosity")
+    , maxYogiLogVerbosityTerminal  (leaf, config.location() / "Process/YOGI Log Verbosity/Max Verbosity")
     {
     }
 
@@ -230,7 +230,7 @@ struct ProcessInterface::Implementation {
         apply_verbosities("logging.yogi",  &Logger::set_max_yogi_verbosity,  &Logger::set_yogi_verbosity);
     }
 
-    void on_max_logging_verbosity_changed(const Result& res, internal::yogi_00000004::PublishMessage&& msg, cached_flag cached, bool isStdout)
+    void on_max_logging_verbosity_changed(const Result& res, internal::yogi_00004004::SlaveMessage&& msg, cached_flag cached, bool isStdout)
     {
         if (!res) {
             return;
@@ -271,7 +271,7 @@ struct ProcessInterface::Implementation {
         });
     }
 
-    void on_logging_verbosity_changed(const Result& res, internal::yogi_00000004::PublishMessage&& msg, cached_flag cached, bool isStdout, const std::string& component)
+    void on_logging_verbosity_changed(const Result& res, internal::yogi_00004004::SlaveMessage&& msg, cached_flag cached, bool isStdout, const std::string& component)
     {
         if (!res) {
             return;
@@ -309,13 +309,13 @@ struct ProcessInterface::Implementation {
     {
         auto component = logger.component();
 
-        auto stdoutVerbosityTerminal = std::make_unique<CachedMasterTerminal<internal::yogi_00000004>>(leaf,
+        auto stdoutVerbosityTerminal = std::make_unique<CachedMasterTerminal<internal::yogi_00004004>>(leaf,
             config.location() / "Process/Standard Output Log Verbosity/Components/" / logger.component());
         stdoutVerbosityTerminal->async_receive_message([=](auto& res, auto&& msg, auto cached) {
             this->on_logging_verbosity_changed(res, std::move(msg), cached, true, component);
         });
 
-        auto yogiVerbosityTerminal = std::make_unique<CachedMasterTerminal<internal::yogi_00000004>>(leaf,
+        auto yogiVerbosityTerminal = std::make_unique<CachedMasterTerminal<internal::yogi_00004004>>(leaf,
             config.location() / "Process/YOGI Log Verbosity/Components/" / logger.component());
         yogiVerbosityTerminal->async_receive_message([=](auto& res, auto&& msg, auto cached) {
             this->on_logging_verbosity_changed(res, std::move(msg), cached, false, component);
@@ -415,7 +415,7 @@ void ProcessInterface::_on_max_log_verbosity_set(verbosity newVerbosity, bool is
         return;
     }
 
-    internal::yogi_00000004::PublishMessage msg;
+    internal::yogi_00004004::MasterMessage msg;
     msg.set_value(static_cast<std::uint8_t>(newVerbosity));
 
     if (isStdout) {
@@ -432,7 +432,7 @@ void ProcessInterface::_on_log_verbosity_set(const std::string& component, verbo
         return;
     }
 
-    internal::yogi_00000004::PublishMessage msg;
+    internal::yogi_00004004::MasterMessage msg;
     msg.set_value(static_cast<std::uint8_t>(newVerbosity));
 
     if (isStdout) {

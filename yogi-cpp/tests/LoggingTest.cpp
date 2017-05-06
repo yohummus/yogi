@@ -6,7 +6,7 @@
 #include "../yogi/leaf.hpp"
 #include "../yogi/connection.hpp"
 #include "../yogi/terminals.hpp"
-#include "../yogi/internal/proto/yogi_00000004.h"
+#include "../yogi/internal/proto/yogi_00004004.h"
 #include "../yogi/internal/proto/yogi_000009cd.h"
 using namespace yogi;
 
@@ -33,7 +33,7 @@ struct LoggingTest : public testing::Test
     }
 
     template <typename Fn>
-    std::uint8_t monitor_verbosity(CachedSlaveTerminal<internal::yogi_00000004>& terminal, Fn fn)
+    std::uint8_t monitor_verbosity(CachedSlaveTerminal<internal::yogi_00004004>& terminal, Fn fn)
     {
         std::atomic<bool> called{false};
         std::uint8_t verb;
@@ -51,7 +51,7 @@ struct LoggingTest : public testing::Test
     }
 
     template <typename Fn>
-    CachedSlaveTerminal<internal::yogi_000009cd>::message_type monitor_log(ConsumerTerminal<internal::yogi_000009cd>& terminal, Fn fn)
+    ConsumerTerminal<internal::yogi_000009cd>::message_type monitor_log(ConsumerTerminal<internal::yogi_000009cd>& terminal, Fn fn)
     {
         std::atomic<bool> called{false};
         ConsumerTerminal<internal::yogi_000009cd>::message_type logMsg;
@@ -205,7 +205,7 @@ TEST_F(LoggingTest, ProcessInterface)
     // check changing verbosity levels at runtime
     Logger logger("My Component");
 
-    CachedSlaveTerminal<internal::yogi_00000004> maxVerbosityTerminal(leaf, "/Process/YOGI Log Verbosity/Max Verbosity");
+    CachedSlaveTerminal<internal::yogi_00004004> maxVerbosityTerminal(leaf, "/Process/YOGI Log Verbosity/Max Verbosity");
     while (maxVerbosityTerminal.get_binding_state() == RELEASED);
     while (maxVerbosityTerminal.get_subscription_state() == UNSUBSCRIBED);
 
@@ -215,7 +215,7 @@ TEST_F(LoggingTest, ProcessInterface)
         maxVerbosityTerminal.publish(msg);
     }));
 
-    CachedSlaveTerminal<internal::yogi_00000004> verbosityTerminal(leaf, "/Process/YOGI Log Verbosity/Components/My Component");
+    CachedSlaveTerminal<internal::yogi_00004004> verbosityTerminal(leaf, "/Process/YOGI Log Verbosity/Components/My Component");
     while (verbosityTerminal.get_binding_state() == RELEASED);
     while (verbosityTerminal.get_subscription_state() == UNSUBSCRIBED);
 

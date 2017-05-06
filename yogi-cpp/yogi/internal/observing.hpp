@@ -340,6 +340,28 @@ public:
 
 
 template <typename Observer, typename Terminal, typename BadCallbackIdException>
+class MasterMessageObserver : public PublishMessageObserverBase<Observer, Terminal, typename Terminal::master_message_type, BadCallbackIdException>
+{
+public:
+    typedef typename Terminal::master_message_type message_type;
+
+public:
+    using PublishMessageObserverBase<Observer, Terminal, typename Terminal::master_message_type, BadCallbackIdException>::PublishMessageObserverBase;
+};
+
+
+template <typename Observer, typename Terminal, typename BadCallbackIdException>
+class SlaveMessageObserver : public PublishMessageObserverBase<Observer, Terminal, typename Terminal::slave_message_type, BadCallbackIdException>
+{
+public:
+    typedef typename Terminal::slave_message_type message_type;
+
+public:
+    using PublishMessageObserverBase<Observer, Terminal, typename Terminal::slave_message_type, BadCallbackIdException>::PublishMessageObserverBase;
+};
+
+
+template <typename Observer, typename Terminal, typename BadCallbackIdException>
 class RawPublishMessageObserver : public PublishMessageObserverBase<Observer, Terminal, std::vector<char>, BadCallbackIdException>
 {
 public:

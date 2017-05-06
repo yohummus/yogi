@@ -364,15 +364,18 @@ TEST_F(TerminalsTest, CachedProducerConsumerTerminals)
 
 TEST_F(TerminalsTest, MasterSlaveTerminals)
 {
-    auto msg = terminalsB.msMaster.make_message();
-    msg.set_value(123);
+    auto masterMsg = terminalsB.msMaster.make_message();
+    masterMsg.set_value("123");
+
+    auto slaveMsg = terminalsB.msSlave.make_message();
+    slaveMsg.set_value(123);
 
     // publish without the terminal being bound
-    EXPECT_THROW(terminalsB.msMaster.publish(msg), Failure);
-    EXPECT_FALSE(terminalsB.msMaster.try_publish(msg));
+    EXPECT_THROW(terminalsB.msMaster.publish(masterMsg), Failure);
+    EXPECT_FALSE(terminalsB.msMaster.try_publish(masterMsg));
 
-    EXPECT_THROW(terminalsB.msSlave.publish(msg), Failure);
-    EXPECT_FALSE(terminalsB.msSlave.try_publish(msg));
+    EXPECT_THROW(terminalsB.msSlave.publish(slaveMsg), Failure);
+    EXPECT_FALSE(terminalsB.msSlave.try_publish(slaveMsg));
 
     // cancel receive message
     std::atomic<bool> called{false};
@@ -400,14 +403,14 @@ TEST_F(TerminalsTest, MasterSlaveTerminals)
     called = false;
     terminalsA.msSlave.async_receive_message([&](auto& res, auto msg) {
         EXPECT_EQ(res, Success());
-        EXPECT_EQ(123, msg.value());
+        EXPECT_STREQ("123", msg.value().c_str());
         called = true;
     });
 
-    EXPECT_NO_THROW(terminalsB.msMaster.publish(msg));
+    EXPECT_NO_THROW(terminalsB.msMaster.publish(masterMsg));
     while (!called);
 
-    EXPECT_TRUE(terminalsB.msMaster.try_publish(msg));
+    EXPECT_TRUE(terminalsB.msMaster.try_publish(masterMsg));
 
     called = false;
     terminalsA.msMaster.async_receive_message([&](auto& res, auto msg) {
@@ -416,23 +419,26 @@ TEST_F(TerminalsTest, MasterSlaveTerminals)
         called = true;
     });
 
-    EXPECT_NO_THROW(terminalsB.msSlave.publish(msg));
+    EXPECT_NO_THROW(terminalsB.msSlave.publish(slaveMsg));
     while (!called);
 
-    EXPECT_TRUE(terminalsB.msSlave.try_publish(msg));
+    EXPECT_TRUE(terminalsB.msSlave.try_publish(slaveMsg));
 }
 
 TEST_F(TerminalsTest, CachedMasterSlaveTerminal)
 {
-    auto msg = terminalsB.cmsMaster.make_message();
-    msg.set_value(123);
+    auto masterMsg = terminalsB.cmsMaster.make_message();
+    masterMsg.set_value("123");
+
+    auto slaveMsg = terminalsB.cmsSlave.make_message();
+    slaveMsg.set_value(123);
 
     // publish without the terminal being bound
-    EXPECT_THROW(terminalsB.cmsMaster.publish(msg), Failure);
-    EXPECT_FALSE(terminalsB.cmsMaster.try_publish(msg));
+    EXPECT_THROW(terminalsB.cmsMaster.publish(masterMsg), Failure);
+    EXPECT_FALSE(terminalsB.cmsMaster.try_publish(masterMsg));
 
-    EXPECT_THROW(terminalsB.cmsSlave.publish(msg), Failure);
-    EXPECT_FALSE(terminalsB.cmsSlave.try_publish(msg));
+    EXPECT_THROW(terminalsB.cmsSlave.publish(slaveMsg), Failure);
+    EXPECT_FALSE(terminalsB.cmsSlave.try_publish(slaveMsg));
 
     // cancel receive message
     std::atomic<bool> called{false};
@@ -458,7 +464,7 @@ TEST_F(TerminalsTest, CachedMasterSlaveTerminal)
     terminalsA.cmsSlave.async_receive_message([&](auto& res, auto msg, auto cached) {
         EXPECT_TRUE(cached);
         EXPECT_EQ(res, Success());
-        EXPECT_EQ(123, msg.value());
+        EXPECT_STREQ("123", msg.value().c_str());
         called = true;
     });
 
@@ -479,11 +485,11 @@ TEST_F(TerminalsTest, CachedMasterSlaveTerminal)
     terminalsA.cmsSlave.async_receive_message([&](auto& res, auto msg, auto cached) {
         EXPECT_FALSE(cached);
         EXPECT_EQ(res, Success());
-        EXPECT_EQ(123, msg.value());
+        EXPECT_STREQ("123", msg.value().c_str());
         called = true;
     });
 
-    EXPECT_NO_THROW(terminalsB.cmsMaster.publish(msg));
+    EXPECT_NO_THROW(terminalsB.cmsMaster.publish(masterMsg));
     while (!called);
 
     // successfully receive non-cached message published by the slave
@@ -495,19 +501,19 @@ TEST_F(TerminalsTest, CachedMasterSlaveTerminal)
         called = true;
     });
 
-    EXPECT_NO_THROW(terminalsB.cmsSlave.publish(msg));
+    EXPECT_NO_THROW(terminalsB.cmsSlave.publish(slaveMsg));
     while (!called);
 
     // check try_publish()
-    EXPECT_TRUE(terminalsB.cmsMaster.try_publish(msg));
-    EXPECT_TRUE(terminalsB.cmsSlave.try_publish(msg));
+    EXPECT_TRUE(terminalsB.cmsMaster.try_publish(masterMsg));
+    EXPECT_TRUE(terminalsB.cmsSlave.try_publish(slaveMsg));
 
     // get cached message
-    msg = terminalsA.cmsMaster.get_cached_message();
-    EXPECT_EQ(123, msg.value());
+    slaveMsg = terminalsA.cmsMaster.get_cached_message();
+    EXPECT_EQ(123, slaveMsg.value());
 
-    msg = terminalsA.cmsSlave.get_cached_message();
-    EXPECT_EQ(123, msg.value());
+    masterMsg = terminalsA.cmsSlave.get_cached_message();
+    EXPECT_EQ("123", masterMsg.value());
 }
 
 TEST_F(TerminalsTest, ServiceClientTerminals)

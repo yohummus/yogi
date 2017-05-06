@@ -208,10 +208,10 @@ public:
 
 template <typename ProtoDescription>
 class MessageObserver<MasterTerminal<ProtoDescription>> final
-: public internal::PublishMessageObserver<Observer, MasterTerminal<ProtoDescription>, BadCallbackId>
+: public internal::SlaveMessageObserver<Observer, MasterTerminal<ProtoDescription>, BadCallbackId>
 {
 public:
-    using internal::PublishMessageObserver<Observer, MasterTerminal<ProtoDescription>, BadCallbackId>::PublishMessageObserver;
+    using internal::SlaveMessageObserver<Observer, MasterTerminal<ProtoDescription>, BadCallbackId>::SlaveMessageObserver;
 };
 
 
@@ -226,10 +226,10 @@ public:
 
 template <typename ProtoDescription>
 class MessageObserver<SlaveTerminal<ProtoDescription>> final
-: public internal::PublishMessageObserver<Observer, SlaveTerminal<ProtoDescription>, BadCallbackId>
+: public internal::MasterMessageObserver<Observer, SlaveTerminal<ProtoDescription>, BadCallbackId>
 {
 public:
-    using internal::PublishMessageObserver<Observer, SlaveTerminal<ProtoDescription>, BadCallbackId>::PublishMessageObserver;
+    using internal::MasterMessageObserver<Observer, SlaveTerminal<ProtoDescription>, BadCallbackId>::MasterMessageObserver;
 };
 
 
@@ -244,10 +244,10 @@ public:
 
 template <typename ProtoDescription>
 class MessageObserver<CachedMasterTerminal<ProtoDescription>> final
-: public internal::PublishMessageObserver<Observer, CachedMasterTerminal<ProtoDescription>, BadCallbackId>
+: public internal::SlaveMessageObserver<Observer, CachedMasterTerminal<ProtoDescription>, BadCallbackId>
 {
 public:
-    using internal::PublishMessageObserver<Observer, CachedMasterTerminal<ProtoDescription>, BadCallbackId>::PublishMessageObserver;
+    using internal::SlaveMessageObserver<Observer, CachedMasterTerminal<ProtoDescription>, BadCallbackId>::SlaveMessageObserver;
 };
 
 
@@ -262,10 +262,10 @@ public:
 
 template <typename ProtoDescription>
 class MessageObserver<CachedSlaveTerminal<ProtoDescription>> final
-: public internal::PublishMessageObserver<Observer, CachedSlaveTerminal<ProtoDescription>, BadCallbackId>
+: public internal::MasterMessageObserver<Observer, CachedSlaveTerminal<ProtoDescription>, BadCallbackId>
 {
 public:
-    using internal::PublishMessageObserver<Observer, CachedSlaveTerminal<ProtoDescription>, BadCallbackId>::PublishMessageObserver;
+    using internal::MasterMessageObserver<Observer, CachedSlaveTerminal<ProtoDescription>, BadCallbackId>::MasterMessageObserver;
 };
 
 

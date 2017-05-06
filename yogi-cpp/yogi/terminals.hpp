@@ -1258,7 +1258,8 @@ template <typename ProtoDescription>
 class MasterTerminal : public ConvenienceTerminalT<ProtoDescription>, public Binder, public Subscribable
 {
 public:
-    typedef typename ProtoDescription::PublishMessage message_type;
+    typedef typename ProtoDescription::MasterMessage master_message_type;
+    typedef typename ProtoDescription::SlaveMessage  slave_message_type;
 
     enum {
         TERMINAL_TYPE = terminal_type::MASTER
@@ -1297,22 +1298,22 @@ public:
         return static_cast<terminal_type>(TERMINAL_TYPE);
     }
 
-    static message_type make_message()
+    static master_message_type make_message()
     {
-        return message_type();
+        return master_message_type();
     }
 
-    void publish(message_type msg)
+    void publish(master_message_type msg)
     {
         internal::publish_proto_message(YOGI_MS_Publish, this, msg);
     }
 
-    bool try_publish(message_type msg)
+    bool try_publish(master_message_type msg)
     {
         return internal::try_publish_proto_message(YOGI_MS_Publish, this, msg);
     }
 
-    void async_receive_message(std::function<void (const Result&, message_type&&)> completionHandler)
+    void async_receive_message(std::function<void (const Result&, slave_message_type&&)> completionHandler)
     {
         internal::async_receive_proto_message(YOGI_MS_AsyncReceiveMessage, this, completionHandler);
     }
@@ -1365,7 +1366,8 @@ template <typename ProtoDescription>
 class SlaveTerminal : public ConvenienceTerminalT<ProtoDescription>, public Binder, public Subscribable
 {
 public:
-    typedef typename ProtoDescription::PublishMessage message_type;
+    typedef typename ProtoDescription::MasterMessage master_message_type;
+    typedef typename ProtoDescription::SlaveMessage  slave_message_type;
 
     enum {
         TERMINAL_TYPE = terminal_type::SLAVE
@@ -1404,22 +1406,22 @@ public:
         return static_cast<terminal_type>(TERMINAL_TYPE);
     }
 
-    static message_type make_message()
+    static slave_message_type make_message()
     {
-        return message_type();
+        return slave_message_type();
     }
 
-    void publish(message_type msg)
+    void publish(slave_message_type msg)
     {
         internal::publish_proto_message(YOGI_MS_Publish, this, msg);
     }
 
-    bool try_publish(message_type msg)
+    bool try_publish(slave_message_type msg)
     {
         return internal::try_publish_proto_message(YOGI_MS_Publish, this, msg);
     }
 
-    void async_receive_message(std::function<void (const Result&, message_type&&)> completionHandler)
+    void async_receive_message(std::function<void (const Result&, master_message_type&&)> completionHandler)
     {
         internal::async_receive_proto_message(YOGI_MS_AsyncReceiveMessage, this, completionHandler);
     }
@@ -1472,7 +1474,8 @@ template <typename ProtoDescription>
 class CachedMasterTerminal : public ConvenienceTerminalT<ProtoDescription>, public Binder, public Subscribable
 {
 public:
-    typedef typename ProtoDescription::PublishMessage message_type;
+    typedef typename ProtoDescription::MasterMessage master_message_type;
+    typedef typename ProtoDescription::SlaveMessage  slave_message_type;
 
     enum {
         TERMINAL_TYPE = terminal_type::CACHED_MASTER
@@ -1511,27 +1514,27 @@ public:
         return static_cast<terminal_type>(TERMINAL_TYPE);
     }
 
-    static message_type make_message()
+    static master_message_type make_message()
     {
-        return message_type();
+        return master_message_type();
     }
 
-    void publish(message_type msg)
+    void publish(master_message_type msg)
     {
         internal::publish_proto_message(YOGI_CMS_Publish, this, msg);
     }
 
-    bool try_publish(message_type msg)
+    bool try_publish(master_message_type msg)
     {
         return internal::try_publish_proto_message(YOGI_CMS_Publish, this, msg);
     }
 
-    message_type get_cached_message()
+    slave_message_type get_cached_message()
     {
-        return internal::get_cached_proto_message<message_type>(YOGI_CMS_GetCachedMessage, this);
+        return internal::get_cached_proto_message<slave_message_type>(YOGI_CMS_GetCachedMessage, this);
     }
 
-    void async_receive_message(std::function<void (const Result&, message_type&&, cached_flag)> completionHandler)
+    void async_receive_message(std::function<void (const Result&, slave_message_type&&, cached_flag)> completionHandler)
     {
         internal::async_receive_proto_message(YOGI_CMS_AsyncReceiveMessage, this, completionHandler);
     }
@@ -1585,7 +1588,8 @@ template <typename ProtoDescription>
 class CachedSlaveTerminal : public ConvenienceTerminalT<ProtoDescription>, public Binder, public Subscribable
 {
 public:
-    typedef typename ProtoDescription::PublishMessage message_type;
+    typedef typename ProtoDescription::MasterMessage master_message_type;
+    typedef typename ProtoDescription::SlaveMessage  slave_message_type;
 
     enum {
         TERMINAL_TYPE = terminal_type::CACHED_SLAVE
@@ -1624,27 +1628,27 @@ public:
         return static_cast<terminal_type>(TERMINAL_TYPE);
     }
 
-    static message_type make_message()
+    static slave_message_type make_message()
     {
-        return message_type();
+        return slave_message_type();
     }
 
-    void publish(message_type msg)
+    void publish(slave_message_type msg)
     {
         internal::publish_proto_message(YOGI_CMS_Publish, this, msg);
     }
 
-    bool try_publish(message_type msg)
+    bool try_publish(slave_message_type msg)
     {
         return internal::try_publish_proto_message(YOGI_CMS_Publish, this, msg);
     }
 
-    message_type get_cached_message()
+    master_message_type get_cached_message()
     {
-        return internal::get_cached_proto_message<message_type>(YOGI_CMS_GetCachedMessage, this);
+        return internal::get_cached_proto_message<master_message_type>(YOGI_CMS_GetCachedMessage, this);
     }
 
-    void async_receive_message(std::function<void (const Result&, message_type&&, cached_flag)> completionHandler)
+    void async_receive_message(std::function<void (const Result&, master_message_type&&, cached_flag)> completionHandler)
     {
         internal::async_receive_proto_message(YOGI_CMS_AsyncReceiveMessage, this, completionHandler);
     }

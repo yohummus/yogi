@@ -245,7 +245,7 @@
                 'syntax = "proto3";',
                 '',
                 `package ${this._package};`,
-                // For generating yogi-cpp internal files use: `package yogi.internal.${this._package};`,
+                // `package yogi.internal.${this._package};`, // For generating yogi-cpp internal files
                 '',
                 ''
             ].join('\r\n');
