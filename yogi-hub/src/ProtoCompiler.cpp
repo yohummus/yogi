@@ -192,8 +192,10 @@ void ProtoCompiler::post_process_generated_files(const QByteArray& protoFileCont
 			insert_before(&content, sigStr, "public SlaveMessage()");
 		}
 
-		(*files)[filename.mid(filename.lastIndexOf("yogi_"))] = content;
-		files->remove(filename);
+		if (shortFilenameBase != filenameBase) {
+			(*files)[filename.mid(filename.lastIndexOf("yogi_"))] = content;
+			files->remove(filename);
+		}
 	}
 }
 
