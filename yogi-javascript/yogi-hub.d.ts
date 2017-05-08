@@ -29,6 +29,8 @@ declare module yogi {
 
     export enum MessageType {
         Publish,
+        Master,
+        Slave,
         Scatter,
         Gather
     }

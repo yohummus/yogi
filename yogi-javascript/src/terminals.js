@@ -1,9 +1,11 @@
 (function () {
     class Terminal {
-        constructor(session, type, name, signature) {
-            this._session   = session;
-            this._name      = name;
-            this._signature = signature instanceof window.yogi.Signature ? signature : new window.yogi.Signature(signature);
+        constructor(session, type, name, signature, sendMsgType, recvMsgType) {
+            this._session             = session;
+            this._name                = name;
+            this._signature           = signature instanceof window.yogi.Signature ? signature : new window.yogi.Signature(signature);
+            this._sendOrScatterMsgCls = this._createMsgCls(sendMsgType);
+            this._recvOrGatherMsgCls  = this._createMsgCls(recvMsgType);
 
             this._create(type);
         }
@@ -47,19 +49,9 @@
             });
         }
 
-        _createPublishMsgCls() {
-            if (!this._PublishMsgCls && !this._signature.isCustom) {
-                this._PublishMsgCls = window.yogi.MessageFactory.createMessageClass(
-                window.yogi.MessageType.Publish, this._signature);
-            }
-        }
-
-        _createScatterGatherMsgCls() {
-            if (!this._ScatterMsgCls && !this._signature.isCustom) {
-                this._ScatterMsgCls = window.yogi.MessageFactory.createMessageClass(
-                    window.yogi.MessageType.Scatter, this._signature);
-                this._GatherMsgCls = window.yogi.MessageFactory.createMessageClass(
-                    window.yogi.MessageType.Gather, this._signature);
+        _createMsgCls(type) {
+            if (type !== undefined && !this._signature.isCustom) {
+                return window.yogi.MessageFactory.createMessageClass(type, this._signature);
             }
         }
 
@@ -224,7 +216,6 @@
     let PublisherMixin = (superclass) => class extends superclass {
         constructor() {
             super(...arguments);
-            this._createPublishMsgCls();
         }
 
         makeMessage() {
@@ -232,14 +223,14 @@
                 throw new Error('Cannot create message for Terminal with custom signature');
             }
             else {
-                return new this._PublishMsgCls();
+                return new this._sendOrScatterMsgCls();
             }
         }
 
         publish(msg) {
             let data = msg;
             if (!this._signature.isCustom) {
-                if (!(msg instanceof this._PublishMsgCls)) {
+                if (!(msg instanceof this._sendOrScatterMsgCls)) {
                     throw new Error('Incompatible message type');
                 }
 
@@ -254,7 +245,6 @@
         constructor() {
             super(...arguments);
             this._isPublishMessageReceiver = true;
-            this._createPublishMsgCls();
         }
 
         get onMessageReceived() {
@@ -272,7 +262,7 @@
 
             let msg = data;
             if (!this._signature.isCustom) {
-                msg = new this._PublishMsgCls();
+                msg = new this._recvOrGatherMsgCls();
                 msg.deserialize(data);
             }
 
@@ -284,7 +274,6 @@
         constructor() {
             super(...arguments);
             this._operations = new Map();
-            this._createScatterGatherMsgCls();
         }
 
         makeScatterMessage() {
@@ -292,14 +281,14 @@
                 throw new Error('Cannot create message for Terminal with custom signature');
             }
             else {
-                return new this._ScatterMsgCls();
+                return new this._sendOrScatterMsgCls();
             }
         }
 
         _scatterGather(msg, gatherFn) {
             let data = msg;
             if (!this._signature.isCustom) {
-                if (!(msg instanceof this._ScatterMsgCls)) {
+                if (!(msg instanceof this._sendOrScatterMsgCls)) {
                     throw new Error('Incompatible message type');
                 }
 
@@ -320,7 +309,7 @@
             if (operation) {
                 let msg = data;
                 if (!this._signature.isCustom) {
-                    msg = new this._GatherMsgCls();
+                    msg = new this._recvOrGatherMsgCls();
                     msg.deserialize(data);
                 }
 
@@ -338,7 +327,6 @@
         constructor() {
             super(...arguments);
             this._isScatterMessageReceiver = true;
-            this._createScatterGatherMsgCls();
         }
 
         makeGatherMessage() {
@@ -346,14 +334,14 @@
                 throw new Error('Cannot create message for Terminal with custom signature');
             }
             else {
-                return new this._GatherMsgCls();
+                return new this._recvOrGatherMsgCls();
             }
         }
 
         _notifyReceivedScatterMessage(opId, data) {
             let msg = data;
             if (!this._signature.isCustom) {
-                msg = new this._ScatterMsgCls();
+                msg = new this._sendOrScatterMsgCls();
                 msg.deserialize(data);
             }
 
@@ -404,7 +392,7 @@
         respond(msg) {
             let data = msg;
             if (!this._terminal.signature.isCustom) {
-                if (!(msg instanceof this._terminal._GatherMsgCls)) {
+                if (!(msg instanceof this._terminal._recvOrGatherMsgCls)) {
                     throw new Error('Incompatible message type');
                 }
 
@@ -470,7 +458,7 @@
 
     class DeafMuteTerminal extends PrimitiveTerminal {
         constructor(session, name, signature) {
-            super(session, TM_DEAF_MUTE, name, signature);
+            super(session, TM_DEAF_MUTE, name, signature, undefined, undefined);
         }
 
         static get CompatibleTerminalType() {
@@ -480,7 +468,7 @@
 
     class PublishSubscribeTerminal extends SubscribableMixin(PublisherMixin(PublishMessageReceiverMixin(PrimitiveTerminal))) {
         constructor(session, name, signature) {
-            super(session, TM_PUBLISH_SUBSCRIBE, name, signature);
+            super(session, TM_PUBLISH_SUBSCRIBE, name, signature, yogi.MessageType.Publish, yogi.MessageType.Publish);
         }
 
         static get CompatibleTerminalType() {
@@ -490,7 +478,7 @@
 
     class CachedPublishSubscribeTerminal extends SubscribableMixin(PublisherMixin(PublishMessageReceiverMixin(PrimitiveTerminal))) {
         constructor(session, name, signature) {
-            super(session, TM_CACHED_PUBLISH_SUBSCRIBE, name, signature);
+            super(session, TM_CACHED_PUBLISH_SUBSCRIBE, name, signature, yogi.MessageType.Publish, yogi.MessageType.Publish);
         }
 
         static get CompatibleTerminalType() {
@@ -500,7 +488,7 @@
 
     class ScatterGatherTerminal extends SubscribableMixin(ScattererMixin(ScatterMessageReceiverMixin(PrimitiveTerminal))) {
         constructor(session, name, signature) {
-            super(session, TM_SCATTER_GATHER, name, signature);
+            super(session, TM_SCATTER_GATHER, name, signature, yogi.MessageType.Scatter, yogi.MessageType.Gather);
         }
 
         static get CompatibleTerminalType() {
@@ -534,7 +522,7 @@
 
     class ProducerTerminal extends SubscribableMixin(PublisherMixin(ConvenienceTerminal)) {
         constructor(session, name, signature) {
-            super(session, TM_PRODUCER, name, signature);
+            super(session, TM_PRODUCER, name, signature, yogi.MessageType.Publish, undefined);
         }
 
         static get CompatibleTerminalType() {
@@ -544,7 +532,7 @@
 
     class ConsumerTerminal extends BinderMixin(PublishMessageReceiverMixin(ConvenienceTerminal)) {
         constructor(session, name, signature) {
-            super(session, TM_CONSUMER, name, signature);
+            super(session, TM_CONSUMER, name, signature, undefined, yogi.MessageType.Publish);
         }
 
         static get CompatibleTerminalType() {
@@ -554,7 +542,7 @@
 
     class CachedProducerTerminal extends SubscribableMixin(PublisherMixin(ConvenienceTerminal)) {
         constructor(session, name, signature) {
-            super(session, TM_CACHED_PRODUCER, name, signature);
+            super(session, TM_CACHED_PRODUCER, name, signature, yogi.MessageType.Publish, undefined);
         }
 
         static get CompatibleTerminalType() {
@@ -564,7 +552,7 @@
 
     class CachedConsumerTerminal extends BinderMixin(PublishMessageReceiverMixin(ConvenienceTerminal)) {
         constructor(session, name, signature) {
-            super(session, TM_CACHED_CONSUMER, name, signature);
+            super(session, TM_CACHED_CONSUMER, name, signature, undefined, yogi.MessageType.Publish);
         }
 
         static get CompatibleTerminalType() {
@@ -574,7 +562,7 @@
 
     class MasterTerminal extends SubscribableMixin(BinderMixin(PublisherMixin(PublishMessageReceiverMixin(ConvenienceTerminal)))) {
         constructor(session, name, signature) {
-            super(session, TM_MASTER, name, signature);
+            super(session, TM_MASTER, name, signature, yogi.MessageType.Master, yogi.MessageType.Slave);
         }
 
         static get CompatibleTerminalType() {
@@ -584,7 +572,7 @@
 
     class SlaveTerminal extends SubscribableMixin(BinderMixin(PublisherMixin(PublishMessageReceiverMixin(ConvenienceTerminal)))) {
         constructor(session, name, signature) {
-            super(session, TM_SLAVE, name, signature);
+            super(session, TM_SLAVE, name, signature, yogi.MessageType.Slave, yogi.MessageType.Master);
         }
 
         static get CompatibleTerminalType() {
@@ -594,7 +582,7 @@
 
     class CachedMasterTerminal extends SubscribableMixin(BinderMixin(PublisherMixin(PublishMessageReceiverMixin(ConvenienceTerminal)))) {
         constructor(session, name, signature) {
-            super(session, TM_CACHED_MASTER, name, signature);
+            super(session, TM_CACHED_MASTER, name, signature, yogi.MessageType.Master, yogi.MessageType.Slave);
         }
 
         static get CompatibleTerminalType() {
@@ -604,7 +592,7 @@
 
     class CachedSlaveTerminal extends SubscribableMixin(BinderMixin(PublisherMixin(PublishMessageReceiverMixin(ConvenienceTerminal)))) {
         constructor(session, name, signature) {
-            super(session, TM_CACHED_SLAVE, name, signature);
+            super(session, TM_CACHED_SLAVE, name, signature, yogi.MessageType.Slave, yogi.MessageType.Master);
         }
 
         static get CompatibleTerminalType() {
@@ -614,7 +602,7 @@
 
     class ServiceTerminal extends BinderMixin(ScatterMessageReceiverMixin(ConvenienceTerminal)) {
         constructor(session, name, signature) {
-            super(session, TM_SERVICE, name, signature);
+            super(session, TM_SERVICE, name, signature, yogi.MessageType.Scatter, yogi.MessageType.Gather);
         }
 
         static get CompatibleTerminalType() {
@@ -632,7 +620,7 @@
 
     class ClientTerminal extends SubscribableMixin(ScattererMixin(ConvenienceTerminal)) {
         constructor(session, name, signature) {
-            super(session, TM_CLIENT, name, signature);
+            super(session, TM_CLIENT, name, signature, yogi.MessageType.Scatter, yogi.MessageType.Gather);
         }
 
         static get CompatibleTerminalType() {

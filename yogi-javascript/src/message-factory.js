@@ -3,8 +3,10 @@
 
     const MessageType = {
         Publish : 0,
-        Scatter : 1,
-        Gather  : 2
+        Master  : 1,
+        Slave   : 2,
+        Scatter : 3,
+        Gather  : 4
     };
 
     class Message {
@@ -57,12 +59,12 @@
         }
 
         static _makeSignatureHalf(type, signature) {
-            return type === MessageType.Scatter ? signature.upperHalf : signature.lowerHalf;
+            return (type === MessageType.Scatter || type === MessageType.Master) ? signature.upperHalf : signature.lowerHalf;
         }
 
         static _makeMsgClass(type, signature, signatureHalf) {
             let protoFile = new window.yogi.ProtoFile(signature);
-            const msgName = ['PublishMessage', 'ScatterMessage', 'GatherMessage'][type];
+            const msgName = ['PublishMessage', 'MasterMessage', 'SlaveMessage', 'ScatterMessage', 'GatherMessage'][type];
             let protoMsgClass = dcodeIO.ProtoBuf.loadProto(protoFile.content).build(`${protoFile.package}.${msgName}`);
             return this._makeSignatureSpecificClass(signatureHalf, protoMsgClass);
         }
