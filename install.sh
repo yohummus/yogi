@@ -45,8 +45,12 @@ function install_required_packages {
 
 function install_newer_npm {
     echo "===== Installing newer version of npm ====="
-    sudo npm config set registry http://registry.npmjs.org/
-    sudo npm install -g npm
+    if [ $(npm --version | sed "s/^\([0-9]*\).*/\1/") -lt 4 ]; then
+        sudo npm config set registry http://registry.npmjs.org/
+        sudo npm install -g npm
+    else
+        echo "Sufficiently recent version of npm is already installed."
+    fi
 }
 
 function build_project {
