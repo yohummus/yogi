@@ -27,8 +27,8 @@ export class TerminalComponent implements OnInit, OnDestroy {
 
   private terminal: yogi.Terminal;
   private binding: yogi.Binding = null;
-  private lastReceivedPublishMessage: yogi.Message;
-  private lastReceivedCachedPublishMessage: yogi.Message;
+  private lastReceivedRegularMessage: yogi.Message; // regular = PS, Master or Slave Message
+  private lastReceivedCachedRegularMessage: yogi.Message;
   private lastReceivedScatterMessage: yogi.ScatterMessage;
   private lastReceivedGatherMessage: yogi.GatherMessage;
 
@@ -45,7 +45,7 @@ export class TerminalComponent implements OnInit, OnDestroy {
 
     if ('onMessageReceived' in this.terminal) {
       (this.terminal as any).onMessageReceived = (msg: yogi.Message, cached: boolean) => {
-        this.onPublishMessageReceived(msg, cached);
+        this.onRegularMessageReceived(msg, cached);
       };
     }
     else if ('onScatterMessageReceived' in this.terminal) {
@@ -80,12 +80,12 @@ export class TerminalComponent implements OnInit, OnDestroy {
     this.terminal.destroy();
   }
 
-  onPublishMessageReceived(msg: yogi.Message, cached?: boolean) {
+  onRegularMessageReceived(msg: yogi.Message, cached?: boolean) {
     if (cached) {
-      this.lastReceivedCachedPublishMessage = msg;
+      this.lastReceivedCachedRegularMessage = msg;
     }
     else {
-      this.lastReceivedPublishMessage = msg;
+      this.lastReceivedRegularMessage = msg;
     }
   }
 
@@ -93,7 +93,7 @@ export class TerminalComponent implements OnInit, OnDestroy {
     this.lastReceivedScatterMessage = msg;
   }
 
-  sendPublishMessage(msg: yogi.Message) {
+  sendRegularMessage(msg: yogi.Message) {
     (this.terminal as any).publish(msg);
   }
 }

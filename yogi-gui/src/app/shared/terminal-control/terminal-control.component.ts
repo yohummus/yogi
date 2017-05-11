@@ -22,28 +22,27 @@ export class TerminalControlComponent implements OnInit {
   @Input() canReceive: boolean = true;
   @Input() bound: boolean;
   @Input() subscribed: boolean;
-  @Input() lastReceivedPublishMessage: yogi.Message;
-  @Input() lastReceivedCachedPublishMessage: yogi.Message;
+  @Input() lastReceivedRegularMessage: yogi.Message;
+  @Input() lastReceivedCachedRegularMessage: yogi.Message;
   @Input() lastReceivedScatterMessage: yogi.ScatterMessage;
   @Input() lastReceivedGatherMessage: yogi.GatherMessage;
 
-  @Output() sendPublishMessage = new EventEmitter();
+  @Output() sendRegularMessage = new EventEmitter<yogi.Message | ByteBuffer>();
 
-  private canReceivePublishMsg: boolean = false;
-  private canReceiveCachedPublishMsg: boolean = false;
+  private canReceiveRegularMsg: boolean = false;
+  private canReceiveCachedRegularMsg: boolean = false;
   private canReceiveScatterMsg: boolean = false;
   private canReceiveGatherMsg: boolean = false;
-  private canSendPublishMsg: boolean = false;
+  private canSendRegularMsg: boolean = false;
   private canSendScatterMsg: boolean = false;
   private canSendGatherMsg: boolean = false;
 
-  private lastSendableUpperMsg: yogi.Message | ByteBuffer;
-  private lastSendableLowerMsg: yogi.Message | ByteBuffer;
+  private sendSignatureHalf: yogi.OfficialSignatureHalf;
+  private recvSignatureHalf: yogi.OfficialSignatureHalf;
 
-  private dummyUpperValue: any;
-  private dummyLowerValue: any;
-  private dummyUpperTimestamp: any;
-  private dummyLowerTimestamp: any;
+  private lastSendableMsg: yogi.Message | ByteBuffer;
+  private dummySendableValue: any;
+  private dummySendableTimestamp: any;
 
   ngOnInit() {
     this.setupGuiVariables();
@@ -56,14 +55,18 @@ export class TerminalControlComponent implements OnInit {
         break;
 
       case yogi.PublishSubscribeTerminal:
-        this.canReceivePublishMsg = this.canReceive;
-        this.canSendPublishMsg = this.canSend;
+        this.canReceiveRegularMsg = this.canReceive;
+        this.canSendRegularMsg = this.canSend;
+        this.sendSignatureHalf = this.signature.lowerHalf;
+        this.recvSignatureHalf = this.signature.lowerHalf;
         break;
 
       case yogi.CachedPublishSubscribeTerminal:
-        this.canReceivePublishMsg = this.canReceive;
-        this.canReceiveCachedPublishMsg = this.canReceive;
-        this.canSendPublishMsg = this.canSend;
+        this.canReceiveRegularMsg = this.canReceive;
+        this.canReceiveCachedRegularMsg = this.canReceive;
+        this.canSendRegularMsg = this.canSend;
+        this.sendSignatureHalf = this.signature.lowerHalf;
+        this.recvSignatureHalf = this.signature.lowerHalf;
         break;
 
       case yogi.ScatterGatherTerminal:
@@ -71,55 +74,73 @@ export class TerminalControlComponent implements OnInit {
         this.canReceiveGatherMsg = this.canSend;
         this.canSendScatterMsg = this.canSend;
         this.canSendGatherMsg = this.canReceive;
+        this.sendSignatureHalf = this.signature.upperHalf;
+        this.recvSignatureHalf = this.signature.lowerHalf;
         break;
 
       case yogi.ProducerTerminal:
-        this.canSendPublishMsg = this.canSend;
+        this.canSendRegularMsg = this.canSend;
+        this.sendSignatureHalf = this.signature.lowerHalf;
         break;
 
       case yogi.ConsumerTerminal:
-        this.canReceivePublishMsg = this.canReceive;
+        this.canReceiveRegularMsg = this.canReceive;
+        this.recvSignatureHalf = this.signature.lowerHalf;
         break;
 
       case yogi.CachedProducerTerminal:
-        this.canSendPublishMsg = this.canSend;
+        this.canSendRegularMsg = this.canSend;
+        this.sendSignatureHalf = this.signature.lowerHalf;
         break;
 
       case yogi.CachedConsumerTerminal:
-        this.canReceivePublishMsg = this.canReceive;
-        this.canReceiveCachedPublishMsg = this.canReceive;
+        this.canReceiveRegularMsg = this.canReceive;
+        this.canReceiveCachedRegularMsg = this.canReceive;
+        this.recvSignatureHalf = this.signature.lowerHalf;
         break;
 
       case yogi.MasterTerminal:
-        this.canReceivePublishMsg = this.canReceive;
-        this.canSendPublishMsg = this.canSend;
+        this.canReceiveRegularMsg = this.canReceive;
+        this.canSendRegularMsg = this.canSend;
+        this.sendSignatureHalf = this.signature.upperHalf;
+        this.recvSignatureHalf = this.signature.lowerHalf;
         break;
 
       case yogi.SlaveTerminal:
-        this.canReceivePublishMsg = this.canReceive;
-        this.canSendPublishMsg = this.canSend;
+        this.canReceiveRegularMsg = this.canReceive;
+        this.canSendRegularMsg = this.canSend;
+        this.sendSignatureHalf = this.signature.lowerHalf;
+        this.recvSignatureHalf = this.signature.upperHalf;
         break;
 
       case yogi.CachedMasterTerminal:
-        this.canReceivePublishMsg = this.canReceive;
-        this.canReceiveCachedPublishMsg = this.canReceive;
-        this.canSendPublishMsg = this.canSend;
+        this.canReceiveRegularMsg = this.canReceive;
+        this.canReceiveCachedRegularMsg = this.canReceive;
+        this.canSendRegularMsg = this.canSend;
+        this.sendSignatureHalf = this.signature.upperHalf;
+        this.recvSignatureHalf = this.signature.lowerHalf;
         break;
 
       case yogi.CachedSlaveTerminal:
-        this.canReceivePublishMsg = this.canReceive;
-        this.canReceiveCachedPublishMsg = this.canReceive;
-        this.canSendPublishMsg = this.canSend;
+        this.canReceiveRegularMsg = this.canReceive;
+        this.canReceiveCachedRegularMsg = this.canReceive;
+        this.canSendRegularMsg = this.canSend;
+        this.sendSignatureHalf = this.signature.lowerHalf;
+        this.recvSignatureHalf = this.signature.upperHalf;
         break;
 
       case yogi.ServiceTerminal:
         this.canReceiveScatterMsg = this.canReceive;
         this.canSendGatherMsg = this.canReceive;
+        this.sendSignatureHalf = this.signature.lowerHalf;
+        this.recvSignatureHalf = this.signature.upperHalf;
         break;
 
       case yogi.ClientTerminal:
         this.canSendScatterMsg = this.canSend;
         this.canReceiveGatherMsg = this.canSend;
+        this.sendSignatureHalf = this.signature.upperHalf;
+        this.recvSignatureHalf = this.signature.lowerHalf;
         break;
 
       default:
@@ -129,38 +150,31 @@ export class TerminalControlComponent implements OnInit {
 
   setupDummyVariablesAndMessages() {
     if (!this.signature.isCustom && !this.signature.isReserved) {
-      this.lastSendableUpperMsg = yogi.MessageFactory.createMessage(yogi.MessageType.Scatter,
-        this.signature);
-      this.dummyUpperValue = this.lastSendableUpperMsg.value;
+      let msgType = this.sendSignatureHalf.raw === this.signature.upperHalf.raw
+                  ? yogi.MessageType.Master
+                  : yogi.MessageType.Slave;
+      this.lastSendableMsg = yogi.MessageFactory.createMessage(msgType, this.signature);
+      this.dummySendableValue = this.lastSendableMsg.value;
 
-      this.lastSendableLowerMsg = yogi.MessageFactory.createMessage(yogi.MessageType.Publish,
-        this.signature);
-      this.dummyLowerValue = this.lastSendableLowerMsg.value;
-
-      if (this.signature.upperHalf.hasTimestamp) {
-        this.dummyUpperTimestamp = 0;
-      }
-
-      if (this.signature.lowerHalf.hasTimestamp) {
-        this.dummyLowerTimestamp = 0;
+      if (this.sendSignatureHalf.hasTimestamp) {
+        this.dummySendableTimestamp = 0;
       }
     }
     else {
-      this.lastSendableUpperMsg = new ByteBuffer(0);
-      this.lastSendableLowerMsg = new ByteBuffer(0);
+      this.lastSendableMsg = new ByteBuffer(0);
     }
   }
 
-  onPublishMessageChanged(change: Change) {
+  onRegularMessageChanged(change: Change) {
     for (let field in change) {
       if (change.hasOwnProperty(field)) {
-        this.lastSendableLowerMsg[field] = change[field];
+        this.lastSendableMsg[field] = change[field];
       }
     }
   }
 
   onSendButtonClicked() {
-    console.log(this.lastSendableLowerMsg);
-    this.sendPublishMessage.emit(this.lastSendableLowerMsg);
+    console.log(this.lastSendableMsg);
+    this.sendRegularMessage.emit(this.lastSendableMsg);
   }
 }
