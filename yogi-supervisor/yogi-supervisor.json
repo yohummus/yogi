@@ -1,0 +1,50 @@
+{
+  "yogi": {
+    "location": "/Device Watchers/%HOSTNAME%",
+    "connection": {
+      "target": "127.0.0.1:10000",
+      "timeout": null,
+      "identification": null
+    }
+  },
+  "logging": {
+    "stdout": {
+      "colourised": true,
+      "max-verbosity": "TRACE",
+      "component-verbosity": {
+        "App": "TRACE",
+        "Yogi": "INFO"
+      }
+    },
+    "yogi": {
+      "max-verbosity": "INFO",
+      "component-verbosity": {
+        "App": "DEBUG",
+        "Yogi": "INFO"
+      }
+    }
+  },
+  "constants": {
+    "HELLO": "Hello World!",
+    "ARNOLD": "Arnold said: %HELLO%",
+    "TMPDIR": "/tmp/device-watcher"
+  },
+  "device-groups": {
+    "fake-devices": {
+      "enabled": true,
+      "discovery-interval": 5.0,
+      "command-timeout": 5.0,
+      "logfile": "%TMPDIR%/%DEVICE_NAME%.log",
+      "commands": {
+        "startup": "rm -rf %TMPDIR% && mkdir %TMPDIR% && echo sleep 10s > %TMPDIR%/controller.sh",
+        "discovery": "ls %TMPDIR%/dev[0-9] || echo",
+        "validation": "grep Apple %DEVICE%",
+        "activation": "touch %DEVICE%.activated",
+        "execution": "echo executed > %DEVICE%.executed && sleep 8"
+      },
+      "restart-on-file-change": [
+        "%TMPDIR%/controller.sh"
+      ]
+    }
+  }
+}
