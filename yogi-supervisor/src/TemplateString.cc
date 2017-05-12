@@ -32,7 +32,7 @@ std::string TemplateString::value() const
 
 void TemplateString::resolve(const TemplateString& other)
 {
-    boost::replace_all(m_value, "%"s + other.name() + "%", other.value());
+    boost::replace_all(m_value, "${"s + other.name() + "}", other.value());
 }
 
 void TemplateString::resolve(const std::vector<TemplateString>& others)

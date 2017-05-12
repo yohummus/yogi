@@ -1,4 +1,6 @@
 #include "Supervisor.hh"
+#include "Service.hh"
+#include "DeviceGroup.hh"
 
 using namespace std::string_literals;
 
@@ -8,13 +10,13 @@ Supervisor::Supervisor()
 , m_signals(m_ios, SIGINT, SIGTERM)
 {
     extract_constants();
-    extract_device_groups();
+    extract_execution_units();
 }
 
 void Supervisor::run()
 {
     start_waiting_for_termination_signals();
-    start_device_groups();
+    start_execution_units();
 
     m_ios.run();
 }
@@ -55,12 +57,17 @@ template_string_vector Supervisor::extract_raw_constants()
     return rawConstants;
 }
 
-void Supervisor::extract_device_groups()
+void Supervisor::extract_execution_units()
 {
-    auto groupsChild = yogi::ProcessInterface::config().get_child("device-groups");
-    for (auto child : groupsChild) {
-        m_deviceGroups.emplace_back(std::make_unique<DeviceGroup>(m_ios, child.first, child.second, m_constants));
+    auto servicesChild = yogi::ProcessInterface::config().get_child("services");
+    for (auto child : servicesChild) {
+        m_executionUnits.emplace_back(std::make_unique<Service>(m_ios, child.first, child.second, m_constants));
     }
+
+    // auto deviceGroupsChild = yogi::ProcessInterface::config().get_child("device-groups");
+    // for (auto child : groupsChild) {
+    //     m_executionUnits.emplace_back(std::make_unique<DeviceGroup>(m_ios, child.first, child.second, m_constants));
+    // }
 }
 
 void Supervisor::start_waiting_for_termination_signals()
@@ -80,9 +87,9 @@ void Supervisor::on_termination_signal_received(int sig)
     m_ios.stop();
 }
 
-void Supervisor::start_device_groups()
+void Supervisor::start_execution_units()
 {
-    for (auto& group : m_deviceGroups) {
-        group->start();
+    for (auto& unit : m_executionUnits) {
+        unit->start();
     }
 }

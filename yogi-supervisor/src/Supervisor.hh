@@ -2,7 +2,7 @@
 #define SUPERVISOR_HH
 
 #include "TemplateString.hh"
-#include "DeviceGroup.hh"
+#include "ExecutionUnit.hh"
 
 #include <yogi.hpp>
 
@@ -23,14 +23,14 @@ private:
     boost::asio::signal_set       m_signals;
 
     template_string_vector        m_constants;
-    device_group_ptr_vector       m_deviceGroups;
+    execution_unit_ptr_vector     m_executionUnits;
 
     void extract_constants();
     template_string_vector extract_raw_constants();
-    void extract_device_groups();
+    void extract_execution_units();
     void start_waiting_for_termination_signals();
     void on_termination_signal_received(int sig);
-    void start_device_groups();
+    void start_execution_units();
 };
 
 #endif // SUPERVISOR_HH

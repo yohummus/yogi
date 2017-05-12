@@ -1,6 +1,6 @@
 {
   "yogi": {
-    "location": "/Device Watchers/%HOSTNAME%",
+    "location": "/Supervisors/${HOSTNAME}",
     "connection": {
       "target": "127.0.0.1:10000",
       "timeout": null,
@@ -25,25 +25,50 @@
     }
   },
   "constants": {
-    "HELLO": "Hello World!",
-    "ARNOLD": "Arnold said: %HELLO%",
-    "TMPDIR": "/tmp/device-watcher"
+    "TMP_DIR": "/tmp/yogi-supervisor",
+    "LOG_DIR": "${TMP_DIR}"
+  },
+  "defaults": {
+    "services": {
+      "enabled": true,
+      "logfile": "${LOG_DIR}/${SERVICE}.log",
+      "files-triggering-restart": [],
+      "startup-command": null,
+      "startup-timeout": 5.0,
+      "restart-delay": 10.0,
+      "execution-command": null
+    },
+    "device-groups": {
+      "enabled": true,
+      "logfile": "${LOG_DIR}/${DEVICE_GROUP}-${DEVICE_BASENAME}.log",
+      "restart-on-file-change": [],
+      "startup-command": null,
+      "startup-timeout": 5.0,
+      "discovery-command": null,
+      "discovery-interval": 5.0,
+      "discovery-timeout": 5.0,
+      "validation-command": null,
+      "validation-timeout": 5.0,
+      "activation-command": null,
+      "activation-timeout": 5.0,
+      "execution-command": null
+    }
+  },
+  "services": {
+    "fake-service": {
+      "startup-command": "rm -rf ${TMP_DIR} && mkdir ${TMP_DIR}; touch ${TMP_DIR}/${SERVICE}.started",
+      "execution-command": "sleep 8"
+    }
   },
   "device-groups": {
-    "fake-devices": {
-      "enabled": true,
-      "discovery-interval": 5.0,
-      "command-timeout": 5.0,
-      "logfile": "%TMPDIR%/%DEVICE_NAME%.log",
-      "commands": {
-        "startup": "rm -rf %TMPDIR% && mkdir %TMPDIR% && echo sleep 10s > %TMPDIR%/controller.sh",
-        "discovery": "ls %TMPDIR%/dev[0-9] || echo",
-        "validation": "grep Apple %DEVICE%",
-        "activation": "touch %DEVICE%.activated",
-        "execution": "echo executed > %DEVICE%.executed && sleep 8"
-      },
-      "restart-on-file-change": [
-        "%TMPDIR%/controller.sh"
+    "test-device-group": {
+      "startup-command": "rm -rf ${TMP_DIR} && mkdir ${TMP_DIR} && echo sleep 10s > ${TMP_DIR}/controller.sh",
+      "discovery-command": "ls ${TMP_DIR}/dev[0-9] || echo",
+      "validation-command": "grep Apple ${DEVICE}",
+      "activation-command": "touch ${DEVICE}.activated",
+      "execution-command": "echo executed > ${DEVICE}.executed && sleep 8",
+      "files-triggering-restart": [
+        "${TMP_DIR}/controller.sh"
       ]
     }
   }
