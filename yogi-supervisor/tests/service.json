@@ -57,19 +57,10 @@
   "services": {
     "fake-service": {
       "startup-command": "rm -rf ${TMP_DIR} && mkdir ${TMP_DIR}; touch ${TMP_DIR}/${SERVICE}.started",
-      "execution-command": "touch ${TMP_DIR}/${SERVICE}.executed"
+      "restart-delay": "0.1",
+      "execution-command": "touch ${TMP_DIR}/${SERVICE}.executed && sleep 0.5"
     }
   },
   "device-groups": {
-    "test-device-group": {
-      "startup-command": "rm -rf ${TMP_DIR} && mkdir ${TMP_DIR} && echo sleep 10s > ${TMP_DIR}/controller.sh",
-      "discovery-command": "ls ${TMP_DIR}/dev[0-9] || echo",
-      "validation-command": "grep Apple ${DEVICE}",
-      "activation-command": "touch ${DEVICE}.activated",
-      "execution-command": "echo executed > ${DEVICE}.executed && sleep 8",
-      "files-triggering-restart": [
-        "${TMP_DIR}/controller.sh"
-      ]
-    }
   }
 }

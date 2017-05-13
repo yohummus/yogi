@@ -13,14 +13,17 @@ public:
         const template_string_vector& constants);
 
 private:
-    std::chrono::milliseconds m_restartDelay;
-    command_ptr               m_executionCommand;
+    std::chrono::milliseconds   m_restartDelay;
+    command_ptr                 m_executionCommand;
+    boost::asio::deadline_timer m_restartTimer;
 
 protected:
     virtual void on_startup_command_finished_successfully() override;
 
 private:
     void read_configuration();
+    void run_execution_command();
+    void on_execution_command_finished(Command::exit_status_t exitStatus);
 };
 
 #endif // SERVICE_HH

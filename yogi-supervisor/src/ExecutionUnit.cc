@@ -41,10 +41,15 @@ void ExecutionUnit::start()
         }
         else {
             std::ostringstream oss;
-            oss << "Startup command for " << m_name << " exited with " << exitStatus;
+            oss << "Startup command for " << m_name << " exited with status " << exitStatus;
             throw std::runtime_error(oss.str());
         }
     });
+}
+
+const template_string_vector& ExecutionUnit::variables() const
+{
+    return m_variables;
 }
 
 void ExecutionUnit::set_variable(const std::string& name, const std::string& value)
@@ -116,7 +121,7 @@ void ExecutionUnit::run_command(const command_ptr& cmd, const template_string_ve
         completionHandler(Command::SUCCESS, {}, {});
         return;
     }
-    
+
     cmd->async_run(variables, [=, cmd = cmd.get()](auto exitStatus, auto& out, auto& err) {
         if (exitStatus == Command::SUCCESS) {
             YOGI_LOG_DEBUG("Successfully executed " << *cmd);
@@ -126,7 +131,7 @@ void ExecutionUnit::run_command(const command_ptr& cmd, const template_string_ve
             YOGI_LOG_ERROR("Error while executing " << *cmd << ": " << exitStatus);
             log_command_output(out, err, true);
         }
-        
+
         completionHandler(exitStatus, out, err);
     });
 }
@@ -136,7 +141,7 @@ void ExecutionUnit::log_command_output(const std::string& out, const std::string
     auto fn = [&](auto& type, auto& text) {
         std::vector<std::string> lines;
         if (!text.empty()) {
-            boost::split(lines, text, boost::is_any_of("\n"));    
+            boost::split(lines, text, boost::is_any_of("\n"));
         }
 
         std::ostringstream oss;
@@ -165,7 +170,7 @@ void ExecutionUnit::log_command_output(const std::string& out, const std::string
 void ExecutionUnit::read_configuration()
 {
     m_enabled = extract_bool("enabled");
-    
+
     if (m_enabled) {
         YOGI_LOG_DEBUG("Found enabled execution unit " << m_name);
     }
