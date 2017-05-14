@@ -24,7 +24,7 @@ void Service::read_configuration()
 void Service::run_execution_command()
 {
     YOGI_LOG_INFO("Starting execution command for " << name() << "...");
-    m_executionCommand->async_run(variables(), [=](auto exitStatus, auto& out, auto& err) {
+    m_executionCommand->async_run(variables(), logfile(), [=](auto exitStatus, auto& out, auto& err) {
        this->on_execution_command_finished(exitStatus);
     });
 }

@@ -7,10 +7,10 @@
 #include <boost/asio/signal_set.hpp>
 #include <boost/asio/posix/stream_descriptor.hpp>
 #include <boost/asio/deadline_timer.hpp>
-#include <ostream>
 #include <chrono>
 #include <functional>
 #include <memory>
+#include <fstream>
 
 
 class Command
@@ -35,6 +35,7 @@ public:
     const std::string& name() const;
     bool empty() const;
 
+    void async_run(const template_string_vector& variables, TemplateString logfile, completion_handler_fn fn);
     void async_run(const template_string_vector& variables, completion_handler_fn fn);
     void async_run(completion_handler_fn fn);
 
@@ -66,6 +67,7 @@ private:
     std::vector<char>                     m_childOutBuffer;
     std::vector<char>                     m_childErrBuffer;
     completion_handler_fn                 m_completionHandler;
+    std::ofstream                         m_logfile;
 };
 
 std::ostream& operator<< (std::ostream& os, const Command& cmd);

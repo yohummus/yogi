@@ -52,6 +52,11 @@ const template_string_vector& ExecutionUnit::variables() const
     return m_variables;
 }
 
+const TemplateString& ExecutionUnit::logfile() const
+{
+    return m_logfile;
+}
+
 void ExecutionUnit::set_variable(const std::string& name, const std::string& value)
 {
     for (auto& variable : m_variables) {

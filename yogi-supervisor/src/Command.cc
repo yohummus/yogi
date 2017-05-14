@@ -45,10 +45,25 @@ bool Command::empty() const
     return m_cmd.value().empty();
 }
 
-void Command::async_run(const template_string_vector& variables, completion_handler_fn fn)
+void Command::async_run(const template_string_vector& variables, TemplateString logfile, completion_handler_fn fn)
 {
     if (m_cmd.value().empty()) {
         throw std::runtime_error("Cannot run empty command");
+    }
+
+    if (m_logfile.is_open()) {
+        m_logfile.close();
+    }
+
+    if (!logfile.value().empty()) {
+        logfile.resolve(variables);
+        m_logfile.open(logfile.value(), std::ostream::out | std::ofstream::trunc);
+        if (m_logfile.is_open()) {
+            YOGI_LOG_DEBUG("Logging output of " << *this << " to " << logfile.value());
+        }
+        else {
+            YOGI_LOG_WARNING("Could not open/create " << logfile.value());
+        }
     }
 
     m_ios.notify_fork(boost::asio::io_service::fork_prepare);
@@ -66,7 +81,7 @@ void Command::async_run(const template_string_vector& variables, completion_hand
     if (m_childPid == 0) {
         m_ios.notify_fork(boost::asio::io_service::fork_child);
         YOGI_LOG_TRACE("Child process for " << *this << " created");
-        
+
         auto cmd = m_cmd;
         cmd.resolve(variables);
         YOGI_LOG_DEBUG("Executing " << *this << ": /bin/sh -c " << cmd.value());
@@ -79,7 +94,7 @@ void Command::async_run(const template_string_vector& variables, completion_hand
         dup2(m_errPipeWriteSd.native_handle(), STDERR_FILENO);
         close_pipe_sds();
 
-        setsid(); // create process group so we can kill all children that this command spawned via kill(-m_childPid, SIGTERM)     
+        setsid(); // create process group so we can kill all children that this command spawned via kill(-m_childPid, SIGTERM)
         execute_child_process(cmd.value());
     }
     // parent process
@@ -90,6 +105,11 @@ void Command::async_run(const template_string_vector& variables, completion_hand
         m_completionHandler = fn;
         start_child_monitoring();
     }
+}
+
+void Command::async_run(const template_string_vector& variables, completion_handler_fn fn)
+{
+    async_run(variables, TemplateString(), fn);
 }
 
 void Command::async_run(completion_handler_fn fn)
@@ -149,6 +169,11 @@ void Command::async_read_all(boost::asio::posix::stream_descriptor* sd, std::vec
 {
     sd->async_read_some(boost::asio::buffer(*buf), [=](auto& ec, auto bytesRead) {
         if (!ec) {
+            if (m_logfile.is_open()) {
+                m_logfile.write(buf->data(), buf->size());
+                m_logfile.flush();
+            }
+
             str->append(buf->begin(), buf->begin() + bytesRead);
             this->async_read_all(sd, buf, str);
         }

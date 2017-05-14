@@ -40,6 +40,7 @@ protected:
     virtual void on_startup_command_finished_successfully() =0;
 
     const template_string_vector& variables() const;
+    const TemplateString& logfile() const;
     void set_variable(const std::string& name, const std::string& value);
     bool extract_bool(const std::string& childName);
     std::chrono::milliseconds extract_duration(const std::string& childName);

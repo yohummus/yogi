@@ -32,5 +32,11 @@ class TestServices(Fixture):
         os.remove(file)
         self.assertTrue(self.wait_for(lambda: os.path.exists(file)))
 
+    def test_log_file(self):
+        self.start('service.json')
+        file = TMP_DIR + '/fake-service.log'
+        self.assertTrue(self.wait_for(lambda: os.path.exists(file)))
+        self.assertTrue(self.wait_for(lambda: os.stat(file).st_size > 0))
+
 if __name__ == '__main__':
     unittest.main()

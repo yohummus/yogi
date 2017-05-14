@@ -58,7 +58,7 @@
     "fake-service": {
       "startup-command": "rm -rf ${TMP_DIR} && mkdir ${TMP_DIR}; touch ${TMP_DIR}/${SERVICE}.started",
       "restart-delay": "0.1",
-      "execution-command": "touch ${TMP_DIR}/${SERVICE}.executed && sleep 0.5"
+      "execution-command": "touch ${TMP_DIR}/${SERVICE}.executed && echo hello && sleep 0.5"
     }
   },
   "device-groups": {
