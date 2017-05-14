@@ -80,17 +80,17 @@ class TestLogging(unittest.TestCase):
                         "colourised": true,
                         "max-verbosity": "DEBUG",
                         "component-verbosity": {
-                            "app"      : "ERROR",
-                            "cppyogi" : "FATAL",
-                            "test"     : "TRACE"
+                            "App"  : "ERROR",
+                            "Yogi" : "FATAL",
+                            "test" : "TRACE"
                         }
                     },
                     "yogi": {
                         "max-verbosity": "INFO",
                         "component-verbosity": {
-                            "app"      : "DEBUG",
-                            "cppyogi" : "INFO",
-                            "test"     : "WARNING"
+                            "App"  : "DEBUG",
+                            "Yogi" : "INFO",
+                            "test" : "WARNING"
                         }
                     }
                 }
@@ -104,14 +104,14 @@ class TestLogging(unittest.TestCase):
         self.assertTrue(yogi.Logger.colourised_stdout)
         self.assertIs(yogi.Verbosity.DEBUG, yogi.Logger.max_stdout_verbosity)
         self.assertIs(yogi.Verbosity.ERROR, yogi.Logger().stdout_verbosity)
-        self.assertIs(yogi.Verbosity.ERROR, yogi.Logger('app').stdout_verbosity)
-        self.assertIs(yogi.Verbosity.FATAL, yogi.Logger('cppyogi').stdout_verbosity)
+        self.assertIs(yogi.Verbosity.ERROR, yogi.Logger('App').stdout_verbosity)
+        self.assertIs(yogi.Verbosity.FATAL, yogi.Logger('Yogi').stdout_verbosity)
         self.assertIs(yogi.Verbosity.TRACE, yogi.Logger('test').stdout_verbosity)
 
         self.assertIs(yogi.Verbosity.INFO, yogi.Logger.max_yogi_verbosity)
         self.assertIs(yogi.Verbosity.DEBUG, yogi.Logger().yogi_verbosity)
-        self.assertIs(yogi.Verbosity.DEBUG, yogi.Logger('app').yogi_verbosity)
-        self.assertIs(yogi.Verbosity.INFO, yogi.Logger('cppyogi').yogi_verbosity)
+        self.assertIs(yogi.Verbosity.DEBUG, yogi.Logger('App').yogi_verbosity)
+        self.assertIs(yogi.Verbosity.INFO, yogi.Logger('Yogi').yogi_verbosity)
         self.assertIs(yogi.Verbosity.WARNING, yogi.Logger('test').yogi_verbosity)
 
         # check logging over YOGI
@@ -125,7 +125,7 @@ class TestLogging(unittest.TestCase):
                 self.assertEqual(yogi.Success(), res)
                 self.assertEqual('Hello', msg.value.first)
                 info = json.loads(msg.value.second)
-                self.assertEqual('app', info['component'])
+                self.assertEqual('App', info['component'])
                 self.assertEqual('FATAL', info['severity'])
                 self.assertGreater(info['thread'], 0)
 

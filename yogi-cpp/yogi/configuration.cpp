@@ -41,6 +41,7 @@ BadConfigurationFilePattern::BadConfigurationFilePattern(const std::string& patt
 struct ConfigurationChild::Implementation {
     std::shared_ptr<pt::ptree> root;
     const pt::ptree*           child;
+    bool                       valid;
 };
 
 struct ConfigurationChild::Iterator::Implementation {
@@ -131,6 +132,7 @@ ConfigurationChild::ConfigurationChild()
 {
     m_impl->root = std::make_shared<pt::ptree>();
     m_impl->child = &*m_impl->root;
+    m_impl->valid = false;
 }
 
 ConfigurationChild::ConfigurationChild(const ConfigurationChild& other)
@@ -164,6 +166,10 @@ ConfigurationChild& ConfigurationChild::operator= (ConfigurationChild&& other)
     template<>                                                          \
     Optional<type> ConfigurationChild::get_value_optional<type>() const \
     {                                                                   \
+        if (!m_impl->valid) {                                           \
+            return Optional<type>();                                    \
+        }                                                               \
+                                                                        \
         auto val = m_impl->child->get_value_optional<type>();           \
         return val ? Optional<type>(*val) : Optional<type>();           \
     }
@@ -205,6 +211,10 @@ ConfigurationChild ConfigurationChild::get_child(const std::string& path, const 
 
 Optional<ConfigurationChild> ConfigurationChild::get_child_optional(const std::string& path) const
 {
+    if (!m_impl->valid) {
+        return Optional<ConfigurationChild>();
+    }
+
     auto ptree = m_impl->child->get_child_optional(path);
     if (!ptree) {
         return Optional<ConfigurationChild>();
@@ -236,6 +246,7 @@ ConfigurationChild::Iterator ConfigurationChild::begin() const
     ConfigurationChild child;
     child.m_impl->root  = m_impl->root;
     child.m_impl->child = &ptreeIt->second;
+    child.m_impl->valid = true;
 
     Iterator it;
     it.m_impl->iterator = ptreeIt;
@@ -258,6 +269,8 @@ std::string ConfigurationChild::to_string() const
 {
     std::stringstream ss;
     pt::write_json(ss, *m_impl->root);
+    // TODO: using m_impl->child does not work because boost throws the following runtime error:
+    //       ERROR: <unspecified file>: ptree contains data that cannot be represented in JSON format
     return ss.str();
 }
 
@@ -286,6 +299,7 @@ Configuration::Configuration(int argc, const char* const argv[], bool configFile
 
     try {
         *ConfigurationChild::m_impl->root = internal::parse_json_files(configFiles);
+        ConfigurationChild::m_impl->valid = true;
     }
     catch (const std::exception& e) {
         throw BadConfiguration(e.what());

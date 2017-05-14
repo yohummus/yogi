@@ -193,7 +193,7 @@ Logger::Logger()
 Logger::Logger(const std::string& component)
 {
     std::lock_guard<std::mutex> lock(ms_verbositiesMutex);
-    auto res = ms_verbosities.insert(std::pair<std::string, VerbosityInfo>(component.empty() ? "app"s : component, VerbosityInfo{}));
+    auto res = ms_verbosities.insert(std::pair<std::string, VerbosityInfo>(component.empty() ? "App"s : component, VerbosityInfo{}));
     m_component   = &res.first->first;
     m_verbosities = &res.first->second;
 

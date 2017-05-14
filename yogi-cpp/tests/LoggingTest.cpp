@@ -148,17 +148,17 @@ TEST_F(LoggingTest, ProcessInterface)
                         "colourised": true,
                         "max-verbosity": "DEBUG",
                         "component-verbosity": {
-                            "app"      : "ERROR",
-                            "yogi" : "FATAL",
-                            "test"     : "TRACE"
+                            "App"  : "ERROR",
+                            "Yogi" : "FATAL",
+                            "test" : "TRACE"
                         }
                     },
                     "yogi": {
                         "max-verbosity": "INFO",
                         "component-verbosity": {
-                            "app"      : "DEBUG",
-                            "yogi" : "INFO",
-                            "test"     : "WARNING"
+                            "App"  : "DEBUG",
+                            "Yogi" : "INFO",
+                            "test" : "WARNING"
                         }
                     }
                 }
@@ -171,14 +171,14 @@ TEST_F(LoggingTest, ProcessInterface)
     EXPECT_TRUE(Logger::colourised_stdout());
     EXPECT_EQ(verbosity::DEBUG, Logger::max_stdout_verbosity());
     EXPECT_EQ(verbosity::ERROR, Logger().stdout_verbosity());
-    EXPECT_EQ(verbosity::ERROR, Logger("app").stdout_verbosity());
-    EXPECT_EQ(verbosity::FATAL, Logger("yogi").stdout_verbosity());
+    EXPECT_EQ(verbosity::ERROR, Logger("App").stdout_verbosity());
+    EXPECT_EQ(verbosity::FATAL, Logger("Yogi").stdout_verbosity());
     EXPECT_EQ(verbosity::TRACE, Logger("test").stdout_verbosity());
 
     EXPECT_EQ(verbosity::INFO, Logger::max_yogi_verbosity());
     EXPECT_EQ(verbosity::DEBUG, Logger().yogi_verbosity());
-    EXPECT_EQ(verbosity::DEBUG, Logger("app").yogi_verbosity());
-    EXPECT_EQ(verbosity::INFO, Logger("yogi").yogi_verbosity());
+    EXPECT_EQ(verbosity::DEBUG, Logger("App").yogi_verbosity());
+    EXPECT_EQ(verbosity::INFO, Logger("Yogi").yogi_verbosity());
     EXPECT_EQ(verbosity::WARNING, Logger("test").yogi_verbosity());
 
     // check logging over YOGI

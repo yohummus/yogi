@@ -131,7 +131,7 @@ class Logger:
             print(seq, end='')
 
     def __init__(self, component: Optional[str] = None):
-        self._component = component if component else 'app'
+        self._component = component if component else 'App'
         if self._component not in self._loggerVerbosities:
             self._verbosities = Verbosities()
             self._loggerVerbosities[self._component] = self._verbosities
@@ -225,7 +225,7 @@ class Logger:
 
 
 Logger._app_logger = Logger()
-Logger._yogi_logger = Logger('yogi')
+Logger._yogi_logger = Logger('Yogi')
 
 
 def log(verbosity: Verbosity, *args):

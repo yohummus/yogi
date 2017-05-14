@@ -152,6 +152,7 @@ TEST_F(ConfigurationTest, AccessConfiguration)
     EXPECT_THROW(cfg.get<int>("yogi.connection.something.that.does.not.exist"), BadConfigurationPath);
     EXPECT_THROW(cfg.get<int>("yogi.connection.target"), BadConfigurationDataAccess);
     EXPECT_THROW(cfg.get<int>("yogi.connection"), BadConfigurationDataAccess);
+    EXPECT_EQ("default", cfg.get<std::string>("yogi.connection.whatever", "default"));
 }
 
 TEST_F(ConfigurationTest, BadConfigurationFile)
