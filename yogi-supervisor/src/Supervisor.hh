@@ -3,6 +3,7 @@
 
 #include "TemplateString.hh"
 #include "ExecutionUnit.hh"
+#include "FileWatcher.hh"
 
 #include <yogi.hpp>
 
@@ -24,6 +25,8 @@ private:
 
     template_string_vector        m_constants;
     execution_unit_ptr_vector     m_executionUnits;
+
+    FileWatcher                   m_fileWatcher;
 
     void extract_constants();
     template_string_vector extract_raw_constants();

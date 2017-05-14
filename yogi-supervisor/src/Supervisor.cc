@@ -8,6 +8,7 @@ using namespace std::string_literals;
 Supervisor::Supervisor()
 : m_work(m_ios)
 , m_signals(m_ios, SIGINT, SIGTERM)
+, m_fileWatcher(m_ios)
 {
     extract_constants();
     extract_execution_units();
@@ -61,7 +62,8 @@ void Supervisor::extract_execution_units()
 {
     auto servicesChild = yogi::ProcessInterface::config().get_child("services");
     for (auto child : servicesChild) {
-        m_executionUnits.emplace_back(std::make_unique<Service>(m_ios, child.first, child.second, m_constants));
+        m_executionUnits.emplace_back(std::make_unique<Service>(m_ios, m_fileWatcher, child.first, child.second,
+            m_constants));
     }
 
     // auto deviceGroupsChild = yogi::ProcessInterface::config().get_child("device-groups");

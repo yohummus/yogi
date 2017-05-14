@@ -1,8 +1,8 @@
 #include "Service.hh"
 
-Service::Service(boost::asio::io_service& ios, std::string name,
+Service::Service(boost::asio::io_service& ios, FileWatcher& fileWatcher, std::string name,
     const yogi::ConfigurationChild& configChild, const template_string_vector& constants)
-: ExecutionUnit(ios, name, configChild, "defaults.services", constants)
+: ExecutionUnit(ios, fileWatcher, name, configChild, "defaults.services", constants)
 , m_restartTimer(ios)
 {
     read_configuration();
@@ -14,16 +14,23 @@ void Service::on_startup_command_finished_successfully()
     run_execution_command();
 }
 
+void Service::on_watched_file_changed()
+{
+    YOGI_LOG_INFO("Restarting execution command for " << name() << " due to file change");
+    m_executionCommand.reset();
+    run_execution_command();
+}
+
 void Service::read_configuration()
 {
     m_restartDelay = extract_duration("restart-delay");
-    m_executionCommand = extract_command("execution-command", std::chrono::milliseconds::max());
     check_command_not_empty("execution-command");
 }
 
 void Service::run_execution_command()
 {
     YOGI_LOG_INFO("Starting execution command for " << name() << "...");
+    m_executionCommand = extract_command("execution-command", std::chrono::milliseconds::max());
     m_executionCommand->async_run(variables(), logfile(), [=](auto exitStatus, auto& out, auto& err) {
        this->on_execution_command_finished(exitStatus);
     });

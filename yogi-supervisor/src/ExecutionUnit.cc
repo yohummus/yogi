@@ -7,10 +7,11 @@
 using namespace std::string_literals;
 
 
-ExecutionUnit::ExecutionUnit(boost::asio::io_service& ios, std::string name,
+ExecutionUnit::ExecutionUnit(boost::asio::io_service& ios, FileWatcher& fileWatcher, std::string name,
     const yogi::ConfigurationChild& configChild, std::string defaultsConfigChildName,
     const template_string_vector& constants)
 : m_ios(ios)
+, m_fileWatcher(fileWatcher)
 , m_name(name)
 , m_configChild(configChild)
 , m_defaultsConfigChild(yogi::ProcessInterface::config().get_child(defaultsConfigChildName))
@@ -35,9 +36,16 @@ void ExecutionUnit::start()
         return;
     }
 
+    check_command_not_empty("execution-command");
+    for (auto& file : m_filesTriggeringRestart) {
+        file.resolve(m_variables);
+        YOGI_LOG_INFO("Execution unit " << m_name << " will be restarted on changes to " << file);
+    }
+
     run_command(m_startupCommand, m_variables, [=](auto exitStatus, auto& out, auto& err) {
         if (exitStatus == Command::SUCCESS) {
             this->on_startup_command_finished_successfully();
+            this->start_watching_files();
         }
         else {
             std::ostringstream oss;
@@ -188,14 +196,6 @@ void ExecutionUnit::read_configuration()
     m_startupCommand = extract_command("startup-command", m_startupTimeout);
 
     extract_files_triggering_restart();
-
-    if (m_enabled) {
-        for (auto& file : m_filesTriggeringRestart) {
-            YOGI_LOG_INFO("Execution unit " << m_name << " will be restarted on changes to " << file);
-        }
-
-        check_command_not_empty("execution-command");
-    }
 }
 
 void ExecutionUnit::create_variables()
@@ -210,6 +210,15 @@ void ExecutionUnit::extract_files_triggering_restart()
         auto ts = TemplateString(file);
         ts.resolve(m_constants);
         m_filesTriggeringRestart.push_back(ts);
+    }
+}
+
+void ExecutionUnit::start_watching_files()
+{
+    for (auto& ts : m_filesTriggeringRestart) {
+        m_fileWatcher.watch_file(ts.value(), [=] {
+            this->on_watched_file_changed();
+        });
     }
 }
 

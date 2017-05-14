@@ -2,6 +2,7 @@
 #define SERVICE_HH
 
 #include "ExecutionUnit.hh"
+#include "FileWatcher.hh"
 
 #include <yogi.hpp>
 
@@ -9,8 +10,8 @@
 class Service : public ExecutionUnit
 {
 public:
-    Service(boost::asio::io_service& ios, std::string name, const yogi::ConfigurationChild& configChild,
-        const template_string_vector& constants);
+    Service(boost::asio::io_service& ios, FileWatcher& fileWatcher, std::string name,
+        const yogi::ConfigurationChild& configChild, const template_string_vector& constants);
 
 private:
     std::chrono::milliseconds   m_restartDelay;
@@ -19,6 +20,7 @@ private:
 
 protected:
     virtual void on_startup_command_finished_successfully() override;
+    virtual void on_watched_file_changed() override;
 
 private:
     void read_configuration();

@@ -3,6 +3,7 @@
 
 #include "TemplateString.hh"
 #include "Command.hh"
+#include "FileWatcher.hh"
 
 #include <yogi.hpp>
 
@@ -16,8 +17,9 @@
 class ExecutionUnit
 {
 public:
-    ExecutionUnit(boost::asio::io_service& ios, std::string name, const yogi::ConfigurationChild& configChild,
-        std::string defaultsConfigChildName, const template_string_vector& constants);
+    ExecutionUnit(boost::asio::io_service& ios, FileWatcher& fileWatcher, std::string name,
+        const yogi::ConfigurationChild& configChild, std::string defaultsConfigChildName,
+        const template_string_vector& constants);
     virtual ~ExecutionUnit();
 
     const std::string& name() const;
@@ -25,6 +27,7 @@ public:
 
 private:
     boost::asio::io_service&      m_ios;
+    FileWatcher&                  m_fileWatcher;
     std::string                   m_name;
     yogi::ConfigurationChild      m_configChild;
     yogi::ConfigurationChild      m_defaultsConfigChild;
@@ -38,6 +41,7 @@ private:
 
 protected:
     virtual void on_startup_command_finished_successfully() =0;
+    virtual void on_watched_file_changed() =0;
 
     const template_string_vector& variables() const;
     const TemplateString& logfile() const;
@@ -55,6 +59,7 @@ private:
     void read_configuration();
     void create_variables();
     void extract_files_triggering_restart();
+    void start_watching_files();
 };
 
 typedef std::unique_ptr<ExecutionUnit> execution_unit_ptr;
