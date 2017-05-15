@@ -12,6 +12,7 @@ class Service : public ExecutionUnit
 public:
     Service(boost::asio::io_service& ios, FileWatcher& fileWatcher, std::string name,
         const yogi::ConfigurationChild& configChild, const template_string_vector& constants);
+    virtual ~Service();
 
 private:
     std::chrono::milliseconds   m_restartDelay;

@@ -13,7 +13,7 @@
 #include <fstream>
 
 
-class Command
+class Command final : public std::enable_shared_from_this<Command>
 {
 public:
     enum exit_status_t {
@@ -22,6 +22,7 @@ public:
         FAILURE,
         TIMEOUT,
         CANCELED,
+        KILLED,
         STARTUP_FAILURE
     };
 
@@ -30,7 +31,7 @@ public:
 
     Command(boost::asio::io_service& ios, std::string name, std::chrono::milliseconds timeout,
         TemplateString cmd = {});
-    ~Command();
+    virtual ~Command();
 
     const std::string& name() const;
     bool empty() const;
@@ -38,6 +39,7 @@ public:
     void async_run(const template_string_vector& variables, TemplateString logfile, completion_handler_fn fn);
     void async_run(const template_string_vector& variables, completion_handler_fn fn);
     void async_run(completion_handler_fn fn);
+    void kill();
 
 private:
     void create_pipe(boost::asio::posix::stream_descriptor* readSd,
@@ -56,6 +58,7 @@ private:
     std::string                           m_name;
     std::chrono::milliseconds             m_timeout;
     bool                                  m_timedOut;
+    bool                                  m_killed;
     TemplateString                        m_cmd;
     int                                   m_childPid;
     boost::asio::posix::stream_descriptor m_outPipeReadSd;
@@ -73,6 +76,6 @@ private:
 std::ostream& operator<< (std::ostream& os, const Command& cmd);
 std::ostream& operator<< (std::ostream& os, const Command::exit_status_t& status);
 
-typedef std::unique_ptr<Command> command_ptr;
+typedef std::shared_ptr<Command> command_ptr;
 
 #endif // COMMAND_HH

@@ -46,9 +46,21 @@ class TestServices(Fixture):
         self.start('service_watch_file.json')
         self.assertTrue(self.wait_for(lambda: os.path.exists(executed_file)))
         os.remove(executed_file)
+
         with open(watched_file, 'w') as f:
             f.write('Test')
         self.assertTrue(self.wait_for(lambda: os.path.exists(executed_file)))
+        os.remove(executed_file)
+
+        os.remove(watched_file)
+        self.assertTrue(self.wait_for(lambda: os.path.exists(executed_file)))
+        os.remove(executed_file)
+
+        with open(watched_file, 'w') as f:
+            f.write('Test')
+        self.assertTrue(self.wait_for(lambda: os.path.exists(executed_file)))
+        os.remove(executed_file)
+        
 
 if __name__ == '__main__':
     unittest.main()

@@ -16,6 +16,8 @@ Command::Command(boost::asio::io_service& ios, std::string name, std::chrono::mi
 , m_timer(ios)
 , m_name(name)
 , m_timeout(timeout)
+, m_timedOut(false)
+, m_killed(false)
 , m_cmd(cmd)
 , m_childPid(0)
 , m_outPipeReadSd(ios)
@@ -31,8 +33,6 @@ Command::Command(boost::asio::io_service& ios, std::string name, std::chrono::mi
 
 Command::~Command()
 {
-    kill_child();
-    m_timer.cancel();
 }
 
 const std::string& Command::name() const
@@ -71,7 +71,7 @@ void Command::async_run(const template_string_vector& variables, TemplateString 
     m_childPid = fork();
     if (m_childPid == -1) {
         YOGI_LOG_ERROR("Could not fork() for " << *this);
-        m_ios.post([=]{
+        m_ios.post([=] {
             fn(STARTUP_FAILURE, {}, {});
         });
         return;
@@ -80,7 +80,7 @@ void Command::async_run(const template_string_vector& variables, TemplateString 
     // child process
     if (m_childPid == 0) {
         m_ios.notify_fork(boost::asio::io_service::fork_child);
-        YOGI_LOG_TRACE("Child process for " << *this << " created");
+        YOGI_LOG_TRACE("Child process for " << *this << " started");
 
         auto cmd = m_cmd;
         cmd.resolve(variables);
@@ -115,6 +115,14 @@ void Command::async_run(const template_string_vector& variables, completion_hand
 void Command::async_run(completion_handler_fn fn)
 {
     async_run({}, fn);
+}
+
+void Command::kill()
+{
+    kill_child();
+    m_timer.cancel();
+    m_outPipeReadSd.cancel();
+    m_errPipeReadSd.cancel();
 }
 
 void Command::create_pipe(boost::asio::posix::stream_descriptor* readSd,
@@ -167,7 +175,8 @@ void Command::start_child_monitoring()
 
 void Command::async_read_all(boost::asio::posix::stream_descriptor* sd, std::vector<char>* buf, std::string* str)
 {
-    sd->async_read_some(boost::asio::buffer(*buf), [=](auto& ec, auto bytesRead) {
+    auto self = shared_from_this();
+    sd->async_read_some(boost::asio::buffer(*buf), [=, self=self](auto& ec, auto bytesRead) {
         if (!ec) {
             if (m_logfile.is_open()) {
                 m_logfile.write(buf->data(), buf->size());
@@ -182,7 +191,8 @@ void Command::async_read_all(boost::asio::posix::stream_descriptor* sd, std::vec
 
 void Command::async_await_signal()
 {
-    m_signals.async_wait([=](auto& ec, int sig) {
+    auto self = shared_from_this();
+    m_signals.async_wait([=, self=self](auto& ec, int sig) {
         if (ec) {
             return;
         }
@@ -198,6 +208,10 @@ void Command::async_await_signal()
 
             if (WIFSIGNALED(status)) {
                 es = m_timedOut ? TIMEOUT : CANCELED;
+            }
+
+            if (m_killed && !m_timedOut) {
+                es = KILLED;
             }
 
             if (es == UNKNOWN) {
@@ -229,7 +243,8 @@ void Command::async_await_timeout()
 
     m_timer.expires_from_now(boost::posix_time::milliseconds(m_timeout.count()));
 
-    m_timer.async_wait([=](auto& ec) {
+    auto self = shared_from_this();
+    m_timer.async_wait([=, self=self](auto& ec) {
         if (!ec) {
             YOGI_LOG_WARNING("Process for " << *this << " timed out");
             this->kill_child();
@@ -240,10 +255,17 @@ void Command::async_await_timeout()
 
 void Command::kill_child()
 {
-    if (m_childPid) {
-        if (kill(-m_childPid, SIGTERM) == -1) {
-            YOGI_LOG_ERROR("Could not kill process (PID: " << m_childPid << ") for " << *this);
+    if (m_childPid && !m_killed) {
+        if (::kill(-m_childPid, SIGTERM) == -1) {
+            YOGI_LOG_TRACE("Could not kill process (PID: " << m_childPid << ") for " << *this << ". Trying again...");
+            
+            auto self = shared_from_this();
+            m_ios.post([=, self=self] {
+                this->kill_child();
+            });
         }
+
+        m_killed = true;
     }
 }
 
@@ -274,6 +296,10 @@ std::ostream& operator<< (std::ostream& os, const Command::exit_status_t& status
 
     case Command::CANCELED:
         str = "CANCELED";
+        break;
+
+    case Command::KILLED:
+        str = "KILLED";
         break;
 
     case Command::STARTUP_FAILURE:

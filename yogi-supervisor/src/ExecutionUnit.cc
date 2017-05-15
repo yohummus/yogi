@@ -23,6 +23,9 @@ ExecutionUnit::ExecutionUnit(boost::asio::io_service& ios, FileWatcher& fileWatc
 
 ExecutionUnit::~ExecutionUnit()
 {
+    if (m_startupCommand) {
+        m_startupCommand->kill();
+    }
 }
 
 const std::string& ExecutionUnit::name() const
@@ -104,7 +107,7 @@ command_ptr ExecutionUnit::extract_command(const std::string& childName, std::ch
     auto cmdName = childName + " command for " + m_name;
     auto ts = extract_string(childName);
 
-    return std::make_unique<Command>(m_ios, cmdName, timeout, ts);
+    return std::make_shared<Command>(m_ios, cmdName, timeout, ts);
 }
 
 void ExecutionUnit::check_command_not_empty(const std::string& cmdName)
@@ -216,7 +219,7 @@ void ExecutionUnit::extract_files_triggering_restart()
 void ExecutionUnit::start_watching_files()
 {
     for (auto& ts : m_filesTriggeringRestart) {
-        m_fileWatcher.watch_file(ts.value(), [=] {
+        m_fileWatcher.watch(ts.value(), [=](auto& filename, auto eventType) {
             this->on_watched_file_changed();
         });
     }

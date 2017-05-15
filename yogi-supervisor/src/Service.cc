@@ -9,6 +9,13 @@ Service::Service(boost::asio::io_service& ios, FileWatcher& fileWatcher, std::st
     set_variable("SERVICE", name);
 }
 
+Service::~Service()
+{
+    if (m_executionCommand) {
+        m_executionCommand->kill();
+    }
+}
+
 void Service::on_startup_command_finished_successfully()
 {
     run_execution_command();
@@ -17,7 +24,7 @@ void Service::on_startup_command_finished_successfully()
 void Service::on_watched_file_changed()
 {
     YOGI_LOG_INFO("Restarting execution command for " << name() << " due to file change");
-    m_executionCommand.reset();
+    m_executionCommand->kill();
     run_execution_command();
 }
 
@@ -38,7 +45,13 @@ void Service::run_execution_command()
 
 void Service::on_execution_command_finished(Command::exit_status_t exitStatus)
 {
-    YOGI_LOG_WARNING("Execution command for " << name() << " finished with status " << exitStatus);
+    if (exitStatus == Command::KILLED) {
+        YOGI_LOG_TRACE("Execution command for " << name() << " finished with status " << exitStatus);
+        return;
+    }
+    else {
+        YOGI_LOG_WARNING("Execution command for " << name() << " finished with status " << exitStatus);
+    }
 
     if (m_restartDelay != m_restartDelay.max()) {
         m_restartTimer.expires_from_now(boost::posix_time::milliseconds(m_restartDelay.count()));
