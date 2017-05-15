@@ -51,6 +51,7 @@ private:
 private:
     static std::string extract_directory(const std::string& pattern);
     static std::regex extract_filename_pattern(const std::string& pattern);
+    static std::string wildcard_pattern_to_basic_posix_grammar(std::string pattern);
     static event_type_t maskToEventType(std::uint32_t mask);
     int add_watch(const std::string& path, bool isDir);
     void start_async_read_some();

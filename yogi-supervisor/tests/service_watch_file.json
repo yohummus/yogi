@@ -60,7 +60,7 @@
       "restart-delay": "0.1",
       "execution-command": "touch ${TMP_DIR}/${SERVICE}.executed && sleep 1m",
       "files-triggering-restart": [
-        "/tmp/yogi-supervisor.${SERVICE}.watched"
+        "/tmp/yogi-super*or.${SERVICE}.wat??ed"
       ]
     }
   },

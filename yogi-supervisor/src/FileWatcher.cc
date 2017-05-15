@@ -1,6 +1,7 @@
 #include "FileWatcher.hh"
 
 #include <boost/filesystem.hpp>
+#include <boost/algorithm/string/replace.hpp>
 #include <sys/inotify.h>
 #include <string.h>
 #include <string>
@@ -51,7 +52,24 @@ std::string FileWatcher::extract_directory(const std::string& pattern)
 
 std::regex FileWatcher::extract_filename_pattern(const std::string& pattern)
 {
-    return std::regex(boost::filesystem::path(pattern).filename().native());
+    auto str = boost::filesystem::path(pattern).filename().native();
+    auto basicPosixStr = wildcard_pattern_to_basic_posix_grammar(str);
+    YOGI_LOG_TRACE("Translated wildcard pattern \"" << str << "\" to basic posix regex pattern \"" << basicPosixStr << "\"");
+
+    return std::regex(basicPosixStr, std::regex::basic);
+}
+
+std::string FileWatcher::wildcard_pattern_to_basic_posix_grammar(std::string pattern)
+{
+    boost::replace_all(pattern, "\\", "\\\\");
+    boost::replace_all(pattern, ".", "\\.");
+    boost::replace_all(pattern, "[", "\\[");
+    boost::replace_all(pattern, "*", ".*");
+    boost::replace_all(pattern, "^", "\\^");
+    boost::replace_all(pattern, "$", "\\$");
+    boost::replace_all(pattern, "?", ".");
+
+    return pattern;
 }
 
 FileWatcher::event_type_t FileWatcher::maskToEventType(std::uint32_t mask)
