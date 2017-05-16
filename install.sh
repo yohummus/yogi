@@ -31,6 +31,7 @@ PROJECTS=(
     yogi-python
     yogi-hub
     yogi-javascript
+    yogi-supervisor
 )
 
 function install_required_packages {
