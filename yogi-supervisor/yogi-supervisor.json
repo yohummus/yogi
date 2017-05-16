@@ -10,7 +10,7 @@
   "logging": {
     "stdout": {
       "colourised": true,
-      "max-verbosity": "TRACE",
+      "max-verbosity": "INFO",
       "component-verbosity": {
         "App": "TRACE",
         "Yogi": "INFO"

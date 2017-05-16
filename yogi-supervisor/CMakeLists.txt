@@ -22,10 +22,22 @@ include_directories (${Boost_INCLUDE_DIRS})
 include_directories (${PROTOBUF_INCLUDE_DIRS})
 file (GLOB_RECURSE src_files src/*.cc src/*.cpp src/*.hh src/*.hpp)
 
-#===== yogi-supervisor =====
+#===== build executable =====
 add_executable (yogi-supervisor ${src_files})
 target_link_libraries (yogi-supervisor yogi yogi_core ${Boost_LIBRARIES} ${PROTOBUF_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
 
+#===== tests =====
+enable_testing()
+
+file(GLOB_RECURSE files ${PROJECT_SOURCE_DIR}/tests/test_*.py)
+foreach(file ${files})
+    file(RELATIVE_PATH rel_file ${PROJECT_SOURCE_DIR} ${file})
+    get_filename_component(name ${file} NAME_WE)
+
+    add_test(NAME ${name} COMMAND python3 ${file})
+endforeach()
+
+#===== install =====
 install (
     TARGETS yogi-supervisor
     DESTINATION /usr/bin
