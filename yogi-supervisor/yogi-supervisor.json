@@ -25,8 +25,7 @@
     }
   },
   "constants": {
-    "TMP_DIR": "/tmp/yogi-supervisor",
-    "LOG_DIR": "${TMP_DIR}"
+    "LOG_DIR": "/var/log"
   },
   "defaults": {
     "services": {
@@ -35,41 +34,26 @@
       "files-triggering-restart": [],
       "startup-command": null,
       "startup-timeout": 5.0,
-      "restart-delay": 10.0,
-      "execution-command": null
+      "execution-command": null,
+      "restart-delay": 5.0
     },
     "device-groups": {
       "enabled": true,
-      "logfile": "${LOG_DIR}/${DEVICE_GROUP}-${DEVICE_BASENAME}.log",
-      "restart-on-file-change": [],
+      "logfile": "${LOG_DIR}/${DEVICE_GROUP}-${DEVICE_NAME}.log",
+      "files-triggering-restart": [],
+      "devices": "/dev/ttyUSB*",
       "startup-command": null,
       "startup-timeout": 5.0,
-      "discovery-command": null,
-      "discovery-interval": 5.0,
-      "discovery-timeout": 5.0,
       "validation-command": null,
       "validation-timeout": 5.0,
-      "activation-command": null,
-      "activation-timeout": 5.0,
-      "execution-command": null
+      "pre-execution-command": null,
+      "pre-execution-timeout": 5.0,
+      "execution-command": null,
+      "restart-delay": 5.0
     }
   },
   "services": {
-    "fake-service": {
-      "startup-command": "rm -rf ${TMP_DIR} && mkdir ${TMP_DIR}; touch ${TMP_DIR}/${SERVICE}.started",
-      "execution-command": "touch ${TMP_DIR}/${SERVICE}.executed"
-    }
   },
   "device-groups": {
-    "test-device-group": {
-      "startup-command": "rm -rf ${TMP_DIR} && mkdir ${TMP_DIR} && echo sleep 10s > ${TMP_DIR}/controller.sh",
-      "discovery-command": "ls ${TMP_DIR}/dev[0-9] || echo",
-      "validation-command": "grep Apple ${DEVICE}",
-      "activation-command": "touch ${DEVICE}.activated",
-      "execution-command": "echo executed > ${DEVICE}.executed && sleep 8",
-      "files-triggering-restart": [
-        "${TMP_DIR}/controller.sh"
-      ]
-    }
   }
 }
