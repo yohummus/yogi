@@ -15,7 +15,6 @@ public:
     virtual ~Service();
 
 private:
-    std::chrono::milliseconds   m_restartDelay;
     command_ptr                 m_executionCommand;
     boost::asio::deadline_timer m_restartTimer;
 
@@ -27,6 +26,8 @@ private:
     void read_configuration();
     void run_execution_command();
     void on_execution_command_finished(Command::exit_status_t exitStatus);
+    void start_restart_timer();
+    void on_restart_timer_timed_out();
 };
 
 #endif // SERVICE_HH

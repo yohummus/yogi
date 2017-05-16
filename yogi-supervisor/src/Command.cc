@@ -310,5 +310,6 @@ std::ostream& operator<< (std::ostream& os, const Command::exit_status_t& status
         str = "INVALID";
         break;
     }
+    
     return os << str;
 }

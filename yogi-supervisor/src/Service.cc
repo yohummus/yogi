@@ -30,8 +30,6 @@ void Service::on_watched_file_changed()
 
 void Service::read_configuration()
 {
-    m_restartDelay = extract_duration("restart-delay");
-    check_command_not_empty("execution-command");
 }
 
 void Service::run_execution_command()
@@ -47,18 +45,21 @@ void Service::on_execution_command_finished(Command::exit_status_t exitStatus)
 {
     if (exitStatus == Command::KILLED) {
         YOGI_LOG_TRACE("Execution command for " << name() << " finished with status " << exitStatus);
-        return;
     }
     else {
         YOGI_LOG_WARNING("Execution command for " << name() << " finished with status " << exitStatus);
+        start_restart_timer();
     }
+}
 
-    if (m_restartDelay != m_restartDelay.max()) {
-        m_restartTimer.expires_from_now(boost::posix_time::milliseconds(m_restartDelay.count()));
-        m_restartTimer.async_wait([=](auto& ec) {
-            if (!ec) {
-                this->run_execution_command();
-            }
-        });
-    }
+void Service::start_restart_timer()
+{
+    start_timer(m_restartTimer, restart_delay(), [=] {
+        this->on_restart_timer_timed_out();
+    });
+}
+
+void Service::on_restart_timer_timed_out()
+{
+    run_execution_command();
 }

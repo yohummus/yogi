@@ -1,0 +1,60 @@
+{
+  "yogi": {
+    "location": "/Supervisors/${HOSTNAME}",
+    "connection": {
+      "target": "127.0.0.1:10000",
+      "timeout": null,
+      "identification": null
+    }
+  },
+  "logging": {
+    "stdout": {
+      "colourised": true,
+      "max-verbosity": "TRACE",
+      "component-verbosity": {
+        "App": "TRACE",
+        "Yogi": "INFO"
+      }
+    },
+    "yogi": {
+      "max-verbosity": "INFO",
+      "component-verbosity": {
+        "App": "DEBUG",
+        "Yogi": "INFO"
+      }
+    }
+  },
+  "constants": {
+    "TMP_DIR": "/tmp/yogi-supervisor",
+    "LOG_DIR": "${TMP_DIR}"
+  },
+  "defaults": {
+    "services": {
+      "enabled": true,
+      "logfile": null,
+      "files-triggering-restart": [],
+      "startup-command": "touch ${TMP_DIR}/started",
+      "startup-timeout": 5.0,
+      "execution-command": "sleep 1m",
+      "restart-delay": 10.0
+    },
+    "device-groups": {
+      "enabled": true,
+      "logfile": null,
+      "files-triggering-restart": [],
+      "devices": "${TMP_DIR}/dev*",
+      "startup-command": "touch ${TMP_DIR}/started && touch ${TMP_DIR}/dev1 && echo valid > ${TMP_DIR}/dev2",
+      "startup-timeout": 5.0,
+      "validation-command": "grep valid ${DEVICE}",
+      "validation-timeout": 5.0,
+      "pre-execution-command": "touch ${TMP_DIR}/pre-executed.${DEVICE_NAME}",
+      "pre-execution-timeout": 5.0,
+      "execution-command": "touch ${TMP_DIR}/executed.${DEVICE_NAME} && sleep 1m",
+      "restart-delay": 10.0
+    }
+  },
+  "services": {
+  },
+  "device-groups": {
+  }
+}

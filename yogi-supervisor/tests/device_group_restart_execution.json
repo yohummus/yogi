@@ -1,0 +1,8 @@
+{
+  "device-groups": {
+    "fake-group": {
+      "restart-delay": 0.1,
+      "execution-command": "touch ${TMP_DIR}/executed.${DEVICE_NAME} && sleep 0.5s"
+    }
+  }
+}

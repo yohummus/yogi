@@ -66,10 +66,11 @@ void Supervisor::extract_execution_units()
             m_constants));
     }
 
-    // auto deviceGroupsChild = yogi::ProcessInterface::config().get_child("device-groups");
-    // for (auto child : groupsChild) {
-    //     m_executionUnits.emplace_back(std::make_unique<DeviceGroup>(m_ios, child.first, child.second, m_constants));
-    // }
+    auto deviceGroupsChild = yogi::ProcessInterface::config().get_child("device-groups");
+    for (auto child : deviceGroupsChild) {
+        m_executionUnits.emplace_back(std::make_unique<DeviceGroup>(m_ios, m_fileWatcher, child.first, child.second,
+            m_constants));
+    }
 }
 
 void Supervisor::start_waiting_for_termination_signals()

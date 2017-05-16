@@ -2,6 +2,7 @@
 
 #include <boost/filesystem.hpp>
 #include <boost/algorithm/string/replace.hpp>
+#include <boost/range/iterator_range.hpp>
 #include <sys/inotify.h>
 #include <string.h>
 #include <string>
@@ -27,14 +28,24 @@ FileWatcher::~FileWatcher()
     close(m_inotifyFd);
 }
 
-void FileWatcher::watch(const std::string& pattern, handler_fn handlerFn)
+void FileWatcher::watch(const std::string& pattern, handler_fn handlerFn, bool reportExistingFiles)
 {
     auto data = std::make_shared<watch_data_t>();
     data->directory       = extract_directory(pattern);
     data->filenamePattern = extract_filename_pattern(pattern);
-    data->directoryWd     = add_watch(data->directory, true);
     data->handlerFn       = handlerFn;
 
+    namespace fs = boost::filesystem;
+    if (reportExistingFiles) {
+        for (auto& entry : boost::make_iterator_range(fs::directory_iterator(data->directory))) {
+            if (does_filename_match_pattern(entry.path().filename().native(), data)) {
+                YOGI_LOG_DEBUG("Found existing matching file " << entry.path().native());
+                handlerFn(entry.path().native(), FILE_CREATED);
+            }
+        }
+    }
+    
+    data->directoryWd = add_watch(data->directory, true);
     YOGI_LOG_DEBUG("Watching directory " << data->directory << " (without subdirectories) for changes");
 
     m_watches[data->directoryWd].push_back(data);
@@ -72,7 +83,7 @@ std::string FileWatcher::wildcard_pattern_to_basic_posix_grammar(std::string pat
     return pattern;
 }
 
-FileWatcher::event_type_t FileWatcher::maskToEventType(std::uint32_t mask)
+FileWatcher::event_type_t FileWatcher::mask_to_event_type(std::uint32_t mask)
 {
     if (mask & IN_CLOSE_WRITE) {
         return FILE_MODIFIED;
@@ -127,7 +138,7 @@ void FileWatcher::on_data_read()
 
         auto watchIt = m_watches.find(event->wd);
         if (watchIt != m_watches.end()) {
-            auto eventType = maskToEventType(event->mask);
+            auto eventType = mask_to_event_type(event->mask);
             handle_event(watchIt->second, event->wd, event->name, eventType);
         }
 
@@ -137,11 +148,12 @@ void FileWatcher::on_data_read()
     start_async_read_some();
 }
 
-void FileWatcher::handle_event(const std::vector<watch_data_ptr>& dataVec, int wd, const std::string& path, event_type_t eventType)
+void FileWatcher::handle_event(const std::vector<watch_data_ptr>& dataVec, int wd, const std::string& filename, event_type_t eventType)
 {
     for (auto& data : dataVec) {
         bool logged = false;
-        if (does_path_match_pattern(path, data)) {
+        if (does_filename_match_pattern(filename, data)) {
+            auto path = data->directory + "/" + filename;
             if (!logged) {
                 switch (eventType) {
                 case FILE_CREATED:
@@ -165,13 +177,37 @@ void FileWatcher::handle_event(const std::vector<watch_data_ptr>& dataVec, int w
     }
 }
 
-bool FileWatcher::does_path_match_pattern(const std::string& path, const watch_data_ptr& data)
+bool FileWatcher::does_filename_match_pattern(const std::string& filename, const watch_data_ptr& data)
 {
-    if (boost::filesystem::is_directory(path)) {
+    if (boost::filesystem::is_directory(data->directory + "/" + filename)) {
         return false;
     }
     else {
         std::smatch m;
-        return std::regex_match(path, m, data->filenamePattern);
+        return std::regex_match(filename, m, data->filenamePattern);
     }
+}
+
+std::ostream& operator<< (std::ostream& os, const FileWatcher::event_type_t& eventType)
+{
+    const char* str;
+    switch (eventType) {
+    case FileWatcher::FILE_CREATED:
+        str = "FILE_CREATED";
+        break;
+
+    case FileWatcher::FILE_DELETED:
+        str = "FILE_DELETED";
+        break;
+
+    case FileWatcher::FILE_MODIFIED:
+        str = "FILE_MODIFIED";
+        break;
+
+    default:
+        str = "INVALID";
+        break;
+    }
+
+    return os << str;
 }

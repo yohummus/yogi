@@ -1,346 +1,187 @@
 #include "DeviceGroup.hh"
 
-#include <boost/algorithm/string.hpp>
-
-#include <istream>
-#include <algorithm>
+#include <boost/filesystem.hpp>
 using namespace std::string_literals;
 
 
-DeviceGroup::DeviceGroup(boost::asio::io_service& ios, std::string name,
+DeviceGroup::DeviceGroup(boost::asio::io_service& ios, FileWatcher& fileWatcher, std::string name,
     const yogi::ConfigurationChild& configChild, const template_string_vector& constants)
-: m_ios(ios)
-, m_discoveryTimer(ios)
-, m_name(name)
-, m_configChild(configChild)
-, m_constants(constants)
-, m_phase(STARTUP_PHASE)
+: ExecutionUnit(ios, fileWatcher, name, configChild, "defaults.device-groups", constants)
 {
     read_configuration();
+    set_variable("DEVICE_GROUP", name);
 }
 
-const std::string& DeviceGroup::name() const
+DeviceGroup::~DeviceGroup()
 {
-    return m_name;
+    kill_active_commands();
+    kill_active_timers();
 }
 
-void DeviceGroup::start()
+void DeviceGroup::on_startup_command_finished_successfully()
 {
-    run_command(m_startupCommand, {}, [=](auto exitStatus, auto& out, auto& err) {
-        this->on_startup_command_finished(exitStatus, out, err);
-    });
+    start_watching_devices();
+}
+
+void DeviceGroup::on_watched_file_changed()
+{
 }
 
 void DeviceGroup::read_configuration()
 {
-    m_enabled = m_configChild.get<bool>("enabled");
+    m_devices = extract_string("devices");
+    if (m_devices.value().empty()) {
+        throw std::runtime_error("Option 'devices' for "s + name() + " is not set");
+    }
+
+    namespace fs = boost::filesystem;
+    auto dir = fs::path(m_devices.value()).parent_path();
+    if (!fs::exists(dir) || !fs::is_directory(dir)) {
+        throw std::runtime_error("Device directory "s + dir.native() + " for " + name() + " does not exist");
+    }
+
+    m_validationTimeout = extract_duration("validation-timeout");
+    m_preExecutionTimeout = extract_duration("pre-execution-timeout");
+}
+
+void DeviceGroup::start_watching_devices()
+{
+    file_watcher().watch(m_devices.value(), [=](auto& filename, auto eventType) {
+        this->on_device_file_changed(filename, eventType);
+    }, true);
+}
+
+void DeviceGroup::on_device_file_changed(const std::string& filename, FileWatcher::event_type_t eventType)
+{
+    if (eventType == FileWatcher::FILE_CREATED) {
+        YOGI_LOG_INFO("Found new device " << filename << " for " << name());
+
+        auto vars = make_variables_for_device(filename);
+        run_validation_command(filename, vars);
+    }
+    else if (eventType == FileWatcher::FILE_DELETED) {
+        YOGI_LOG_INFO("Device " << filename << " for " << name() << " has been removed");
+    }
+}
+
+void DeviceGroup::run_validation_command(const std::string& device, template_string_vector_ptr vars)
+{
+    YOGI_LOG_INFO("Starting validation command on " << device << " for " << name() << "...");
     
-    if (m_enabled) {
-        YOGI_LOG_DEBUG("Found enabled device group " << m_name);
+    auto cmd = extract_command("validation-command", m_validationTimeout);
+    m_activeCommands.insert(cmd);
+    
+    run_command(cmd, *vars, [=](auto exitStatus, auto& out, auto& err) {
+        this->on_validation_command_finished(exitStatus, device, vars);
+        m_activeCommands.erase(cmd);
+    }, false);
+}
+
+void DeviceGroup::on_validation_command_finished(Command::exit_status_t exitStatus,
+    const std::string& device, template_string_vector_ptr vars)
+{
+    if (exitStatus == Command::SUCCESS) {
+        YOGI_LOG_INFO("Successfully validated " << device << " for " << name());
+        run_pre_execution_command(device, vars);
     }
     else {
-        YOGI_LOG_DEBUG("Found disabled device group " << m_name);
+        YOGI_LOG_INFO("Validation of " << device << " for " << name() << " failed");
     }
+}
 
-    m_discoveryInterval = extract_duration("discovery-interval");
-    m_commandTimeout = extract_duration("command-timeout");
-    m_logfile = extract_string("logfile");
-    extract_files_monitored_for_changes();
-
-    if (m_enabled) {
-        if (m_discoveryInterval == std::chrono::milliseconds::max()) {
-            YOGI_LOG_INFO("Device group " << m_name << " enabled without a discovery interval");
+void DeviceGroup::run_pre_execution_command(const std::string& device, template_string_vector_ptr vars)
+{
+    YOGI_LOG_INFO("Starting pre-execution command on " << device << " for " << name() << "...");
+    
+    auto cmd = extract_command("pre-execution-command", m_preExecutionTimeout);
+    m_activeCommands.insert(cmd);
+    
+    run_command(cmd, *vars, [=](auto exitStatus, auto& out, auto& err) {
+        if (exitStatus == Command::KILLED) {
+            YOGI_LOG_TRACE("Pre-execution command on " << device << " for " << this->name() << " finished with status " << exitStatus);
+        }
+        else if (exitStatus == Command::SUCCESS) {
+            this->on_pre_execution_command_succeeded(device, vars);
         }
         else {
-            YOGI_LOG_INFO("Device group " << m_name << " enabled with a discovery interval of "
-                << m_discoveryInterval.count() << " ms");
+            YOGI_LOG_ERROR("Pre-execution common on " << device << " for " << this->name() << " failed with status " << exitStatus);
+            this->start_restart_timer(device, vars);
         }
-        
-        for (auto& file : m_filesMonitoredForChanges) {
-            YOGI_LOG_INFO("Device group " << m_name << " will be restarted on changes to " << file);
-        }
-    }
-
-    m_startupCommand = extract_command("startup", m_commandTimeout);
-    m_discoveryCommand = extract_command("discovery", m_commandTimeout);
-
-    check_command_not_empty("discovery");
-    check_command_not_empty("execution");
+        m_activeCommands.erase(cmd);
+    });
 }
 
-std::chrono::milliseconds DeviceGroup::extract_duration(const std::string& childName)
+void DeviceGroup::on_pre_execution_command_succeeded(const std::string& device, template_string_vector_ptr vars)
 {
-    auto val = m_configChild.get<float>(childName);
-    auto ms = static_cast<int>(val * 1000);
-
-    if (ms == -1) {
-        return std::chrono::milliseconds::max();
-    }
-
-    if (ms < 100) {
-        throw std::runtime_error("Invalid value "s + std::to_string(val) + " in " + m_name + "." + childName
-            + ". The minimum value is 0.1. Use -1 for infinity.");
-    }
-
-    return std::chrono::milliseconds(ms);
+    run_execution_command(device, vars);
 }
 
-TemplateString DeviceGroup::extract_string(const std::string& childName)
+void DeviceGroup::run_execution_command(const std::string& device, template_string_vector_ptr vars)
 {
-    auto val = m_configChild.get<std::string>(childName, "");
-    auto name = childName.rfind('.') == std::string::npos ? childName : childName.substr(childName.rfind('.') + 1);
-    auto ts = TemplateString(name, val);
-    ts.resolve(m_constants);
-    return ts;
-}
-
-command_ptr DeviceGroup::extract_command(const std::string& childName, std::chrono::milliseconds timeout)
-{
-    auto cmdName = childName + " command for " + m_name;
-    auto ts = extract_string("commands."s + childName);
-
-    return std::make_unique<Command>(m_ios, cmdName, timeout, ts);
-}
-
-void DeviceGroup::check_command_not_empty(const std::string& cmdName)
-{
-    auto ts = extract_string("commands."s + cmdName);
-    if (ts.value().empty()) {
-        std::ostringstream oss;
-        oss << "Command " << *this << ".commands." << cmdName << " is not set";
-        throw std::runtime_error(oss.str());
-    }
-}
-
-void DeviceGroup::extract_files_monitored_for_changes()
-{
-    for (auto child : m_configChild.get_child("restart-on-file-change")) {
-        auto file = child.second.get_value<std::string>();
-        auto ts = TemplateString(file);
-        ts.resolve(m_constants);
-        m_filesMonitoredForChanges.push_back(ts);
-    }
-}
-
-void DeviceGroup::run_command(const command_ptr& cmd, const template_string_vector& variables,
-    std::function<void (Command::exit_status_t, const std::string&, const std::string&)> completionHandler)
-{
-    if (cmd->empty()) {
-        YOGI_LOG_TRACE("Skipping " << *cmd << " since the command is unset");
-        completionHandler(Command::SUCCESS, {}, {});
-        return;
-    }
+    YOGI_LOG_INFO("Starting execution command on " << device << " for " << name() << "...");
     
-    cmd->async_run(variables, [=, cmd = cmd.get()](auto exitStatus, auto& out, auto& err) {
+    auto cmd = extract_command("execution-command", std::chrono::milliseconds::max());
+    m_activeCommands.insert(cmd);
+    
+    auto log = logfile();
+    log.resolve(*vars);
+
+    cmd->async_run(*vars, log, [=](auto exitStatus, auto& out, auto& err) {
+        this->on_execution_command_finished(exitStatus, device, vars);
+        m_activeCommands.erase(cmd);
+    });
+}
+
+void DeviceGroup::on_execution_command_finished(Command::exit_status_t exitStatus,
+    const std::string& device, template_string_vector_ptr vars)
+{
+    if (exitStatus == Command::KILLED) {
+        YOGI_LOG_TRACE("Execution command on " << device << " for " << name() << " finished with status " << exitStatus);
+    }
+    else {
+        std::ostringstream ss;
+        ss << "Execution command on " << device << " for " << name() << " finished with status " << exitStatus;
         if (exitStatus == Command::SUCCESS) {
-            YOGI_LOG_DEBUG("Successfully executed " << *cmd);
-            log_command_output(out, err, false);
+            YOGI_LOG_WARNING(ss.str());
         }
         else {
-            YOGI_LOG_ERROR("Error while executing " << *cmd << ": " << exitStatus);
-            log_command_output(out, err, true);
+            YOGI_LOG_ERROR(ss.str());
         }
-        
-        completionHandler(exitStatus, out, err);
-});
-}
 
-void DeviceGroup::async_execute_discovery_phase_after_timeout()
-{
-    m_phase = IDLE_PHASE;
-    if (m_discoveryInterval == std::chrono::milliseconds::max()) {
-        YOGI_LOG_INFO("No discovery interval set for " << *this << " => no more devices will be discovered");
-    }
-    else {
-        YOGI_LOG_TRACE("Sleeping before executing discovery phase for " << *this << "...");
-        m_discoveryTimer.expires_from_now(boost::posix_time::milliseconds(m_discoveryInterval.count()));
-        m_discoveryTimer.async_wait([=](auto& ec) {
-            if (!ec) {
-                this->execute_discovery_phase();
-            }
-        });
+        start_restart_timer(device, vars);
     }
 }
 
-void DeviceGroup::on_startup_command_finished(Command::exit_status_t exitStatus,
-    const std::string& out, const std::string& err)
+void DeviceGroup::start_restart_timer(const std::string& device, template_string_vector_ptr vars)
 {
-    execute_discovery_phase();
-}
-
-void DeviceGroup::execute_discovery_phase()
-{
-    m_phase = DISCOVERY_PHASE;
-    run_command(m_discoveryCommand, {}, [=](auto exitStatus, auto& out, auto& err) {
-        this->on_discovery_command_finished(exitStatus, out, err);
+    auto timer = std::make_shared<boost::asio::deadline_timer>(io_service());
+    start_timer(*timer, restart_delay(), [=, timer=timer] {
+        run_pre_execution_command(device, vars);
     });
 }
 
-void DeviceGroup::on_discovery_command_finished(Command::exit_status_t exitStatus,
-    const std::string& out, const std::string& err)
+template_string_vector_ptr DeviceGroup::make_variables_for_device(const std::string& device)
 {
-    if (exitStatus != Command::SUCCESS) {
-        async_execute_discovery_phase_after_timeout();
-    }
-    else {
-        auto devices = parse_devices(out);
-        YOGI_LOG_TRACE("Discovered " << devices.size() << " devices for " << *this << ":");
-        for (auto& device : devices) {
-            YOGI_LOG_TRACE(device);
-        }
-
-        for (auto& device : devices) {
-            if (m_usedDevices.emplace(std::make_pair(device, command_ptr())).second) {
-                execute_validation(device);
-            }
-        }
-
-        async_execute_discovery_phase_after_timeout();
-    }
+    auto vars = std::make_shared<template_string_vector>(variables());
+    vars->push_back(TemplateString("DEVICE", device));
+    vars->push_back(TemplateString("DEVICE_NAME", boost::filesystem::path(device).filename().native()));
+    return vars;
 }
 
-void DeviceGroup::execute_validation(const std::string& device)
+void DeviceGroup::kill_active_commands()
 {
-    command_ptr& cmd = m_usedDevices[device];
-    cmd = extract_command("validation", m_commandTimeout);
+    for (auto& cmd : m_activeCommands) {
+        cmd->kill();
+    }
 
-    if (cmd->empty()) {
-        YOGI_LOG_TRACE("Skipping " << *cmd << " since the command is unset");
-        execute_activation(device);
-    }
-    else {
-        cmd->async_run(make_device_variables(device), [=](auto exitStatus, auto& out, auto& err) {
-            this->on_validation_command_finished(device, exitStatus, out, err);
-        });
-    }
+    m_activeCommands.clear();
 }
 
-void DeviceGroup::on_validation_command_finished(const std::string& device, Command::exit_status_t exitStatus,
-    const std::string& out, const std::string& err)
+void DeviceGroup::kill_active_timers()
 {
-    if (exitStatus == Command::SUCCESS) {
-        YOGI_LOG_DEBUG("Device " << device << " successfully validated for " << *this);
-        this->log_command_output(out, err, false);
-        execute_activation(device);
-    }
-    else {
-        if (exitStatus == Command::FAILURE) {
-            YOGI_LOG_TRACE("Device " << device << " validated unsuccessfully for " << *this);
-            this->log_command_output(out, err, false);
-        }
-        else {
-            command_ptr& cmd = m_usedDevices[device];
-            YOGI_LOG_ERROR("Error while running " << *cmd << ": " << exitStatus);
-            this->log_command_output(out, err, true);
-        }
-
-        m_usedDevices.erase(device);
-    }
-}
-
-void DeviceGroup::execute_activation(const std::string& device)
-{
-    command_ptr& cmd = m_usedDevices[device];
-    cmd = extract_command("activation", m_commandTimeout);
-
-    run_command(cmd, make_device_variables(device), [=](auto exitStatus, auto& out, auto& err) {
-        this->on_activation_command_finished(device, exitStatus, out, err);
-    });
-}
-
-void DeviceGroup::on_activation_command_finished(const std::string& device, Command::exit_status_t exitStatus,
-    const std::string& out, const std::string& err)
-{
-    if (exitStatus == Command::SUCCESS) {
-        execute_execution(device);
-    }
-    else {
-        m_usedDevices.erase(device);
-    }
-}
-
-void DeviceGroup::execute_execution(const std::string& device)
-{
-    command_ptr& cmd = m_usedDevices[device];
-    cmd = extract_command("execution", std::chrono::milliseconds::max());
-
-    YOGI_LOG_INFO("Starting " << *cmd << " for device " << device);
-    cmd->async_run(make_device_variables(device), [=](auto exitStatus, auto& out, auto& err) {
-        this->on_execution_command_finished(device, exitStatus, out, err);
-    });
-}
-
-void DeviceGroup::on_execution_command_finished(const std::string& device, Command::exit_status_t exitStatus,
-    const std::string& out, const std::string& err)
-{
-    command_ptr& cmd = m_usedDevices[device];
-
-    if (exitStatus == Command::SUCCESS) {
-        YOGI_LOG_INFO("Process " << *cmd << " for device " << device << " terminated gracefully");
-    }
-    else {
-        YOGI_LOG_ERROR("Process " << *cmd << " for device " << device << " died: " << exitStatus);
+    for (auto& timer : m_activeTimers) {
+        timer->cancel();
     }
 
-    m_usedDevices.erase(device);
-}
-
-std::vector<std::string> DeviceGroup::parse_devices(const std::string& out) const
-{
-    // split string by whitespace
-    std::istringstream buf(out);
-    std::vector<std::string> devices{std::istream_iterator<std::string>(buf),
-        std::istream_iterator<std::string>()};
-    return devices;
-}
-
-void DeviceGroup::log_command_output(const std::string& out, const std::string& err, bool logAsError)
-{
-    auto fn = [&](auto& type, auto& text) {
-        std::vector<std::string> lines;
-        if (!text.empty()) {
-            boost::split(lines, text, boost::is_any_of("\n"));    
-        }
-
-        std::ostringstream oss;
-        oss << "Command " << type << " (" << lines.size() << " lines):";
-        if (logAsError) {
-            YOGI_LOG_ERROR(oss.str());
-        }
-        else {
-            YOGI_LOG_TRACE(oss.str());
-        }
-
-        for (auto& line : lines) {
-            if (logAsError) {
-                YOGI_LOG_ERROR("#> " << line);
-            }
-            else {
-                YOGI_LOG_TRACE("#> " << line);
-            }
-        }
-    };
-
-    fn("stdout", out);
-    fn("stderr", err);
-}
-
-template_string_vector DeviceGroup::make_device_variables(const std::string& device)
-{
-    template_string_vector variables;
-    variables.emplace_back("DEVICE", device);
-
-    if (device.find('/')) {
-        variables.emplace_back("DEVICE_NAME", device);
-    }
-    else {
-        variables.emplace_back("DEVICE_NAME", device.substr(device.rfind('/') + 1));
-    }
-
-    return variables;
-}
-
-std::ostream& operator<< (std::ostream& os, const DeviceGroup& group)
-{
-    return os << group.name();
+    m_activeTimers.clear();
 }

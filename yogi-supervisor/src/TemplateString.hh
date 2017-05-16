@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <ostream>
+#include <memory>
 
 
 class TemplateString
@@ -26,6 +27,7 @@ private:
 
 
 typedef std::vector<TemplateString> template_string_vector;
+typedef std::shared_ptr<template_string_vector> template_string_vector_ptr;
 
 std::ostream& operator<< (std::ostream& os, const TemplateString& ts);
 

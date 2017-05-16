@@ -1,6 +1,6 @@
 {
-  "services": {
-    "fake-service": {
+  "device-groups": {
+    "fake-group": {
       "startup-command": "exit 1"
     }
   }

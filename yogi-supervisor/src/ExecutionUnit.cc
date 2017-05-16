@@ -58,6 +58,11 @@ void ExecutionUnit::start()
     });
 }
 
+boost::asio::io_service& ExecutionUnit::io_service()
+{
+    return m_ios;
+}
+
 const template_string_vector& ExecutionUnit::variables() const
 {
     return m_variables;
@@ -66,6 +71,16 @@ const template_string_vector& ExecutionUnit::variables() const
 const TemplateString& ExecutionUnit::logfile() const
 {
     return m_logfile;
+}
+
+const std::chrono::milliseconds ExecutionUnit::restart_delay() const
+{
+    return m_restartDelay;
+}
+
+FileWatcher& ExecutionUnit::file_watcher()
+{
+    return m_fileWatcher;
 }
 
 void ExecutionUnit::set_variable(const std::string& name, const std::string& value)
@@ -130,7 +145,8 @@ TemplateString ExecutionUnit::extract_string(const std::string& childName)
 }
 
 void ExecutionUnit::run_command(const command_ptr& cmd, const template_string_vector& variables,
-    std::function<void (Command::exit_status_t, const std::string&, const std::string&)> completionHandler)
+    std::function<void (Command::exit_status_t, const std::string&, const std::string&)> completionHandler,
+    bool logFailureAsError)
 {
     if (cmd->empty()) {
         YOGI_LOG_TRACE("Skipping " << *cmd << " since the command is unset");
@@ -144,8 +160,14 @@ void ExecutionUnit::run_command(const command_ptr& cmd, const template_string_ve
             log_command_output(out, err, false);
         }
         else {
-            YOGI_LOG_ERROR("Error while executing " << *cmd << ": " << exitStatus);
-            log_command_output(out, err, true);
+            if (!logFailureAsError && exitStatus == Command::FAILURE) {
+                YOGI_LOG_DEBUG("Command " << *cmd << " exited with an error code");
+            }
+            else {
+                YOGI_LOG_ERROR("Error while executing " << *cmd << ": " << exitStatus);
+            }
+
+            log_command_output(out, err, logFailureAsError);
         }
 
         completionHandler(exitStatus, out, err);
@@ -183,12 +205,26 @@ void ExecutionUnit::log_command_output(const std::string& out, const std::string
     fn("stderr", err);
 }
 
+void ExecutionUnit::start_timer(boost::asio::deadline_timer& timer, std::chrono::milliseconds duration,
+    std::function<void ()> successHandler)
+{
+    if (duration != duration.max()) {
+        timer.expires_from_now(boost::posix_time::milliseconds(duration.count()));
+        timer.async_wait([=](auto& ec) {
+            if (!ec) {
+                successHandler();
+            }
+        });
+    }
+}
+
 void ExecutionUnit::read_configuration()
 {
     m_enabled = extract_bool("enabled");
 
     if (m_enabled) {
         YOGI_LOG_DEBUG("Found enabled execution unit " << m_name);
+        check_command_not_empty("execution-command");
     }
     else {
         YOGI_LOG_DEBUG("Found disabled execution unit " << m_name);
@@ -197,6 +233,7 @@ void ExecutionUnit::read_configuration()
     m_logfile = extract_string("logfile");
     m_startupTimeout = extract_duration("startup-timeout");
     m_startupCommand = extract_command("startup-command", m_startupTimeout);
+    m_restartDelay = extract_duration("restart-delay");
 
     extract_files_triggering_restart();
 }

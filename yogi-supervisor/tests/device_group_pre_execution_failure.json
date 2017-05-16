@@ -1,6 +1,7 @@
 {
   "device-groups": {
     "fake-group": {
+      "pre-execution-command": "exit 1"
     }
   }
 }

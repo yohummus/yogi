@@ -1,0 +1,8 @@
+{
+  "device-groups": {
+    "fake-group": {
+      "validation-command": "sleep 5s",
+      "validation-timeout": 0.1
+    }
+  }
+}

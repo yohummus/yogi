@@ -38,7 +38,7 @@ public:
     FileWatcher(boost::asio::io_service& ios);
     ~FileWatcher();
 
-    void watch(const std::string& pattern, handler_fn handlerFn);
+    void watch(const std::string& pattern, handler_fn handlerFn, bool reportExistingFiles=false);
 
 private:
     boost::asio::io_service&              m_ios;
@@ -52,12 +52,14 @@ private:
     static std::string extract_directory(const std::string& pattern);
     static std::regex extract_filename_pattern(const std::string& pattern);
     static std::string wildcard_pattern_to_basic_posix_grammar(std::string pattern);
-    static event_type_t maskToEventType(std::uint32_t mask);
+    static event_type_t mask_to_event_type(std::uint32_t mask);
     int add_watch(const std::string& path, bool isDir);
     void start_async_read_some();
     void on_data_read();
-    void handle_event(const std::vector<watch_data_ptr>& dataVec, int wd, const std::string& path, event_type_t eventType);
-    bool does_path_match_pattern(const std::string& path, const watch_data_ptr& data);
+    void handle_event(const std::vector<watch_data_ptr>& dataVec, int wd, const std::string& filename, event_type_t eventType);
+    bool does_filename_match_pattern(const std::string& filename, const watch_data_ptr& data);
 };
+
+std::ostream& operator<< (std::ostream& os, const FileWatcher::event_type_t& eventType);
 
 #endif // FILE_WATCHER_HH
