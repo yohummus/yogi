@@ -60,5 +60,11 @@ class TestDeviceGroups(Fixture):
         self.assertTrue(self.wait_for(lambda: os.path.exists(fileA)))
         self.assertTrue(self.wait_for(lambda: os.path.exists(fileB)))
 
+    def test_log_file(self):
+        self.start('device_group.json')
+        file = TMP_DIR + '/log.dev2'
+        self.assertTrue(self.wait_for(lambda: os.path.exists(file)))
+        self.assertTrue(self.wait_for(lambda: os.stat(file).st_size > 0))
+
 if __name__ == '__main__':
     unittest.main()
