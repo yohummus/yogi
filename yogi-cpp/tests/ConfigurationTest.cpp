@@ -148,6 +148,8 @@ TEST_F(ConfigurationTest, AccessConfiguration)
     EXPECT_FALSE(cfg.get_optional<int>("yogi.connection.something.that.does.not.exist"));
     EXPECT_EQ("localhost:12345", cfg.get<std::string>("yogi.connection.target"));
     EXPECT_FLOAT_EQ(1.234f, cfg.get<float>("yogi.connection.timeout"));
+    EXPECT_EQ(std::chrono::milliseconds(1234), cfg.get<std::chrono::milliseconds>("yogi.connection.timeout"));
+    EXPECT_EQ(std::chrono::milliseconds::max(), cfg.get<std::chrono::milliseconds>("infinity"));
     EXPECT_EQ(888, cfg.get<int>("yogi.connection.something.that.does.not.exist", 888));
     EXPECT_THROW(cfg.get<int>("yogi.connection.something.that.does.not.exist"), BadConfigurationPath);
     EXPECT_THROW(cfg.get<int>("yogi.connection.target"), BadConfigurationDataAccess);
@@ -226,7 +228,7 @@ TEST_F(ConfigurationTest, Iterators)
 
     Configuration cfg(args.argc, args.argv);
 
-    EXPECT_EQ(4u, cfg.size());
+    EXPECT_EQ(5u, cfg.size());
     EXPECT_FALSE(cfg.empty());
     ASSERT_EQ("yogi", cfg.begin()->first);
     auto childName = cfg.begin()->second.begin()->first;

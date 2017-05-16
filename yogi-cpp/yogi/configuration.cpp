@@ -7,6 +7,7 @@
 #include <boost/property_tree/json_parser.hpp>
 namespace pt = boost::property_tree;
 
+#include <chrono>
 #include <sstream>
 using namespace std::string_literals;
 
@@ -188,6 +189,21 @@ IMPLEMENT_GET_VALUE_OPTIONAL(unsigned long long)
 IMPLEMENT_GET_VALUE_OPTIONAL(float)
 IMPLEMENT_GET_VALUE_OPTIONAL(double)
 IMPLEMENT_GET_VALUE_OPTIONAL(std::string)
+
+template<>
+Optional<std::chrono::milliseconds> ConfigurationChild::get_value_optional<std::chrono::milliseconds>() const
+{
+    typedef std::chrono::milliseconds type;
+
+    auto val = get_value_optional<float>();
+    if (val) {
+        auto dur = *val < 0 ? type::max() : type(static_cast<type::rep>(*val * 1000));
+        return Optional<type>(dur);
+    }
+    else {
+        return Optional<type>();
+    }
+}
 
 ConfigurationChild ConfigurationChild::get_child(const std::string& path) const
 {
