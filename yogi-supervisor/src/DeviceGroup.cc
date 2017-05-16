@@ -25,6 +25,14 @@ void DeviceGroup::on_startup_command_finished_successfully()
 
 void DeviceGroup::on_watched_file_changed()
 {
+    kill_active_commands();
+    kill_active_timers();
+    
+    auto devices = file_watcher().get_matching_files(m_devices.value());
+    for (auto& device : devices) {
+        auto vars = make_variables_for_device(device);
+        run_pre_execution_command(device, vars);
+    }
 }
 
 void DeviceGroup::read_configuration()
@@ -48,7 +56,12 @@ void DeviceGroup::start_watching_devices()
 {
     file_watcher().watch(m_devices.value(), [=](auto& filename, auto eventType) {
         this->on_device_file_changed(filename, eventType);
-    }, true);
+    });
+
+    auto files = file_watcher().get_matching_files(m_devices.value());
+    for (auto& file : files) {
+        this->on_device_file_changed(file, FileWatcher::FILE_CREATED);
+    }
 }
 
 void DeviceGroup::on_device_file_changed(const std::string& filename, FileWatcher::event_type_t eventType)

@@ -28,27 +28,35 @@ FileWatcher::~FileWatcher()
     close(m_inotifyFd);
 }
 
-void FileWatcher::watch(const std::string& pattern, handler_fn handlerFn, bool reportExistingFiles)
+void FileWatcher::watch(const std::string& pattern, handler_fn handlerFn)
 {
     auto data = std::make_shared<watch_data_t>();
     data->directory       = extract_directory(pattern);
     data->filenamePattern = extract_filename_pattern(pattern);
     data->handlerFn       = handlerFn;
+    data->directoryWd     = add_watch(data->directory, true);
 
-    namespace fs = boost::filesystem;
-    if (reportExistingFiles) {
-        for (auto& entry : boost::make_iterator_range(fs::directory_iterator(data->directory))) {
-            if (does_filename_match_pattern(entry.path().filename().native(), data)) {
-                YOGI_LOG_DEBUG("Found existing matching file " << entry.path().native());
-                handlerFn(entry.path().native(), FILE_CREATED);
-            }
-        }
-    }
-    
-    data->directoryWd = add_watch(data->directory, true);
     YOGI_LOG_DEBUG("Watching directory " << data->directory << " (without subdirectories) for changes");
 
     m_watches[data->directoryWd].push_back(data);
+}
+
+std::vector<std::string> FileWatcher::get_matching_files(const std::string& pattern)
+{
+    namespace fs = boost::filesystem;
+
+    auto directory       = extract_directory(pattern);
+    auto filenamePattern = extract_filename_pattern(pattern);
+    
+    std::vector<std::string> files;
+    for (auto& entry : boost::make_iterator_range(fs::directory_iterator(directory))) {
+        if (does_filename_match_pattern(entry.path().filename().native(), directory, filenamePattern)) {
+            YOGI_LOG_DEBUG("Found existing matching file " << entry.path().native());
+            files.push_back(entry.path().native());
+        }
+    }
+
+    return files;
 }
 
 std::string FileWatcher::extract_directory(const std::string& pattern)
@@ -152,7 +160,7 @@ void FileWatcher::handle_event(const std::vector<watch_data_ptr>& dataVec, int w
 {
     for (auto& data : dataVec) {
         bool logged = false;
-        if (does_filename_match_pattern(filename, data)) {
+        if (does_filename_match_pattern(filename, data->directory, data->filenamePattern)) {
             auto path = data->directory + "/" + filename;
             if (!logged) {
                 switch (eventType) {
@@ -177,14 +185,15 @@ void FileWatcher::handle_event(const std::vector<watch_data_ptr>& dataVec, int w
     }
 }
 
-bool FileWatcher::does_filename_match_pattern(const std::string& filename, const watch_data_ptr& data)
+bool FileWatcher::does_filename_match_pattern(const std::string& filename, const std::string& directory,
+    const std::regex& filenamePattern)
 {
-    if (boost::filesystem::is_directory(data->directory + "/" + filename)) {
+    if (boost::filesystem::is_directory(directory + "/" + filename)) {
         return false;
     }
     else {
         std::smatch m;
-        return std::regex_match(filename, m, data->filenamePattern);
+        return std::regex_match(filename, m, filenamePattern);
     }
 }
 

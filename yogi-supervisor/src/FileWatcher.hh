@@ -19,7 +19,7 @@ public:
         FILE_MODIFIED
     };
 
-    typedef std::function<void (const std::string& filename, event_type_t)> handler_fn;
+    typedef std::function<void (const std::string& file, event_type_t)> handler_fn;
 
 private:
     typedef int watch_descriptor;
@@ -38,7 +38,8 @@ public:
     FileWatcher(boost::asio::io_service& ios);
     ~FileWatcher();
 
-    void watch(const std::string& pattern, handler_fn handlerFn, bool reportExistingFiles=false);
+    void watch(const std::string& pattern, handler_fn handlerFn);
+    std::vector<std::string> get_matching_files(const std::string& pattern);
 
 private:
     boost::asio::io_service&              m_ios;
@@ -57,7 +58,8 @@ private:
     void start_async_read_some();
     void on_data_read();
     void handle_event(const std::vector<watch_data_ptr>& dataVec, int wd, const std::string& filename, event_type_t eventType);
-    bool does_filename_match_pattern(const std::string& filename, const watch_data_ptr& data);
+    bool does_filename_match_pattern(const std::string& filename, const std::string& directory,
+        const std::regex& filenamePattern);
 };
 
 std::ostream& operator<< (std::ostream& os, const FileWatcher::event_type_t& eventType);
