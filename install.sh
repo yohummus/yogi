@@ -41,7 +41,7 @@ function install_required_packages {
     do
         PACKAGE_LIST="$PACKAGE_LIST $PACKAGE"
     done
-    sudo apt-get install $PACKAGE_LIST
+    sudo apt-get install -y $PACKAGE_LIST
 }
 
 function install_newer_npm {
