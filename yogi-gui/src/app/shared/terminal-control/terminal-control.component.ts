@@ -149,7 +149,7 @@ export class TerminalControlComponent implements OnInit {
   }
 
   setupDummyVariablesAndMessages() {
-    if (!this.signature.isCustom && !this.signature.isReserved) {
+    if (!this.signature.isCustom && !this.signature.isReserved && this.sendSignatureHalf) {
       let msgType = this.sendSignatureHalf.raw === this.signature.upperHalf.raw
                   ? yogi.MessageType.Master
                   : yogi.MessageType.Slave;
