@@ -3,6 +3,7 @@
 #include <yogi.hpp>
 
 #include <boost/asio/read.hpp>
+#include <boost/asio/read_until.hpp>
 #include <sys/wait.h>
 #include <unistd.h>
 #include <string.h>
@@ -24,8 +25,6 @@ Command::Command(boost::asio::io_service& ios, std::string name, std::chrono::mi
 , m_outPipeWriteSd(ios)
 , m_errPipeReadSd(ios)
 , m_errPipeWriteSd(ios)
-, m_childOutBuffer(250)
-, m_childErrBuffer(250)
 {
     create_pipe(&m_outPipeReadSd, &m_outPipeWriteSd);
     create_pipe(&m_errPipeReadSd, &m_errPipeWriteSd);
@@ -45,24 +44,31 @@ bool Command::empty() const
     return m_cmd.value().empty();
 }
 
-void Command::async_run(const template_string_vector& variables, TemplateString logfile, completion_handler_fn fn)
+void Command::async_run(const template_string_vector& variables, boost::optional<TemplateString> logfile,
+    completion_handler_fn fn)
 {
     if (m_cmd.value().empty()) {
         throw std::runtime_error("Cannot run empty command");
     }
 
-    if (m_logfile.is_open()) {
-        m_logfile.close();
+    if (m_completionHandler) {
+        throw std::runtime_error("Command is already running");
     }
 
-    if (!logfile.value().empty()) {
-        logfile.resolve(variables);
-        m_logfile.open(logfile.value(), std::ostream::out | std::ofstream::trunc);
-        if (m_logfile.is_open()) {
-            YOGI_LOG_DEBUG("Logging output of " << *this << " to " << logfile.value());
+    m_discardOutput = false;
+    if (logfile) {
+        if (logfile->value().empty()) {
+            m_discardOutput = true;
         }
         else {
-            YOGI_LOG_WARNING("Could not open/create " << logfile.value());
+            logfile->resolve(variables);
+            m_logfile.open(logfile->value(), std::ostream::out | std::ofstream::trunc);
+            if (m_logfile.is_open()) {
+                YOGI_LOG_DEBUG("Logging output of " << *this << " to " << logfile->value());
+            }
+            else {
+                YOGI_LOG_WARNING("Could not open/create " << logfile->value());
+            }    
         }
     }
 
@@ -163,28 +169,27 @@ void Command::execute_child_process(const std::string& command)
 
 void Command::start_child_monitoring()
 {
-    m_childOut.clear();
-    m_childErr.clear();
+    m_childOut.consume(m_childOut.size());
+    m_childErr.consume(m_childErr.size());
     m_timedOut = false;
 
-    async_read_all(&m_outPipeReadSd, &m_childOutBuffer, &m_childOut);
-    async_read_all(&m_errPipeReadSd, &m_childErrBuffer, &m_childErr);
+    async_read_line(&m_outPipeReadSd, &m_childOut);
+    async_read_line(&m_errPipeReadSd, &m_childErr);
     async_await_timeout();
     async_await_signal();
 }
 
-void Command::async_read_all(boost::asio::posix::stream_descriptor* sd, std::vector<char>* buf, std::string* str)
+void Command::async_read_line(boost::asio::posix::stream_descriptor* sd, boost::asio::streambuf* sb)
 {
     auto self = shared_from_this();
-    sd->async_read_some(boost::asio::buffer(*buf), [=, self=self](auto& ec, auto bytesRead) {
+    boost::asio::async_read_until(*sd, *sb, '\n', [=, self=self](auto& ec, auto bytesRead) {
         if (!ec) {
             if (m_logfile.is_open()) {
-                m_logfile.write(buf->data(), buf->size());
+                m_logfile << std::istream(sb).rdbuf();
                 m_logfile.flush();
             }
 
-            str->append(buf->begin(), buf->begin() + bytesRead);
-            this->async_read_all(sd, buf, str);
+            this->async_read_line(sd, sb);
         }
     });
 }
@@ -200,6 +205,10 @@ void Command::async_await_signal()
         int status;
         if (waitpid(m_childPid, &status, WNOHANG) == m_childPid) {
             YOGI_LOG_TRACE("Child process for " << *this << " terminated");
+
+            if (m_logfile.is_open()) {
+                m_logfile.close();
+            }
 
             exit_status_t es = UNKNOWN;
             if (WIFEXITED(status)) {
@@ -221,11 +230,13 @@ void Command::async_await_signal()
                 m_childPid = 0;
                 m_timer.cancel();
 
-                auto fn = m_completionHandler;
-                auto out = m_childOut;
-                auto err = m_childErr;
                 m_ios.post([=]{
-                    fn(es, out, err);
+                    completion_handler_fn fn;
+                    std::swap(fn, m_completionHandler);
+
+                    auto out = std::string((std::istreambuf_iterator<char>(&m_childOut)), std::istreambuf_iterator<char>());
+                    auto err = std::string((std::istreambuf_iterator<char>(&m_childErr)), std::istreambuf_iterator<char>());
+                    fn(es, std::move(out), std::move(err));
                 });
             }
         }

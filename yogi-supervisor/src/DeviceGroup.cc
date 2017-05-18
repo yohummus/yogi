@@ -139,7 +139,7 @@ void DeviceGroup::run_execution_command(const std::string& device, template_stri
     auto log = logfile();
     log.resolve(*vars);
 
-    cmd->async_run(*vars, log, [=](auto exitStatus, auto& out, auto& err) {
+    cmd->async_run(*vars, log, [=](auto exitStatus, auto&& out, auto&& err) {
         this->on_execution_command_finished(exitStatus, device, vars);
         m_activeCommands.erase(cmd);
     });

@@ -7,6 +7,8 @@
 #include <boost/asio/signal_set.hpp>
 #include <boost/asio/posix/stream_descriptor.hpp>
 #include <boost/asio/deadline_timer.hpp>
+#include <boost/asio/streambuf.hpp>
+#include <boost/optional.hpp>
 #include <chrono>
 #include <functional>
 #include <memory>
@@ -26,17 +28,16 @@ public:
         STARTUP_FAILURE
     };
 
-    typedef std::function<void (exit_status_t, const std::string& out,
-        const std::string& err)> completion_handler_fn;
+    typedef std::function<void (exit_status_t, std::string&& out, std::string&& err)> completion_handler_fn;
 
-    Command(boost::asio::io_service& ios, std::string name, std::chrono::milliseconds timeout,
-        TemplateString cmd = {});
+    Command(boost::asio::io_service& ios, std::string name, std::chrono::milliseconds timeout, TemplateString cmd);
     virtual ~Command();
 
     const std::string& name() const;
     bool empty() const;
 
-    void async_run(const template_string_vector& variables, TemplateString logfile, completion_handler_fn fn);
+    void async_run(const template_string_vector& variables, boost::optional<TemplateString> logfile,
+        completion_handler_fn fn);
     void async_run(const template_string_vector& variables, completion_handler_fn fn);
     void async_run(completion_handler_fn fn);
     void kill();
@@ -47,7 +48,7 @@ private:
     void close_pipe_sds();
     void execute_child_process(const std::string& command);
     void start_child_monitoring();
-    void async_read_all(boost::asio::posix::stream_descriptor* sd, std::vector<char>* buf, std::string* str);
+    void async_read_line(boost::asio::posix::stream_descriptor* sd, boost::asio::streambuf* sb);
     void async_await_signal();
     void async_await_timeout();
     void kill_child();
@@ -65,12 +66,11 @@ private:
     boost::asio::posix::stream_descriptor m_outPipeWriteSd;
     boost::asio::posix::stream_descriptor m_errPipeReadSd;
     boost::asio::posix::stream_descriptor m_errPipeWriteSd;
-    std::string                           m_childOut;
-    std::string                           m_childErr;
-    std::vector<char>                     m_childOutBuffer;
-    std::vector<char>                     m_childErrBuffer;
+    boost::asio::streambuf                m_childOut;
+    boost::asio::streambuf                m_childErr;
     completion_handler_fn                 m_completionHandler;
     std::ofstream                         m_logfile;
+    bool                                  m_discardOutput;
 };
 
 std::ostream& operator<< (std::ostream& os, const Command& cmd);

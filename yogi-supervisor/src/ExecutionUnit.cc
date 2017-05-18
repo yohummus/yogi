@@ -154,7 +154,7 @@ void ExecutionUnit::run_command(const command_ptr& cmd, const template_string_ve
         return;
     }
 
-    cmd->async_run(variables, [=, cmd = cmd.get()](auto exitStatus, auto& out, auto& err) {
+    cmd->async_run(variables, [=, cmd = cmd.get()](auto exitStatus, auto&& out, auto&& err) {
         if (exitStatus == Command::SUCCESS) {
             YOGI_LOG_DEBUG("Successfully executed " << *cmd);
             log_command_output(out, err, false);
