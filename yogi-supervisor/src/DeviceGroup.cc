@@ -161,7 +161,10 @@ void DeviceGroup::on_execution_command_finished(Command::exit_status_t exitStatu
             YOGI_LOG_ERROR(ss.str());
         }
 
-        start_restart_timer(device, vars);
+        if (boost::filesystem::exists(device)) {
+            YOGI_LOG_INFO("Device " << device << " still exists. Restarting process after the restart delay...");
+            start_restart_timer(device, vars);
+        }
     }
 }
 
