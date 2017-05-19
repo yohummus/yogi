@@ -149,7 +149,11 @@ export class TerminalControlComponent implements OnInit {
   }
 
   setupDummyVariablesAndMessages() {
-    if (!this.signature.isCustom && !this.signature.isReserved && this.sendSignatureHalf) {
+    if (!this.sendSignatureHalf) {
+      return;
+    }
+
+    if (!this.signature.isCustom && !this.signature.isReserved) {
       let msgType = this.sendSignatureHalf.raw === this.signature.upperHalf.raw
                   ? yogi.MessageType.Master
                   : yogi.MessageType.Slave;
@@ -174,7 +178,10 @@ export class TerminalControlComponent implements OnInit {
   }
 
   onSendButtonClicked() {
-    console.log(this.lastSendableMsg);
+    if (this.lastSendableMsg) {
+      console.log((this.lastSendableMsg as any).value, (this.lastSendableMsg as any).timestamp);
+    }
+    
     this.sendRegularMessage.emit(this.lastSendableMsg);
   }
 }

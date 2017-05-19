@@ -86,13 +86,11 @@ export class InputGroupComponent implements OnInit, OnChanges, OnDestroy {
   ngOnChanges(changes: SimpleChanges) {
     if ('value' in changes) {
       this.viewValue = this.value;
-    }
 
-    if (!this.primitiveValues) {
-      return;
+      if (this.primitiveValues) {
+        this.updatePrimitiveValues();
+      }
     }
-
-    this.updatePrimitiveValues();
 
     if ('timestamp' in changes) {
       this.updateTimestamp(this.timestamp);
