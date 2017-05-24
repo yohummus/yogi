@@ -15,7 +15,7 @@ find_package(Boost 1.54 COMPONENTS system log log_setup filesystem thread REQUIR
 set(ignored_warnings          "-Wno-unused-variable -Wno-unused-function -Wno-overloaded-virtual -Wno-unused-value -Wno-unused-private-field -Wno-inconsistent-missing-override -Wno-unknown-warning-option")
 set(export_map                "-Wl,--version-script='${PROJECT_SOURCE_DIR}/src/export.map'")
 set(CMAKE_CXX_FLAGS           "-std=c++14 -Wall -Werror ${ignored_warnings} -fvisibility=hidden -fPIC -DBOOST_ALL_DYN_LINK")
-set(CMAKE_CXX_FLAGS_DEBUG     "-g")
+set(CMAKE_CXX_FLAGS_DEBUG     "-g -ggdb")
 set(CMAKE_CXX_FLAGS_RELEASE   "-O2 -DNDEBUG")
 set(CMAKE_CXX_STANDARD        14)
 set(CMAKE_SHARED_LINKER_FLAGS "${export_map}")

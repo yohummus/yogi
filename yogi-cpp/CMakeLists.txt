@@ -15,7 +15,7 @@ find_package(Protobuf REQUIRED)
 
 set(ignored_warnings          "-Wno-unused-variable -Wno-unused-function -Wno-overloaded-virtual -Wno-unused-value")
 set(CMAKE_CXX_FLAGS           "-std=c++14 -Wall -Werror ${ignored_warnings} -fvisibility=hidden -fPIC")
-set(CMAKE_CXX_FLAGS_DEBUG     "-g")
+set(CMAKE_CXX_FLAGS_DEBUG     "-g -ggdb")
 set(CMAKE_CXX_FLAGS_RELEASE   "-O2 -DNDEBUG")
 set(CMAKE_CXX_STANDARD        14)
 
