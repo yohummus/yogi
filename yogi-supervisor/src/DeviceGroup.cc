@@ -154,11 +154,12 @@ void DeviceGroup::on_execution_command_finished(Command::exit_status_t exitStatu
     else {
         std::ostringstream ss;
         ss << "Execution command on " << device << " for " << name() << " finished with status " << exitStatus;
+        auto str = ss.str();
         if (exitStatus == Command::SUCCESS) {
-            YOGI_LOG_WARNING(ss.str());
+            YOGI_LOG_WARNING(str);
         }
         else {
-            YOGI_LOG_ERROR(ss.str());
+            YOGI_LOG_ERROR(str);
         }
 
         if (boost::filesystem::exists(device)) {
