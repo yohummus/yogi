@@ -1,11 +1,14 @@
 import {
-  Component,
+  Component
+} from '@angular/core';
+
+import {
   trigger,
   state,
   style,
   transition,
   animate,
-} from '@angular/core';
+} from '@angular/animations';
 
 import {
   ErrorDisplayService,
@@ -18,8 +21,8 @@ import {
   styleUrls: ['error-display.component.css'],
   animations: [
     trigger('displayState', [
-      state('true' , style({ transform: 'scale(1)', visibility: 'visible' })),
-      state('false', style({ transform: 'scale(0)', visibility: 'hidden' })),
+      state('1' , style({ transform: 'scale(1)', visibility: 'visible' })),
+      state('0', style({ transform: 'scale(0)', visibility: 'hidden' })),
       transition('1 => 0', animate('500ms ease-out'))
     ])
   ]

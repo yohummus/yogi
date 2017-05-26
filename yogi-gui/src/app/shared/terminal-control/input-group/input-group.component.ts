@@ -196,7 +196,7 @@ export class InputGroupComponent implements OnInit, OnChanges, OnDestroy {
     for (let primitiveValue of this.primitiveValues) {
       if (!primitiveValue.isValid) {
         this.errorDisplayService.show('Cannot send invalid value.',
-          `The value "${primitiveValue.valueString}" you are trying to send is not valid for the `
+          `The value "${primitiveValue.value}" you are trying to send is not valid for the `
           + 'Terminal.');
         return;
       }

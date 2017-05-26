@@ -12,48 +12,47 @@ module.exports = {
   },
 
   resolve: {
-    extensions: ['', '.ts', '.js'],
-    root: [path.resolve('../node_modules')]
+    extensions: ['.ts', '.js']
   },
 
   module: {
-    loaders: [{
+    rules: [
+      {
         test: /\.ts$/,
-        loaders: ['awesome-typescript-loader', 'angular2-template-loader']
+        loaders: [
+          {
+            loader: 'awesome-typescript-loader',
+            options: { configFileName: helpers.root('tsconfig.json') }
+          },
+          'angular2-template-loader'
+        ]
       }, {
         test: /\.html$/,
-        loader: 'html'
-      }, {
-        test: /\.woff(\?v=\d+\.\d+\.\d+)?$/,
-        loader: "url?limit=10000&mimetype=application/font-woff"
-      }, {
-        test: /\.woff2(\?v=\d+\.\d+\.\d+)?$/,
-        loader: "url?limit=10000&mimetype=application/font-woff"
-      }, {
-        test: /\.ttf(\?v=\d+\.\d+\.\d+)?$/,
-        loader: "url?limit=10000&mimetype=application/octet-stream"
+        loader: 'html-loader'
       }, {
         test: /\.eot(\?v=\d+\.\d+\.\d+)?$/,
-        loader: "file"
-      }, {
-        test: /\.svg(\?v=\d+\.\d+\.\d+)?$/,
-        loader: "url?limit=10000&mimetype=image/svg+xml"
+        loader: "file-loader"
       }, {
         test: /\.(png|jpe?g|gif|svg|woff|woff2|ttf|eot|ico)$/,
-        loader: 'file?name=assets/[name].[hash].[ext]'
+        loader: 'file-loader?name=assets/[name].[hash].[ext]'
       }, {
         test: /\.css$/,
         exclude: [helpers.root('src', 'app'), helpers.root('solution')],
-        loader: ExtractTextPlugin.extract('style', 'css?sourceMap')
+        loader: ExtractTextPlugin.extract({ fallback: 'style-loader', use: 'css-loader?sourceMap' })
       }, {
         test: /\.css$/,
         include: [helpers.root('src', 'app'), helpers.root('solution')],
-        loader: 'raw'
+        loader: 'raw-loader'
       }
     ]
   },
 
   plugins: [
+    new webpack.ContextReplacementPlugin(
+      /angular(\\|\/)core(\\|\/)@angular/,
+      path.resolve(__dirname, '../src')
+    ),
+
     new webpack.optimize.CommonsChunkPlugin({
       name: ['app', 'vendor', 'polyfills']
     }),

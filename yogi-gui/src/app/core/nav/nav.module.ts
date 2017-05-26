@@ -11,6 +11,10 @@ import {
 } from '@angular/router';
 
 import {
+  BrowserAnimationsModule
+} from '@angular/platform-browser/animations'
+
+import {
   NavComponent,
 } from './nav.component';
 
@@ -30,6 +34,7 @@ import {
   imports: [
     CommonModule,
     RouterModule,
+    BrowserAnimationsModule,
   ],
   exports: [
     NavComponent,

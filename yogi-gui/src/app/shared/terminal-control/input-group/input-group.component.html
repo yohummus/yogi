@@ -1,6 +1,6 @@
 <div id="component" class="input-group" [class.disabled]="!enabled">
   <!-- Insert and remove buttons for list elements -->
-  <template [ngIf]="isListElement && !isReadonly">
+  <ng-template [ngIf]="isListElement && !isReadonly">
     <span
       class="input-group-addon list-element-button"
       title="Insert element"
@@ -11,7 +11,7 @@
       title="Remove element"
       (click)="onListRemoveButtonClicked()"
     ><i class="fa fa-fw fa-minus"></i></span>
-  </template>
+  </ng-template>
 
   <!-- Label -->
   <span class="input-group-addon">{{label}}</span>
@@ -55,8 +55,8 @@
   </span>
 
   <!-- Primitives -->
-  <template [ngIf]="!isList">
-    <template ngFor let-pv [ngForOf]="primitiveValues" let-idx="index">
+  <ng-template [ngIf]="!isList">
+    <ng-template ngFor let-pv [ngForOf]="primitiveValues" let-idx="index">
       <span *ngIf="pv.guiPrimitiveType === GuiPrimitiveType.VOID_PRIMITIVE"
         class="input-group-addon primitive-control"
         title="void"
@@ -104,8 +104,8 @@
         (ngModelChange)="pv.onValueInputChanged($event)"
         (keydown.Enter)="onSendButtonClickedOrEnterPressed()"
       >
-    </template>
-  </template>
+    </ng-template>
+  </ng-template>
 
   <!-- Reply button -->
   <span *ngIf="hasReplyButton"
