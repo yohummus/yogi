@@ -188,13 +188,8 @@ void FileWatcher::handle_event(const std::vector<watch_data_ptr>& dataVec, int w
 bool FileWatcher::does_filename_match_pattern(const std::string& filename, const std::string& directory,
     const std::regex& filenamePattern)
 {
-    if (boost::filesystem::is_directory(directory + "/" + filename)) {
-        return false;
-    }
-    else {
-        std::smatch m;
-        return std::regex_match(filename, m, filenamePattern);
-    }
+    std::smatch m;
+    return std::regex_match(filename, m, filenamePattern);
 }
 
 std::ostream& operator<< (std::ostream& os, const FileWatcher::event_type_t& eventType)
