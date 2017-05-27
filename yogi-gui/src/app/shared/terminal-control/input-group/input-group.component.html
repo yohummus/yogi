@@ -30,7 +30,7 @@
   <!-- List button and dropdown menu -->
   <span *ngIf="isList" ngbDropdown #listDropdown="ngbDropdown" class="input-group-addon dropdown-button" (click)="$event.stopPropagation(); listDropdown.open();">
     <span
-      class="tag tag-default"
+      class="badge badge-default"
       [class.bg-inverse]="enabled"
       [class.bg-faded]="!enabled"
     >{{viewValue ? viewValue.length : '.'}}</span>

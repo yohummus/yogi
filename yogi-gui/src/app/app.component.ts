@@ -18,7 +18,7 @@ import {
 } from '../../solution/yogi.config';
 
 import 'font-awesome/css/font-awesome.css';
-import 'bootstrap/dist/css/bootstrap-flex.css';
+import 'bootstrap/dist/css/bootstrap.css';
 
 @Component({
   selector: 'ce-app',
