@@ -12,7 +12,6 @@ REQUIRED_PACKAGES=(
     libqt5network5
     libqt5websockets5-dev
     nodejs
-    nodejs-legacy
     npm
     phantomjs
     python3-protobuf
@@ -35,6 +34,7 @@ PROJECTS=(
 )
 
 function install_required_packages {
+    echo
     echo "===== Installing required packages ====="
     PACKAGE_LIST=""
     for PACKAGE in "${REQUIRED_PACKAGES[@]}"
@@ -44,7 +44,20 @@ function install_required_packages {
     sudo apt-get install -y $PACKAGE_LIST
 }
 
+function install_nodejs_legacy {
+    local LINK="/usr/bin/node"
+
+    echo
+    echo "===== Installing nodejs-legacy ====="
+    if [ ! -f $LINK ]; then
+        sudo apt-get install -y nodejs-legacy
+    else
+        echo "No need to install nodejs-legacy since $LINK already exists."
+    fi
+}
+
 function install_newer_npm {
+    echo
     echo "===== Installing newer version of npm ====="
     if [ $(npm --version | sed "s/^\([0-9]*\).*/\1/") -lt 4 ]; then
         sudo npm config set registry http://registry.npmjs.org/
@@ -55,6 +68,7 @@ function install_newer_npm {
 }
 
 function build_project {
+    echo
     echo "===== Building $PROJECT ====="
     PROJECT=$1
     cd $PROJECT
@@ -66,6 +80,7 @@ function build_project {
 }
 
 function install_project {
+    echo
     echo "===== Installing $PROJECT ====="
     PROJECT=$1
     cd $PROJECT/build
@@ -85,7 +100,9 @@ function build_and_install_all_projects {
 # MAIN CODE
 #==============================================================================
 install_required_packages
+install_nodejs_legacy
 install_newer_npm
 build_and_install_all_projects
 
+echo
 echo "===== All done ====="
