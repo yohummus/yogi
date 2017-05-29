@@ -1,16 +1,20 @@
 cmake_minimum_required (VERSION 2.8)
 project (YogiSupervisor)
 
-cmake_policy(SET CMP0022 OLD)
+cmake_policy (SET CMP0022 OLD)
 if (${CMAKE_MAJOR_VERSION} GREATER 2)
-    cmake_policy(SET CMP0038 NEW)
-endif (${CMAKE_MAJOR_VERSION} GREATER 2)
+    cmake_policy (SET CMP0038 NEW)
+endif ()
 
-find_package (Threads)
+if (${CMAKE_SYSTEM_PROCESSOR} MATCHES "^arm.*$")
+    link_directories (/usr/lib/arm-linux-gnueabihf)
+endif ()
+
 set (Boost_USE_STATIC_LIBS        OFF)
 set (Boost_USE_MULTITHREADED      ON)
 set (Boost_USE_STATIC_RUNTIME     OFF)
-find_package (Boost 1.54 COMPONENTS program_options log log_setup system thread filesystem REQUIRED)
+find_package (Boost 1.54 COMPONENTS system log log_setup filesystem thread program_options REQUIRED)
+find_package (Threads)
 find_package (Protobuf 3.0.0 REQUIRED)
 
 set (ignored_warnings        "-Wno-unused-variable -Wno-unused-function -Wno-overloaded-virtual -Wno-unused-value")
@@ -27,15 +31,15 @@ add_executable (yogi-supervisor ${src_files})
 target_link_libraries (yogi-supervisor yogi yogi_core ${Boost_LIBRARIES} ${PROTOBUF_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
 
 #===== tests =====
-enable_testing()
+enable_testing ()
 
-file(GLOB_RECURSE files ${PROJECT_SOURCE_DIR}/tests/test_*.py)
-foreach(file ${files})
-    file(RELATIVE_PATH rel_file ${PROJECT_SOURCE_DIR} ${file})
-    get_filename_component(name ${file} NAME_WE)
+file (GLOB_RECURSE files ${PROJECT_SOURCE_DIR}/tests/test_*.py)
+foreach (file ${files})
+    file (RELATIVE_PATH rel_file ${PROJECT_SOURCE_DIR} ${file})
+    get_filename_component (name ${file} NAME_WE)
 
-    add_test(NAME ${name} COMMAND python3 ${file})
-endforeach()
+    add_test (NAME ${name} COMMAND python3 ${file})
+endforeach ()
 
 #===== install =====
 install (

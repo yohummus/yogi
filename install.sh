@@ -33,10 +33,13 @@ PROJECTS=(
     yogi-supervisor
 )
 
+MIN_RAM_REQUIRED_IN_MB=800
+SWAP_SIZE_IN_MB=512
+
 function install_required_packages {
     echo
     echo "===== Installing required packages ====="
-    PACKAGE_LIST=""
+    local PACKAGE_LIST=""
     for PACKAGE in "${REQUIRED_PACKAGES[@]}"
     do
         PACKAGE_LIST="$PACKAGE_LIST $PACKAGE"
@@ -67,10 +70,30 @@ function install_newer_npm {
     fi
 }
 
+function make_swap_file {
+    echo
+    echo "===== Creating SWAP file ====="
+    local MEM=$(grep MemTotal /proc/meminfo | awk '{print $2}')
+    if [ $MEM -lt $(expr $MIN_RAM_REQUIRED_IN_MB \* 1024) ]; then
+        if [ $(wc -l /proc/swaps | sed "s/ .*//") -gt 1 ]; then
+            echo "There already seems to be an active SWAP file or partition."
+        else
+            local FILE=/tmp/swapfile.yogi-installer
+            echo "Creating $SWAP_SIZE_IN_MB MB swap file $FILE..."
+            dd if=/dev/zero of=$FILE bs=1024 count=$(expr $SWAP_SIZE_IN_MB \* 1024)
+            chmod 0600 $FILE
+            mkswap $FILE
+            swapon $FILE
+        fi
+    else
+        echo "No need for a SWAP file since the system seems to have enough RAM (>= $MIN_RAM_REQUIRED_IN_MB MB)."
+    fi
+}
+
 function build_project {
     echo
     echo "===== Building $PROJECT ====="
-    PROJECT=$1
+    local PROJECT=$1
     cd $PROJECT
     mkdir -p build
     cd build
@@ -82,7 +105,7 @@ function build_project {
 function install_project {
     echo
     echo "===== Installing $PROJECT ====="
-    PROJECT=$1
+    local PROJECT=$1
     cd $PROJECT/build
     sudo make install
     cd ../..
@@ -102,6 +125,7 @@ function build_and_install_all_projects {
 install_required_packages
 install_nodejs_legacy
 install_newer_npm
+make_swap_file
 build_and_install_all_projects
 
 echo
