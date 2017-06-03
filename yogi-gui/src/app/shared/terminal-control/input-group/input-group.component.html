@@ -28,14 +28,19 @@
   >
 
   <!-- List button and dropdown menu -->
-  <span *ngIf="isList" ngbDropdown #listDropdown="ngbDropdown" class="input-group-addon dropdown-button" (click)="$event.stopPropagation(); listDropdown.open();">
+  <span *ngIf="isList"
+    ngbDropdown
+    #listDropdown="ngbDropdown"
+    class="input-group-addon dropdown-button"
+    [class.bg-danger]="!listValuesValid"
+    (click)="$event.stopPropagation(); listDropdown.open();">
     <span
       class="badge badge-default"
       [class.bg-inverse]="enabled"
       [class.bg-faded]="!enabled"
-    >{{viewValue ? viewValue.length : '.'}}</span>
-    <div *ngIf="viewValue" class="dropdown-menu">
-      <ce-input-group *ngFor="let element of viewValue; let idx = index"
+    >{{listValues ? listValues.length : '.'}}</span>
+    <div *ngIf="listValues" class="dropdown-menu">
+      <ce-input-group *ngFor="let element of listValues; let idx = index; trackBy: trackListByIndex"
         class="dropdown-item"
         [label]="idx"
         [signatureHalf]="signatureHalf"
@@ -43,9 +48,9 @@
         [isListElement]="true"
         [isReadonly]="isReadonly"
         (listModificationButtonClicked)="onListModificationButtonClicked(idx, $event)"
-        (changed)="onListElementChanged(idx, $event)"
+        (changed)="onListValueChanged(idx, $event)"
       ></ce-input-group>
-      <button *ngIf="!isReadonly"
+      <button *ngIf="!isReadonly && listValues.length === 0"
         type="button"
         class="btn btn-secondary list-append-button"
         title="Append element"

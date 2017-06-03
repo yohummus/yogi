@@ -170,18 +170,20 @@ export class TerminalControlComponent implements OnInit {
   }
 
   onRegularMessageChanged(change: Change) {
-    for (let field in change) {
-      if (change.hasOwnProperty(field)) {
-        this.lastSendableMsg[field] = change[field];
-      }
+    if (!change.valid) {
+      return;
+    }
+
+    if (change.hasOwnProperty('value')) {
+      this.lastSendableMsg['value'] = change.value;
+    }
+
+    if (change.hasOwnProperty('timestamp')) {
+      this.lastSendableMsg['timestamp'] = change.timestamp;
     }
   }
 
   onSendButtonClicked() {
-    if (this.lastSendableMsg) {
-      console.log((this.lastSendableMsg as any).value, (this.lastSendableMsg as any).timestamp);
-    }
-    
     this.sendRegularMessage.emit(this.lastSendableMsg);
   }
 }

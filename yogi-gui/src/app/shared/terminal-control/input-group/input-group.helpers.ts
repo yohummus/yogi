@@ -183,7 +183,7 @@ export class GuiPrimitiveData {
   }
 
   set value(val: any) {
-    this._value = val;
+    this.storeValueIfValid(val);
     this._valueString = this._makeValueStringFn(val);
     this._tooltip = this._makeTooltipFn(val);
   }
@@ -236,7 +236,7 @@ export class GuiPrimitiveData {
     this.component.onPrimitiveChanged();
   }
 
-  onValueInputChanged(newValue: any) {
+  storeValueIfValid(newValue: any) {
     switch (this.primitiveType) {
       case yogi.PrimitiveType.INT8:
       case yogi.PrimitiveType.UINT8:
@@ -246,9 +246,8 @@ export class GuiPrimitiveData {
       case yogi.PrimitiveType.UINT32:
       case yogi.PrimitiveType.INT64:
       case yogi.PrimitiveType.UINT64:
-        this._isValid = Number.isInteger(newValue)
-                      && newValue >= this._minValue
-                      && newValue <= this._maxValue;
+        this._isValid = (Number.isInteger(newValue) || newValue instanceof Long)
+                      && newValue >= this._minValue && newValue <= this._maxValue;
         this._value = newValue;
         break;
 
@@ -275,7 +274,12 @@ export class GuiPrimitiveData {
 
       case yogi.PrimitiveType.BLOB:
         try {
-          this._value = hexStringToByteBuffer(newValue);
+          if (newValue instanceof ByteBuffer) {
+            this._value = newValue;
+          }
+          else {
+            this._value = hexStringToByteBuffer(newValue);
+          }
           this._isValid = true;
         }
         catch (err) {
@@ -290,13 +294,12 @@ export class GuiPrimitiveData {
           : new Date() // now
         );
         break;
-
-      default:
-        throw new Error(`Invalid primitive type: ${this.primitiveType}.`);
     }
+  }
 
+  onValueInputChanged(newValue: any) {
+    this.storeValueIfValid(newValue);
     this._tooltip = this._makeTooltipFn(this._value);
-
     this.component.onPrimitiveChanged();
   }
 
