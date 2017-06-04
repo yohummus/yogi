@@ -58,7 +58,7 @@ export class GuiPrimitiveData {
         this._maxValue = +127;
         this._makeValueStringFn = (val) => val.toString();
         this._makeTooltipFn = (val) => `${val}`;
-        this.value = 0;
+        this._value = isReadonly ? '' : 0;
         break;
 
       case yogi.PrimitiveType.UINT8:
@@ -67,7 +67,7 @@ export class GuiPrimitiveData {
         this._maxValue = 255;
         this._makeValueStringFn = (val) => val.toString();
         this._makeTooltipFn = (val) => `${val}`;
-        this.value = 0;
+        this._value = isReadonly ? '' : 0;
         break;
 
       case yogi.PrimitiveType.INT16:
@@ -76,7 +76,7 @@ export class GuiPrimitiveData {
         this._maxValue = +32767;
         this._makeValueStringFn = (val) => val.toString();
         this._makeTooltipFn = (val) => `${val}`;
-        this.value = 0;
+        this._value = isReadonly ? '' : 0;
         break;
 
       case yogi.PrimitiveType.UINT16:
@@ -85,7 +85,7 @@ export class GuiPrimitiveData {
         this._maxValue = 65535;
         this._makeValueStringFn = (val) => val.toString();
         this._makeTooltipFn = (val) => `${val}`;
-        this.value = 0;
+        this._value = isReadonly ? '' : 0;
         break;
 
       case yogi.PrimitiveType.INT32:
@@ -94,7 +94,7 @@ export class GuiPrimitiveData {
         this._maxValue = +2147483647;
         this._makeValueStringFn = (val) => val.toString();
         this._makeTooltipFn = (val) => `${val}`;
-        this.value = 0;
+        this._value = isReadonly ? '' : 0;
         break;
 
       case yogi.PrimitiveType.UINT32:
@@ -103,7 +103,7 @@ export class GuiPrimitiveData {
         this._maxValue = 4294967295;
         this._makeValueStringFn = (val) => val.toString();
         this._makeTooltipFn = (val) => `${val}`;
-        this.value = 0;
+        this._value = isReadonly ? '' : 0;
         break;
 
       case yogi.PrimitiveType.INT64:
@@ -112,7 +112,7 @@ export class GuiPrimitiveData {
         this._maxValue = +9223372036854775807;
         this._makeValueStringFn = (val) => val.toString();
         this._makeTooltipFn = (val) => `${val}`;
-        this.value = 0;
+        this._value = isReadonly ? '' : 0;
         break;
 
       case yogi.PrimitiveType.UINT64:
@@ -121,21 +121,21 @@ export class GuiPrimitiveData {
         this._maxValue = 18446744073709551615;
         this._makeValueStringFn = (val) => val.toString();
         this._makeTooltipFn = (val) => `${val}`;
-        this.value = 0;
+        this._value = isReadonly ? '' : 0;
         break;
 
       case yogi.PrimitiveType.FLOAT:
         this._guiPrimitiveType = GuiPrimitiveType.NUMBER_PRIMITIVE;
         this._makeValueStringFn = (val) => this._numberToPrecision(val, 7);
         this._makeTooltipFn = (val) => `${val}`;
-        this.value = 0.0;
+        this._value = isReadonly ? '' : 0.0;
         break;
 
       case yogi.PrimitiveType.DOUBLE:
         this._guiPrimitiveType = GuiPrimitiveType.NUMBER_PRIMITIVE;
         this._makeValueStringFn = (val) => this._numberToPrecision(val, 15);
         this._makeTooltipFn = (val) => `${val}`;
-        this.value = 0.0;
+        this._value = isReadonly ? '' : 0.0;
         break;
 
       case yogi.PrimitiveType.STRING:
@@ -149,7 +149,7 @@ export class GuiPrimitiveData {
         this._guiPrimitiveType = GuiPrimitiveType.TEXT_PRIMITIVE;
         this._makeValueStringFn = (val) => val;
         this._makeTooltipFn = this._makeJsonTooltip;
-        this.value = '{}';
+        this.value = isReadonly ? null : '{}';
         break;
 
       case yogi.PrimitiveType.BLOB:
@@ -257,15 +257,18 @@ export class GuiPrimitiveData {
       case yogi.PrimitiveType.UINT32:
       case yogi.PrimitiveType.INT64:
       case yogi.PrimitiveType.UINT64:
-        this._isValid = (Number.isInteger(newValue) || newValue instanceof Long)
-                      && newValue >= this._minValue && newValue <= this._maxValue;
-        this._value = newValue;
+        this._isValid = (Number.isInteger(newValue) || newValue instanceof Long) && newValue >= this._minValue && newValue <= this._maxValue;
+        if (this._isValid) {
+          this._value = newValue;
+        }
         break;
 
       case yogi.PrimitiveType.FLOAT:
       case yogi.PrimitiveType.DOUBLE:
         this._isValid = newValue !== null;
-        this._value = this.isValid ? newValue : 0;
+        if (this._isValid) {
+          this._value = newValue;
+        }
         break;
 
       case yogi.PrimitiveType.STRING:
@@ -277,11 +280,11 @@ export class GuiPrimitiveData {
         try {
           JSON.parse(newValue);
           this._isValid = true;
+          this._value = newValue;
         }
         catch (err) {
           this._isValid = false;
         }
-        this._value = newValue;
         break;
 
       case yogi.PrimitiveType.BLOB:
@@ -295,7 +298,6 @@ export class GuiPrimitiveData {
           this._isValid = true;
         }
         catch (err) {
-          this._value = new ByteBuffer(0);
           this._isValid = false;
         }
         break;

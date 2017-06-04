@@ -68,7 +68,7 @@
     <ng-template ngFor let-pv [ngForOf]="primitiveValues" let-idx="index">
       <span *ngIf="pv.guiPrimitiveType === GuiPrimitiveType.VOID_PRIMITIVE"
         class="input-group-addon primitive-control"
-    [class.cached]="cached"
+        [class.cached]="cached"
         title="void"
       ><i class="fa fa-fw fa-ban"></i></span>
 
