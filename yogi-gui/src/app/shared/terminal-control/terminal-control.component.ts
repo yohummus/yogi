@@ -10,6 +10,11 @@ import {
   Change,
 } from './input-group/input-group.component';
 
+export class ReceivedRegularMessage {
+  cached: boolean;
+  msg: yogi.Message;
+};
+
 @Component({
   selector: 'ce-terminal-control',
   templateUrl: 'terminal-control.component.html',
@@ -22,15 +27,13 @@ export class TerminalControlComponent implements OnInit {
   @Input() canReceive: boolean = true;
   @Input() bound: boolean;
   @Input() subscribed: boolean;
-  @Input() lastReceivedRegularMessage: yogi.Message;
-  @Input() lastReceivedCachedRegularMessage: yogi.Message;
+  @Input() lastReceivedRegularMessage: ReceivedRegularMessage;
   @Input() lastReceivedScatterMessage: yogi.ScatterMessage;
   @Input() lastReceivedGatherMessage: yogi.GatherMessage;
 
   @Output() sendRegularMessage = new EventEmitter<yogi.Message | ByteBuffer>();
 
   private canReceiveRegularMsg: boolean = false;
-  private canReceiveCachedRegularMsg: boolean = false;
   private canReceiveScatterMsg: boolean = false;
   private canReceiveGatherMsg: boolean = false;
   private canSendRegularMsg: boolean = false;
@@ -63,7 +66,6 @@ export class TerminalControlComponent implements OnInit {
 
       case yogi.CachedPublishSubscribeTerminal:
         this.canReceiveRegularMsg = this.canReceive;
-        this.canReceiveCachedRegularMsg = this.canReceive;
         this.canSendRegularMsg = this.canSend;
         this.sendSignatureHalf = this.signature.lowerHalf;
         this.recvSignatureHalf = this.signature.lowerHalf;
@@ -95,7 +97,6 @@ export class TerminalControlComponent implements OnInit {
 
       case yogi.CachedConsumerTerminal:
         this.canReceiveRegularMsg = this.canReceive;
-        this.canReceiveCachedRegularMsg = this.canReceive;
         this.recvSignatureHalf = this.signature.lowerHalf;
         break;
 
@@ -115,7 +116,6 @@ export class TerminalControlComponent implements OnInit {
 
       case yogi.CachedMasterTerminal:
         this.canReceiveRegularMsg = this.canReceive;
-        this.canReceiveCachedRegularMsg = this.canReceive;
         this.canSendRegularMsg = this.canSend;
         this.sendSignatureHalf = this.signature.upperHalf;
         this.recvSignatureHalf = this.signature.lowerHalf;
@@ -123,7 +123,6 @@ export class TerminalControlComponent implements OnInit {
 
       case yogi.CachedSlaveTerminal:
         this.canReceiveRegularMsg = this.canReceive;
-        this.canReceiveCachedRegularMsg = this.canReceive;
         this.canSendRegularMsg = this.canSend;
         this.sendSignatureHalf = this.signature.lowerHalf;
         this.recvSignatureHalf = this.signature.upperHalf;

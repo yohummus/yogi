@@ -46,6 +46,7 @@ export class InputGroupComponent implements OnInit, OnChanges, OnDestroy {
   @Input() signatureHalf: yogi.OfficialSignatureHalf;
   @Input() timestamp: number;
   @Input() value: any | ValuePair | any[] | ValuePair[];
+  @Input() cached: boolean = false;
   @Input() isListElement: boolean = false;
   @Input() hasSendButton: boolean = false;
   @Input() hasReplyButton: boolean = false;

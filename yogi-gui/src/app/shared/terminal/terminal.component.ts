@@ -9,6 +9,10 @@ import {
   YogiService,
 } from '../../core/core.module';
 
+import {
+  ReceivedRegularMessage
+} from '../terminal-control/terminal-control.component';
+
 @Component({
   selector: 'ce-terminal',
   templateUrl: 'terminal.component.html',
@@ -27,8 +31,7 @@ export class TerminalComponent implements OnInit, OnDestroy {
 
   private terminal: yogi.Terminal;
   private binding: yogi.Binding = null;
-  private lastReceivedRegularMessage: yogi.Message; // regular = PS, Master or Slave Message
-  private lastReceivedCachedRegularMessage: yogi.Message;
+  private lastReceivedRegularMessage: ReceivedRegularMessage; // regular = (Cached) PS, Master or Slave Message
   private lastReceivedScatterMessage: yogi.ScatterMessage;
   private lastReceivedGatherMessage: yogi.GatherMessage;
 
@@ -44,7 +47,7 @@ export class TerminalComponent implements OnInit, OnDestroy {
     }
 
     if ('onMessageReceived' in this.terminal) {
-      (this.terminal as any).onMessageReceived = (msg: yogi.Message, cached: boolean) => {
+      (this.terminal as any).onMessageReceived = (msg: yogi.Message, cached?: boolean) => {
         this.onRegularMessageReceived(msg, cached);
       };
     }
@@ -81,12 +84,10 @@ export class TerminalComponent implements OnInit, OnDestroy {
   }
 
   onRegularMessageReceived(msg: yogi.Message, cached?: boolean) {
-    if (cached) {
-      this.lastReceivedCachedRegularMessage = msg;
-    }
-    else {
-      this.lastReceivedRegularMessage = msg;
-    }
+    this.lastReceivedRegularMessage = {
+      msg: msg,
+      cached: !!cached
+    };
   }
 
   onScatterMessageReceived(msg: yogi.ScatterMessage) {

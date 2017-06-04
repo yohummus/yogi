@@ -13,7 +13,7 @@ import { TerminalControlComponent } from './terminal-control.component';
     NgbModule,
   ],
   exports: [
-    TerminalControlComponent,
+    TerminalControlComponent
   ],
   declarations: [
     TerminalControlComponent,

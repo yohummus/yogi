@@ -2,17 +2,9 @@
   label="Received"
   [enabled]="bound"
   [signatureHalf]="recvSignatureHalf"
-  [timestamp]="lastReceivedRegularMessage?.timestamp"
-  [value]="lastReceivedRegularMessage?.value"
-  [isReadonly]="true"
-></ce-input-group>
-
-<ce-input-group *ngIf="canReceiveCachedRegularMsg"
-  label="Cached"
-  [enabled]="bound"
-  [signatureHalf]="recvSignatureHalf"
-  [timestamp]="lastReceivedCachedRegularMessage?.timestamp"
-  [value]="lastReceivedCachedRegularMessage?.value"
+  [timestamp]="lastReceivedRegularMessage?.msg.timestamp"
+  [value]="lastReceivedRegularMessage?.msg.value"
+  [cached]="lastReceivedRegularMessage?.cached"
   [isReadonly]="true"
 ></ce-input-group>
 
