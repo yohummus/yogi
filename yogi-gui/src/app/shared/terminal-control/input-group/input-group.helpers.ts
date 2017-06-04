@@ -238,6 +238,17 @@ export class GuiPrimitiveData {
 
   storeValueIfValid(newValue: any) {
     switch (this.primitiveType) {
+      case yogi.PrimitiveType.BOOL:
+      case yogi.PrimitiveType.TRIBOOL:
+        if ([false, true, yogi.Tribool.TRUE, yogi.Tribool.FALSE, yogi.Tribool.UNDEFINED].indexOf(newValue) === -1) {
+          this._isValid = false;
+        }
+        else {
+          this._isValid = true;
+          this._value = newValue;
+        }
+        break;
+
       case yogi.PrimitiveType.INT8:
       case yogi.PrimitiveType.UINT8:
       case yogi.PrimitiveType.INT16:
@@ -258,6 +269,7 @@ export class GuiPrimitiveData {
         break;
 
       case yogi.PrimitiveType.STRING:
+        this._isValid = true;
         this._value = newValue;
         break;
 
@@ -289,6 +301,7 @@ export class GuiPrimitiveData {
         break;
 
       case yogi.PrimitiveType.TIMESTAMP:
+        this._isValid = true;
         this._value = dateToTimestamp(newValue
           ? new Date(newValue)
           : new Date() // now
