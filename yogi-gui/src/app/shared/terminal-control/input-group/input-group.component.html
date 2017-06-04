@@ -113,7 +113,6 @@
         [class.cached]="cached"
         [title]="pv.tooltip"
         [readonly]="isReadonly || null"
-        [value]="pv.valueString"
         [ngModel]="pv.valueString"
         (ngModelChange)="pv.onValueInputChanged($event)"
         (keydown.Enter)="onSendButtonClickedOrEnterPressed()"

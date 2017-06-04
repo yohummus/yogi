@@ -17,7 +17,7 @@ import {
 interface LogEntry {
   processPath: string;
   timestamp: string;
-  rawTimestamp: number;
+  rawTimestamp: Long;
   severity: string;
   component: string;
   message: string;

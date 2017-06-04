@@ -1,20 +1,25 @@
-export function timestampToDate(timestamp: number): Date {
-  return new Date(timestamp / 1000000);
+export function timestampToDate(timestamp: Long): Date {
+  return new Date(timestamp.div(1000000).toNumber());
 }
 
-export function dateToTimestamp(date: Date): number {
-  return date.getTime() * 1000000;
+export function dateToTimestamp(date: Date): Long {
+  return Long.fromNumber(date.getTime()).mul(1000000);
 }
 
-export function timestampToStringForHtmlInput(timestamp: number): string {
+export function timestampToStringForHtmlInput(timestamp: Long): string {
   let str = timestampToDate(timestamp).toISOString();
   return str.substring(0, str.length - 1);
 }
 
-function makeSubSecondString(timestamp: number, pad: boolean): string {
-  let ms = (Math.floor(timestamp / 1000000) % 1000).toString();
-  let us = (Math.floor(timestamp / 1000) % 1000).toString();
-  let ns = (timestamp % 1000).toString();
+export function stringFromHtmlInputToTimestamp(str: string): Long {
+  let ts = new Date(str + 'Z').getTime();
+  return Long.fromNumber(ts).mul(1000000);
+}
+
+function makeSubSecondString(timestamp: Long, pad: boolean): string {
+  let ms = (Math.floor(timestamp.div(1000000).toNumber()) % 1000).toString();
+  let us = (Math.floor(timestamp.div(1000).toNumber()) % 1000).toString();
+  let ns = timestamp.mod(1000).toString();
 
   if (pad) {
     while (ms.length < 3) {
@@ -33,14 +38,14 @@ function makeSubSecondString(timestamp: number, pad: boolean): string {
   return ms + ' ms ' + us + ' us ' + ns + ' ns';
 }
 
-export function timestampToString(timestamp: number, fixedWidth = false): string {
+export function timestampToString(timestamp: Long, fixedWidth = false): string {
   let date = timestampToDate(timestamp);
   let str = dateToString(date);
   str += ' ' + makeSubSecondString(timestamp, fixedWidth);
   return str;
 }
 
-export function timestampToTooltipString(timestamp: number): string {
+export function timestampToTooltipString(timestamp: Long): string {
   let date = timestampToDate(timestamp);
   let str = dateToString(date);
   str += '\n' + makeSubSecondString(timestamp, false);

@@ -20,7 +20,7 @@
 #include "proto/yogi_000000e1.h"
 #include "proto/yogi_00000c07.h"
 #include "proto/yogi_0000c00c.h"
-#include "proto/yogi_0000d007.h"
+#include "proto/yogi_00debc62.h"
 
 #include <QtDebug>
 
@@ -94,7 +94,15 @@ void TestService::create_signature_test_sg_terminal(const char* name)
     auto observer = std::make_unique<yogi::MessageObserver<yogi::ScatterGatherTerminal<ProtoDescription>>>(*terminal);
     observer->set([tm = terminal.get()](auto&& request) {
         auto msg = tm->make_gather_message();
-        msg.set_value(static_cast<std::int32_t>(request.message().value().size()));
+
+        auto pair1 = msg.add_value();
+        pair1->set_first(yogi_00debc62_ns::Tribool::TRUE);
+        pair1->set_second(static_cast<std::int8_t>(123));
+
+        auto pair2 = msg.add_value();
+        pair2->set_first(yogi_00debc62_ns::Tribool::UNDEFINED);
+        pair2->set_second(static_cast<std::int8_t>(101));
+
         request.respond(msg);
 
         tm->async_scatter_gather(request.message(), [](auto& res, auto&& response) {
@@ -600,7 +608,7 @@ bool TestService::handle_create_signature_test_terminals_command(QStringList arg
         msg->set_timestamp(msg->timestamp() + 1);
     });
 
-    create_signature_test_sg_terminal<yogi_0000d007>("/SG int32");
+    create_signature_test_sg_terminal<yogi_00debc62>("/SG Scatter String Gather int32");
 
     return true;
 }

@@ -4,6 +4,7 @@ import {
   timestampToStringForHtmlInput,
   timestampToTooltipString,
   dateToTimestamp,
+  stringFromHtmlInputToTimestamp,
 } from '../../../helpers/helpers.barrel';
 
 import {
@@ -163,7 +164,7 @@ export class GuiPrimitiveData {
         this._guiPrimitiveType = GuiPrimitiveType.TIMESTAMP_PRIMITIVE;
         this._makeValueStringFn = timestampToStringForHtmlInput;
         this._makeTooltipFn = timestampToTooltipString;
-        this.value = 0;
+        this.value = new Long(0);
         break;
 
       default:
@@ -304,10 +305,7 @@ export class GuiPrimitiveData {
 
       case yogi.PrimitiveType.TIMESTAMP:
         this._isValid = true;
-        this._value = dateToTimestamp(newValue
-          ? new Date(newValue)
-          : new Date() // now
-        );
+        this._value = stringFromHtmlInputToTimestamp(newValue);
         break;
     }
   }

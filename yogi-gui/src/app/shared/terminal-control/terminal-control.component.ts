@@ -182,6 +182,14 @@ export class TerminalControlComponent implements OnInit {
     }
   }
 
+  onScatterMessageChanged(change: Change) {
+    console.log('onScatterMessageChanged', change);
+  }
+
+  onGatherMessageChanged(change: Change) {
+    console.log('onGatherMessageChanged', change);
+  }
+
   onSendButtonClicked() {
     this.sendRegularMessage.emit(this.lastSendableMsg);
   }

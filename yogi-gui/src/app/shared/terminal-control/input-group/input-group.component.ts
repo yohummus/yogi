@@ -21,6 +21,7 @@ import {
   timestampToStringForHtmlInput,
   timestampToTooltipString,
   dateToTimestamp,
+  stringFromHtmlInputToTimestamp
 } from '../../../helpers/helpers.barrel';
 
 import {
@@ -30,7 +31,7 @@ import {
 } from './input-group.helpers';
 
 export interface Change {
-  timestamp?: number;
+  timestamp?: Long;
   value: any | ValuePair | any[] | ValuePair[];
   valid: boolean;
 }
@@ -44,7 +45,7 @@ export class InputGroupComponent implements OnInit, OnChanges, OnDestroy {
   @Input() label: string;
   @Input() enabled: boolean = true;
   @Input() signatureHalf: yogi.OfficialSignatureHalf;
-  @Input() timestamp: number;
+  @Input() timestamp: Long;
   @Input() value: any | ValuePair | any[] | ValuePair[];
   @Input() cached: boolean = false;
   @Input() isListElement: boolean = false;
@@ -62,7 +63,7 @@ export class InputGroupComponent implements OnInit, OnChanges, OnDestroy {
   GuiPrimitiveType = GuiPrimitiveType;
 
   private primitiveValues: GuiPrimitiveData[];
-  private timestampValue: number = 0;
+  private timestampValue: Long;
   private timestampString: string;
   private timestampTitle: string;
   private listValues: any[];
@@ -181,8 +182,8 @@ export class InputGroupComponent implements OnInit, OnChanges, OnDestroy {
     if (this.isOfficial && this.signatureHalf.isPair) {
       return this.listViewChildren.map((child) => {
         return {
-          first: child.primitiveValues[0].value,
-          second: child.primitiveValues[1].value
+          first: child.primitiveValues[1].value,
+          second: child.primitiveValues[0].value
         };
       });
     }
@@ -250,9 +251,9 @@ export class InputGroupComponent implements OnInit, OnChanges, OnDestroy {
     }
   }
 
-  updateTimestamp(timestamp?: number) {
+  updateTimestamp(timestamp?: Long) {
     if (!timestamp) {
-      timestamp = 0;
+      timestamp = new Long(0);
     }
 
     this.timestampValue = timestamp;
@@ -261,8 +262,9 @@ export class InputGroupComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   onTimestampChanged(newValue: string) {
-    let timestamp = dateToTimestamp(new Date(newValue));
-    this.updateTimestamp(timestamp);
+    let timestamp = stringFromHtmlInputToTimestamp(newValue);
+    this.timestampValue = timestamp;
+    this.timestampTitle = timestampToTooltipString(timestamp);
 
     this.emitChange();
   }

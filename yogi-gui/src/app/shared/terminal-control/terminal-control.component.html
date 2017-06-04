@@ -35,6 +35,7 @@
   [hasReplyButton]="true"
   [timestamp]="dummySendableTimestamp"
   [value]="dummySendableValue"
+  (changed)="onGatherMessageChanged($event)"
 ></ce-input-group>
 
 <ce-input-group *ngIf="canReceiveGatherMsg"
@@ -54,4 +55,6 @@
   [hasSendButton]="true"
   [timestamp]="dummySendableTimestamp"
   [value]="dummySendableValue"
+  (changed)="onScatterMessageChanged($event)"
+  (sendButtonClicked)="onSendButtonClicked()"
 ></ce-input-group>
