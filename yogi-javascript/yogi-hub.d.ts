@@ -146,7 +146,7 @@ declare module yogi {
         serialize(): ArrayBuffer;
         deserialize(buffer: ArrayBuffer): void;
 
-        timestamp?: number;
+        timestamp?: Long;
         value?: any;
     }
 

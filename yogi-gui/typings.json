@@ -1,5 +1,4 @@
 {
   "globalDependencies": {
-    "yogi-hub": "github:jmbergmann/yogi/yogi-javascript/yogi-hub.d.ts"
   }
 }
