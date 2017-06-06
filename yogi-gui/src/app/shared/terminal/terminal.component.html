@@ -7,4 +7,6 @@
   [lastReceivedScatterMessage]="lastReceivedScatterMessage"
   [lastReceivedGatherMessage]="lastReceivedGatherMessage"
   (sendRegularMessage)="sendRegularMessage($event)"
+  (sendScatterMessage)="sendScatterMessage($event)"
+  (scatterGatherReplyChanged)="onScatterGatherReplyChanged($event)"
 ></ce-terminal-control>

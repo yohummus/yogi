@@ -34,6 +34,7 @@ export interface Change {
   timestamp?: Long;
   value: any | ValuePair | any[] | ValuePair[];
   valid: boolean;
+  ignoreScatteredMsg?: boolean;
 }
 
 @Component({
@@ -68,6 +69,7 @@ export class InputGroupComponent implements OnInit, OnChanges, OnDestroy {
   private timestampTitle: string;
   private listValues: any[];
   private listValuesValid: boolean = true;
+  private ignoreScatterMsg: boolean = true;
 
   constructor(private errorDisplayService: ErrorDisplayService) {
   }
@@ -270,6 +272,13 @@ export class InputGroupComponent implements OnInit, OnChanges, OnDestroy {
   }
 
 
+  //===== Scatter-Gather-specific =====
+  onReplyButtonClicked() {
+    this.ignoreScatterMsg = !this.ignoreScatterMsg;
+    this.emitChange(this.getListValues());
+  }
+
+
   //===== OUTPUTS =====
   areValuesValid(): boolean {
     if (this.isList) {
@@ -282,8 +291,8 @@ export class InputGroupComponent implements OnInit, OnChanges, OnDestroy {
 
   emitChange(listValues?: any[]) {
     let value;
-    if (listValues) {
-      value = listValues;
+    if (this.isList) {
+      value = listValues ? listValues : [];
     }
     else if (this.isOfficial && this.signatureHalf.isPair) {
       value = {
@@ -295,15 +304,20 @@ export class InputGroupComponent implements OnInit, OnChanges, OnDestroy {
       value = this.primitiveValues[0].value;
     }
 
-    let valid = this.areValuesValid();
+    let change: Change = {
+      valid: this.areValuesValid(),
+      value: value
+    };
 
     if (this.hasTimestamp) {
-      let timestamp = this.timestampValue;
-      this.changed.emit({ timestamp, value, valid });
+      change.timestamp = this.timestampValue;
     }
-    else {
-      this.changed.emit({ value, valid });
+
+    if (this.hasReplyButton) {
+      change.ignoreScatteredMsg = this.ignoreScatterMsg;
     }
+
+    this.changed.emit(change);
   }
 
   onSendButtonClickedOrEnterPressed() {

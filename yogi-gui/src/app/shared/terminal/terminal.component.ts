@@ -10,7 +10,8 @@ import {
 } from '../../core/core.module';
 
 import {
-  ReceivedRegularMessage
+  ReceivedRegularMessage,
+  ScatterGatherReply,
 } from '../terminal-control/terminal-control.component';
 
 @Component({
@@ -34,6 +35,8 @@ export class TerminalComponent implements OnInit, OnDestroy {
   private lastReceivedRegularMessage: ReceivedRegularMessage; // regular = (Cached) PS, Master or Slave Message
   private lastReceivedScatterMessage: yogi.ScatterMessage;
   private lastReceivedGatherMessage: yogi.GatherMessage;
+  private lastScatterOperation: yogi.Operation;
+  private scatterGatherReply: ScatterGatherReply;
 
   constructor(private YogiService: YogiService) {
   }
@@ -92,9 +95,27 @@ export class TerminalComponent implements OnInit, OnDestroy {
 
   onScatterMessageReceived(msg: yogi.ScatterMessage) {
     this.lastReceivedScatterMessage = msg;
+    if (this.scatterGatherReply && !this.scatterGatherReply.ignore) {
+      msg.respond(this.scatterGatherReply.msg as yogi.Message); // TODO: what about custom Terminals?
+    }
+    else {
+      msg.ignore();
+    }
   }
 
   sendRegularMessage(msg: yogi.Message) {
     (this.terminal as any).publish(msg);
+  }
+
+  sendScatterMessage(msg: yogi.Message) {
+    this.lastScatterOperation = (this.terminal as any).scatterGather(msg, (gatherMsg: yogi.GatherMessage) => {
+      if (gatherMsg.message && gatherMsg.operation.id === this.lastScatterOperation.id) {
+        this.lastReceivedGatherMessage = gatherMsg;
+      }
+    });
+  }
+
+  onScatterGatherReplyChanged(reply: ScatterGatherReply) {
+    this.scatterGatherReply = reply;
   }
 }

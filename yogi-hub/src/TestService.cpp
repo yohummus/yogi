@@ -95,6 +95,8 @@ void TestService::create_signature_test_sg_terminal(const char* name)
     observer->set([tm = terminal.get()](auto&& request) {
         auto msg = tm->make_gather_message();
 
+        msg.set_timestamp(yogi::Timestamp::now().time_since_epoch().count());
+
         auto pair1 = msg.add_value();
         pair1->set_first(yogi_00debc62_ns::Tribool::TRUE);
         pair1->set_second(static_cast<std::int8_t>(123));
@@ -105,7 +107,13 @@ void TestService::create_signature_test_sg_terminal(const char* name)
 
         request.respond(msg);
 
-        tm->async_scatter_gather(request.message(), [](auto& res, auto&& response) {
+        auto msg2 = tm->make_scatter_message();
+        msg2.set_timestamp(123456789);
+        auto pair3 = msg2.add_value();
+        pair3->set_first(1.23);
+        pair3->set_second(std::string("AB"));
+
+        tm->async_scatter_gather(msg2, [](auto& res, auto&& response) {
             return yogi::control_flow::STOP;
         });
     });

@@ -2,10 +2,6 @@
   display: inline-block;
 }
 
-.list-element-button {
-  background: white;
-}
-
 .list-append-button {
   margin-left: 5px;
   color: #55595c;
@@ -37,16 +33,24 @@ button {
   padding: 1px 5px;
 }
 
-.dropdown-button {
-  background: white;
-  cursor: pointer;
-  padding-top: 0px;
+.toggle-button,
+.reply-button,
+.list-modification-button {
+  padding-top: 2px;
 }
 
-.dropdown-button:hover {
+.custom-button {
+  background: white;
+}
+
+.enabled-button {
+  cursor: pointer;
+}
+
+.enabled-button:hover {
   background: #e6e6e6;
 }
 
 .cached {
-  background: repeating-linear-gradient(45deg, #eee, #eee 4px, white  4px, white  8px);
+  background: repeating-linear-gradient(45deg, #f2f2f2, #f2f2f2 4px, white  4px, white  8px);
 }

@@ -175,6 +175,7 @@ declare module yogi {
     export abstract class Operation {
         readonly terminal: Terminal;
         readonly finished: boolean;
+        readonly id: number;
 
         toString(): string;
     }

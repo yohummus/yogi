@@ -369,6 +369,10 @@
             return this._id === null;
         }
 
+        get id() {
+            return this._id;
+        }
+
         toString() {
             return `${this.constructor.name} [${this._id}]`;
         }

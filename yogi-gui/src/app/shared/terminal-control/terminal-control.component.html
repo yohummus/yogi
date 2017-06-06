@@ -15,14 +15,14 @@
   [hasSendButton]="true"
   [timestamp]="dummySendableTimestamp"
   [value]="dummySendableValue"
-  (changed)="onRegularMessageChanged($event)"
+  (changed)="onMessageChanged(lastSendableRegularMsg, $event)"
   (sendButtonClicked)="onSendButtonClicked()"
 ></ce-input-group>
 
 <ce-input-group *ngIf="canReceiveScatterMsg"
   label="Received"
   [enabled]="bound"
-  [signatureHalf]="recvSignatureHalf"
+  [signatureHalf]="sendSignatureHalf"
   [timestamp]="lastReceivedScatterMessage?.message.timestamp"
   [value]="lastReceivedScatterMessage?.message.value"
   [isReadonly]="true"
@@ -31,22 +31,23 @@
 <ce-input-group *ngIf="canSendGatherMsg"
   label="Reply"
   [enabled]="bound"
-  [signatureHalf]="sendSignatureHalf"
+  [signatureHalf]="recvSignatureHalf"
   [hasReplyButton]="true"
   [timestamp]="dummySendableTimestamp"
   [value]="dummySendableValue"
-  (changed)="onGatherMessageChanged($event)"
+  (changed)="onMessageChanged(lastSendableGatherMsg, $event)"
 ></ce-input-group>
 
 <ce-input-group *ngIf="canReceiveGatherMsg"
-  label="Response"
+  label="Last Response"
   [enabled]="subscribed"
   [signatureHalf]="recvSignatureHalf"
   [timestamp]="lastReceivedGatherMessage?.message.timestamp"
   [value]="lastReceivedGatherMessage?.message.value"
   [isReadonly]="true"
-  [hasGatherButton]="true"
+  [hasGatherButton]="false"
 ></ce-input-group>
+<!-- TODO: [hasGatherButton]="true" and implement receiving all instead of only the most recent response -->
 
 <ce-input-group *ngIf="canSendScatterMsg"
   label="Request"
@@ -55,6 +56,6 @@
   [hasSendButton]="true"
   [timestamp]="dummySendableTimestamp"
   [value]="dummySendableValue"
-  (changed)="onScatterMessageChanged($event)"
+  (changed)="onMessageChanged(lastSendableScatterMsg, $event)"
   (sendButtonClicked)="onSendButtonClicked()"
 ></ce-input-group>

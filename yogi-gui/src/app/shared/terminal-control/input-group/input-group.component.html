@@ -2,12 +2,12 @@
   <!-- Insert and remove buttons for list elements -->
   <ng-template [ngIf]="isListElement && !isReadonly">
     <span
-      class="input-group-addon list-element-button"
+      class="input-group-addon custom-button enabled-button list-modification-button"
       title="Insert element"
       (click)="onListInsertButtonClicked()"
     ><i class="fa fa-fw fa-plus"></i></span>
     <span
-      class="input-group-addon list-element-button"
+      class="input-group-addon custom-button enabled-button list-modification-button"
       title="Remove element"
       (click)="onListRemoveButtonClicked()"
     ><i class="fa fa-fw fa-minus"></i></span>
@@ -34,7 +34,7 @@
   <span *ngIf="isList"
     ngbDropdown
     #listDropdown="ngbDropdown"
-    class="input-group-addon dropdown-button"
+    class="input-group-addon custom-button enabled-button"
     [class.cached]="cached"
     [class.bg-danger]="!listValuesValid"
     (click)="$event.stopPropagation(); listDropdown.open();">
@@ -56,7 +56,7 @@
       ></ce-input-group>
       <button *ngIf="!isReadonly && listValues.length === 0"
         type="button"
-        class="btn btn-secondary list-append-button"
+        class="btn btn-secondary custom-button enabled-button list-append-button"
         title="Append element"
         (click)="onListAppendButtonClicked()"
       ><i class="fa fa-fw fa-plus"></i></button>
@@ -73,7 +73,8 @@
       ><i class="fa fa-fw fa-ban"></i></span>
 
       <span *ngIf="pv.guiPrimitiveType === GuiPrimitiveType.BUTTON_PRIMITIVE"
-        class="input-group-addon primitive-control"
+        class="input-group-addon primitive-control custom-button toggle-button"
+        [class.enabled-button]="!isReadonly"
         [class.cached]="cached"
         [title]="pv.tooltip"
         (click)="pv.onBoolButtonClicked()"
@@ -122,10 +123,10 @@
 
   <!-- Reply button -->
   <span *ngIf="hasReplyButton"
-    class="input-group-addon"
-    title="TODO"
+    class="input-group-addon custom-button enabled-button reply-button"
+    [title]="ignoreScatterMsg ? 'Ignore Scatter Messages' : 'Reply to Scatter Messages'"
     (click)="onReplyButtonClicked()"
-  ><i class="fa fa-fw fa-trash-o"></i></span>
+  ><i class="fa fa-fw" [class.fa-trash-o]="ignoreScatterMsg" [class.fa-reply-all]="!ignoreScatterMsg"></i></span>
 
   <!-- Gather button -->
   <span *ngIf="hasGatherButton" class="input-group-btn">
