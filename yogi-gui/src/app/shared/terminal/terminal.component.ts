@@ -108,11 +108,18 @@ export class TerminalComponent implements OnInit, OnDestroy {
   }
 
   sendScatterMessage(msg: yogi.Message) {
-    this.lastScatterOperation = (this.terminal as any).scatterGather(msg, (gatherMsg: yogi.GatherMessage) => {
+    let fn = (gatherMsg: yogi.GatherMessage) => {
       if (gatherMsg.message && gatherMsg.operation.id === this.lastScatterOperation.id) {
         this.lastReceivedGatherMessage = gatherMsg;
       }
-    });
+    };
+
+    if ('scatterGather' in this.terminal) {
+      this.lastScatterOperation = (this.terminal as any).scatterGather(msg, fn);
+    }
+    else {
+      this.lastScatterOperation = (this.terminal as any).request(msg, fn);
+    }
   }
 
   onScatterGatherReplyChanged(reply: ScatterGatherReply) {
