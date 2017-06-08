@@ -19,7 +19,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='yogi_0000040d.proto',
   package='yogi_0000040d',
   syntax='proto3',
-  serialized_pb=_b('\n\x13yogi_0000040d.proto\x12\ryogi_0000040d\"\x10\n\x0eScatterMessage\"\x1e\n\rGatherMessage\x12\r\n\x05value\x18\x02 \x03(\t\"\x1f\n\x0ePublishMessage\x12\r\n\x05value\x18\x02 \x03(\tb\x06proto3')
+  serialized_pb=_b('\n\x13yogi_0000040d.proto\x12\ryogi_0000040d\"\x10\n\x0eScatterMessage\"\x1e\n\rGatherMessage\x12\r\n\x05value\x18\x02 \x03(\t\"\x1f\n\x0ePublishMessage\x12\r\n\x05value\x18\x02 \x03(\t\"\x0f\n\rMasterMessage\"\x1d\n\x0cSlaveMessage\x12\r\n\x05value\x18\x02 \x03(\tb\x06proto3')
 )
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
@@ -111,9 +111,66 @@ _PUBLISHMESSAGE = _descriptor.Descriptor(
   serialized_end=119,
 )
 
+
+_MASTERMESSAGE = _descriptor.Descriptor(
+  name='MasterMessage',
+  full_name='yogi_0000040d.MasterMessage',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=121,
+  serialized_end=136,
+)
+
+
+_SLAVEMESSAGE = _descriptor.Descriptor(
+  name='SlaveMessage',
+  full_name='yogi_0000040d.SlaveMessage',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='value', full_name='yogi_0000040d.SlaveMessage.value', index=0,
+      number=2, type=9, cpp_type=9, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=138,
+  serialized_end=167,
+)
+
 DESCRIPTOR.message_types_by_name['ScatterMessage'] = _SCATTERMESSAGE
 DESCRIPTOR.message_types_by_name['GatherMessage'] = _GATHERMESSAGE
 DESCRIPTOR.message_types_by_name['PublishMessage'] = _PUBLISHMESSAGE
+DESCRIPTOR.message_types_by_name['MasterMessage'] = _MASTERMESSAGE
+DESCRIPTOR.message_types_by_name['SlaveMessage'] = _SLAVEMESSAGE
 
 ScatterMessage = _reflection.GeneratedProtocolMessageType('ScatterMessage', (_message.Message,), dict(
   DESCRIPTOR = _SCATTERMESSAGE,
@@ -136,8 +193,24 @@ PublishMessage = _reflection.GeneratedProtocolMessageType('PublishMessage', (_me
   ))
 _sym_db.RegisterMessage(PublishMessage)
 
+MasterMessage = _reflection.GeneratedProtocolMessageType('MasterMessage', (_message.Message,), dict(
+  DESCRIPTOR = _MASTERMESSAGE,
+  __module__ = 'yogi_0000040d_pb2'
+  # @@protoc_insertion_point(class_scope:yogi_0000040d.MasterMessage)
+  ))
+_sym_db.RegisterMessage(MasterMessage)
+
+SlaveMessage = _reflection.GeneratedProtocolMessageType('SlaveMessage', (_message.Message,), dict(
+  DESCRIPTOR = _SLAVEMESSAGE,
+  __module__ = 'yogi_0000040d_pb2'
+  # @@protoc_insertion_point(class_scope:yogi_0000040d.SlaveMessage)
+  ))
+_sym_db.RegisterMessage(SlaveMessage)
+
 
 # @@protoc_insertion_point(module_scope)
 ScatterMessage.SIGNATURE = 0x0000040d
 GatherMessage.SIGNATURE = 0x0000040d
 PublishMessage.SIGNATURE = 0x0000040d
+MasterMessage.SIGNATURE = 0x0000040d
+SlaveMessage.SIGNATURE = 0x0000040d

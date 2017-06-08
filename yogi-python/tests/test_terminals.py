@@ -326,14 +326,15 @@ class TestTerminals(unittest.TestCase):
         tmA = self.terminalsB['msMaster']
         tmB = self.terminalsA['msSlave']
 
-        msg = tmB.make_message(value=123)
+        master_msg = tmA.make_message(value='Hello')
+        slave_msg = tmB.make_message(value=123)
 
         # publish without the terminals being bound
-        self.assertRaises(yogi.Failure, lambda: tmA.publish(msg))
-        self.assertEqual(False, tmA.try_publish(msg))
+        self.assertRaises(yogi.Failure, lambda: tmA.publish(master_msg))
+        self.assertEqual(False, tmA.try_publish(master_msg))
 
-        self.assertRaises(yogi.Failure, lambda: tmB.publish(msg))
-        self.assertEqual(False, tmB.try_publish(msg))
+        self.assertRaises(yogi.Failure, lambda: tmB.publish(slave_msg))
+        self.assertEqual(False, tmB.try_publish(slave_msg))
 
         # cancel receive message
         with AsyncCall() as wrap:
@@ -363,12 +364,12 @@ class TestTerminals(unittest.TestCase):
         with AsyncCall() as wrap:
             def fn(res, msg):
                 self.assertEqual(yogi.Success(), res)
-                self.assertEqual(123, msg.value)
+                self.assertEqual('Hello', msg.value)
 
             tmB.async_receive_message(wrap(fn))
-            tmA.publish(msg)
+            tmA.publish(master_msg)
 
-        self.assertTrue(tmA.try_publish(msg))
+        self.assertTrue(tmA.try_publish(master_msg))
 
         with AsyncCall() as wrap:
             def fn(res, msg):
@@ -376,22 +377,23 @@ class TestTerminals(unittest.TestCase):
                 self.assertEqual(123, msg.value)
 
             tmA.async_receive_message(wrap(fn))
-            tmB.publish(msg)
+            tmB.publish(slave_msg)
 
-        self.assertTrue(tmB.try_publish(msg))
+        self.assertTrue(tmB.try_publish(slave_msg))
 
     def test_CachedMasterSlaveTerminals(self):
         tmA = self.terminalsA['cmsMaster']
         tmB = self.terminalsB['cmsSlave']
 
-        msg = tmB.make_message(value=123)
+        master_msg = tmA.make_message(value='Hello')
+        slave_msg = tmB.make_message(value=123)
 
         # publish without the terminals being bound
-        self.assertRaises(yogi.Failure, lambda: tmA.publish(msg))
-        self.assertEqual(False, tmA.try_publish(msg))
+        self.assertRaises(yogi.Failure, lambda: tmA.publish(master_msg))
+        self.assertEqual(False, tmA.try_publish(master_msg))
 
-        self.assertRaises(yogi.Failure, lambda: tmB.publish(msg))
-        self.assertEqual(False, tmB.try_publish(msg))
+        self.assertRaises(yogi.Failure, lambda: tmB.publish(slave_msg))
+        self.assertEqual(False, tmB.try_publish(slave_msg))
 
         # cancel receive message
         with AsyncCall() as wrap:
@@ -412,7 +414,7 @@ class TestTerminals(unittest.TestCase):
         with AsyncCall() as wrap:
             def fn(res, msg, cached):
                 self.assertEqual(yogi.Success(), res)
-                self.assertEqual(123, msg.value)
+                self.assertEqual('Hello', msg.value)
                 self.assertTrue(cached)
 
             tmB.async_receive_message(wrap(fn))
@@ -436,13 +438,13 @@ class TestTerminals(unittest.TestCase):
         with AsyncCall() as wrap:
             def fn(res, msg, cached):
                 self.assertEqual(yogi.Success(), res)
-                self.assertEqual(123, msg.value)
+                self.assertEqual('Hello', msg.value)
                 self.assertFalse(cached)
 
             tmB.async_receive_message(wrap(fn))
-            tmA.publish(msg)
+            tmA.publish(master_msg)
 
-        self.assertTrue(tmA.try_publish(msg))
+        self.assertTrue(tmA.try_publish(master_msg))
 
         with AsyncCall() as wrap:
             def fn(res, msg, cached):
@@ -451,16 +453,16 @@ class TestTerminals(unittest.TestCase):
                 self.assertFalse(cached)
 
             tmA.async_receive_message(wrap(fn))
-            tmB.publish(msg)
+            tmB.publish(slave_msg)
 
-        self.assertTrue(tmB.try_publish(msg))
+        self.assertTrue(tmB.try_publish(slave_msg))
 
         # get cached message
-        msg = tmA.get_cached_message()
-        self.assertEqual(123, msg.value)
+        slave_msg = tmA.get_cached_message()
+        self.assertEqual(123, slave_msg.value)
 
-        msg = tmB.get_cached_message()
-        self.assertEqual(123, msg.value)
+        master_msg = tmB.get_cached_message()
+        self.assertEqual('Hello', master_msg.value)
 
     def test_ServiceClientTerminals(self):
         tmA = self.terminalsA['scService']

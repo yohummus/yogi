@@ -1,7 +1,7 @@
 from .configuration import *
 from .terminals import *
 from .proto import yogi_00000001_pb2
-from .proto import yogi_00000004_pb2
+from .proto import yogi_00004004_pb2
 from .proto import yogi_000009cd_pb2
 from .proto import yogi_0000040d_pb2
 import datetime
@@ -76,13 +76,13 @@ class ProcessInterface:
 
         self._log_verbosity_terminals_lock = threading.Lock()
         self._max_stdout_log_verbosity_terminal = CachedMasterTerminal(
-            self._config.location / 'Process/Standard Output Log Verbosity/Max Verbosity', yogi_00000004_pb2,
+            self._config.location / 'Process/Standard Output Log Verbosity/Max Verbosity', yogi_00004004_pb2,
             leaf=self._leaf)
         self._max_stdout_log_verbosity_terminal.async_receive_message(
             lambda res, msg, cached: self._on_max_logging_verbosity_changed(res, msg, cached, True,
                                                                             self._max_stdout_log_verbosity_terminal))
         self._max_yogi_log_verbosity_terminal = CachedMasterTerminal(
-            self._config.location / 'Process/YOGI Log Verbosity/Max Verbosity', yogi_00000004_pb2,
+            self._config.location / 'Process/YOGI Log Verbosity/Max Verbosity', yogi_00004004_pb2,
             leaf=self._leaf)
         self._max_yogi_log_verbosity_terminal.async_receive_message(
             lambda res, msg, cached: self._on_max_logging_verbosity_changed(res, msg, cached, False,
@@ -143,7 +143,7 @@ class ProcessInterface:
                 Logger.max_stdout_verbosity = verbosity
             else:
                 Logger.max_yogi_verbosity = verbosity
-            terminal.try_publish(msg)
+            terminal.try_publish(terminal.make_message(value=msg.value))
 
         fn = lambda res, msg, cached: self._on_max_logging_verbosity_changed(res, msg, cached, is_stdout, terminal)
         terminal.async_receive_message(fn)
@@ -164,7 +164,7 @@ class ProcessInterface:
                 logger.stdout_verbosity = verbosity
             else:
                 logger.yogi_verbosity = verbosity
-            terminal.try_publish(msg)
+            terminal.try_publish(terminal.make_message(value=msg.value))
 
         fn = lambda res, msg, cached: self._on_logging_verbosity_changed(res, msg, cached, is_stdout, component, terminal)
         with self._log_verbosity_terminals_lock:
@@ -175,13 +175,13 @@ class ProcessInterface:
 
         stdout_vb_terminal = CachedMasterTerminal(
             self._config.location / 'Process/Standard Output Log Verbosity/Components' / component,
-            yogi_00000004_pb2, leaf=self._leaf)
+            yogi_00004004_pb2, leaf=self._leaf)
         stdout_vb_terminal.async_receive_message(lambda res, msg, cached: self._on_logging_verbosity_changed(
             res, msg, cached, True, component, stdout_vb_terminal))
 
         yogi_vb_terminal = CachedMasterTerminal(
             self._config.location / 'Process/YOGI Log Verbosity/Components' / component,
-            yogi_00000004_pb2, leaf=self._leaf)
+            yogi_00004004_pb2, leaf=self._leaf)
         yogi_vb_terminal.async_receive_message(lambda res, msg, cached: self._on_logging_verbosity_changed(
             res, msg, cached, False, component, yogi_vb_terminal))
 

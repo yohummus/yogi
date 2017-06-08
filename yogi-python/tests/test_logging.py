@@ -10,7 +10,7 @@ import json
 
 from test_terminals import AsyncCall
 from proto import yogi_000009cd_pb2
-from proto import yogi_00000004_pb2
+from proto import yogi_00004004_pb2
 
 
 class TestLogging(unittest.TestCase):
@@ -135,7 +135,7 @@ class TestLogging(unittest.TestCase):
         # check changing verbosity levels at runtime
         logger = yogi.Logger('My Component')
         max_verbosity_terminal = yogi.CachedSlaveTerminal('/Process/YOGI Log Verbosity/Max Verbosity',
-                                                             yogi_00000004_pb2, leaf=leaf)
+                                                             yogi_00004004_pb2, leaf=leaf)
         while max_verbosity_terminal.get_binding_state() is yogi.BindingState.RELEASED:
             pass
         while max_verbosity_terminal.get_subscription_state() is yogi.SubscriptionState.UNSUBSCRIBED:
@@ -144,7 +144,7 @@ class TestLogging(unittest.TestCase):
         self.change_verbosity(max_verbosity_terminal, yogi.Verbosity.INFO)
 
         verbosity_terminal = yogi.CachedSlaveTerminal('/Process/YOGI Log Verbosity/Components/My Component',
-                                                         yogi_00000004_pb2, leaf=leaf)
+                                                         yogi_00004004_pb2, leaf=leaf)
         while verbosity_terminal.get_binding_state() is yogi.BindingState.RELEASED:
             pass
         while verbosity_terminal.get_subscription_state() is yogi.SubscriptionState.UNSUBSCRIBED:

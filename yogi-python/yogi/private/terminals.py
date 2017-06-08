@@ -320,13 +320,13 @@ class SubscribableMixin(object):
 
 class PublishMixin:
     def make_message(self, **kwargs) -> Any:
-        return self._proto_module.PublishMessage(**kwargs)
+        return self._get_send_msg_class()(**kwargs)
 
     def publish(self, msg):
         if self._proto_module:
-            if not isinstance(msg, self._proto_module.PublishMessage):
+            if not isinstance(msg, self._get_send_msg_class()):
                 raise Exception('Invalid parameter: {} is not of type {}'
-                                .format(type(msg), self._proto_module.PublishMessage))
+                                .format(type(msg), self._get_send_msg_class()))
             data = msg.SerializeToString()
         else:
             data = msg
@@ -350,7 +350,7 @@ class PublishMessageReceiverMixin:
             if res:
                 data = bytes(bytearray((c_byte * bytes_written).from_buffer(buffer)))
                 if self._proto_module:
-                    msg = self._proto_module.PublishMessage()
+                    msg = self._get_recv_msg_class()()
                     msg.ParseFromString(data)
                 else:
                     msg = data
@@ -374,10 +374,10 @@ class CacheMixin:
         buffer = create_string_buffer(Terminal.RECEIVE_MESSAGE_BUFFER_SIZE)
         bytes_written = c_uint()
         self._get_cached_message_api_fn(self._handle, buffer, sizeof(buffer), byref(bytes_written))
-        
+
         data = bytes(bytearray((c_byte * bytes_written.value).from_buffer(buffer)))
         if self._proto_module:
-            msg = self._proto_module.PublishMessage()
+            msg = self._get_recv_msg_class()()
             msg.ParseFromString(data)
         else:
             msg = data
@@ -458,6 +458,12 @@ class PublishSubscribeTerminal(PublishMixin, PublishMessageReceiverMixin, Subscr
         PrimitiveProtoTerminal.__init__(self, TerminalType.PUBLISH_SUBSCRIBE, name, proto_module, leaf=leaf)
         self._is_cached = False
 
+    def _get_send_msg_class(self):
+        return self._proto_module.PublishMessage
+
+    def _get_recv_msg_class(self):
+        return self._proto_module.PublishMessage
+
 
 class RawPublishSubscribeTerminal(PublishMixin, PublishMessageReceiverMixin, SubscribableMixin, PrimitiveTerminal):
     _publish_api_fn = yogi.YOGI_PS_Publish
@@ -496,6 +502,12 @@ class CachedPublishSubscribeTerminal(CacheMixin, PublishMixin, PublishMessageRec
     def __init__(self, name: str, proto_module: Any, *, leaf: Optional[Leaf] = None):
         PrimitiveProtoTerminal.__init__(self, TerminalType.CACHED_PUBLISH_SUBSCRIBE, name, proto_module, leaf=leaf)
         self._is_cached = True
+
+    def _get_send_msg_class(self):
+        return self._proto_module.PublishMessage
+
+    def _get_recv_msg_class(self):
+        return self._proto_module.PublishMessage
 
 
 class RawCachedPublishSubscribeTerminal(CacheMixin, PublishMixin, PublishMessageReceiverMixin, SubscribableMixin,
@@ -626,6 +638,9 @@ class ProducerTerminal(PublishMixin, SubscribableMixin, ConvenienceProtoTerminal
         ConvenienceProtoTerminal.__init__(self, TerminalType.PRODUCER, name, proto_module, leaf=leaf)
         self._is_cached = False
 
+    def _get_send_msg_class(self):
+        return self._proto_module.PublishMessage
+
 
 class RawProducerTerminal(PublishMixin, SubscribableMixin, ConvenienceTerminal):
     _publish_api_fn = yogi.YOGI_PC_Publish
@@ -642,6 +657,9 @@ class ConsumerTerminal(PublishMessageReceiverMixin, BinderMixin, ConvenienceProt
     def __init__(self, name: str, proto_module: Any, *, leaf: Optional[Leaf] = None):
         ConvenienceProtoTerminal.__init__(self, TerminalType.CONSUMER, name, proto_module, leaf=leaf)
         self._is_cached = False
+
+    def _get_recv_msg_class(self):
+        return self._proto_module.PublishMessage
 
 
 class RawConsumerTerminal(PublishMessageReceiverMixin, BinderMixin, ConvenienceTerminal):
@@ -676,6 +694,9 @@ class CachedProducerTerminal(PublishMixin, SubscribableMixin, ConvenienceProtoTe
         ConvenienceProtoTerminal.__init__(self, TerminalType.CACHED_PRODUCER, name, proto_module, leaf=leaf)
         self._is_cached = True
 
+    def _get_send_msg_class(self):
+        return self._proto_module.PublishMessage
+
 
 class RawCachedProducerTerminal(PublishMixin, SubscribableMixin, ConvenienceTerminal):
     _publish_api_fn = yogi.YOGI_CPC_Publish
@@ -693,6 +714,9 @@ class CachedConsumerTerminal(CacheMixin, PublishMessageReceiverMixin, BinderMixi
     def __init__(self, name: str, proto_module: Any, *, leaf: Optional[Leaf] = None):
         ConvenienceProtoTerminal.__init__(self, TerminalType.CACHED_CONSUMER, name, proto_module, leaf=leaf)
         self._is_cached = True
+
+    def _get_recv_msg_class(self):
+        return self._proto_module.PublishMessage
 
 
 class RawCachedConsumerTerminal(CacheMixin, PublishMessageReceiverMixin, BinderMixin, ConvenienceTerminal):
@@ -727,6 +751,12 @@ class MasterTerminal(PublishMixin, PublishMessageReceiverMixin, SubscribableMixi
         ConvenienceProtoTerminal.__init__(self, TerminalType.MASTER, name, proto_module, leaf=leaf)
         self._is_cached = False
 
+    def _get_send_msg_class(self):
+        return self._proto_module.MasterMessage
+
+    def _get_recv_msg_class(self):
+        return self._proto_module.SlaveMessage
+
 
 class RawMasterTerminal(PublishMixin, PublishMessageReceiverMixin, SubscribableMixin, BinderMixin, ConvenienceTerminal):
     _publish_api_fn = yogi.YOGI_MS_Publish
@@ -746,6 +776,12 @@ class SlaveTerminal(PublishMixin, PublishMessageReceiverMixin, SubscribableMixin
     def __init__(self, name: str, proto_module: Any, *, leaf: Optional[Leaf] = None):
         ConvenienceProtoTerminal.__init__(self, TerminalType.SLAVE, name, proto_module, leaf=leaf)
         self._is_cached = False
+
+    def _get_send_msg_class(self):
+        return self._proto_module.SlaveMessage
+
+    def _get_recv_msg_class(self):
+        return self._proto_module.MasterMessage
 
 
 class RawSlaveTerminal(PublishMixin, PublishMessageReceiverMixin, SubscribableMixin, BinderMixin, ConvenienceTerminal):
@@ -785,6 +821,12 @@ class CachedMasterTerminal(CacheMixin, PublishMixin, PublishMessageReceiverMixin
         ConvenienceProtoTerminal.__init__(self, TerminalType.CACHED_MASTER, name, proto_module, leaf=leaf)
         self._is_cached = True
 
+    def _get_send_msg_class(self):
+        return self._proto_module.MasterMessage
+
+    def _get_recv_msg_class(self):
+        return self._proto_module.SlaveMessage
+
 
 class RawCachedMasterTerminal(CacheMixin, PublishMixin, PublishMessageReceiverMixin, SubscribableMixin, BinderMixin,
                               ConvenienceTerminal):
@@ -808,6 +850,12 @@ class CachedSlaveTerminal(CacheMixin, PublishMixin, PublishMessageReceiverMixin,
     def __init__(self, name: str, proto_module: Any, *, leaf: Optional[Leaf] = None):
         ConvenienceProtoTerminal.__init__(self, TerminalType.CACHED_SLAVE, name, proto_module, leaf=leaf)
         self._is_cached = True
+
+    def _get_send_msg_class(self):
+        return self._proto_module.SlaveMessage
+
+    def _get_recv_msg_class(self):
+        return self._proto_module.MasterMessage
 
 
 class RawCachedSlaveTerminal(CacheMixin, PublishMixin, PublishMessageReceiverMixin, SubscribableMixin, BinderMixin,
