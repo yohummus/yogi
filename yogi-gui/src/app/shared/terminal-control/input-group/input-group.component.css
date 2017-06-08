@@ -39,7 +39,7 @@ button {
   padding-top: 2px;
 }
 
-.custom-button {
+.custom-button:not(.cached) {
   background: white;
 }
 
