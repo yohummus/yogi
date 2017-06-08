@@ -145,6 +145,12 @@ export class LogPageComponent implements OnInit, OnDestroy {
     }
   }
 
+  onClearButtonClicked(event: MouseEvent) {
+    event.preventDefault();
+
+    this.entries = [];
+  }
+
   onDownloadButtonClicked(event: MouseEvent) {
     event.preventDefault();
 
@@ -166,6 +172,7 @@ export class LogPageComponent implements OnInit, OnDestroy {
 
       return cont + line + '\n';
     }, '');
+
     yogi.downloadTextFile('log.txt', content);
   }
 

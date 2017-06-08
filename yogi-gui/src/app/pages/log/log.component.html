@@ -1,6 +1,9 @@
 <div id="page-panel">
-  <a class="page-panel-element page-panel-button" href="#" (click)="onDownloadButtonClicked($event)">
+  <a class="page-panel-element page-panel-button" title="Download" href="#" (click)="onDownloadButtonClicked($event)">
     <i class="fa fa-fw fa-download"></i>
+  </a>
+  <a class="page-panel-element page-panel-button" title="Clear" href="#" (click)="onClearButtonClicked($event)">
+    <i class="fa fa-fw fa-trash"></i>
   </a>
   <span class="page-panel-element page-panel-tag" title="{{terminalsTagTitle}}">
     {{terminalsTagText}}
