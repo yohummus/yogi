@@ -1,6 +1,7 @@
 import {
   Component,
   OnInit,
+  AfterViewInit,
 } from '@angular/core';
 
 import {
@@ -26,7 +27,7 @@ import 'bootstrap/dist/css/bootstrap.css';
   styleUrls: ['./app.component.css']
 })
 
-export class AppComponent implements OnInit {
+export class AppComponent implements OnInit, AfterViewInit {
   constructor(
     private titleService: Title,
     private router: Router,
@@ -35,6 +36,10 @@ export class AppComponent implements OnInit {
 
   ngOnInit() {
     this.setupTitleService();
+  }
+
+  ngAfterViewInit() {
+    this.fadeOutLoadingScreen();
   }
 
   setupTitleService() {
@@ -54,5 +59,18 @@ export class AppComponent implements OnInit {
     .subscribe((routeData) => {
       this.titleService.setTitle(routeData['pageTitle']);
     });
+  }
+
+  fadeOutLoadingScreen() {
+    let pbc = document.getElementById('pre-bootstrap-container');
+    let pb  = document.getElementById('pre-bootstrap');
+
+    // initiate the fade out
+    pb.className = 'loaded';
+
+    // remove the pre-bootstrap-container after fading out has completed
+    setTimeout(() => {
+      pbc.parentNode.removeChild(pbc);
+    }, 5000);
   }
 }
