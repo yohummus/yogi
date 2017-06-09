@@ -22,6 +22,7 @@ private:
 
     std::atomic<bool> m_terminating;
 
+    const bool            m_publishPeriodically;
     yogi::Node&           m_node;
     yogi::Leaf            m_leaf;
     yogi::Leaf            m_remoteLeaf;

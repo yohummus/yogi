@@ -67,10 +67,12 @@ void TestService::create_signature_test_ps_terminal(const char* name,
     std::function<void (typename yogi::PublishSubscribeTerminal<ProtoDescription>::message_type* msg)> fn)
 {
     auto terminal = std::make_unique<yogi::PublishSubscribeTerminal<ProtoDescription>>(m_leaf, name);
-    m_signatureTestPublishFunctions.push_back([tm = terminal.get(), fn] {
+    m_signatureTestPublishFunctions.push_back([tm = terminal.get(), fn, this] {
         auto msg = tm->make_message();
         fn(&msg);
-        //tm->try_publish(msg);
+        if (this->m_publishPeriodically) {
+            tm->try_publish(msg);
+        }
     });
 
     auto observer = std::make_unique<yogi::MessageObserver<yogi::PublishSubscribeTerminal<ProtoDescription>>>(*terminal);
@@ -658,6 +660,7 @@ bool TestService::handle_destroy_consumer_terminal_command(QStringList args)
 
 TestService::TestService(yogi::Node& node)
 : m_logger("Test Service")
+, m_publishPeriodically(yogi::ProcessInterface::config().get<bool>("test-service.publish-periodically"))
 , m_node(node)
 , m_leaf(node.scheduler())
 , m_remoteLeaf(node.scheduler())

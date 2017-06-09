@@ -22,11 +22,9 @@
 #include <google/protobuf/arena.h>
 #include <google/protobuf/arenastring.h>
 #include <google/protobuf/generated_message_util.h>
-#include <google/protobuf/metadata.h>
-#include <google/protobuf/message.h>
+#include <google/protobuf/message_lite.h>
 #include <google/protobuf/repeated_field.h>
 #include <google/protobuf/extension_set.h>
-#include <google/protobuf/unknown_field_set.h>
 // @@protoc_insertion_point(includes)
 
 namespace yogi_0000000f_ns {
@@ -44,7 +42,7 @@ class SlaveMessage;
 
 // ===================================================================
 
-class ScatterMessage : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:yogi_0000000f_ns.ScatterMessage) */ {
+class ScatterMessage : public ::google::protobuf::MessageLite /* @@protoc_insertion_point(class_definition:yogi_0000000f_ns.ScatterMessage) */ {
  public:
   ScatterMessage();
   virtual ~ScatterMessage();
@@ -56,8 +54,17 @@ class ScatterMessage : public ::google::protobuf::Message /* @@protoc_insertion_
     return *this;
   }
 
-  static const ::google::protobuf::Descriptor* descriptor();
   static const ScatterMessage& default_instance();
+
+  #ifdef GOOGLE_PROTOBUF_NO_STATIC_INITIALIZER
+  // Returns the internal default instance pointer. This function can
+  // return NULL thus should not be used by the user. This is intended
+  // for Protobuf internal code. Please use default_instance() declared
+  // above instead.
+  static inline const ScatterMessage* internal_default_instance() {
+    return default_instance_;
+  }
+  #endif
 
   void Swap(ScatterMessage* other);
 
@@ -66,8 +73,7 @@ class ScatterMessage : public ::google::protobuf::Message /* @@protoc_insertion_
   inline ScatterMessage* New() const { return New(NULL); }
 
   ScatterMessage* New(::google::protobuf::Arena* arena) const;
-  void CopyFrom(const ::google::protobuf::Message& from);
-  void MergeFrom(const ::google::protobuf::Message& from);
+  void CheckTypeAndMergeFrom(const ::google::protobuf::MessageLite& from);
   void CopyFrom(const ScatterMessage& from);
   void MergeFrom(const ScatterMessage& from);
   void Clear();
@@ -78,11 +84,7 @@ class ScatterMessage : public ::google::protobuf::Message /* @@protoc_insertion_
       ::google::protobuf::io::CodedInputStream* input);
   void SerializeWithCachedSizes(
       ::google::protobuf::io::CodedOutputStream* output) const;
-  ::google::protobuf::uint8* InternalSerializeWithCachedSizesToArray(
-      bool deterministic, ::google::protobuf::uint8* output) const;
-  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const {
-    return InternalSerializeWithCachedSizesToArray(false, output);
-  }
+  void DiscardUnknownFields();
   int GetCachedSize() const { return _cached_size_; }
   private:
   void SharedCtor();
@@ -91,14 +93,14 @@ class ScatterMessage : public ::google::protobuf::Message /* @@protoc_insertion_
   void InternalSwap(ScatterMessage* other);
   private:
   inline ::google::protobuf::Arena* GetArenaNoVirtual() const {
-    return _internal_metadata_.arena();
+    return _arena_ptr_;
   }
-  inline void* MaybeArenaPtr() const {
-    return _internal_metadata_.raw_arena_ptr();
+  inline ::google::protobuf::Arena* MaybeArenaPtr() const {
+    return _arena_ptr_;
   }
   public:
 
-  ::google::protobuf::Metadata GetMetadata() const;
+  ::std::string GetTypeName() const;
 
   // nested types ----------------------------------------------------
 
@@ -107,10 +109,16 @@ class ScatterMessage : public ::google::protobuf::Message /* @@protoc_insertion_
   // @@protoc_insertion_point(class_scope:yogi_0000000f_ns.ScatterMessage)
  private:
 
-  ::google::protobuf::internal::InternalMetadataWithArena _internal_metadata_;
+  ::google::protobuf::internal::ArenaStringPtr _unknown_fields_;
+  ::google::protobuf::Arena* _arena_ptr_;
+
   bool _is_default_instance_;
   mutable int _cached_size_;
+  #ifdef GOOGLE_PROTOBUF_NO_STATIC_INITIALIZER
+  friend void  protobuf_AddDesc_yogi_5f0000000f_2eproto_impl();
+  #else
   friend void  protobuf_AddDesc_yogi_5f0000000f_2eproto();
+  #endif
   friend void protobuf_AssignDesc_yogi_5f0000000f_2eproto();
   friend void protobuf_ShutdownFile_yogi_5f0000000f_2eproto();
 
@@ -119,7 +127,7 @@ class ScatterMessage : public ::google::protobuf::Message /* @@protoc_insertion_
 };
 // -------------------------------------------------------------------
 
-class GatherMessage : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:yogi_0000000f_ns.GatherMessage) */ {
+class GatherMessage : public ::google::protobuf::MessageLite /* @@protoc_insertion_point(class_definition:yogi_0000000f_ns.GatherMessage) */ {
  public:
   GatherMessage();
   virtual ~GatherMessage();
@@ -131,8 +139,17 @@ class GatherMessage : public ::google::protobuf::Message /* @@protoc_insertion_p
     return *this;
   }
 
-  static const ::google::protobuf::Descriptor* descriptor();
   static const GatherMessage& default_instance();
+
+  #ifdef GOOGLE_PROTOBUF_NO_STATIC_INITIALIZER
+  // Returns the internal default instance pointer. This function can
+  // return NULL thus should not be used by the user. This is intended
+  // for Protobuf internal code. Please use default_instance() declared
+  // above instead.
+  static inline const GatherMessage* internal_default_instance() {
+    return default_instance_;
+  }
+  #endif
 
   void Swap(GatherMessage* other);
 
@@ -141,8 +158,7 @@ class GatherMessage : public ::google::protobuf::Message /* @@protoc_insertion_p
   inline GatherMessage* New() const { return New(NULL); }
 
   GatherMessage* New(::google::protobuf::Arena* arena) const;
-  void CopyFrom(const ::google::protobuf::Message& from);
-  void MergeFrom(const ::google::protobuf::Message& from);
+  void CheckTypeAndMergeFrom(const ::google::protobuf::MessageLite& from);
   void CopyFrom(const GatherMessage& from);
   void MergeFrom(const GatherMessage& from);
   void Clear();
@@ -153,11 +169,7 @@ class GatherMessage : public ::google::protobuf::Message /* @@protoc_insertion_p
       ::google::protobuf::io::CodedInputStream* input);
   void SerializeWithCachedSizes(
       ::google::protobuf::io::CodedOutputStream* output) const;
-  ::google::protobuf::uint8* InternalSerializeWithCachedSizesToArray(
-      bool deterministic, ::google::protobuf::uint8* output) const;
-  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const {
-    return InternalSerializeWithCachedSizesToArray(false, output);
-  }
+  void DiscardUnknownFields();
   int GetCachedSize() const { return _cached_size_; }
   private:
   void SharedCtor();
@@ -166,14 +178,14 @@ class GatherMessage : public ::google::protobuf::Message /* @@protoc_insertion_p
   void InternalSwap(GatherMessage* other);
   private:
   inline ::google::protobuf::Arena* GetArenaNoVirtual() const {
-    return _internal_metadata_.arena();
+    return _arena_ptr_;
   }
-  inline void* MaybeArenaPtr() const {
-    return _internal_metadata_.raw_arena_ptr();
+  inline ::google::protobuf::Arena* MaybeArenaPtr() const {
+    return _arena_ptr_;
   }
   public:
 
-  ::google::protobuf::Metadata GetMetadata() const;
+  ::std::string GetTypeName() const;
 
   // nested types ----------------------------------------------------
 
@@ -193,11 +205,17 @@ class GatherMessage : public ::google::protobuf::Message /* @@protoc_insertion_p
   // @@protoc_insertion_point(class_scope:yogi_0000000f_ns.GatherMessage)
  private:
 
-  ::google::protobuf::internal::InternalMetadataWithArena _internal_metadata_;
+  ::google::protobuf::internal::ArenaStringPtr _unknown_fields_;
+  ::google::protobuf::Arena* _arena_ptr_;
+
   bool _is_default_instance_;
   ::google::protobuf::internal::ArenaStringPtr value_;
   mutable int _cached_size_;
+  #ifdef GOOGLE_PROTOBUF_NO_STATIC_INITIALIZER
+  friend void  protobuf_AddDesc_yogi_5f0000000f_2eproto_impl();
+  #else
   friend void  protobuf_AddDesc_yogi_5f0000000f_2eproto();
+  #endif
   friend void protobuf_AssignDesc_yogi_5f0000000f_2eproto();
   friend void protobuf_ShutdownFile_yogi_5f0000000f_2eproto();
 
@@ -206,7 +224,7 @@ class GatherMessage : public ::google::protobuf::Message /* @@protoc_insertion_p
 };
 // -------------------------------------------------------------------
 
-class PublishMessage : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:yogi_0000000f_ns.PublishMessage) */ {
+class PublishMessage : public ::google::protobuf::MessageLite /* @@protoc_insertion_point(class_definition:yogi_0000000f_ns.PublishMessage) */ {
  public:
   PublishMessage();
   virtual ~PublishMessage();
@@ -218,8 +236,17 @@ class PublishMessage : public ::google::protobuf::Message /* @@protoc_insertion_
     return *this;
   }
 
-  static const ::google::protobuf::Descriptor* descriptor();
   static const PublishMessage& default_instance();
+
+  #ifdef GOOGLE_PROTOBUF_NO_STATIC_INITIALIZER
+  // Returns the internal default instance pointer. This function can
+  // return NULL thus should not be used by the user. This is intended
+  // for Protobuf internal code. Please use default_instance() declared
+  // above instead.
+  static inline const PublishMessage* internal_default_instance() {
+    return default_instance_;
+  }
+  #endif
 
   void Swap(PublishMessage* other);
 
@@ -228,8 +255,7 @@ class PublishMessage : public ::google::protobuf::Message /* @@protoc_insertion_
   inline PublishMessage* New() const { return New(NULL); }
 
   PublishMessage* New(::google::protobuf::Arena* arena) const;
-  void CopyFrom(const ::google::protobuf::Message& from);
-  void MergeFrom(const ::google::protobuf::Message& from);
+  void CheckTypeAndMergeFrom(const ::google::protobuf::MessageLite& from);
   void CopyFrom(const PublishMessage& from);
   void MergeFrom(const PublishMessage& from);
   void Clear();
@@ -240,11 +266,7 @@ class PublishMessage : public ::google::protobuf::Message /* @@protoc_insertion_
       ::google::protobuf::io::CodedInputStream* input);
   void SerializeWithCachedSizes(
       ::google::protobuf::io::CodedOutputStream* output) const;
-  ::google::protobuf::uint8* InternalSerializeWithCachedSizesToArray(
-      bool deterministic, ::google::protobuf::uint8* output) const;
-  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const {
-    return InternalSerializeWithCachedSizesToArray(false, output);
-  }
+  void DiscardUnknownFields();
   int GetCachedSize() const { return _cached_size_; }
   private:
   void SharedCtor();
@@ -253,14 +275,14 @@ class PublishMessage : public ::google::protobuf::Message /* @@protoc_insertion_
   void InternalSwap(PublishMessage* other);
   private:
   inline ::google::protobuf::Arena* GetArenaNoVirtual() const {
-    return _internal_metadata_.arena();
+    return _arena_ptr_;
   }
-  inline void* MaybeArenaPtr() const {
-    return _internal_metadata_.raw_arena_ptr();
+  inline ::google::protobuf::Arena* MaybeArenaPtr() const {
+    return _arena_ptr_;
   }
   public:
 
-  ::google::protobuf::Metadata GetMetadata() const;
+  ::std::string GetTypeName() const;
 
   // nested types ----------------------------------------------------
 
@@ -280,11 +302,17 @@ class PublishMessage : public ::google::protobuf::Message /* @@protoc_insertion_
   // @@protoc_insertion_point(class_scope:yogi_0000000f_ns.PublishMessage)
  private:
 
-  ::google::protobuf::internal::InternalMetadataWithArena _internal_metadata_;
+  ::google::protobuf::internal::ArenaStringPtr _unknown_fields_;
+  ::google::protobuf::Arena* _arena_ptr_;
+
   bool _is_default_instance_;
   ::google::protobuf::internal::ArenaStringPtr value_;
   mutable int _cached_size_;
+  #ifdef GOOGLE_PROTOBUF_NO_STATIC_INITIALIZER
+  friend void  protobuf_AddDesc_yogi_5f0000000f_2eproto_impl();
+  #else
   friend void  protobuf_AddDesc_yogi_5f0000000f_2eproto();
+  #endif
   friend void protobuf_AssignDesc_yogi_5f0000000f_2eproto();
   friend void protobuf_ShutdownFile_yogi_5f0000000f_2eproto();
 
@@ -293,7 +321,7 @@ class PublishMessage : public ::google::protobuf::Message /* @@protoc_insertion_
 };
 // -------------------------------------------------------------------
 
-class MasterMessage : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:yogi_0000000f_ns.MasterMessage) */ {
+class MasterMessage : public ::google::protobuf::MessageLite /* @@protoc_insertion_point(class_definition:yogi_0000000f_ns.MasterMessage) */ {
  public:
   MasterMessage();
   virtual ~MasterMessage();
@@ -305,8 +333,17 @@ class MasterMessage : public ::google::protobuf::Message /* @@protoc_insertion_p
     return *this;
   }
 
-  static const ::google::protobuf::Descriptor* descriptor();
   static const MasterMessage& default_instance();
+
+  #ifdef GOOGLE_PROTOBUF_NO_STATIC_INITIALIZER
+  // Returns the internal default instance pointer. This function can
+  // return NULL thus should not be used by the user. This is intended
+  // for Protobuf internal code. Please use default_instance() declared
+  // above instead.
+  static inline const MasterMessage* internal_default_instance() {
+    return default_instance_;
+  }
+  #endif
 
   void Swap(MasterMessage* other);
 
@@ -315,8 +352,7 @@ class MasterMessage : public ::google::protobuf::Message /* @@protoc_insertion_p
   inline MasterMessage* New() const { return New(NULL); }
 
   MasterMessage* New(::google::protobuf::Arena* arena) const;
-  void CopyFrom(const ::google::protobuf::Message& from);
-  void MergeFrom(const ::google::protobuf::Message& from);
+  void CheckTypeAndMergeFrom(const ::google::protobuf::MessageLite& from);
   void CopyFrom(const MasterMessage& from);
   void MergeFrom(const MasterMessage& from);
   void Clear();
@@ -327,11 +363,7 @@ class MasterMessage : public ::google::protobuf::Message /* @@protoc_insertion_p
       ::google::protobuf::io::CodedInputStream* input);
   void SerializeWithCachedSizes(
       ::google::protobuf::io::CodedOutputStream* output) const;
-  ::google::protobuf::uint8* InternalSerializeWithCachedSizesToArray(
-      bool deterministic, ::google::protobuf::uint8* output) const;
-  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const {
-    return InternalSerializeWithCachedSizesToArray(false, output);
-  }
+  void DiscardUnknownFields();
   int GetCachedSize() const { return _cached_size_; }
   private:
   void SharedCtor();
@@ -340,14 +372,14 @@ class MasterMessage : public ::google::protobuf::Message /* @@protoc_insertion_p
   void InternalSwap(MasterMessage* other);
   private:
   inline ::google::protobuf::Arena* GetArenaNoVirtual() const {
-    return _internal_metadata_.arena();
+    return _arena_ptr_;
   }
-  inline void* MaybeArenaPtr() const {
-    return _internal_metadata_.raw_arena_ptr();
+  inline ::google::protobuf::Arena* MaybeArenaPtr() const {
+    return _arena_ptr_;
   }
   public:
 
-  ::google::protobuf::Metadata GetMetadata() const;
+  ::std::string GetTypeName() const;
 
   // nested types ----------------------------------------------------
 
@@ -356,10 +388,16 @@ class MasterMessage : public ::google::protobuf::Message /* @@protoc_insertion_p
   // @@protoc_insertion_point(class_scope:yogi_0000000f_ns.MasterMessage)
  private:
 
-  ::google::protobuf::internal::InternalMetadataWithArena _internal_metadata_;
+  ::google::protobuf::internal::ArenaStringPtr _unknown_fields_;
+  ::google::protobuf::Arena* _arena_ptr_;
+
   bool _is_default_instance_;
   mutable int _cached_size_;
+  #ifdef GOOGLE_PROTOBUF_NO_STATIC_INITIALIZER
+  friend void  protobuf_AddDesc_yogi_5f0000000f_2eproto_impl();
+  #else
   friend void  protobuf_AddDesc_yogi_5f0000000f_2eproto();
+  #endif
   friend void protobuf_AssignDesc_yogi_5f0000000f_2eproto();
   friend void protobuf_ShutdownFile_yogi_5f0000000f_2eproto();
 
@@ -368,7 +406,7 @@ class MasterMessage : public ::google::protobuf::Message /* @@protoc_insertion_p
 };
 // -------------------------------------------------------------------
 
-class SlaveMessage : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:yogi_0000000f_ns.SlaveMessage) */ {
+class SlaveMessage : public ::google::protobuf::MessageLite /* @@protoc_insertion_point(class_definition:yogi_0000000f_ns.SlaveMessage) */ {
  public:
   SlaveMessage();
   virtual ~SlaveMessage();
@@ -380,8 +418,17 @@ class SlaveMessage : public ::google::protobuf::Message /* @@protoc_insertion_po
     return *this;
   }
 
-  static const ::google::protobuf::Descriptor* descriptor();
   static const SlaveMessage& default_instance();
+
+  #ifdef GOOGLE_PROTOBUF_NO_STATIC_INITIALIZER
+  // Returns the internal default instance pointer. This function can
+  // return NULL thus should not be used by the user. This is intended
+  // for Protobuf internal code. Please use default_instance() declared
+  // above instead.
+  static inline const SlaveMessage* internal_default_instance() {
+    return default_instance_;
+  }
+  #endif
 
   void Swap(SlaveMessage* other);
 
@@ -390,8 +437,7 @@ class SlaveMessage : public ::google::protobuf::Message /* @@protoc_insertion_po
   inline SlaveMessage* New() const { return New(NULL); }
 
   SlaveMessage* New(::google::protobuf::Arena* arena) const;
-  void CopyFrom(const ::google::protobuf::Message& from);
-  void MergeFrom(const ::google::protobuf::Message& from);
+  void CheckTypeAndMergeFrom(const ::google::protobuf::MessageLite& from);
   void CopyFrom(const SlaveMessage& from);
   void MergeFrom(const SlaveMessage& from);
   void Clear();
@@ -402,11 +448,7 @@ class SlaveMessage : public ::google::protobuf::Message /* @@protoc_insertion_po
       ::google::protobuf::io::CodedInputStream* input);
   void SerializeWithCachedSizes(
       ::google::protobuf::io::CodedOutputStream* output) const;
-  ::google::protobuf::uint8* InternalSerializeWithCachedSizesToArray(
-      bool deterministic, ::google::protobuf::uint8* output) const;
-  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const {
-    return InternalSerializeWithCachedSizesToArray(false, output);
-  }
+  void DiscardUnknownFields();
   int GetCachedSize() const { return _cached_size_; }
   private:
   void SharedCtor();
@@ -415,14 +457,14 @@ class SlaveMessage : public ::google::protobuf::Message /* @@protoc_insertion_po
   void InternalSwap(SlaveMessage* other);
   private:
   inline ::google::protobuf::Arena* GetArenaNoVirtual() const {
-    return _internal_metadata_.arena();
+    return _arena_ptr_;
   }
-  inline void* MaybeArenaPtr() const {
-    return _internal_metadata_.raw_arena_ptr();
+  inline ::google::protobuf::Arena* MaybeArenaPtr() const {
+    return _arena_ptr_;
   }
   public:
 
-  ::google::protobuf::Metadata GetMetadata() const;
+  ::std::string GetTypeName() const;
 
   // nested types ----------------------------------------------------
 
@@ -442,11 +484,17 @@ class SlaveMessage : public ::google::protobuf::Message /* @@protoc_insertion_po
   // @@protoc_insertion_point(class_scope:yogi_0000000f_ns.SlaveMessage)
  private:
 
-  ::google::protobuf::internal::InternalMetadataWithArena _internal_metadata_;
+  ::google::protobuf::internal::ArenaStringPtr _unknown_fields_;
+  ::google::protobuf::Arena* _arena_ptr_;
+
   bool _is_default_instance_;
   ::google::protobuf::internal::ArenaStringPtr value_;
   mutable int _cached_size_;
+  #ifdef GOOGLE_PROTOBUF_NO_STATIC_INITIALIZER
+  friend void  protobuf_AddDesc_yogi_5f0000000f_2eproto_impl();
+  #else
   friend void  protobuf_AddDesc_yogi_5f0000000f_2eproto();
+  #endif
   friend void protobuf_AssignDesc_yogi_5f0000000f_2eproto();
   friend void protobuf_ShutdownFile_yogi_5f0000000f_2eproto();
 

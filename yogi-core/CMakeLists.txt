@@ -15,7 +15,6 @@ set (Boost_USE_MULTITHREADED      ON)
 set (Boost_USE_STATIC_RUNTIME     OFF)
 find_package (Boost 1.54 COMPONENTS system log log_setup filesystem thread REQUIRED)
 find_package (Threads)
-find_package (Protobuf 3.0.0 REQUIRED)
 
 set (ignored_warnings          "-Wno-unused-variable -Wno-unused-function -Wno-overloaded-virtual -Wno-unused-value -Wno-unused-private-field -Wno-inconsistent-missing-override -Wno-unknown-warning-option")
 set (export_map                "-Wl,--version-script='${PROJECT_SOURCE_DIR}/src/export.map'")

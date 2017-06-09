@@ -243,6 +243,7 @@
 
             this._content = [
                 'syntax = "proto3";',
+                'option optimize_for = LITE_RUNTIME;',
                 '',
                 `package ${this._package};`,
                 // `package yogi.internal.${this._package};`, // For generating yogi-cpp internal files

@@ -36,7 +36,7 @@ file (GLOB_RECURSE src_files src/*.hpp src/*.cpp src/*.h src/*.cc)
 
 #===== yogi-hub =====
 add_executable (yogi-hub ${src_files})
-target_link_libraries (yogi-hub yogi yogi_core ${PROTOBUF_LIBRARIES} ${Boost_LIBRARIES} Qt5::Core Qt5::Network Qt5::WebSockets)
+target_link_libraries (yogi-hub yogi yogi_core ${PROTOBUF_LITE_LIBRARIES} ${Boost_LIBRARIES} Qt5::Core Qt5::Network Qt5::WebSockets)
 
 #===== install =====
 install(

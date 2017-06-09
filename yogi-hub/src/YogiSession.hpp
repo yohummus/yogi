@@ -108,25 +108,25 @@ class YogiSession : public QObject
     };
 
 private:
-    yogi::Logger                              m_logger;
-    const QString                                 m_logPrefix;
-    const QString                                 m_clientIdentification;
-    QWebSocket*                                   m_socket;
-    yogi::Node&                               m_node;
-    yogi::Leaf                                m_leaf;
-    yogi::LocalConnection                     m_connection;
-    bool                                          m_monitoringConnections;
-    bool                                          m_monitoringKnownTerminals;
-    QByteArray                                    m_monitorKnownTerminalsBuffer;
-    QVector<QMetaObject::Connection>              m_qtConnections;
+    yogi::Logger                     m_logger;
+    const QString                    m_logPrefix;
+    const QString                    m_clientIdentification;
+    QWebSocket*                      m_socket;
+    yogi::Node&                      m_node;
+    yogi::Leaf                       m_leaf;
+    yogi::LocalConnection            m_connection;
+    bool                             m_monitoringConnections;
+    bool                             m_monitoringKnownTerminals;
+    QByteArray                       m_monitorKnownTerminalsBuffer;
+    QVector<QMetaObject::Connection> m_qtConnections;
 
-    unsigned                                      m_lastTerminalId;
-    QMap<unsigned, std::shared_ptr<TerminalInfo>> m_terminalLut;
-    QMutex                                        m_terminalLutMutex;
+    unsigned                                                       m_lastTerminalId;
+    QMap<unsigned, std::shared_ptr<TerminalInfo>>                  m_terminalLut;
+    QMutex                                                         m_terminalLutMutex;
 
-    unsigned                                      m_lastBindingId;
-    QMap<unsigned, std::shared_ptr<BindingInfo>>  m_bindingLut;
-    QMutex                                        m_bindingLutMutex;
+    unsigned                                                       m_lastBindingId;
+    QMap<unsigned, std::shared_ptr<BindingInfo>>                   m_bindingLut;
+    QMutex                                                         m_bindingLutMutex;
 
     unsigned                                                       m_lastCommandId;
     QMap<unsigned, std::shared_ptr<CustomCommandService::Command>> m_commandLut;

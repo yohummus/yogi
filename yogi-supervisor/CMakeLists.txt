@@ -28,7 +28,7 @@ file (GLOB_RECURSE src_files src/*.cc src/*.cpp src/*.hh src/*.hpp)
 
 #===== build executable =====
 add_executable (yogi-supervisor ${src_files})
-target_link_libraries (yogi-supervisor yogi yogi_core ${Boost_LIBRARIES} ${PROTOBUF_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries (yogi-supervisor yogi yogi_core ${Boost_LIBRARIES} ${PROTOBUF_LITE_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
 
 #===== tests =====
 enable_testing ()

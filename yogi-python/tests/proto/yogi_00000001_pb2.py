@@ -19,7 +19,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='yogi_00000001.proto',
   package='yogi_00000001',
   syntax='proto3',
-  serialized_pb=_b('\n\x13yogi_00000001.proto\x12\ryogi_00000001\"\x10\n\x0eScatterMessage\"\x1e\n\rGatherMessage\x12\r\n\x05value\x18\x02 \x01(\x08\"\x1f\n\x0ePublishMessage\x12\r\n\x05value\x18\x02 \x01(\x08\"\x0f\n\rMasterMessage\"\x1d\n\x0cSlaveMessage\x12\r\n\x05value\x18\x02 \x01(\x08\x62\x06proto3')
+  serialized_pb=_b('\n\x13yogi_00000001.proto\x12\ryogi_00000001\"\x10\n\x0eScatterMessage\"\x1e\n\rGatherMessage\x12\r\n\x05value\x18\x02 \x01(\x08\"\x1f\n\x0ePublishMessage\x12\r\n\x05value\x18\x02 \x01(\x08\"\x0f\n\rMasterMessage\"\x1d\n\x0cSlaveMessage\x12\r\n\x05value\x18\x02 \x01(\x08\x42\x02H\x03\x62\x06proto3')
 )
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
@@ -208,6 +208,8 @@ SlaveMessage = _reflection.GeneratedProtocolMessageType('SlaveMessage', (_messag
 _sym_db.RegisterMessage(SlaveMessage)
 
 
+DESCRIPTOR.has_options = True
+DESCRIPTOR._options = _descriptor._ParseOptions(descriptor_pb2.FileOptions(), _b('H\003'))
 # @@protoc_insertion_point(module_scope)
 ScatterMessage.SIGNATURE = 0x00000001
 GatherMessage.SIGNATURE = 0x00000001

@@ -19,7 +19,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='yogi_000009cd.proto',
   package='yogi_000009cd',
   syntax='proto3',
-  serialized_pb=_b('\n\x13yogi_000009cd.proto\x12\ryogi_000009cd\"\x10\n\x0eScatterMessage\"{\n\rGatherMessage\x12\x11\n\ttimestamp\x18\x01 \x01(\x04\x12\x30\n\x05value\x18\x02 \x01(\x0b\x32!.yogi_000009cd.GatherMessage.Pair\x1a%\n\x04Pair\x12\r\n\x05\x66irst\x18\x01 \x01(\t\x12\x0e\n\x06second\x18\x02 \x01(\t\"}\n\x0ePublishMessage\x12\x11\n\ttimestamp\x18\x01 \x01(\x04\x12\x31\n\x05value\x18\x02 \x01(\x0b\x32\".yogi_000009cd.PublishMessage.Pair\x1a%\n\x04Pair\x12\r\n\x05\x66irst\x18\x01 \x01(\t\x12\x0e\n\x06second\x18\x02 \x01(\t\"\x0f\n\rMasterMessage\"y\n\x0cSlaveMessage\x12\x11\n\ttimestamp\x18\x01 \x01(\x04\x12/\n\x05value\x18\x02 \x01(\x0b\x32 .yogi_000009cd.SlaveMessage.Pair\x1a%\n\x04Pair\x12\r\n\x05\x66irst\x18\x01 \x01(\t\x12\x0e\n\x06second\x18\x02 \x01(\tb\x06proto3')
+  serialized_pb=_b('\n\x13yogi_000009cd.proto\x12\ryogi_000009cd\"\x10\n\x0eScatterMessage\"{\n\rGatherMessage\x12\x11\n\ttimestamp\x18\x01 \x01(\x04\x12\x30\n\x05value\x18\x02 \x01(\x0b\x32!.yogi_000009cd.GatherMessage.Pair\x1a%\n\x04Pair\x12\r\n\x05\x66irst\x18\x01 \x01(\t\x12\x0e\n\x06second\x18\x02 \x01(\t\"}\n\x0ePublishMessage\x12\x11\n\ttimestamp\x18\x01 \x01(\x04\x12\x31\n\x05value\x18\x02 \x01(\x0b\x32\".yogi_000009cd.PublishMessage.Pair\x1a%\n\x04Pair\x12\r\n\x05\x66irst\x18\x01 \x01(\t\x12\x0e\n\x06second\x18\x02 \x01(\t\"\x0f\n\rMasterMessage\"y\n\x0cSlaveMessage\x12\x11\n\ttimestamp\x18\x01 \x01(\x04\x12/\n\x05value\x18\x02 \x01(\x0b\x32 .yogi_000009cd.SlaveMessage.Pair\x1a%\n\x04Pair\x12\r\n\x05\x66irst\x18\x01 \x01(\t\x12\x0e\n\x06second\x18\x02 \x01(\tB\x02H\x03\x62\x06proto3')
 )
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
@@ -370,6 +370,8 @@ _sym_db.RegisterMessage(SlaveMessage)
 _sym_db.RegisterMessage(SlaveMessage.Pair)
 
 
+DESCRIPTOR.has_options = True
+DESCRIPTOR._options = _descriptor._ParseOptions(descriptor_pb2.FileOptions(), _b('H\003'))
 # @@protoc_insertion_point(module_scope)
 ScatterMessage.SIGNATURE = 0x000009cd
 GatherMessage.SIGNATURE = 0x000009cd
