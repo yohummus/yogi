@@ -28,18 +28,18 @@ public:
     };
 
 private:
-    static QVector<YogiTcpServer*>      ms_instances;
+    static QVector<YogiTcpServer*>   ms_instances;
 
-    const bool                           m_enabled;
-    const QString                        m_address;
-    const unsigned                       m_port;
-    const QString                        m_identification;
-    const std::chrono::milliseconds      m_timeout;
+    const bool                       m_enabled;
+    const QString                    m_address;
+    const unsigned                   m_port;
+    const QString                    m_identification;
+    const std::chrono::milliseconds  m_timeout;
     yogi::Logger                     m_logger;
     yogi::Node&                      m_node;
     std::unique_ptr<yogi::TcpServer> m_server;
-    std::atomic<int>                     m_activeAsyncOperations;
-    QTimer*                              m_cleanupTimer;
+    std::atomic<int>                 m_activeAsyncOperations;
+    QTimer*                          m_cleanupTimer;
 
     QMap<std::shared_ptr<yogi::TcpConnection>, ClientInformation> m_connections;
 	QVector<std::shared_ptr<yogi::TcpConnection>>                 m_connectionsToDestroy;
@@ -47,6 +47,8 @@ private:
 private:
     void start_accept();
     void on_accept(const yogi::Result& res, std::shared_ptr<yogi::TcpConnection> connection);
+    void assign_connection(std::shared_ptr<yogi::TcpConnection> connection);
+    void start_await_death(std::shared_ptr<yogi::TcpConnection> connection);
     void on_connection_died(const yogi::Failure& failure, std::shared_ptr<yogi::TcpConnection>);
 
 private Q_SLOTS:

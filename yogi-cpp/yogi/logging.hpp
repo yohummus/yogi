@@ -28,12 +28,12 @@
 #define YOGI_LOG_TRACE(...) \
     YOGI_LOG(TRACE, __VA_ARGS__)
 
-#define YOGI_LOG(severity, ...)                                               \
-    _YOGI_LOG_EXPAND(                                                         \
-        _YOGI_LOG_IMPL(severity,                                              \
+#define YOGI_LOG(severity, ...)                                           \
+    _YOGI_LOG_EXPAND(                                                     \
+        _YOGI_LOG_IMPL(severity,                                          \
             _YOGI_LOG_SELECT(_YOGI_LOG_LOGGER, __VA_ARGS__)(__VA_ARGS__), \
             _YOGI_LOG_SELECT(_YOGI_LOG_STREAM, __VA_ARGS__)(__VA_ARGS__)  \
-        )                                                                         \
+        )                                                                 \
     )
 
 #define _YOGI_LOG_EXPAND(x) \
@@ -64,12 +64,12 @@
     stream
 
 #define _YOGI_LOG_IMPL(severity, logger, stream)                                       \
-    {{                                                                                     \
+    {{                                                                                 \
     if (yogi::verbosity::severity <= logger.max_effective_verbosity()) {               \
-        std::stringstream ss;                                                              \
-        ss << stream;                                                                      \
+        std::stringstream ss;                                                          \
+        ss << stream;                                                                  \
         logger.log(yogi::verbosity::severity, __FILE__, __LINE__, __func__, ss.str()); \
-    }                                                                                      \
+    }                                                                                  \
     }}
 
 

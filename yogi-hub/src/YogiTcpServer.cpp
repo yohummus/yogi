@@ -15,6 +15,7 @@ void YogiTcpServer::start_accept()
     try {
         m_server->async_accept(m_timeout, [=](auto& result, auto connection) {
             this->on_accept(result, std::shared_ptr<yogi::TcpConnection>(connection.release()));
+            --this->m_activeAsyncOperations;
         });
     }
     catch (...) {
@@ -25,52 +26,60 @@ void YogiTcpServer::start_accept()
 
 void YogiTcpServer::on_accept(const yogi::Result& res, std::shared_ptr<yogi::TcpConnection> connection)
 {
+    if (res == yogi::errors::Canceled()) {
+        return;
+    }
+
     if (res) {
-        try {
-            connection->assign(m_node, m_timeout);
-
-            ClientInformation info;
-            info.description          = QString::fromStdString(connection->description());
-            info.remoteVersion        = QString::fromStdString(connection->remote_version());
-            info.remoteIdentification = connection->remote_identification() ? QString::fromStdString(*connection->remote_identification()) : QString();
-            info.connected            = true;
-            info.stateChangedTime     = std::chrono::system_clock::now();
-
-            YOGI_LOG_INFO(m_logger, "Accepted TCP connection " << connection->description()
-                << " with remote YOGI version " << connection->remote_version());
-
-            emit(connection_changed(connection, info));
-        }
-        catch(const yogi::Failure& failure) {
-            YOGI_LOG_WARNING(m_logger, "Could not assign pending connection: " << failure);
-        }
-
-        try {
-            connection->async_await_death([=](auto& failure) {
-                this->on_connection_died(failure, connection);
-            });
-            ++m_activeAsyncOperations;
-        }
-        catch(const yogi::Failure& failure) {
-            YOGI_LOG_WARNING(m_logger, "Could not assign pending connection: " << failure);
-        }
+        assign_connection(connection);
+        start_await_death(connection);
+        start_accept();
     }
     else if (res == yogi::errors::Timeout()) {
         YOGI_LOG_WARNING(m_logger, "Accepting TCP connection failed: " << res);
-    }
-    else if (res == yogi::errors::Canceled()) {
-        --m_activeAsyncOperations;
-        return;
+        start_accept();
     }
     else {
-        YOGI_LOG_FATAL(m_logger, "Accepting TCP connection failed: " << res);
-        --m_activeAsyncOperations;
-        return;
+        YOGI_LOG_ERROR(m_logger, "Accepting TCP connection failed: " << res);
     }
+}
 
-    start_accept();
+void YogiTcpServer::assign_connection(std::shared_ptr<yogi::TcpConnection> connection)
+{
+    try {
+        connection->assign(m_node, m_timeout);
 
-    --m_activeAsyncOperations;
+        ClientInformation info;
+        info.description          = QString::fromStdString(connection->description());
+        info.remoteVersion        = QString::fromStdString(connection->remote_version());
+        info.remoteIdentification = connection->remote_identification() ? QString::fromStdString(*connection->remote_identification()) : QString();
+        info.connected            = true;
+        info.stateChangedTime     = std::chrono::system_clock::now();
+
+        YOGI_LOG_INFO(m_logger, "Accepted TCP connection " << connection->description()
+            << " with remote YOGI version " << connection->remote_version());
+
+        emit(connection_changed(connection, info));
+    }
+    catch(const yogi::Failure& failure) {
+        YOGI_LOG_WARNING(m_logger, "Could not assign pending connection: " << failure);
+    }
+}
+
+void YogiTcpServer::start_await_death(std::shared_ptr<yogi::TcpConnection> connection)
+{
+    ++m_activeAsyncOperations;
+
+    try {
+        connection->async_await_death([=](auto& failure) {
+            this->on_connection_died(failure, connection);
+            --this->m_activeAsyncOperations;
+        });
+    }
+    catch (const yogi::Failure& failure) {
+        YOGI_LOG_WARNING(m_logger, "Could not wait for connection to die: " << failure);
+        --m_activeAsyncOperations;
+    }
 }
 
 void YogiTcpServer::on_connection_died(const yogi::Failure& failure, std::shared_ptr<yogi::TcpConnection> connection)
@@ -79,8 +88,6 @@ void YogiTcpServer::on_connection_died(const yogi::Failure& failure, std::shared
         YOGI_LOG_INFO(m_logger, "Connection " << connection->description() << " died: " << failure);
         emit(connection_dead(connection));
     }
-
-    --m_activeAsyncOperations;
 }
 
 void YogiTcpServer::on_connection_changed(std::shared_ptr<yogi::TcpConnection> connection, ClientInformation info)
