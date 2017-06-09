@@ -75,12 +75,10 @@ void YogiTcpServer::on_accept(const yogi::Result& res, std::shared_ptr<yogi::Tcp
 
 void YogiTcpServer::on_connection_died(const yogi::Failure& failure, std::shared_ptr<yogi::TcpConnection> connection)
 {
-    if (failure == yogi::errors::Canceled()) {
-        return;
+    if (failure != yogi::errors::Canceled()) {
+        YOGI_LOG_INFO(m_logger, "Connection " << connection->description() << " died: " << failure);
+        emit(connection_dead(connection));
     }
-
-    YOGI_LOG_INFO(m_logger, "Connection " << connection->description() << " died: " << failure);
-    emit(connection_dead(connection));
 
     --m_activeAsyncOperations;
 }
@@ -157,5 +155,7 @@ YogiTcpServer::~YogiTcpServer()
     m_server->cancel_accept();
     m_connections.clear();
 
-    while (m_activeAsyncOperations);
+    while (m_activeAsyncOperations) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    }
 }
