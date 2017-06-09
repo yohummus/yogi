@@ -32,6 +32,7 @@ Command::Command(boost::asio::io_service& ios, std::string name, std::chrono::mi
 
 Command::~Command()
 {
+    close_pipe_sds();
 }
 
 const std::string& Command::name() const
