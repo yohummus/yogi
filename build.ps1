@@ -214,9 +214,10 @@ Try {
 
     print "All done."
 }
+Catch {
+    Read-Host -Prompt "Press ENTER to quit"
+}
 Finally {
     $script_path = Split-Path -parent $MyInvocation.MyCommand.Definition
     Set-Location -Path $script_path
 }
-
-# Read-Host -Prompt "Press ENTER to quit"
