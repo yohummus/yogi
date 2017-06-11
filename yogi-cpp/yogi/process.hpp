@@ -202,11 +202,17 @@ private:
         _add<subscription_state>(&m_subscriptionObservers, terminal);
     }
 
+protected:
+    Dependency(const std::string& name)
+    : OperationalCondition(name)
+    , m_nonReadyObservers(0)
+    {
+    }
+
 public:
     template <typename... BindersAndTerminals>
     Dependency(const std::string& name, BindersAndTerminals&... bindersAndTerminals)
-    : OperationalCondition(name)
-    , m_nonReadyObservers(0)
+    : Dependency(name)
     {
         auto _ = { (_add(bindersAndTerminals), 0)... };
     }
