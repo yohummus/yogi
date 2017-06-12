@@ -33,8 +33,8 @@ PROJECTS=(
     yogi-supervisor
 )
 
-MIN_RAM_REQUIRED_IN_MB=800
-SWAP_SIZE_IN_MB=512
+MIN_RAM_REQUIRED_IN_MB=1024
+SWAP_SIZE_IN_MB=1024
 
 function install_required_packages {
     echo
