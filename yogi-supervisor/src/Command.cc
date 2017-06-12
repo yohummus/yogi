@@ -185,8 +185,12 @@ void Command::async_read_line(boost::asio::posix::stream_descriptor* sd, boost::
     auto self = shared_from_this();
     boost::asio::async_read_until(*sd, *sb, '\n', [=, self=self](auto& ec, auto bytesRead) {
         if (!ec) {
+            std::string line;
+            std::istream is(sb);
+            std::getline(is, line);
+
             if (m_logfile.is_open()) {
-                m_logfile << std::istream(sb).rdbuf();
+                m_logfile << line << std::endl;
                 m_logfile.flush();
             }
 
