@@ -38,11 +38,11 @@ export class TerminalComponent implements OnInit, OnDestroy {
   private lastScatterOperation: yogi.Operation;
   private scatterGatherReply: ScatterGatherReply;
 
-  constructor(private YogiService: YogiService) {
+  constructor(private yogiService: YogiService) {
   }
 
   ngOnInit() {
-    this.terminal = new this.terminalType(this.YogiService.session, this.terminalName,
+    this.terminal = new this.terminalType(this.yogiService.session, this.terminalName,
       this.signature);
 
     if (this.canReceive && this.terminal instanceof yogi.PrimitiveTerminal) {
