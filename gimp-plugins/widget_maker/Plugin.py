@@ -18,9 +18,26 @@ class Plugin(object):
         self._image = image
         self._output_folder = os.path.dirname(image.filename)
         self._root_node = LayerNode.make_root_node(image)
+        self._filename_prefix = self._root_node.name
 
     def run(self):
         """
         Runs the plugin.
         """
-        pass
+        self.export_layers()
+
+    def export_layers(self):
+        """
+        Exports all layers to PNG files.
+        """
+        def fn(node):
+            if node.is_layer:
+                basename = self._output_folder + '/img' + node.path
+
+                directory = os.path.dirname(basename)
+                if not os.path.exists(directory):
+                    os.makedirs(directory)
+
+                node.save_to_file(basename)
+
+        self._root_node.recurse_children(fn)

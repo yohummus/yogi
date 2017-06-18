@@ -1,6 +1,6 @@
 from ..NodeOption import *
 
 
-class Opacity(NodeOption):
+class Movable(NodeOption):
     def __init__(self, node, args):
         pass

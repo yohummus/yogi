@@ -1,0 +1,9 @@
+img,
+canvas {
+  position: absolute;
+  user-select: none;
+}
+
+canvas {
+  opacity: 0;
+}

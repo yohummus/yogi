@@ -1,6 +1,6 @@
 from ..NodeOption import *
 
 
-class Rotate(NodeOption):
+class DoubleClickable(NodeOption):
     def __init__(self, node, args):
         pass

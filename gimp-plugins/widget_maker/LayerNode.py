@@ -1,6 +1,8 @@
 from NodeOption import *
 
 from gimpfu import *
+import re
+import os.path
 
 
 class LayerNode(object):
@@ -45,8 +47,9 @@ class LayerNode(object):
     @property
     def name(self):
         """str: Name of the node without any node options."""
-        name = ''
-        if not isinstance(self.gimp_obj, gimp.Image):
+        if isinstance(self.gimp_obj, gimp.Image):
+            name = os.path.splitext(self.gimp_obj.name)[0]
+        else:
             name = self.gimp_obj.name
             if ' ' in name:
                 name = name[:name.find(' ')]
@@ -54,7 +57,7 @@ class LayerNode(object):
 
     @property
     def path(self):
-        """str: Hierarchical path of the node."""
+        """str: Hierarchical path of the node with / being the image itself."""
         if self.is_root:
             return '/'
         elif self.parent.is_root:
@@ -74,13 +77,13 @@ class LayerNode(object):
 
     @property
     def is_layer_group(self):
-        """bool: True if this node represents a layer group."""
-        return isinstance(self.gimp_obj, gimp.LayerGroup)
+        """bool: True if this node represents a group layer."""
+        return isinstance(self.gimp_obj, gimp.GroupLayer)
 
     @property
     def is_layer(self):
         """bool: True if this node represents a single layer."""
-        return isinstance(self.gimp_obj, gimp.Layer) and not isinstance(self.gimp_obj, gimp.LayerGroup)
+        return isinstance(self.gimp_obj, gimp.Layer) and not isinstance(self.gimp_obj, gimp.GroupLayer)
 
     def save_to_file(self, filename):
         """
@@ -98,14 +101,38 @@ class LayerNode(object):
 
         gimp.pdb.file_png_save(node.gimp_obj, self.gimp_obj, filename, 'raw_filename', 0, 9, 0, 0, 0, 0, 0)
 
+    def recurse_children(self, fn):
+        """
+        Call fn for each child node recursively.
+
+        Args:
+            fn: Callback function taking the child node as a single parameter
+        """
+        for child in self.children:
+            fn(child)
+            child.recurse_children(fn)
+
     @classmethod
     def _make_node(cls, parent, gimp_obj):
+        cls._check_name(gimp_obj)
+
         node = cls()
         node._parent = parent
         node._children = []
         node._gimp_obj = gimp_obj
         node._node_options = []
         return node
+
+    @staticmethod
+    def _check_name(gimp_obj):
+        name = gimp_obj.name
+        if isinstance(gimp_obj, gimp.Image):
+            name = os.path.splitext(name)[0]
+
+        if not re.match(r'^[a-zA-Z][a-zA-Z0-9_-]*( |$).*$', name):
+            raise Exception('Invalid image or layer name "{}". Only alphanumeric characters,' \
+                            ' underscores and dashes are allowed. Furthermore, the first character ' \
+                            ' must be a letter.'.format(name))
 
     @classmethod
     def _recursively_create_children(cls, parent):

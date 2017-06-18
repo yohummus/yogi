@@ -1,0 +1,13 @@
+<div #component
+  style="width: ${WIDTH}px; height: ${HEIGHT}px;"
+  [style.cursor]="cursor"
+  (mousemove)="onMouseMove($event)"
+  (mouseout)="onMouseOut($event)"
+  (mousedown)="onMouseDown($event)"
+  (mouseup)="onMouseUp($event)"
+  (dragstart)="onDragStart($event)"
+  (dblclick)="onDoubleClick($event)"
+>
+  ${LAYERS}
+  ${CANVASES}
+</div>
