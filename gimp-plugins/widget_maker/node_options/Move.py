@@ -1,6 +1,6 @@
 from ..NodeOption import *
 
 
-class DoubleClickable(NodeOption):
+class Move(NodeOption):
     def __init__(self, node, args):
         pass

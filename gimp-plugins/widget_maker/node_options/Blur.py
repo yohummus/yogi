@@ -1,6 +1,6 @@
 from ..NodeOption import *
 
 
-class Blurrable(NodeOption):
+class Blur(NodeOption):
     def __init__(self, node, args):
         pass
