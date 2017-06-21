@@ -85,7 +85,7 @@ void Supervisor::start_waiting_for_termination_signals()
 void Supervisor::on_termination_signal_received(int sig)
 {
     const char* sigStr = sig == SIGINT ? "SIGINT" : "SIGTERM";
-    YOGI_LOG_INFO(sigStr << " received.");
+    YOGI_LOG_INFO(sigStr << " received");
 
     m_ios.stop();
 }

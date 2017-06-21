@@ -58,15 +58,18 @@ int main(int argc, char *argv[])
 
         // install signal handlers
         signal(SIGINT, [](int) {
+            YOGI_LOG_INFO("SIGINT received");
             QCoreApplication::exit(0);
         });
 
         signal(SIGTERM, [](int) {
+            YOGI_LOG_INFO("SIGTERM received");
             QCoreApplication::exit(0);
         });
 
 #ifdef _WIN32
         signal(SIGBREAK, [](int) {
+            YOGI_LOG_INFO("SIGBREAK received");
             QCoreApplication::exit(0);
         });
 #endif
@@ -79,7 +82,7 @@ int main(int argc, char *argv[])
         return exitCode;
     }
     catch (const std::exception& e) {
-        std::cerr << "ERROR: " << e.what() << std::endl;
-        return -1;
+        YOGI_LOG_FATAL(e.what());
+        return 1;
     }
 }
