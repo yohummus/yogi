@@ -114,12 +114,17 @@ export class TerminalComponent implements OnInit, OnDestroy {
       }
     };
 
+    let operationPromise: Promise<yogi.Operation>;
     if ('scatterGather' in this.terminal) {
-      this.lastScatterOperation = (this.terminal as any).scatterGather(msg, fn);
+      operationPromise = (this.terminal as any).scatterGather(msg, fn);
     }
     else {
-      this.lastScatterOperation = (this.terminal as any).request(msg, fn);
+      operationPromise = (this.terminal as any).request(msg, fn);
     }
+
+    operationPromise.then((operation: yogi.Operation) => {
+      this.lastScatterOperation = operation;
+    });
   }
 
   onScatterGatherReplyChanged(reply: ScatterGatherReply) {
