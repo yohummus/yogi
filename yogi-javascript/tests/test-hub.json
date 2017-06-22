@@ -74,7 +74,8 @@
     "executable": "/usr/bin/protoc"
   },
   "test-service": {
-    "enabled": true
+    "enabled": true,
+    "publish-periodically": true
   },
   "custom-commands": {
     "talk-to-me": {

@@ -153,23 +153,41 @@ describe('Terminals', () => {
         });
 
         it('can be used with Scatter-Gather based terminals', (done) => {
-            let terminal = new yogi.ScatterGatherTerminal(session, '/SG int32', 0x0000d007);
+            let terminal = new yogi.ScatterGatherTerminal(session, '/SG Scatter String Gather int32', 0x00debc62);
             let binding  = new yogi.Binding(terminal, terminal.name);
 
             terminal.onSubscriptionStateChanged = (established) => {
                 terminal.onSubscriptionStateChanged = null;
                 let scatMsg = terminal.makeScatterMessage();
-                scatMsg.value = 'Hello';
+                scatMsg.timestamp = new Long(1234567);
+                scatMsg.value = [{
+                    first: 55.55,
+                    second: 'Hello'
+                }];
+
                 terminal.scatterGather(scatMsg, (gathMsg) => {
-                    expect(gathMsg.message.value).toBe(scatMsg.value.length);
+                    let vals = gathMsg.message.value;
+                    expect(vals[0].first).toBe(1);
+                    expect(vals[0].second).toBe(123);
+                    expect(vals[1].first).toBe(2);
+                    expect(vals[1].second).toBe(101);
                 });
             };
 
             terminal.onScatterMessageReceived = (request) => {
                 terminal.onScatterMessageReceived = null;
-                expect(request.message.value).toEqual('Hello');
+
+                let val = request.message.value[0];
+                expect(val.first).toBeCloseTo(1.23);
+                expect(val.second.toUTF8()).toBe("AB");
+                expect(request.message.timestamp.low).toBe(123456789);
+
                 let msg = terminal.makeGatherMessage();
-                msg.value = 555;
+                msg.timestamp = new Long(555);
+                msg.value = [{
+                    first: yogi.Tribool.TRUE,
+                    second: 37
+                }];
                 request.respond(msg);
 
                 binding.comeAlivePromise.then(() => {
