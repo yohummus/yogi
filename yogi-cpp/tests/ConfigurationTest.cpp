@@ -68,6 +68,18 @@ TEST_F(ConfigurationTest, Update)
     EXPECT_THROW(cfg.update("{"), BadConfiguration);
 }
 
+TEST_F(ConfigurationTest, UpdateVirginConfig)
+{
+    Configuration cfg;
+    cfg.update(R"(
+        {
+            "host": "localhost"
+        }
+    )");
+
+    EXPECT_EQ("localhost", cfg.get<std::string>("host"));
+}
+
 TEST_F(ConfigurationTest, ConfigFile)
 {
     Arguments args{

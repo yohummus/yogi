@@ -297,6 +297,8 @@ struct Configuration::Implementation {
 Configuration::Configuration()
 : m_impl(std::make_unique<Implementation>())
 {
+    *ConfigurationChild::m_impl->root = pt::ptree();
+    ConfigurationChild::m_impl->valid = true;
 }
 
 Configuration::Configuration(int argc, const char* const argv[], bool configFileRequired)
