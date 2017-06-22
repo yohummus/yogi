@@ -1,5 +1,4 @@
 #include "ProtoCompiler.hpp"
-#include "helpers.hpp"
 
 #include <QDebug>
 #include <QDir>

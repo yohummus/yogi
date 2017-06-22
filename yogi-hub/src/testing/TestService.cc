@@ -1,34 +1,94 @@
-#include "TestService.hpp"
-#include "helpers.hpp"
-#include "proto/yogi_00000000.h"
-#include "proto/yogi_00000001.h"
-#include "proto/yogi_00000002.h"
-#include "proto/yogi_00000003.h"
-#include "proto/yogi_00000004.h"
-#include "proto/yogi_00000005.h"
-#include "proto/yogi_00000006.h"
-#include "proto/yogi_00000007.h"
-#include "proto/yogi_00000008.h"
-#include "proto/yogi_00000009.h"
-#include "proto/yogi_0000000a.h"
-#include "proto/yogi_0000000b.h"
-#include "proto/yogi_0000000c.h"
-#include "proto/yogi_0000000d.h"
-#include "proto/yogi_0000000e.h"
-#include "proto/yogi_0000000f.h"
-#include "proto/yogi_00000010.h"
-#include "proto/yogi_000000e1.h"
-#include "proto/yogi_00000c07.h"
-#include "proto/yogi_0000c00c.h"
-#include "proto/yogi_00debc62.h"
-
-#include <QtDebug>
+#include "TestService.hh"
+#include "../helpers/ostream.hh"
+#include "../proto/yogi_00000000.h"
+#include "../proto/yogi_00000001.h"
+#include "../proto/yogi_00000002.h"
+#include "../proto/yogi_00000003.h"
+#include "../proto/yogi_00000004.h"
+#include "../proto/yogi_00000005.h"
+#include "../proto/yogi_00000006.h"
+#include "../proto/yogi_00000007.h"
+#include "../proto/yogi_00000008.h"
+#include "../proto/yogi_00000009.h"
+#include "../proto/yogi_0000000a.h"
+#include "../proto/yogi_0000000b.h"
+#include "../proto/yogi_0000000c.h"
+#include "../proto/yogi_0000000d.h"
+#include "../proto/yogi_0000000e.h"
+#include "../proto/yogi_0000000f.h"
+#include "../proto/yogi_00000010.h"
+#include "../proto/yogi_000000e1.h"
+#include "../proto/yogi_00000c07.h"
+#include "../proto/yogi_0000c00c.h"
+#include "../proto/yogi_00debc62.h"
 
 #include <yogi_core.h>
 
 #include <cassert>
 #include <chrono>
 
+
+namespace testing {
+
+bool TestService::execute_command(const QString& command)
+{
+    if (ms_instance) {
+        return ms_instance->handle_command(command);
+    }
+    else {
+        YOGI_LOG_WARNING("Ignoring test command since test service is disabled.");
+        return false;
+    }
+}
+
+TestService::TestService(yogi::Node& node)
+: m_publishPeriodically(yogi::ProcessInterface::config().get<bool>("test-service.publish-periodically"))
+, m_logger("Test Service")
+, m_node(node)
+, m_leaf(node.scheduler())
+, m_remoteLeaf(node.scheduler())
+, m_connection(m_node, m_leaf)
+, m_psPublished(false)
+, m_cpsPublished(false)
+, m_gatheredRespond(false)
+, m_gatheredIgnore(false)
+, m_consumerPublished(false)
+, m_cachedConsumerPublished(false)
+, m_masterPublished(false)
+, m_slavePublished(false)
+, m_cachedMasterPublished(false)
+, m_cachedSlavePublished(false)
+, m_clientResponded(false)
+, m_clientIgnored(false)
+{
+    if (!yogi::ProcessInterface::config().get<bool>("test-service.enabled")) {
+        YOGI_LOG_DEBUG(m_logger, "Disabled test service");
+        return;
+    }
+
+    assert (ms_instance == nullptr);
+    ms_instance = this;
+
+    m_terminating = false;
+    m_signatureTestThread = std::thread(&TestService::signature_test_thread_fn, this);
+
+    YOGI_LOG_INFO(m_logger, "Test service enabled");
+}
+
+TestService::~TestService()
+{
+    handle_destroy_signature_test_terminals_command(QStringList());
+
+    m_terminating = true;
+    m_signatureTestCv.notify_all();
+
+    if (m_signatureTestThread.joinable()) {
+        m_signatureTestThread.join();
+    }
+
+    ms_instance = nullptr;
+    handle_reset_command(QStringList());
+}
 
 TestService* TestService::ms_instance = nullptr;
 
@@ -128,7 +188,125 @@ void TestService::create_signature_test_sg_terminal(const char* name)
     m_signatureTestTerminals.emplace_back(std::move(terminal));
 }
 
-bool TestService::handle_reset_command(QStringList args)
+bool TestService::handle_command(const QString& command)
+{
+    YOGI_LOG_INFO(m_logger, "Received command: " << command);
+    auto args = command.split(' ').mid(1);
+
+    bool ok = false;
+    if (command.startsWith("reset")) {
+        ok = handle_reset_command(args);
+    }
+    else if (command.startsWith("createYogiTcpFactories")) {
+        ok = handle_create_yogi_tcp_factories_command(args);
+    }
+    else if (command.startsWith("destroyYogiTcpClient")) {
+        ok = handle_destroy_yogi_tcp_client_command(args);
+    }
+    else if (command.startsWith("createTestTerminals")) {
+        ok = handle_create_test_terminals_command(args);
+    }
+    else if (command.startsWith("destroyTestTerminals")) {
+        ok = handle_destroy_test_terminals_command(args);
+    }
+    else if (command.startsWith("psPublish")) {
+        ok = handle_ps_publish_command(args);
+    }
+    else if (command.startsWith("psCheckPublished")) {
+        ok = handle_ps_check_published_command(args);
+    }
+    else if (command.startsWith("sgScatter")) {
+        ok = handle_sg_scatter_command(args);
+    }
+    else if (command.startsWith("sgCheckGatheredRespond")) {
+        ok = handle_sg_check_gathered_respond_command(args);
+    }
+    else if (command.startsWith("sgCheckGatheredIgnore")) {
+        ok = handle_sg_check_gathered_ignore_command(args);
+    }
+    else if (command.startsWith("cpsPublish")) {
+        ok = handle_cps_publish_command(args);
+    }
+    else if (command.startsWith("cpsCheckPublished")) {
+        ok = handle_cps_check_published_command(args);
+    }
+    else if (command.startsWith("producerPublish")) {
+        ok = handle_producer_publish_command(args);
+    }
+    else if (command.startsWith("consumerCheckPublished")) {
+        ok = handle_consumer_check_published_command(args);
+    }
+    else if (command.startsWith("cachedProducerPublish")) {
+        ok = handle_cached_producer_publish_command(args);
+    }
+    else if (command.startsWith("cachedConsumerCheckPublished")) {
+        ok = handle_cached_consumer_check_published_command(args);
+    }
+    else if (command.startsWith("masterPublish")) {
+        ok = handle_master_publish_command(args);
+    }
+    else if (command.startsWith("masterCheckPublished")) {
+        ok = handle_master_check_published_command(args);
+    }
+    else if (command.startsWith("slavePublish")) {
+        ok = handle_slave_publish_command(args);
+    }
+    else if (command.startsWith("slaveCheckPublished")) {
+        ok = handle_slave_check_published_command(args);
+    }
+    else if (command.startsWith("cachedMasterPublish")) {
+        ok = handle_cached_master_publish_command(args);
+    }
+    else if (command.startsWith("cachedMasterCheckPublished")) {
+        ok = handle_cached_master_check_published_command(args);
+    }
+    else if (command.startsWith("cachedSlavePublish")) {
+        ok = handle_cached_slave_publish_command(args);
+    }
+    else if (command.startsWith("cachedSlaveCheckPublished")) {
+        ok = handle_cached_slave_check_published_command(args);
+    }
+    else if (command.startsWith("scRequest")) {
+        ok = handle_sc_request_command(args);
+    }
+    else if (command.startsWith("scCheckResponded")) {
+        ok = handle_sc_check_responded_command(args);
+    }
+    else if (command.startsWith("scCheckIgnored")) {
+        ok = handle_sc_check_ignored_command(args);
+    }
+    else if (command.startsWith("createTreeTestTerminals")) {
+        ok = handle_create_tree_test_terminals_command(args);
+    }
+    else if (command.startsWith("destroyTreeTestTerminals")) {
+        ok = handle_destroy_tree_test_terminals_command(args);
+    }
+    else if (command.startsWith("createSignatureTestTerminals")) {
+        ok = handle_create_signature_test_terminals_command(args);
+    }
+    else if (command.startsWith("destroySignatureTestTerminals")) {
+        ok = handle_destroy_signature_test_terminals_command(args);
+    }
+	else if (command.startsWith("createProducerTerminal")) {
+		ok = handle_create_producer_terminal_command(args);
+	}
+	else if (command.startsWith("destroyProducerTerminal")) {
+		ok = handle_destroy_producer_terminal_command(args);
+	}
+    else if (command.startsWith("createConsumerTerminal")) {
+        ok = handle_create_consumer_terminal_command(args);
+    }
+    else if (command.startsWith("destroyConsumerTerminal")) {
+        ok = handle_destroy_consumer_terminal_command(args);
+    }
+    else {
+        YOGI_LOG_ERROR("Invalid command received: " << command);
+    }
+
+    return ok;
+}
+
+bool TestService::handle_reset_command(const QStringList& args)
 {
     handle_destroy_yogi_tcp_client_command(QStringList());
     m_yogiTcpServer.reset();
@@ -155,7 +333,7 @@ bool TestService::handle_reset_command(QStringList args)
     return true;
 }
 
-bool TestService::handle_create_yogi_tcp_factories_command(QStringList args)
+bool TestService::handle_create_yogi_tcp_factories_command(const QStringList& args)
 {
     if (m_yogiTcpServer) {
         m_yogiTcpServer.reset();
@@ -195,7 +373,7 @@ bool TestService::handle_create_yogi_tcp_factories_command(QStringList args)
     return true;
 }
 
-bool TestService::handle_destroy_yogi_tcp_client_command(QStringList args)
+bool TestService::handle_destroy_yogi_tcp_client_command(const QStringList& args)
 {
     if (m_yogiTcpClient) {
         m_yogiTcpClient.reset();
@@ -205,7 +383,7 @@ bool TestService::handle_destroy_yogi_tcp_client_command(QStringList args)
     return false;
 }
 
-bool TestService::handle_create_test_terminals_command(QStringList args)
+bool TestService::handle_create_test_terminals_command(const QStringList& args)
 {
     m_dmTerminal = std::make_unique<yogi::RawDeafMuteTerminal>(m_leaf, "DmTestTerminal", yogi::Signature(0x12345678));
 
@@ -253,7 +431,7 @@ bool TestService::handle_create_test_terminals_command(QStringList args)
     return true;
 }
 
-bool TestService::handle_destroy_test_terminals_command(QStringList args)
+bool TestService::handle_destroy_test_terminals_command(const QStringList& args)
 {
     m_psObserver              .reset();
     m_cpsObserver             .reset();
@@ -290,18 +468,18 @@ bool TestService::handle_destroy_test_terminals_command(QStringList args)
     return true;
 }
 
-bool TestService::handle_ps_publish_command(QStringList args)
+bool TestService::handle_ps_publish_command(const QStringList& args)
 {
     const char buffer[] = {56, 78};
     return m_psTerminal->try_publish(buffer, sizeof(buffer));
 }
 
-bool TestService::handle_ps_check_published_command(QStringList args)
+bool TestService::handle_ps_check_published_command(const QStringList& args)
 {
     return m_psPublished;
 }
 
-bool TestService::handle_sg_scatter_command(QStringList args)
+bool TestService::handle_sg_scatter_command(const QStringList& args)
 {
     const char scatBuf[] = {56, 78};
     return !!m_sgTerminal->try_async_scatter_gather(scatBuf, sizeof(scatBuf), [=](auto& res, auto&& msg) {
@@ -317,94 +495,94 @@ bool TestService::handle_sg_scatter_command(QStringList args)
     });
 }
 
-bool TestService::handle_sg_check_gathered_respond_command(QStringList args)
+bool TestService::handle_sg_check_gathered_respond_command(const QStringList& args)
 {
     return m_gatheredRespond;
 }
 
-bool TestService::handle_sg_check_gathered_ignore_command(QStringList args)
+bool TestService::handle_sg_check_gathered_ignore_command(const QStringList& args)
 {
     return m_gatheredIgnore;
 }
 
-bool TestService::handle_cps_publish_command(QStringList args)
+bool TestService::handle_cps_publish_command(const QStringList& args)
 {
     const char buffer[] = {56, 78};
     return m_cpsTerminal->try_publish(buffer, sizeof(buffer));
 }
 
-bool TestService::handle_cps_check_published_command(QStringList args)
+bool TestService::handle_cps_check_published_command(const QStringList& args)
 {
     return m_cpsPublished;
 }
 
-bool TestService::handle_producer_publish_command(QStringList args)
+bool TestService::handle_producer_publish_command(const QStringList& args)
 {
     const char buffer[] = {56, 78};
     return m_producerTerminal->try_publish(buffer, sizeof(buffer));
 }
 
-bool TestService::handle_consumer_check_published_command(QStringList args)
+bool TestService::handle_consumer_check_published_command(const QStringList& args)
 {
     return m_consumerPublished;
 }
 
-bool TestService::handle_cached_producer_publish_command(QStringList args)
+bool TestService::handle_cached_producer_publish_command(const QStringList& args)
 {
     const char buffer[] = {56, 78};
     return m_cachedProducerTerminal->try_publish(buffer, sizeof(buffer));
 }
 
-bool TestService::handle_cached_consumer_check_published_command(QStringList args)
+bool TestService::handle_cached_consumer_check_published_command(const QStringList& args)
 {
     return m_cachedConsumerPublished;
 }
 
-bool TestService::handle_master_publish_command(QStringList args)
+bool TestService::handle_master_publish_command(const QStringList& args)
 {
     const char buffer[] = {56, 78};
     return m_masterTerminal->try_publish(buffer, sizeof(buffer));
 }
 
-bool TestService::handle_master_check_published_command(QStringList args)
+bool TestService::handle_master_check_published_command(const QStringList& args)
 {
     return m_masterPublished;
 }
 
-bool TestService::handle_slave_publish_command(QStringList args)
+bool TestService::handle_slave_publish_command(const QStringList& args)
 {
     const char buffer[] = {56, 78};
     return m_slaveTerminal->try_publish(buffer, sizeof(buffer));
 }
 
-bool TestService::handle_slave_check_published_command(QStringList args)
+bool TestService::handle_slave_check_published_command(const QStringList& args)
 {
     return m_slavePublished;
 }
 
-bool TestService::handle_cached_master_publish_command(QStringList args)
+bool TestService::handle_cached_master_publish_command(const QStringList& args)
 {
     const char buffer[] = {56, 78};
     return m_cachedMasterTerminal->try_publish(buffer, sizeof(buffer));
 }
 
-bool TestService::handle_cached_master_check_published_command(QStringList args)
+bool TestService::handle_cached_master_check_published_command(const QStringList& args)
 {
     return m_cachedMasterPublished;
 }
 
-bool TestService::handle_cached_slave_publish_command(QStringList args)
+bool TestService::handle_cached_slave_publish_command(const QStringList& args)
 {
     const char buffer[] = {56, 78};
     return m_cachedSlaveTerminal->try_publish(buffer, sizeof(buffer));
 }
 
-bool TestService::handle_cached_slave_check_published_command(QStringList args)
+bool TestService::handle_cached_slave_check_published_command(const QStringList& args)
 {
     return m_cachedSlavePublished;
 }
 
-bool TestService::handle_sc_request_command(QStringList args)
+bool TestService::handle_sc_request_command(const QStringList& args)
 {
     const char scatBuf[] = {56, 78};
     return !!m_clientTerminal->try_async_request(scatBuf, sizeof(scatBuf), [=](auto& res, auto&& msg) {
@@ -420,17 +598,17 @@ bool TestService::handle_sc_request_command(QStringList args)
     });
 }
 
-bool TestService::handle_sc_check_responded_command(QStringList args)
+bool TestService::handle_sc_check_responded_command(const QStringList& args)
 {
     return m_clientResponded;
 }
 
-bool TestService::handle_sc_check_ignored_command(QStringList args)
+bool TestService::handle_sc_check_ignored_command(const QStringList& args)
 {
     return m_clientIgnored;
 }
 
-bool TestService::handle_create_tree_test_terminals_command(QStringList args)
+bool TestService::handle_create_tree_test_terminals_command(const QStringList& args)
 {
     m_treeTestTerminals.emplace_back(std::make_unique<yogi::RawDeafMuteTerminal>(
         m_leaf, "/Power Module/Alive", yogi::Signature(0x01000000)));
@@ -483,13 +661,13 @@ bool TestService::handle_create_tree_test_terminals_command(QStringList args)
     return true;
 }
 
-bool TestService::handle_destroy_tree_test_terminals_command(QStringList args)
+bool TestService::handle_destroy_tree_test_terminals_command(const QStringList& args)
 {
     m_treeTestTerminals.clear();
     return true;
 }
 
-bool TestService::handle_create_signature_test_terminals_command(QStringList args)
+bool TestService::handle_create_signature_test_terminals_command(const QStringList& args)
 {
     std::lock_guard<std::mutex> lock(m_signatureTestMutex);
 
@@ -623,7 +801,7 @@ bool TestService::handle_create_signature_test_terminals_command(QStringList arg
     return true;
 }
 
-bool TestService::handle_destroy_signature_test_terminals_command(QStringList args)
+bool TestService::handle_destroy_signature_test_terminals_command(const QStringList& args)
 {
     std::lock_guard<std::mutex> lock(m_signatureTestMutex);
     m_signatureTestPublishFunctions.clear();
@@ -634,204 +812,28 @@ bool TestService::handle_destroy_signature_test_terminals_command(QStringList ar
     return true;
 }
 
-bool TestService::handle_create_producer_terminal_command(QStringList args)
+bool TestService::handle_create_producer_terminal_command(const QStringList& args)
 {
     m_separateProducerTerminal = std::make_unique<yogi::RawProducerTerminal>(m_leaf, "ProducerTestTerminal", yogi::Signature(0));
 	return true;
 }
 
-bool TestService::handle_destroy_producer_terminal_command(QStringList args)
+bool TestService::handle_destroy_producer_terminal_command(const QStringList& args)
 {
     m_separateProducerTerminal.reset();
 	return true;
 }
 
-bool TestService::handle_create_consumer_terminal_command(QStringList args)
+bool TestService::handle_create_consumer_terminal_command(const QStringList& args)
 {
     m_separateConsumerTerminal = std::make_unique<yogi::RawConsumerTerminal>(m_leaf, "ConsumerTestTerminal", yogi::Signature(0));
     return true;
 }
 
-bool TestService::handle_destroy_consumer_terminal_command(QStringList args)
+bool TestService::handle_destroy_consumer_terminal_command(const QStringList& args)
 {
     m_separateConsumerTerminal.reset();
     return true;
 }
 
-TestService::TestService(yogi::Node& node)
-: m_logger("Test Service")
-, m_publishPeriodically(yogi::ProcessInterface::config().get<bool>("test-service.publish-periodically"))
-, m_node(node)
-, m_leaf(node.scheduler())
-, m_remoteLeaf(node.scheduler())
-, m_connection(m_node, m_leaf)
-, m_psPublished(false)
-, m_cpsPublished(false)
-, m_gatheredRespond(false)
-, m_gatheredIgnore(false)
-, m_consumerPublished(false)
-, m_cachedConsumerPublished(false)
-, m_masterPublished(false)
-, m_slavePublished(false)
-, m_cachedMasterPublished(false)
-, m_cachedSlavePublished(false)
-, m_clientResponded(false)
-, m_clientIgnored(false)
-{
-    if (!yogi::ProcessInterface::config().get<bool>("test-service.enabled")) {
-        YOGI_LOG_DEBUG(m_logger, "Disabled test service");
-        return;
-    }
-
-    assert (ms_instance == nullptr);
-    ms_instance = this;
-
-    m_terminating = false;
-    m_signatureTestThread = std::thread(&TestService::signature_test_thread_fn, this);
-
-    YOGI_LOG_INFO(m_logger, "Test service enabled");
-}
-
-TestService::~TestService()
-{
-    handle_destroy_signature_test_terminals_command(QStringList());
-
-    m_terminating = true;
-    m_signatureTestCv.notify_all();
-
-    if (m_signatureTestThread.joinable()) {
-        m_signatureTestThread.join();
-    }
-
-    ms_instance = nullptr;
-    handle_reset_command(QStringList());
-}
-
-bool TestService::active()
-{
-    return ms_instance != nullptr;
-}
-
-TestService& TestService::instance()
-{
-    assert (ms_instance != nullptr);
-    return *ms_instance;
-}
-
-bool TestService::handle_command(QString command)
-{
-    YOGI_LOG_INFO(m_logger, "Received command: " << command);
-    auto args = command.split(' ').mid(1);
-
-    bool ok = false;
-    if (command.startsWith("reset")) {
-        ok = handle_reset_command(args);
-    }
-    else if (command.startsWith("createYogiTcpFactories")) {
-        ok = handle_create_yogi_tcp_factories_command(args);
-    }
-    else if (command.startsWith("destroyYogiTcpClient")) {
-        ok = handle_destroy_yogi_tcp_client_command(args);
-    }
-    else if (command.startsWith("createTestTerminals")) {
-        ok = handle_create_test_terminals_command(args);
-    }
-    else if (command.startsWith("destroyTestTerminals")) {
-        ok = handle_destroy_test_terminals_command(args);
-    }
-    else if (command.startsWith("psPublish")) {
-        ok = handle_ps_publish_command(args);
-    }
-    else if (command.startsWith("psCheckPublished")) {
-        ok = handle_ps_check_published_command(args);
-    }
-    else if (command.startsWith("sgScatter")) {
-        ok = handle_sg_scatter_command(args);
-    }
-    else if (command.startsWith("sgCheckGatheredRespond")) {
-        ok = handle_sg_check_gathered_respond_command(args);
-    }
-    else if (command.startsWith("sgCheckGatheredIgnore")) {
-        ok = handle_sg_check_gathered_ignore_command(args);
-    }
-    else if (command.startsWith("cpsPublish")) {
-        ok = handle_cps_publish_command(args);
-    }
-    else if (command.startsWith("cpsCheckPublished")) {
-        ok = handle_cps_check_published_command(args);
-    }
-    else if (command.startsWith("producerPublish")) {
-        ok = handle_producer_publish_command(args);
-    }
-    else if (command.startsWith("consumerCheckPublished")) {
-        ok = handle_consumer_check_published_command(args);
-    }
-    else if (command.startsWith("cachedProducerPublish")) {
-        ok = handle_cached_producer_publish_command(args);
-    }
-    else if (command.startsWith("cachedConsumerCheckPublished")) {
-        ok = handle_cached_consumer_check_published_command(args);
-    }
-    else if (command.startsWith("masterPublish")) {
-        ok = handle_master_publish_command(args);
-    }
-    else if (command.startsWith("masterCheckPublished")) {
-        ok = handle_master_check_published_command(args);
-    }
-    else if (command.startsWith("slavePublish")) {
-        ok = handle_slave_publish_command(args);
-    }
-    else if (command.startsWith("slaveCheckPublished")) {
-        ok = handle_slave_check_published_command(args);
-    }
-    else if (command.startsWith("cachedMasterPublish")) {
-        ok = handle_cached_master_publish_command(args);
-    }
-    else if (command.startsWith("cachedMasterCheckPublished")) {
-        ok = handle_cached_master_check_published_command(args);
-    }
-    else if (command.startsWith("cachedSlavePublish")) {
-        ok = handle_cached_slave_publish_command(args);
-    }
-    else if (command.startsWith("cachedSlaveCheckPublished")) {
-        ok = handle_cached_slave_check_published_command(args);
-    }
-    else if (command.startsWith("scRequest")) {
-        ok = handle_sc_request_command(args);
-    }
-    else if (command.startsWith("scCheckResponded")) {
-        ok = handle_sc_check_responded_command(args);
-    }
-    else if (command.startsWith("scCheckIgnored")) {
-        ok = handle_sc_check_ignored_command(args);
-    }
-    else if (command.startsWith("createTreeTestTerminals")) {
-        ok = handle_create_tree_test_terminals_command(args);
-    }
-    else if (command.startsWith("destroyTreeTestTerminals")) {
-        ok = handle_destroy_tree_test_terminals_command(args);
-    }
-    else if (command.startsWith("createSignatureTestTerminals")) {
-        ok = handle_create_signature_test_terminals_command(args);
-    }
-    else if (command.startsWith("destroySignatureTestTerminals")) {
-        ok = handle_destroy_signature_test_terminals_command(args);
-    }
-	else if (command.startsWith("createProducerTerminal")) {
-		ok = handle_create_producer_terminal_command(args);
-	}
-	else if (command.startsWith("destroyProducerTerminal")) {
-		ok = handle_destroy_producer_terminal_command(args);
-	}
-    else if (command.startsWith("createConsumerTerminal")) {
-        ok = handle_create_consumer_terminal_command(args);
-    }
-    else if (command.startsWith("destroyConsumerTerminal")) {
-        ok = handle_destroy_consumer_terminal_command(args);
-    }
-    else {
-        YOGI_LOG_ERROR("Invalid command received: " << command);
-    }
-
-    return ok;
-}
+} // namespace testing

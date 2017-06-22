@@ -1,5 +1,6 @@
 #include "CustomCommandService.hpp"
-#include "helpers.hpp"
+#include "helpers/ostream.hh"
+#include "helpers/time.hh"
 
 #include <QDir>
 #include <QFile>

@@ -1,4 +1,5 @@
-#include "helpers.hpp"
+#include "helpers/ostream.hh"
+#include "helpers/to_byte_array.hh"
 #include "WebSocketServer.hpp"
 #include "YogiSession.hpp"
 

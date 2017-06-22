@@ -1,6 +1,6 @@
 #include "HttpServer.hpp"
 #include "WebSocketServer.hpp"
-#include "TestService.hpp"
+#include "testing/TestService.hh"
 #include "YogiTcpClient.hpp"
 #include "YogiTcpServer.hpp"
 #include "KnownTerminalsMonitor.hpp"
@@ -30,7 +30,7 @@ int main(int argc, char *argv[])
 
         // setup the services
         KnownTerminalsMonitor knownTerminalsMonitor(node);
-        TestService testService(node);
+        testing::TestService testService(node);
         ProtoCompiler protoCompiler;
         CustomCommandService customCommandService;
 

@@ -1,5 +1,5 @@
 #include "KnownTerminalsMonitor.hpp"
-#include "helpers.hpp"
+#include "helpers/to_byte_array.hh"
 
 #include <yogi_core.h>
 

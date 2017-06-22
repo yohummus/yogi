@@ -1,5 +1,6 @@
 #include "YogiTcpServer.hpp"
-#include "helpers.hpp"
+#include "helpers/time.hh"
+#include "helpers/ostream.hh"
 
 #include <QtDebug>
 

@@ -1,7 +1,9 @@
 #include "YogiSession.hpp"
-#include "TestService.hpp"
+#include "testing/TestService.hh"
 #include "KnownTerminalsMonitor.hpp"
-#include "helpers.hpp"
+#include "helpers/ostream.hh"
+#include "helpers/read_from_stream.hh"
+#include "helpers/to_byte_array.hh"
 
 #include <QtDebug>
 #include <QDataStream>
@@ -188,10 +190,7 @@ QByteArray YogiSession::handle_current_time_request(const QByteArray& request)
 
 QByteArray YogiSession::handle_test_command(const QByteArray& request)
 {
-    bool ok = false;
-    if (TestService::active()) {
-        ok = TestService::instance().handle_command(request.mid(1));
-    }
+    bool ok = testing::TestService::execute_command(request.mid(1));
     return make_response(ok ? RES_OK : RES_INVALID_REQUEST);
 }
 
