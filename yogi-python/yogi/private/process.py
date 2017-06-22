@@ -7,14 +7,13 @@ from .proto import yogi_0000040d_pb2
 import datetime
 import threading
 import sys
+import weakref
 
 
 class ProcessInterface:
-    _instance = None
-
     def __init__(self, configuration_or_argv: Optional[Union[Configuration, List[str]]] = sys.argv[1:]):
         cls = type(self)
-        if cls._instance:
+        if cls.instance:
             raise Exception('ProcessInterface is a singleton and has already been created. Call destroy() on the'
                             ' existing instance before you create a new one.')
 
@@ -26,21 +25,25 @@ class ProcessInterface:
         self._scheduler = Scheduler()
         self._leaf = Leaf(self._scheduler)
 
-        self._init_logging()
-        self._init_operational()
-        self._init_anomalies()
+        cls._instance = weakref.ref(self)
 
-        cls._instance = self
+        try:
+            self._init_logging()
+            self._init_operational()
+            self._init_anomalies()
+        except:
+            cls._instance = cls._return_none
+            raise
 
     def destroy(self):
         self._shutdown_logging()
         self._shutdown_operational()
         self._shutdown_anomalies()
 
-        type(self)._instance = None
+        type(self)._instance = type(self)._return_none
 
     def __del__(self):
-        if type(self)._instance:
+        if type(self).instance:
             try:
                 self.destroy()
             except Failure:
@@ -48,29 +51,34 @@ class ProcessInterface:
 
     @classproperty
     def instance(cls):
-        return cls._instance
+        return cls._instance()
 
     @classproperty
     def config(cls) -> Configuration:
-        return cls._instance._config
+        return cls.instance._config
 
     @classproperty
     def location(cls) -> Path:
-        return cls._instance._config.location
+        return cls.instance._config.location
 
     @classproperty
     def scheduler(cls) -> Scheduler:
-        return cls._instance._scheduler
+        return cls.instance._scheduler
 
     @classproperty
     def leaf(cls) -> Leaf:
-        return cls._instance._leaf
+        return cls.instance._leaf
 
     @classproperty
     def operational(cls) -> bool:
-        return cls._instance._operational_state
+        return cls.instance._operational_state
+
+    @classmethod
+    def _return_none(cls):
+        return None
 
     def _init_logging(self):
+        cls = type(self)
         self._log_terminal = ProducerTerminal(self._config.location / 'Process/Log',
                                               yogi_000009cd_pb2, leaf=self._leaf)
 
@@ -79,14 +87,12 @@ class ProcessInterface:
             self._config.location / 'Process/Standard Output Log Verbosity/Max Verbosity', yogi_00004004_pb2,
             leaf=self._leaf)
         self._max_stdout_log_verbosity_terminal.async_receive_message(
-            lambda res, msg, cached: self._on_max_logging_verbosity_changed(res, msg, cached, True,
-                                                                            self._max_stdout_log_verbosity_terminal))
+            lambda res, msg, cached: cls._on_max_logging_verbosity_changed(res, msg, cached, True))
         self._max_yogi_log_verbosity_terminal = CachedMasterTerminal(
             self._config.location / 'Process/YOGI Log Verbosity/Max Verbosity', yogi_00004004_pb2,
             leaf=self._leaf)
         self._max_yogi_log_verbosity_terminal.async_receive_message(
-            lambda res, msg, cached: self._on_max_logging_verbosity_changed(res, msg, cached, False,
-                                                                            self._max_yogi_log_verbosity_terminal))
+            lambda res, msg, cached: cls._on_max_logging_verbosity_changed(res, msg, cached, False))
         self._stdout_log_verbosity_terminals = {}
         self._yogi_log_verbosity_terminals = {}
 
@@ -128,8 +134,10 @@ class ProcessInterface:
         else:
             return Verbosity[child[key]]
 
-    def _on_max_logging_verbosity_changed(self, res, msg, cached, is_stdout, terminal):
-        if not res:
+    @classmethod
+    def _on_max_logging_verbosity_changed(cls, res, msg, cached, is_stdout):
+        self = cls.instance
+        if not res or not self:
             return
 
         from .logging import Logger, Verbosity
@@ -138,6 +146,11 @@ class ProcessInterface:
         except ValueError:
             verbosity = Verbosity.TRACE
 
+        if is_stdout:
+            terminal = self._max_stdout_log_verbosity_terminal
+        else:
+            terminal = self._max_yogi_log_verbosity_terminal
+
         if not cached:
             if is_stdout:
                 Logger.max_stdout_verbosity = verbosity
@@ -145,11 +158,13 @@ class ProcessInterface:
                 Logger.max_yogi_verbosity = verbosity
             terminal.try_publish(terminal.make_message(value=msg.value))
 
-        fn = lambda res, msg, cached: self._on_max_logging_verbosity_changed(res, msg, cached, is_stdout, terminal)
+        fn = lambda res, msg, cached: cls._on_max_logging_verbosity_changed(res, msg, cached, is_stdout)
         terminal.async_receive_message(fn)
 
-    def _on_logging_verbosity_changed(self, res, msg, cached, is_stdout, component, terminal):
-        if not res:
+    @classmethod
+    def _on_logging_verbosity_changed(cls, res, msg, cached, is_stdout, component, terminal):
+        self = cls.instance
+        if not res or not self:
             return
 
         from .logging import Logger, Verbosity
@@ -166,23 +181,25 @@ class ProcessInterface:
                 logger.yogi_verbosity = verbosity
             terminal.try_publish(terminal.make_message(value=msg.value))
 
-        fn = lambda res, msg, cached: self._on_logging_verbosity_changed(res, msg, cached, is_stdout, component, terminal)
+        fn = lambda res, msg, cached: cls._on_logging_verbosity_changed(res, msg, cached, is_stdout, component, terminal)
         with self._log_verbosity_terminals_lock:
             terminal.async_receive_message(fn)
 
     def _register_logger(self, logger):
+        cls = type(self)
+
         component = logger.component
 
         stdout_vb_terminal = CachedMasterTerminal(
             self._config.location / 'Process/Standard Output Log Verbosity/Components' / component,
             yogi_00004004_pb2, leaf=self._leaf)
-        stdout_vb_terminal.async_receive_message(lambda res, msg, cached: self._on_logging_verbosity_changed(
+        stdout_vb_terminal.async_receive_message(lambda res, msg, cached: cls._on_logging_verbosity_changed(
             res, msg, cached, True, component, stdout_vb_terminal))
 
         yogi_vb_terminal = CachedMasterTerminal(
             self._config.location / 'Process/YOGI Log Verbosity/Components' / component,
             yogi_00004004_pb2, leaf=self._leaf)
-        yogi_vb_terminal.async_receive_message(lambda res, msg, cached: self._on_logging_verbosity_changed(
+        yogi_vb_terminal.async_receive_message(lambda res, msg, cached: cls._on_logging_verbosity_changed(
             res, msg, cached, False, component, yogi_vb_terminal))
 
         with self._log_verbosity_terminals_lock:
@@ -222,24 +239,28 @@ class ProcessInterface:
 
     @classmethod
     def _add_operational_observer(cls, observer):
-        self = cls._instance
+        self = cls.instance
+        if not self:
+            raise Exception('No ProcessInterface instantiated.')
+
         with self._operational_lock:
-            self._operational_observers.append(observer)
+            self._operational_observers.append(weakref.proxy(observer))
             observer._notify_state(self._operational_state)
 
     @classmethod
     def _remove_operational_observer(cls, observer):
-        self = cls._instance
+        self = cls.instance
         if self is None:
             return
 
         with self._operational_lock:
-            if observer in self._operational_observers:
-                self._operational_observers.remove(observer)
+            observer_proxy = weakref.proxy(observer)
+            if observer_proxy in self._operational_observers:
+                self._operational_observers.remove(observer_proxy)
 
     @classmethod
     def _notify_operational_condition_change(cls, oc):
-        self = cls._instance
+        self = cls.instance
         if self is None:
             return
 
@@ -264,16 +285,19 @@ class ProcessInterface:
         self._operational_state = operational
         self._publish_operational_state(operational)
 
-        for observer in self._operational_observers:
-            observer._notify_state(operational)
+        for observer_proxy in self._operational_observers:
+            observer_proxy._notify_state(operational)
 
         return True
 
     @classmethod
     def _add_operational_condition(cls, oc):
-        self = cls._instance
+        self = cls.instance
+        if not self:
+            raise Exception('No ProcessInterface instantiated.')
+
         with self._operational_lock:
-            self._operational_conditions.append(oc)
+            self._operational_conditions.append(weakref.proxy(oc))
 
             changed = self._update_operational_state()
             if changed:
@@ -284,28 +308,30 @@ class ProcessInterface:
 
     @classmethod
     def _remove_operational_condition(cls, oc):
-        self = cls._instance
+        self = cls.instance
         if self is None:
             return
 
         with self._operational_lock:
-            if oc not in self._operational_conditions:
+            oc_proxy = weakref.proxy(oc)
+            if oc_proxy not in self._operational_conditions:
                 return
 
-            self._operational_conditions.remove(oc)
+            self._operational_conditions.remove(oc_proxy)
 
             changed = self._update_operational_state()
             # TODO: Commented out due to deadlock on Linux (Ticket #4)
             # if changed:
             #     from .logging import Logger
             #     Logger.yogi_logger.log_info("Operational state changed to {} due to the removal of the Operational"
-            #                                    " Condition '{}'".format('TRUE' if self._operational_state else 'FALSE',
-            #                                                             oc.name))
+            #                                 " Condition '{}'".format('TRUE' if self._operational_state else 'FALSE',
+            #                                                          oc.name))
 
     def _init_anomalies(self):
         self._running = True
         self._anomalies_cv = threading.Condition()
-        self._anomalies_thread = threading.Thread(target=self._anomalies_thread_fn)
+        self._anomalies_thread = threading.Thread(target=self._anomalies_thread_fn, args=(self._anomalies_cv,),
+                                                  name='Anomalies Thread')
         self._active_anomalies = []
 
         self._errors_terminal = CachedProducerTerminal(self._config.location / 'Process/Errors',
@@ -329,17 +355,22 @@ class ProcessInterface:
         self._errors_terminal.destroy()
         self._warnings_terminal.destroy()
 
-    def _anomalies_thread_fn(self):
-        with self._anomalies_cv:
-            while self._running:
+    @classmethod
+    def _anomalies_thread_fn(cls, cv):
+        with cv:
+            while True:
+                self = cls.instance
+                if not self or not self._running:
+                    break
+
                 next_expiration = self._update_active_anomalies()
                 if next_expiration is None:
-                    self._anomalies_cv.wait()
+                    cv.wait()
                 else:
                     now = datetime.datetime.now()
                     if next_expiration > now:
                         timeout = (next_expiration - now).total_seconds()
-                        self._anomalies_cv.wait(timeout)
+                        cv.wait(timeout)
 
     def _update_active_anomalies(self):
         now = datetime.datetime.now()
@@ -383,7 +414,7 @@ class ProcessInterface:
 
     @classmethod
     def _set_anomaly(cls, anomaly):
-        self = cls._instance
+        self = cls.instance
         if self is None:
             return
 
@@ -401,7 +432,7 @@ class ProcessInterface:
 
     @classmethod
     def _clear_anomaly(cls, anomaly):
-        self = cls._instance
+        self = cls.instance
         if self is None:
             return
 
@@ -422,46 +453,48 @@ class ProcessInterface:
 
     @classmethod
     def _publish_log_message(cls, severity, component, message, timestamp, thread_id):
-        if not cls._instance:
+        if not cls.instance:
             return
 
         json = '{{"severity": "{}", "thread": {}, "component": "{}"}}'.format(severity.name, thread_id, component)
 
-        msg = cls._instance._log_terminal.make_message()
+        msg = cls.instance._log_terminal.make_message()
         msg.value.first = message
         msg.value.second = json
         msg.timestamp = timestamp.ns_since_epoch
 
-        cls._instance._log_terminal.try_publish(msg)
+        cls.instance._log_terminal.try_publish(msg)
 
     @classmethod
     def _on_new_logger_added(cls, logger):
-        if cls._instance:
-            cls._instance._register_logger(logger)
+        if cls.instance:
+            cls.instance._register_logger(logger)
 
     @classmethod
     def _on_max_verbosity_set(cls, verbosity, is_stdout):
-        if not cls._instance:
+        if not cls.instance:
             return
 
-        msg = cls._instance._max_stdout_log_verbosity_terminal.make_message(value=verbosity.value)
+        msg = cls.instance._max_stdout_log_verbosity_terminal.make_message(value=verbosity.value)
 
         if is_stdout:
-            cls._instance._max_stdout_log_verbosity_terminal.try_publish(msg)
+            cls.instance._max_stdout_log_verbosity_terminal.try_publish(msg)
         else:
-            cls._instance._max_yogi_log_verbosity_terminal.try_publish(msg)
+            cls.instance._max_yogi_log_verbosity_terminal.try_publish(msg)
 
     @classmethod
     def _on_verbosity_set(cls, component, verbosity, is_stdout):
-        if not cls._instance:
+        if not cls.instance:
             return
 
-        msg = cls._instance._max_stdout_log_verbosity_terminal.make_message(value=verbosity.value)
+        msg = cls.instance._max_stdout_log_verbosity_terminal.make_message(value=verbosity.value)
 
         if is_stdout:
-            cls._instance._stdout_log_verbosity_terminals[component].try_publish(msg)
+            cls.instance._stdout_log_verbosity_terminals[component].try_publish(msg)
         else:
-            cls._instance._yogi_log_verbosity_terminals[component].try_publish(msg)
+            cls.instance._yogi_log_verbosity_terminals[component].try_publish(msg)
+
+ProcessInterface._instance = ProcessInterface._return_none
 
 
 class Anomaly:
@@ -569,6 +602,9 @@ class Dependency(OperationalCondition):
         self._observers = []
         self._oc_lock = threading.Lock()
 
+        cls = type(self)
+        weak_self = weakref.ref(self)
+
         from .observers import BindingObserver, SubscriptionObserver
 
         try:
@@ -582,7 +618,7 @@ class Dependency(OperationalCondition):
                                     .format(type(obj)))
 
                 self._observers.append(observer)
-                observer.add(lambda state: self._on_state_changed(observer, state))
+                observer.add(lambda state: cls._on_state_changed(weak_self, observer, state))
                 observer.start()
         except:
             self.destroy()
@@ -594,7 +630,12 @@ class Dependency(OperationalCondition):
         self._observers = []
         super(Dependency, self).destroy()
 
-    def _on_state_changed(self, observer, state):
+    @classmethod
+    def _on_state_changed(cls, weak_self, observer, state):
+        self = weak_self()
+        if not self:
+            return
+
         nro = 0
         with self._lock:
             if state in [BindingState.RELEASED, SubscriptionState.UNSUBSCRIBED]:
@@ -628,7 +669,10 @@ class ProcessDependency(Dependency):
 
         from .observers import MessageObserver
         self._operational_observer = MessageObserver(self._operational_terminal)
-        self._operational_observer.add(lambda msg, cached: self._update_poc(msg))
+
+        cls = type(self)
+        weak_self = weakref.ref(self)
+        self._operational_observer.add(lambda msg, cached: cls._update_poc(weak_self, msg))
 
         try:
             msg = self._operational_terminal.get_cached_message()
@@ -644,7 +688,12 @@ class ProcessDependency(Dependency):
         self._poc.destroy()
         super(ProcessDependency, self).destroy()
 
-    def _update_poc(self, msg):
+    @classmethod
+    def _update_poc(cls, weak_self, msg):
+        self = weak_self()
+        if not self:
+            return
+
         if msg.value:
             self._poc.set()
         else:

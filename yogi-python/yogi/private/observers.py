@@ -2,6 +2,7 @@ from .terminals import *
 from .process import ProcessInterface
 
 import threading
+import weakref
 
 
 class Observer:
@@ -58,16 +59,18 @@ class StateObserver(Observer):
         self._id_counter = 1
         self._callbacks_called_since_start = False
 
-    def _on_state_received(self, res, state):
-        if not res:
+    @classmethod
+    def _on_state_received(cls, weak_self, res, state):
+        self = weak_self()
+        if not res or not self:
             return
 
         with self._lock:
             if self._terminate:
                 return
 
-            type(self)._async_await_state_change_fn(self._observable,
-                                                    lambda res, state: self._on_state_received(res, state))
+            cls._async_await_state_change_fn(self._observable,
+                                             lambda res, state: cls._on_state_received(weak_self, res, state))
 
             for _, callback in self._callbacks.items():
                 callback(state)
@@ -94,7 +97,9 @@ class StateObserver(Observer):
 
     def start(self) -> None:
         with self._lock:
-            type(self)._async_get_state_fn(self._observable, lambda res, state: self._on_state_received(res, state))
+            cls = type(self)
+            weak_self = weakref.ref(self)
+            cls._async_get_state_fn(self._observable, lambda res, state: cls._on_state_received(weak_self, res, state))
             self._callbacks_called_since_start = False
 
     def stop(self) -> None:
@@ -196,15 +201,18 @@ class MessageObserver(Observer):
         with self._lock:
             self._callback = None
 
-    def _on_message_received(self, res, msg, cached):
-        if not res:
+    @classmethod
+    def _on_message_received(cls, weak_self, res, msg, cached):
+        self = weak_self()
+        if not res or not self:
             return
 
         with self._lock:
             if self._terminate:
                 return
 
-            self._async_receive_message_fn(lambda res, msg, cached=None: self._on_message_received(res, msg, cached))
+            self._async_receive_message_fn(lambda res, msg, cached=None: cls._on_message_received(weak_self, res, msg,
+                                                                                                  cached))
 
             if self._is_ps_based:
                 for _, callback in self._callbacks.items():
@@ -220,7 +228,10 @@ class MessageObserver(Observer):
 
     def start(self):
         with self._lock:
-            self._async_receive_message_fn(lambda res, msg, cached=None: self._on_message_received(res, msg, cached))
+            cls = type(self)
+            weak_self = weakref.ref(self)
+            self._async_receive_message_fn(lambda res, msg, cached=None: cls._on_message_received(weak_self, res, msg,
+                                                                                                  cached))
 
     def stop(self):
         try:

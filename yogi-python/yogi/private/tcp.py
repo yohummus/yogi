@@ -1,5 +1,6 @@
 from .connections import *
 import threading
+import weakref
 
 
 class TcpConnection(NonLocalConnection):
@@ -122,10 +123,11 @@ class AutoConnectingTcpClient:
         self._connect_observer = None
         self._disconnect_observer = None
         self._client = TcpClient(endpoint.scheduler, identification)
-        self._reconnectThread = threading.Thread(target=self._reconnect_thread_fn)
+        self._cv = threading.Condition()
+        self._reconnectThread = threading.Thread(target=self._reconnect_thread_fn, args=(weakref.ref(self), self._cv),
+                                                 name="Reconnect Thread")
         self._reconnectThreadInitialised = False
         self._running = False
-        self._cv = threading.Condition()
         self._connection = None
         self._connected = False
 
@@ -178,13 +180,18 @@ class AutoConnectingTcpClient:
     def connected(self) -> bool:
         return self._connected
 
-    def _reconnect_thread_fn(self):
-        with self._cv:
-            self._reconnectThreadInitialised = True
-            self._cv.notify()
+    @classmethod
+    def _reconnect_thread_fn(cls, weak_self, cv):
+        with cv:
+            weak_self()._reconnectThreadInitialised = True
+            cv.notify()
 
             while True:
-                self._cv.wait()
+                cv.wait()
+                self = weak_self()
+                if not self:
+                    break
+
                 if not self._running:
                     return
 
@@ -192,18 +199,24 @@ class AutoConnectingTcpClient:
                     self._connection.destroy()
                     self._connection = None
 
-                self._cv.wait(timeout=1.0)
-                if not self._running:
+                self = None
+                cv.wait(timeout=1.0)
+                self = weak_self()
+                if not self or not self._running:
                     return
 
                 self._start_connect()
 
     def _start_connect(self):
         # TODO: logging
-        self._client.async_connect(self._host, self._port, self._timeout, self._on_connect_completed)
+        weak_self = weakref.ref(self)
+        self._client.async_connect(self._host, self._port, self._timeout,
+                                   lambda res, conn: weak_self()._on_connect_completed(weak_self, res, conn))
 
-    def _on_connect_completed(self, res, connection):
-        if res == Canceled():
+    @classmethod
+    def _on_connect_completed(cls, weak_self, res, connection):
+        self = weak_self()
+        if not self or res == Canceled():
             return
 
         with self._cv:
@@ -213,7 +226,7 @@ class AutoConnectingTcpClient:
             if res == Success():
                 try:
                     connection.assign(self._endpoint, self._timeout)
-                    connection.async_await_death(self._on_connection_died)
+                    connection.async_await_death(lambda err: cls._on_connection_died(weak_self, err))
                     self._connection = connection
 
                     # TODO: Logging
@@ -234,8 +247,10 @@ class AutoConnectingTcpClient:
 
             self._cv.notify()
 
-    def _on_connection_died(self, err):
-        if err == Canceled():
+    @classmethod
+    def _on_connection_died(cls, weak_self, err):
+        self = weak_self()
+        if not self or err == Canceled():
             return
 
         with self._cv:
