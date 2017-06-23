@@ -189,11 +189,8 @@ class AutoConnectingTcpClient:
             while True:
                 cv.wait()
                 self = weak_self()
-                if not self:
+                if not self or not self._running:
                     break
-
-                if not self._running:
-                    return
 
                 if self._connection is not None:
                     self._connection.destroy()
@@ -206,12 +203,14 @@ class AutoConnectingTcpClient:
                     return
 
                 self._start_connect()
+                self = None
 
     def _start_connect(self):
         # TODO: logging
+        cls = type(self)
         weak_self = weakref.ref(self)
         self._client.async_connect(self._host, self._port, self._timeout,
-                                   lambda res, conn: weak_self()._on_connect_completed(weak_self, res, conn))
+                                   lambda res, conn: cls._on_connect_completed(weak_self, res, conn))
 
     @classmethod
     def _on_connect_completed(cls, weak_self, res, connection):

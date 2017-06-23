@@ -10,15 +10,15 @@ class Observer:
         self._terminate = False
 
     def destroy(self) -> None:
-        self._terminate = True
-        self.stop()
+        if not self._terminate:
+            self._terminate = True
+            self.stop()
 
     def __del__(self):
-        if not self._terminate:
-            try:
-                self.destroy()
-            except Failure:
-                pass
+        try:
+            self.destroy()
+        except Failure:
+            pass
 
     def start(self):
         pass
@@ -29,11 +29,11 @@ class Observer:
 
 class CallbackId:
     def __init__(self, observer: Observer, id: int):
-        self._observer = observer
+        self._observer_ref = weakref.ref(observer)
         self._id = id
 
     def __eq__(self, other):
-        return self._id == other._id and self._observer is other._observer
+        return self._id == other._id and self._observer_ref is other._observer_ref
 
     def __ne__(self, other):
         return not (self == other)
@@ -58,6 +58,12 @@ class StateObserver(Observer):
         self._callbacks = {}
         self._id_counter = 1
         self._callbacks_called_since_start = False
+
+    def destroy(self) -> None:
+        super(StateObserver, self).destroy()
+        if self._observable:
+            self.stop()
+            self._observable = None
 
     @classmethod
     def _on_state_received(cls, weak_self, res, state):
@@ -156,15 +162,11 @@ class MessageObserver(Observer):
             self._is_ps_based = True
             self._callbacks = {}
             self._id_counter = 1
-            self.add = self._add
-            self.remove = self._remove
             self._async_receive_message_fn = terminal.async_receive_message
             self._cancel_receive_message_fn = terminal.cancel_receive_message
         else:
             self._is_ps_based = False
             self._callback = None
-            self.set = self._set
-            self.clear = self._clear
             if isinstance(terminal, ScatterGatherTerminal):
                 self._async_receive_message_fn = terminal.async_receive_scattered_message
                 self._cancel_receive_message_fn = terminal.cancel_receive_scattered_message
@@ -172,11 +174,21 @@ class MessageObserver(Observer):
                 self._async_receive_message_fn = terminal.async_receive_request
                 self._cancel_receive_message_fn = terminal.cancel_receive_request
 
+    def destroy(self) -> None:
+        super(MessageObserver, self).destroy()
+        if self._terminal:
+            self.stop()
+            self._terminal = None
+
     @property
     def terminal(self) -> Terminal:
         return self._terminal
 
-    def _add(self, callback: Callable[[Any, Optional[bool]], None]) -> CallbackId:
+    def add(self, callback: Callable[[Any, Optional[bool]], None]) -> CallbackId:
+        if not self._is_ps_based:
+            raise Exception('Cannot use add() if the terminal is not publish-subscribe based.'
+                            + ' Use set() instead.')
+
         with self._lock:
             callback_id = CallbackId(self, self._id_counter)
             self._id_counter += 1
@@ -186,18 +198,30 @@ class MessageObserver(Observer):
             self._callbacks[callback_id] = callback
             return callback_id
 
-    def _remove(self, callback_id: CallbackId) -> None:
+    def remove(self, callback_id: CallbackId) -> None:
+        if not self._is_ps_based:
+            raise Exception('Cannot use remove() if the terminal is not publish-subscribe based.'
+                            + ' Use clear() instead.')
+
         with self._lock:
             try:
                 del self._callbacks[callback_id]
             except KeyError:
                 raise BadCallbackId()
 
-    def _set(self, callback: Callable[[ScatteredMessage], None]) -> None:
+    def set(self, callback: Callable[[ScatteredMessage], None]) -> None:
+        if self._is_ps_based:
+            raise Exception('Cannot use set() if the terminal is publish-subscribe-based.'
+                            + ' Use add() instead.')
+
         with self._lock:
             self._callback = callback
 
-    def _clear(self):
+    def clear(self):
+        if self._is_ps_based:
+            raise Exception('Cannot use clear() if the terminal is not publish-subscribe-based.'
+                            + ' Use remove() instead.')
+
         with self._lock:
             self._callback = None
 

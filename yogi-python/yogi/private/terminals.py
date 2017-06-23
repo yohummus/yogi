@@ -2,6 +2,7 @@ from .signature import *
 from .leaf import *
 from .path import Path
 from typing import *
+import weakref
 
 
 # ======================================================================================================================
@@ -145,12 +146,12 @@ class ConvenienceProtoTerminal(ProtoTerminal):
 # ======================================================================================================================
 class Operation:
     def __init__(self, terminal, operation_id=None):
-        self._terminal = terminal
+        self._terminal_ref = weakref.ref(terminal)
         self._operation_id = operation_id
 
     @property
     def terminal(self):
-        return self._terminal
+        return self._terminal_ref()
 
     @property
     def operation_id(self):
@@ -160,25 +161,25 @@ class Operation:
         return self._operation_id is not None
 
     def cancel(self):
-        self._terminal._cancel_scatter_gather_api_fn(self._terminal._handle, self._operation_id)
+        self.terminal._cancel_scatter_gather_api_fn(self.terminal._handle, self._operation_id)
         self._operation_id = None
 
 
 class ScatteredMessage:
-    def __init__(self, terminal, operation_id, buffer, bytes_written):
-        self._terminal = terminal
+    def __init__(self, terminal_ref, operation_id, buffer, bytes_written):
+        self._terminal_ref = terminal_ref
         self._operation_id = operation_id
 
         data = bytes(bytearray((c_byte * bytes_written).from_buffer(buffer)))
-        if self._terminal._proto_module:
-            self._msg = self._terminal._proto_module.ScatterMessage()
+        if terminal_ref()._proto_module:
+            self._msg = terminal_ref()._proto_module.ScatterMessage()
             self._msg.ParseFromString(data)
         else:
             self._msg = data
 
     @property
     def terminal(self):
-        return self._terminal
+        return self._terminal_ref()
 
     @property
     def message(self):
@@ -189,37 +190,44 @@ class ScatteredMessage:
         return self._operation_id
 
     def respond(self, msg):
-        if self._terminal._proto_module:
+        terminal = self.terminal
+        if not terminal:
+            raise Exception('Terminal has been destroyed')
+
+        if terminal._proto_module:
             data = msg.SerializeToString()
         else:
             data = msg
 
         buffer = create_string_buffer(data)
-        self._terminal._respond_to_scattered_message_api_fn(self._terminal._handle, self._operation_id, buffer,
-                                                            sizeof(buffer) - 1)
+        terminal._respond_to_scattered_message_api_fn(terminal._handle, self._operation_id, buffer, sizeof(buffer) - 1)
         self._operation_id = None
 
     def ignore(self):
-        self._terminal._ignore_scattered_message_api_fn(self._terminal._handle, self._operation_id)
+        terminal = self.terminal
+        if not terminal:
+            raise Exception('Terminal has been destroyed')
+
+        terminal._ignore_scattered_message_api_fn(terminal._handle, self._operation_id)
         self._operation_id = None
 
 
 class GatheredMessage:
-    def __init__(self, terminal, operation_id, flags, buffer, bytes_written):
-        self._terminal = terminal
+    def __init__(self, terminal_ref, operation_id, flags, buffer, bytes_written):
+        self._terminal_ref = terminal_ref
         self._operation_id = operation_id
         self._flags = flags
 
         data = bytes(bytearray((c_byte * bytes_written).from_buffer(buffer)))
-        if self._terminal._proto_module:
-            self._msg = self._terminal._proto_module.GatherMessage()
+        if terminal_ref()._proto_module:
+            self._msg = terminal_ref()._proto_module.GatherMessage()
             self._msg.ParseFromString(data)
         else:
             self._msg = data
 
     @property
     def terminal(self):
-        return self._terminal
+        return self._terminal_ref()
 
     @property
     def flags(self):
@@ -345,8 +353,13 @@ class PublishMixin:
 class PublishMessageReceiverMixin:
     def async_receive_message(self, completion_handler):
         buffer = create_string_buffer(Terminal.RECEIVE_MESSAGE_BUFFER_SIZE)
+        weak_self = weakref.ref(self)
 
         def fn(res, bytes_written, cached=None):
+            self = weak_self()
+            if not self:
+                return
+
             if res:
                 data = bytes(bytearray((c_byte * bytes_written).from_buffer(buffer)))
                 if self._proto_module:
@@ -388,9 +401,10 @@ class CacheMixin:
 class ServiceMixin:
     def _async_receive_scattered_message(self, completion_handler):
         buffer = create_string_buffer(Terminal.RECEIVE_MESSAGE_BUFFER_SIZE)
+        weak_self = weakref.ref(self)
 
         def fn(res, operation_id, bytes_written):
-            msg = ScatteredMessage(self, operation_id, buffer, bytes_written) if res else None
+            msg = ScatteredMessage(weak_self, operation_id, buffer, bytes_written) if res else None
             completion_handler(res, msg)
 
         with WrappedCallback(self._async_receive_scattered_message_api_fn.argtypes[3], fn) as clb_fn:
@@ -410,8 +424,10 @@ class ClientMixin:
         scatter_buffer = create_string_buffer(data)
         gather_buffer = create_string_buffer(Terminal.RECEIVE_MESSAGE_BUFFER_SIZE)
 
+        weak_self = weakref.ref(self)
+
         def fn(res, operation_id, flags, bytes_written):
-            msg = GatheredMessage(self, operation_id, flags, gather_buffer, bytes_written) if res else None
+            msg = GatheredMessage(weak_self, operation_id, flags, gather_buffer, bytes_written) if res else None
             ret = completion_handler(res, msg)
             return ControlFlow.STOP.value if ret is None else ret.value
 

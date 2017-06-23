@@ -162,9 +162,10 @@ class ProcessInterface:
         terminal.async_receive_message(fn)
 
     @classmethod
-    def _on_logging_verbosity_changed(cls, res, msg, cached, is_stdout, component, terminal):
+    def _on_logging_verbosity_changed(cls, res, msg, cached, is_stdout, component, terminal_ref):
         self = cls.instance
-        if not res or not self:
+        terminal = terminal_ref()
+        if not res or not self or not terminal:
             return
 
         from .logging import Logger, Verbosity
@@ -181,7 +182,7 @@ class ProcessInterface:
                 logger.yogi_verbosity = verbosity
             terminal.try_publish(terminal.make_message(value=msg.value))
 
-        fn = lambda res, msg, cached: cls._on_logging_verbosity_changed(res, msg, cached, is_stdout, component, terminal)
+        fn = lambda res, msg, cached: cls._on_logging_verbosity_changed(res, msg, cached, is_stdout, component, terminal_ref)
         with self._log_verbosity_terminals_lock:
             terminal.async_receive_message(fn)
 
@@ -193,14 +194,18 @@ class ProcessInterface:
         stdout_vb_terminal = CachedMasterTerminal(
             self._config.location / 'Process/Standard Output Log Verbosity/Components' / component,
             yogi_00004004_pb2, leaf=self._leaf)
+
+        stdout_vb_terminal_ref = weakref.ref(stdout_vb_terminal)
         stdout_vb_terminal.async_receive_message(lambda res, msg, cached: cls._on_logging_verbosity_changed(
-            res, msg, cached, True, component, stdout_vb_terminal))
+            res, msg, cached, True, component, stdout_vb_terminal_ref))
 
         yogi_vb_terminal = CachedMasterTerminal(
             self._config.location / 'Process/YOGI Log Verbosity/Components' / component,
             yogi_00004004_pb2, leaf=self._leaf)
+
+        yogi_vb_terminal_ref = weakref.ref(yogi_vb_terminal)
         yogi_vb_terminal.async_receive_message(lambda res, msg, cached: cls._on_logging_verbosity_changed(
-            res, msg, cached, False, component, yogi_vb_terminal))
+            res, msg, cached, False, component, yogi_vb_terminal_ref))
 
         with self._log_verbosity_terminals_lock:
             self._stdout_log_verbosity_terminals[logger.component] = stdout_vb_terminal
@@ -225,11 +230,15 @@ class ProcessInterface:
         self._publish_operational_state(self._operational_state)
 
     def _shutdown_operational(self):
-        for observer in self._operational_observers:
-            observer.destroy()
+        for observer_ref in self._operational_observers:
+            observer = observer_ref()
+            if observer:
+                observer.destroy()
 
-        for oc in self._operational_conditions:
-            oc.destroy()
+        for oc_ref in self._operational_conditions:
+            oc = oc_ref()
+            if oc:
+                oc.destroy()
 
         self._operational_terminal.destroy()
 
@@ -244,7 +253,8 @@ class ProcessInterface:
             raise Exception('No ProcessInterface instantiated.')
 
         with self._operational_lock:
-            self._operational_observers.append(weakref.proxy(observer))
+            observer_ref = weakref.ref(observer)
+            self._operational_observers.append(observer_ref)
             observer._notify_state(self._operational_state)
 
     @classmethod
@@ -254,9 +264,9 @@ class ProcessInterface:
             return
 
         with self._operational_lock:
-            observer_proxy = weakref.proxy(observer)
-            if observer_proxy in self._operational_observers:
-                self._operational_observers.remove(observer_proxy)
+            observer_ref = weakref.ref(observer)
+            if observer_ref in self._operational_observers:
+                self._operational_observers.remove(observer_ref)
 
     @classmethod
     def _notify_operational_condition_change(cls, oc):
@@ -274,8 +284,9 @@ class ProcessInterface:
 
     def _update_operational_state(self):
         operational = True
-        for oc in self._operational_conditions:
-            if not oc.is_met:
+        for oc_ref in self._operational_conditions:
+            oc = oc_ref()
+            if oc and not oc.is_met:
                 operational = False
                 break
 
@@ -285,8 +296,10 @@ class ProcessInterface:
         self._operational_state = operational
         self._publish_operational_state(operational)
 
-        for observer_proxy in self._operational_observers:
-            observer_proxy._notify_state(operational)
+        for observer_ref in self._operational_observers:
+            observer = observer_ref()
+            if observer:
+                observer._notify_state(operational)
 
         return True
 
@@ -297,7 +310,8 @@ class ProcessInterface:
             raise Exception('No ProcessInterface instantiated.')
 
         with self._operational_lock:
-            self._operational_conditions.append(weakref.proxy(oc))
+            oc_ref = weakref.ref(oc)
+            self._operational_conditions.append(oc_ref)
 
             changed = self._update_operational_state()
             if changed:
@@ -313,11 +327,11 @@ class ProcessInterface:
             return
 
         with self._operational_lock:
-            oc_proxy = weakref.proxy(oc)
-            if oc_proxy not in self._operational_conditions:
+            oc_ref = weakref.ref(oc)
+            if oc_ref not in self._operational_conditions:
                 return
 
-            self._operational_conditions.remove(oc_proxy)
+            self._operational_conditions.remove(oc_ref)
 
             changed = self._update_operational_state()
             # TODO: Commented out due to deadlock on Linux (Ticket #4)
@@ -365,11 +379,13 @@ class ProcessInterface:
 
                 next_expiration = self._update_active_anomalies()
                 if next_expiration is None:
+                    self = None
                     cv.wait()
                 else:
                     now = datetime.datetime.now()
                     if next_expiration > now:
                         timeout = (next_expiration - now).total_seconds()
+                        self = None
                         cv.wait(timeout)
 
     def _update_active_anomalies(self):
@@ -618,7 +634,8 @@ class Dependency(OperationalCondition):
                                     .format(type(obj)))
 
                 self._observers.append(observer)
-                observer.add(lambda state: cls._on_state_changed(weak_self, observer, state))
+                observer_ref = weakref.ref(observer)
+                observer.add(lambda state: cls._on_state_changed(weak_self, observer_ref, state))
                 observer.start()
         except:
             self.destroy()
@@ -631,7 +648,7 @@ class Dependency(OperationalCondition):
         super(Dependency, self).destroy()
 
     @classmethod
-    def _on_state_changed(cls, weak_self, observer, state):
+    def _on_state_changed(cls, weak_self, observer_ref, state):
         self = weak_self()
         if not self:
             return
@@ -641,7 +658,7 @@ class Dependency(OperationalCondition):
             if state in [BindingState.RELEASED, SubscriptionState.UNSUBSCRIBED]:
                 self._non_ready_observers += 1
             else:
-                if observer._callbacks_called_since_start:
+                if observer_ref()._callbacks_called_since_start:
                     self._non_ready_observers -= 1
 
             self._oc_lock.acquire()
