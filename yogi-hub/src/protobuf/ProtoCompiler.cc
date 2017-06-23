@@ -1,4 +1,4 @@
-#include "ProtoCompiler.hpp"
+#include "ProtoCompiler.hh"
 
 #include <QDebug>
 #include <QDir>
@@ -13,7 +13,51 @@
 using namespace std::string_literals;
 
 
+namespace protobuf {
+
 ProtoCompiler* ProtoCompiler::ms_instance = nullptr;
+
+ProtoCompiler& ProtoCompiler::instance()
+{
+    assert (ms_instance != nullptr);
+    return *ms_instance;
+}
+
+ProtoCompiler::ProtoCompiler()
+: m_logger("Proto Compiler")
+{
+    if (yogi::ProcessInterface::config().get<bool>("proto-compiler.enabled")) {
+        m_executable = QString::fromStdString(yogi::ProcessInterface::config().get<std::string>("proto-compiler.executable"));
+        check_protoc_exists();
+        YOGI_LOG_INFO(m_logger, "Proto compiler enabled");
+    } else {
+        YOGI_LOG_DEBUG(m_logger, "Disabled Proto compiler");
+    }
+
+    assert (ms_instance == nullptr);
+    ms_instance = this;
+}
+
+QMap<QString, QByteArray> ProtoCompiler::compile(const QByteArray& protoFileContent, Language targetLanguage)
+{
+    if (!yogi::ProcessInterface::config().get<bool>("proto-compiler.enabled")) {
+        YOGI_LOG_INFO(m_logger, "Denied request since compiler is disabled");
+        throw std::runtime_error("Proto compiler is disabled");
+    }
+
+	check_protoc_exists();
+
+    QTemporaryDir dir;
+	check_temp_dir_valid(dir);
+
+	auto protoFilename = write_proto_file(dir, protoFileContent);
+	run_protoc(dir, protoFilename, targetLanguage);
+	auto files = read_generated_files(dir, protoFilename);
+	post_process_generated_files(protoFileContent, &files);
+	escape_file_contents(&files);
+
+    return files;
+}
 
 void ProtoCompiler::log_and_throw(const std::string& msg)
 {
@@ -237,44 +281,4 @@ void ProtoCompiler::insert_after(QByteArray* content, const QString& str, const 
 	content->insert(pos + where.size(), str);
 }
 
-ProtoCompiler& ProtoCompiler::instance()
-{
-    assert (ms_instance != nullptr);
-    return *ms_instance;
-}
-
-ProtoCompiler::ProtoCompiler()
-: m_logger("Proto Compiler")
-{
-    if (yogi::ProcessInterface::config().get<bool>("proto-compiler.enabled")) {
-        m_executable = QString::fromStdString(yogi::ProcessInterface::config().get<std::string>("proto-compiler.executable"));
-        check_protoc_exists();
-        YOGI_LOG_INFO(m_logger, "Proto compiler enabled");
-    } else {
-        YOGI_LOG_DEBUG(m_logger, "Disabled Proto compiler");
-    }
-
-    assert (ms_instance == nullptr);
-    ms_instance = this;
-}
-
-QMap<QString, QByteArray> ProtoCompiler::compile(const QByteArray& protoFileContent, Language targetLanguage)
-{
-    if (!yogi::ProcessInterface::config().get<bool>("proto-compiler.enabled")) {
-        YOGI_LOG_INFO(m_logger, "Denied request since compiler is disabled");
-        throw std::runtime_error("Proto compiler is disabled");
-    }
-
-	check_protoc_exists();
-
-    QTemporaryDir dir;
-	check_temp_dir_valid(dir);
-
-	auto protoFilename = write_proto_file(dir, protoFileContent);
-	run_protoc(dir, protoFilename, targetLanguage);
-	auto files = read_generated_files(dir, protoFilename);
-	post_process_generated_files(protoFileContent, &files);
-	escape_file_contents(&files);
-
-    return files;
-}
+} // namespace protobuf

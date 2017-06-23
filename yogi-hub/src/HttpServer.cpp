@@ -1,6 +1,6 @@
 #include "helpers/ostream.hh"
 #include "HttpServer.hpp"
-#include "ProtoCompiler.hpp"
+#include "protobuf/ProtoCompiler.hh"
 
 #include <QRegExp>
 #include <QFile>
@@ -189,22 +189,22 @@ void HttpServer::handle_post_request(QTcpSocket* client, const Request& request)
     try {
         if (request.uri.startsWith("/compile/")) {
             if (yogi::ProcessInterface::config().get<bool>("proto-compiler.enabled")) {
-                ProtoCompiler::Language language;
+                protobuf::ProtoCompiler::Language language;
                 if (request.uri == "/compile/python") {
-                    language = ProtoCompiler::LNG_PYTHON;
+                    language = protobuf::ProtoCompiler::LNG_PYTHON;
                 }
                 else if (request.uri == "/compile/cpp") {
-                    language = ProtoCompiler::LNG_CPP;
+                    language = protobuf::ProtoCompiler::LNG_CPP;
                 }
                 else if (request.uri == "/compile/csharp") {
-                    language = ProtoCompiler::LNG_CSHARP;
+                    language = protobuf::ProtoCompiler::LNG_CSHARP;
                 }
                 else {
                     respond(client, 404);
                     return;
                 }
 
-                auto files = ProtoCompiler::instance().compile(request.content, language);
+                auto files = protobuf::ProtoCompiler::instance().compile(request.content, language);
                 QByteArray json = "{";
                 for (auto& key : files.keys()) {
                     auto fileContent = files[key];

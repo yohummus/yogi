@@ -755,7 +755,7 @@ QByteArray YogiSession::handle_start_custom_command_request(const QByteArray& re
         args.push_back(parts[i]);
     }
 
-    auto command = CustomCommandService::instance().start_command(cmd, args);
+    auto command = commands::CustomCommandService::instance().start_command(cmd, args);
 
     if (!command) {
         return make_response(RES_INVALID_REQUEST);
@@ -912,7 +912,7 @@ void YogiSession::on_dns_lookup_finished(QHostInfo info)
 	emit(notify_client(m_socket, make_response(ASY_DNS_LOOKUP) + data));
 }
 
-void YogiSession::on_process_update(CustomCommandService::Command* command, QProcess::ProcessState state, QByteArray out, QByteArray err, int exitCode, QProcess::ProcessError error)
+void YogiSession::on_process_update(commands::CustomCommandService::Command* command, QProcess::ProcessState state, QByteArray out, QByteArray err, int exitCode, QProcess::ProcessError error)
 {
     QMutexLocker lock(&m_commandLutMutex);
 
@@ -1035,7 +1035,7 @@ YogiSession::YogiSession(QWebSocket* socket, yogi::Node& node, const QString& cl
     qRegisterMetaType<std::shared_ptr<yogi::RawServiceTerminal::Request>>("std::shared_ptr<yogi::RawServiceTerminal::Request>");
     qRegisterMetaType<std::shared_ptr<yogi::RawClientTerminal::Response>>("std::shared_ptr<yogi::RawClientTerminal::Response>");
 
-    m_qtConnections.append(connect(&CustomCommandService::instance(), &CustomCommandService::process_update, this, &YogiSession::on_process_update));
+    m_qtConnections.append(connect(&commands::CustomCommandService::instance(), &commands::CustomCommandService::process_update, this, &YogiSession::on_process_update));
     m_qtConnections.append(connect(this, &YogiSession::received_sg_scatter_message, this, &YogiSession::handle_received_sg_scatter_message));
     m_qtConnections.append(connect(this, &YogiSession::received_sg_gather_message,  this, &YogiSession::handle_received_sg_gather_message));
     m_qtConnections.append(connect(this, &YogiSession::received_sc_request,         this, &YogiSession::handle_received_sc_request));

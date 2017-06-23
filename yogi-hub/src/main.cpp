@@ -4,8 +4,8 @@
 #include "YogiTcpClient.hpp"
 #include "YogiTcpServer.hpp"
 #include "KnownTerminalsMonitor.hpp"
-#include "ProtoCompiler.hpp"
-#include "CustomCommandService.hpp"
+#include "protobuf/ProtoCompiler.hh"
+#include "commands/CustomCommandService.hh"
 
 #include <yogi.hpp>
 
@@ -31,8 +31,8 @@ int main(int argc, char *argv[])
         // setup the services
         KnownTerminalsMonitor knownTerminalsMonitor(node);
         testing::TestService testService(node);
-        ProtoCompiler protoCompiler;
-        CustomCommandService customCommandService;
+        protobuf::ProtoCompiler protoCompiler;
+        commands::CustomCommandService customCommandService;
 
         // setup YOGI connection factories
         std::vector<std::unique_ptr<YogiTcpServer>>  yogiTcpServers;

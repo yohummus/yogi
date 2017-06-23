@@ -3,7 +3,7 @@
 
 #include "YogiTcpClient.hpp"
 #include "YogiTcpServer.hpp"
-#include "CustomCommandService.hpp"
+#include "commands/CustomCommandService.hh"
 
 #include <yogi.hpp>
 
@@ -129,7 +129,7 @@ private:
     QMutex                                                         m_bindingLutMutex;
 
     unsigned                                                       m_lastCommandId;
-    QMap<unsigned, std::shared_ptr<CustomCommandService::Command>> m_commandLut;
+    QMap<unsigned, std::shared_ptr<commands::CustomCommandService::Command>> m_commandLut;
     QMutex                                                         m_commandLutMutex;
 
 private:
@@ -195,7 +195,7 @@ Q_SIGNALS:
 
 private Q_SLOTS:
 	void on_dns_lookup_finished(QHostInfo info);
-    void on_process_update(CustomCommandService::Command* command, QProcess::ProcessState state, QByteArray out, QByteArray err, int exitCode, QProcess::ProcessError error);
+    void on_process_update(commands::CustomCommandService::Command* command, QProcess::ProcessState state, QByteArray out, QByteArray err, int exitCode, QProcess::ProcessError error);
     void handle_received_sg_scatter_message(TerminalInfo* info, std::shared_ptr<yogi::RawScatterGatherTerminal::ScatteredMessage> msg);
     void handle_received_sg_gather_message( TerminalInfo* info, std::shared_ptr<yogi::RawScatterGatherTerminal::GatheredMessage> msg);
     void handle_received_sc_request(        TerminalInfo* info, std::shared_ptr<yogi::RawServiceTerminal::Request> request);

@@ -1,5 +1,5 @@
-#ifndef PROTOCOMPILER_HPP
-#define PROTOCOMPILER_HPP
+#ifndef PROTOBUF_PROTOCOMPILER_HPP
+#define PROTOBUF_PROTOCOMPILER_HPP
 
 #include <yogi.hpp>
 
@@ -8,6 +8,8 @@
 #include <QString>
 #include <QTemporaryDir>
 
+
+namespace protobuf {
 
 class ProtoCompiler
 {
@@ -18,13 +20,18 @@ public:
         LNG_CSHARP
     };
 
+    static ProtoCompiler& instance();
+
+    ProtoCompiler();
+
+    QMap<QString, QByteArray> compile(const QByteArray& protoFileContent, Language targetLanguage);
+
 private:
     static ProtoCompiler* ms_instance;
 
-    yogi::Logger m_logger;
-    QString          m_executable;
+    yogi::Logger          m_logger;
+    QString               m_executable;
 
-private:
     void log_and_throw(const std::string& msg);
 	void check_protoc_exists();
 	void check_temp_dir_valid(const QTemporaryDir& dir);
@@ -38,13 +45,8 @@ private:
 	void escape_file_contents(QMap<QString, QByteArray>* files);
 	void insert_before(QByteArray* content, const QString& str, const QString& where);
     void insert_after(QByteArray* content, const QString& str, const QString& where);
-
-public:
-    static ProtoCompiler& instance();
-
-    ProtoCompiler();
-
-    QMap<QString, QByteArray> compile(const QByteArray& protoFileContent, Language targetLanguage);
 };
 
-#endif // PROTOCOMPILER_HPP
+} // namespace protobuf
+
+#endif // PROTOBUF_PROTOCOMPILER_HPP
