@@ -1,5 +1,5 @@
-#ifndef HTTPSERVER_HPP
-#define HTTPSERVER_HPP
+#ifndef WEB_SERVERS_HTTPSERVER_HH
+#define WEB_SERVERS_HTTPSERVER_HH
 
 #include <yogi.hpp>
 
@@ -11,10 +11,17 @@
 #include <QDateTime>
 
 
+namespace web_servers {
+
 class HttpServer : public QObject
 {
     Q_OBJECT
 
+public:
+    HttpServer(const yogi::ConfigurationChild& config, QObject* parent = Q_NULLPTR);
+    ~HttpServer();
+
+private:
     enum ReceiveState {
         RCV_REQUEST_LINE,
         RCV_HEADER,
@@ -43,10 +50,9 @@ class HttpServer : public QObject
         bool       compressed;
     };
 
-private:
     static QVector<HttpServer*>   ms_instances;
 
-    yogi::Logger              m_logger;
+    yogi::Logger                  m_logger;
     QMimeDatabase                 m_mimeDb;
     QTcpServer*                   m_server;
     QMap<QTcpSocket*, Request>    m_clients;
@@ -56,12 +62,8 @@ private:
 	QString                       m_gzipExecutable;
     QMap<QString, FileCacheEntry> m_fileCache;
 
-private Q_SLOTS:
-    void on_new_connection();
-    void on_ready_read();
-    void on_connection_closed();
+    static const QVector<HttpServer*>& instances();
 
-private:
     QMap<QString, QString> extract_map_from_config(const yogi::ConfigurationChild& config, const char* childName);
     void setup(const yogi::ConfigurationChild& config);
     bool parse_request_line(const QString& requestLine, Request* request);
@@ -76,15 +78,12 @@ private:
     FileCacheEntry* update_file_cache(const QString& filePath);
     bool compress_file(const QString& filePath, QByteArray* compressedContent);
 
-public:
-    HttpServer(const yogi::ConfigurationChild& config, QObject* parent = Q_NULLPTR);
-    ~HttpServer();
-
-    static const QVector<HttpServer*>& instances()
-    {
-        return ms_instances;
-    }
-
+private Q_SLOTS:
+    void on_new_connection();
+    void on_ready_read();
+    void on_connection_closed();
 };
 
-#endif // HTTPSERVER_HPP
+} // namespace web_servers
+
+#endif // WEB_SERVERS_HTTPSERVER_HH

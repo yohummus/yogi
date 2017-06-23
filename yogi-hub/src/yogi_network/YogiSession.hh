@@ -1,9 +1,9 @@
-#ifndef YOGISESSION_HPP
-#define YOGISESSION_HPP
+#ifndef YOGI_NETWORK_YOGISESSION_HH
+#define YOGI_NETWORK_YOGISESSION_HH
 
-#include "YogiTcpClient.hpp"
-#include "YogiTcpServer.hpp"
-#include "commands/CustomCommandService.hh"
+#include "YogiTcpClient.hh"
+#include "YogiTcpServer.hh"
+#include "../commands/CustomCommandService.hh"
 
 #include <yogi.hpp>
 
@@ -18,10 +18,27 @@
 #include <unordered_map>
 
 
+namespace yogi_network {
+
 class YogiSession : public QObject
 {
     Q_OBJECT
+    struct TerminalInfo;
 
+public:
+    YogiSession(QWebSocket* socket, yogi::Node& node, const QString& clientIdentification, QObject* parent = Q_NULLPTR);
+    ~YogiSession();
+
+    QByteArray handle_request(const QByteArray& request);
+
+Q_SIGNALS:
+    void received_sg_scatter_message(TerminalInfo*, std::shared_ptr<yogi::RawScatterGatherTerminal::ScatteredMessage>);
+    void received_sg_gather_message(TerminalInfo*, std::shared_ptr<yogi::RawScatterGatherTerminal::GatheredMessage>);
+    void received_sc_request(TerminalInfo*, std::shared_ptr<yogi::RawServiceTerminal::Request>);
+    void received_sc_response(TerminalInfo*, std::shared_ptr<yogi::RawClientTerminal::Response>);
+    void notify_client(QWebSocket*, QByteArray);
+
+private:
     enum RequestType {
         REQ_VERSION = 0,
         REQ_CURRENT_TIME,
@@ -84,30 +101,39 @@ class YogiSession : public QObject
         CFT_TCP_SERVER
     };
 
+    typedef std::unordered_map<yogi::raw_operation_id, yogi::RawScatterGatherTerminal::Operation>        sg_operations_map;
+    typedef std::unordered_map<yogi::raw_operation_id, yogi::RawScatterGatherTerminal::ScatteredMessage> sg_scattered_messages_map;
+    typedef std::unordered_map<yogi::raw_operation_id, yogi::RawClientTerminal::Operation>               sc_operations_map;
+    typedef std::unordered_map<yogi::raw_operation_id, yogi::RawServiceTerminal::Request>                sc_requests_map;
+
     struct TerminalInfo {
-        int                                             id;
+        int                                         id;
         std::unique_ptr<yogi::Terminal>             terminal;
         std::unique_ptr<yogi::BindingObserver>      bindingObserver;
         std::unique_ptr<yogi::SubscriptionObserver> subscriptionObserver;
         std::unique_ptr<yogi::Observer>             messageObserver;
 
-        std::unordered_map<yogi::raw_operation_id, yogi::RawScatterGatherTerminal::Operation>        sgOperations;
-        std::unordered_map<yogi::raw_operation_id, yogi::RawScatterGatherTerminal::ScatteredMessage> sgScatteredMessages;
-        std::unordered_map<yogi::raw_operation_id, yogi::RawClientTerminal::Operation>               scOperations;
-        std::unordered_map<yogi::raw_operation_id, yogi::RawServiceTerminal::Request>                scRequests;
+        sg_operations_map                           sgOperations;
+        sg_scattered_messages_map                   sgScatteredMessages;
+        sc_operations_map                           scOperations;
+        sc_requests_map                             scRequests;
 
         TerminalInfo(yogi::Leaf& leaf, yogi::terminal_type type, const char* name, yogi::Signature signature);
     };
 
     struct BindingInfo {
-        int                                        id;
+        int                                    id;
         yogi::Binding                          binding;
         std::unique_ptr<yogi::BindingObserver> observer;
 
         BindingInfo(yogi::PrimitiveTerminal& terminal, const char* targets);
     };
 
-private:
+    typedef QMap<unsigned, std::shared_ptr<TerminalInfo>>                            terminal_lut;
+    typedef QMap<unsigned, std::shared_ptr<BindingInfo>>                             binding_lut;
+    typedef QMap<unsigned, std::shared_ptr<commands::CustomCommandService::Command>> command_lut;
+
+
     yogi::Logger                     m_logger;
     const QString                    m_logPrefix;
     const QString                    m_clientIdentification;
@@ -120,19 +146,18 @@ private:
     QByteArray                       m_monitorKnownTerminalsBuffer;
     QVector<QMetaObject::Connection> m_qtConnections;
 
-    unsigned                                                       m_lastTerminalId;
-    QMap<unsigned, std::shared_ptr<TerminalInfo>>                  m_terminalLut;
-    QMutex                                                         m_terminalLutMutex;
+    unsigned                         m_lastTerminalId;
+    terminal_lut                     m_terminalLut;
+    QMutex                           m_terminalLutMutex;
 
-    unsigned                                                       m_lastBindingId;
-    QMap<unsigned, std::shared_ptr<BindingInfo>>                   m_bindingLut;
-    QMutex                                                         m_bindingLutMutex;
+    unsigned                         m_lastBindingId;
+    binding_lut                      m_bindingLut;
+    QMutex                           m_bindingLutMutex;
 
-    unsigned                                                       m_lastCommandId;
-    QMap<unsigned, std::shared_ptr<commands::CustomCommandService::Command>> m_commandLut;
-    QMutex                                                         m_commandLutMutex;
+    unsigned                         m_lastCommandId;
+    command_lut                      m_commandLut;
+    QMutex                           m_commandLutMutex;
 
-private:
     static QByteArray make_response(Status status = RES_OK);
     QByteArray to_byte_array(YogiTcpClient::ServerInformation info);
     QByteArray to_byte_array(YogiTcpServer::ClientInformation info);
@@ -175,7 +200,6 @@ private:
     QByteArray handle_terminate_custom_command_request(const QByteArray& request);
     QByteArray handle_write_custom_command_stdin(const QByteArray& request);
 
-private:
     void on_binding_state_changed(BindingInfo& info, yogi::binding_state state);
     void on_builtin_binding_state_changed(TerminalInfo& info, yogi::binding_state state);
     void on_subscription_state_changed(TerminalInfo& info, yogi::subscription_state state);
@@ -186,26 +210,15 @@ private:
     void on_request_received(TerminalInfo& info, yogi::RawServiceTerminal::Request&& request);
     yogi::control_flow on_response_received(TerminalInfo& info, const yogi::Result& result, yogi::RawClientTerminal::Response&& response);
 
-Q_SIGNALS:
-    void received_sg_scatter_message(TerminalInfo*, std::shared_ptr<yogi::RawScatterGatherTerminal::ScatteredMessage>);
-    void received_sg_gather_message(TerminalInfo*, std::shared_ptr<yogi::RawScatterGatherTerminal::GatheredMessage>);
-    void received_sc_request(TerminalInfo*, std::shared_ptr<yogi::RawServiceTerminal::Request>);
-    void received_sc_response(TerminalInfo*, std::shared_ptr<yogi::RawClientTerminal::Response>);
-    void notify_client(QWebSocket*, QByteArray);
-
 private Q_SLOTS:
 	void on_dns_lookup_finished(QHostInfo info);
     void on_process_update(commands::CustomCommandService::Command* command, QProcess::ProcessState state, QByteArray out, QByteArray err, int exitCode, QProcess::ProcessError error);
     void handle_received_sg_scatter_message(TerminalInfo* info, std::shared_ptr<yogi::RawScatterGatherTerminal::ScatteredMessage> msg);
-    void handle_received_sg_gather_message( TerminalInfo* info, std::shared_ptr<yogi::RawScatterGatherTerminal::GatheredMessage> msg);
-    void handle_received_sc_request(        TerminalInfo* info, std::shared_ptr<yogi::RawServiceTerminal::Request> request);
-    void handle_received_sc_response(       TerminalInfo* info, std::shared_ptr<yogi::RawClientTerminal::Response> response);
-
-public:
-    YogiSession(QWebSocket* socket, yogi::Node& node, const QString& clientIdentification, QObject* parent = Q_NULLPTR);
-    ~YogiSession();
-
-    QByteArray handle_request(const QByteArray& request);
+    void handle_received_sg_gather_message(TerminalInfo* info, std::shared_ptr<yogi::RawScatterGatherTerminal::GatheredMessage> msg);
+    void handle_received_sc_request(TerminalInfo* info, std::shared_ptr<yogi::RawServiceTerminal::Request> request);
+    void handle_received_sc_response(TerminalInfo* info, std::shared_ptr<yogi::RawClientTerminal::Response> response);
 };
 
-#endif // YOGISESSION_HPP
+} // namespace yogi_network
+
+#endif // YOGI_NETWORK_YOGISESSION_HH

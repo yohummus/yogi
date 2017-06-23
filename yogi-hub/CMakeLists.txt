@@ -32,7 +32,7 @@ set (CMAKE_CXX_FLAGS_DEBUG     "-g -ggdb")
 set (CMAKE_CXX_FLAGS_RELEASE   "-O2 -DNDEBUG")
 set (CMAKE_CXX_STANDARD        14)
 
-file (GLOB_RECURSE src_files src/*.hpp src/*.cpp src/*.h src/*.cc)
+file (GLOB_RECURSE src_files src/*.cc src/*.cpp src/*.h src/*.hh src/*.hpp)
 
 #===== yogi-hub =====
 add_executable (yogi-hub ${src_files})

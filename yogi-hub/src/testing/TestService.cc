@@ -367,8 +367,8 @@ bool TestService::handle_create_yogi_tcp_factories_command(const QStringList& ar
 		}
     )");
 
-    m_yogiTcpServer = std::make_unique<YogiTcpServer>(serverConfig, m_node);
-    m_yogiTcpClient = std::make_unique<YogiTcpClient>(clientConfig, m_remoteLeaf);
+    m_yogiTcpServer = std::make_unique<yogi_network::YogiTcpServer>(serverConfig, m_node);
+    m_yogiTcpClient = std::make_unique<yogi_network::YogiTcpClient>(clientConfig, m_remoteLeaf);
 
     return true;
 }

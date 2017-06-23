@@ -1,6 +1,6 @@
-#include "helpers/ostream.hh"
-#include "HttpServer.hpp"
-#include "protobuf/ProtoCompiler.hh"
+#include "HttpServer.hh"
+#include "../helpers/ostream.hh"
+#include "../protobuf/ProtoCompiler.hh"
 
 #include <QRegExp>
 #include <QFile>
@@ -13,88 +13,49 @@
 using namespace std::string_literals;
 
 
+namespace web_servers {
+
+HttpServer::HttpServer(const yogi::ConfigurationChild& config, QObject* parent)
+: QObject(parent)
+, m_logger("HTTP Server")
+, m_server(new QTcpServer(this))
+{
+	static bool gzipChecked;
+	if (!gzipChecked) {
+		gzipChecked = true;
+
+		m_gzipEnabled = yogi::ProcessInterface::config().get<bool>("http-compression.enabled");
+		m_gzipExecutable = QString::fromStdString(yogi::ProcessInterface::config().get<std::string>("http-compression.gzip-executable"));
+
+		if (m_gzipEnabled) {
+			check_gzip_exists();
+		}
+
+		YOGI_LOG_INFO(m_logger, "Compression " << (m_gzipEnabled ? "enabled" : "disabled"));
+	}
+
+    m_queries = extract_map_from_config(config, "queries");
+    m_routes  = extract_map_from_config(config, "routes");
+    setup(config);
+}
+
+HttpServer::~HttpServer()
+{
+    if (ms_instances.indexOf(this) != -1) {
+        ms_instances.remove(ms_instances.indexOf(this));
+    }
+
+    m_server->close();
+
+    auto sockets = m_clients.keys();
+    qDeleteAll(sockets.begin(), sockets.end());
+}
+
 QVector<HttpServer*> HttpServer::ms_instances;
 
-void HttpServer::on_new_connection()
+const QVector<HttpServer*>& HttpServer::instances()
 {
-    auto socket = m_server->nextPendingConnection();
-
-    connect(socket, SIGNAL(readyRead()),    this, SLOT(on_ready_read()));
-    connect(socket, SIGNAL(disconnected()), this, SLOT(on_connection_closed()));
-
-    m_clients.insert(socket, Request{});
-    YOGI_LOG_INFO(m_logger, "HTTP client " << socket->peerAddress().toString() << " connected");
-}
-
-void HttpServer::on_ready_read()
-{
-    auto client = qobject_cast<QTcpSocket*>(sender());
-    auto& request = m_clients[client];
-
-    if (request.receiveState == RCV_REQUEST_LINE) {
-        if (client->canReadLine()) {
-            auto line = client->readLine();
-            if (!parse_request_line(line, &request)) {
-                YOGI_LOG_WARNING(m_logger, "Invalid HTTP request line received from " << client->peerAddress().toString() << ": " << QString(line));
-                client->close();
-                return;
-            }
-
-            request.receiveState = RCV_HEADER;
-        }
-    }
-
-    if (request.receiveState == RCV_HEADER) {
-        while (client->canReadLine()) {
-            auto line = client->readLine();
-            if (line.trimmed().isEmpty()) {
-                request.contentLength = request.header.value("content-length", "0").toInt();
-                request.receiveState = RCV_CONTENT;
-                break;
-            }
-
-            int pos = line.indexOf(':');
-            request.header[line.left(pos).toLower()] = line.mid(pos + 2);
-        }
-    }
-
-    if (request.receiveState == RCV_CONTENT) {
-        while ((request.content.size() != request.contentLength) && client->isReadable()) {
-            auto sizeBeforeRead = request.content.size();
-            request.content += client->read(request.contentLength - request.content.size());
-            if (request.content.size() == sizeBeforeRead) {
-                break;
-            }
-        }
-
-        if (request.content.size() == request.contentLength) {
-            request.receiveState = RCV_DONE;
-        }
-    }
-
-    if (request.receiveState == RCV_DONE) {
-        switch (request.type) {
-        case REQ_GET:
-            handle_get_request(client, request);
-            break;
-
-        case REQ_POST:
-            handle_post_request(client, request);
-            break;
-        }
-
-        request = Request{};
-    }
-}
-
-void HttpServer::on_connection_closed()
-{
-    auto client = qobject_cast<QTcpSocket*>(sender());
-    if (client) {
-        YOGI_LOG_DEBUG("HTTP client " << client->peerAddress().toString() << " disconnected.");
-        m_clients.erase(m_clients.find(client));
-        client->deleteLater();
-    }
+    return ms_instances;
 }
 
 QMap<QString, QString> HttpServer::extract_map_from_config(const yogi::ConfigurationChild& config, const char* childName)
@@ -445,38 +406,86 @@ bool HttpServer::compress_file(const QString& filePath, QByteArray* compressedCo
     return true;
 }
 
-HttpServer::HttpServer(const yogi::ConfigurationChild& config, QObject* parent)
-: QObject(parent)
-, m_logger("HTTP Server")
-, m_server(new QTcpServer(this))
+void HttpServer::on_new_connection()
 {
-	static bool gzipChecked;
-	if (!gzipChecked) {
-		gzipChecked = true;
+    auto socket = m_server->nextPendingConnection();
 
-		m_gzipEnabled = yogi::ProcessInterface::config().get<bool>("http-compression.enabled");
-		m_gzipExecutable = QString::fromStdString(yogi::ProcessInterface::config().get<std::string>("http-compression.gzip-executable"));
+    connect(socket, SIGNAL(readyRead()),    this, SLOT(on_ready_read()));
+    connect(socket, SIGNAL(disconnected()), this, SLOT(on_connection_closed()));
 
-		if (m_gzipEnabled) {
-			check_gzip_exists();
-		}
-
-		YOGI_LOG_INFO(m_logger, "Compression " << (m_gzipEnabled ? "enabled" : "disabled"));
-	}
-
-    m_queries = extract_map_from_config(config, "queries");
-    m_routes  = extract_map_from_config(config, "routes");
-    setup(config);
+    m_clients.insert(socket, Request{});
+    YOGI_LOG_INFO(m_logger, "HTTP client " << socket->peerAddress().toString() << " connected");
 }
 
-HttpServer::~HttpServer()
+void HttpServer::on_ready_read()
 {
-    if (ms_instances.indexOf(this) != -1) {
-        ms_instances.remove(ms_instances.indexOf(this));
+    auto client = qobject_cast<QTcpSocket*>(sender());
+    auto& request = m_clients[client];
+
+    if (request.receiveState == RCV_REQUEST_LINE) {
+        if (client->canReadLine()) {
+            auto line = client->readLine();
+            if (!parse_request_line(line, &request)) {
+                YOGI_LOG_WARNING(m_logger, "Invalid HTTP request line received from " << client->peerAddress().toString() << ": " << QString(line));
+                client->close();
+                return;
+            }
+
+            request.receiveState = RCV_HEADER;
+        }
     }
 
-    m_server->close();
+    if (request.receiveState == RCV_HEADER) {
+        while (client->canReadLine()) {
+            auto line = client->readLine();
+            if (line.trimmed().isEmpty()) {
+                request.contentLength = request.header.value("content-length", "0").toInt();
+                request.receiveState = RCV_CONTENT;
+                break;
+            }
 
-    auto sockets = m_clients.keys();
-    qDeleteAll(sockets.begin(), sockets.end());
+            int pos = line.indexOf(':');
+            request.header[line.left(pos).toLower()] = line.mid(pos + 2);
+        }
+    }
+
+    if (request.receiveState == RCV_CONTENT) {
+        while ((request.content.size() != request.contentLength) && client->isReadable()) {
+            auto sizeBeforeRead = request.content.size();
+            request.content += client->read(request.contentLength - request.content.size());
+            if (request.content.size() == sizeBeforeRead) {
+                break;
+            }
+        }
+
+        if (request.content.size() == request.contentLength) {
+            request.receiveState = RCV_DONE;
+        }
+    }
+
+    if (request.receiveState == RCV_DONE) {
+        switch (request.type) {
+        case REQ_GET:
+            handle_get_request(client, request);
+            break;
+
+        case REQ_POST:
+            handle_post_request(client, request);
+            break;
+        }
+
+        request = Request{};
+    }
 }
+
+void HttpServer::on_connection_closed()
+{
+    auto client = qobject_cast<QTcpSocket*>(sender());
+    if (client) {
+        YOGI_LOG_DEBUG("HTTP client " << client->peerAddress().toString() << " disconnected.");
+        m_clients.erase(m_clients.find(client));
+        client->deleteLater();
+    }
+}
+
+} // namespace web_servers

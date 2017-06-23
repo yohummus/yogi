@@ -1,11 +1,11 @@
-#include "HttpServer.hpp"
-#include "WebSocketServer.hpp"
-#include "testing/TestService.hh"
-#include "YogiTcpClient.hpp"
-#include "YogiTcpServer.hpp"
-#include "KnownTerminalsMonitor.hpp"
+#include "web_servers/HttpServer.hh"
+#include "web_servers/WebSocketServer.hh"
+#include "yogi_network/YogiTcpClient.hh"
+#include "yogi_network/YogiTcpServer.hh"
+#include "yogi_network/KnownTerminalsMonitor.hh"
 #include "protobuf/ProtoCompiler.hh"
 #include "commands/CustomCommandService.hh"
+#include "testing/TestService.hh"
 
 #include <yogi.hpp>
 
@@ -29,31 +29,31 @@ int main(int argc, char *argv[])
         yogi::Node node(pi.scheduler());
 
         // setup the services
-        KnownTerminalsMonitor knownTerminalsMonitor(node);
+        yogi_network::KnownTerminalsMonitor knownTerminalsMonitor(node);
         testing::TestService testService(node);
         protobuf::ProtoCompiler protoCompiler;
         commands::CustomCommandService customCommandService;
 
         // setup YOGI connection factories
-        std::vector<std::unique_ptr<YogiTcpServer>>  yogiTcpServers;
+        std::vector<std::unique_ptr<yogi_network::YogiTcpServer>>  yogiTcpServers;
         for (auto child : pi.config().get_child("yogi-tcp-servers")) {
-             yogiTcpServers.emplace_back(std::make_unique<YogiTcpServer>(child.second, node));
+             yogiTcpServers.emplace_back(std::make_unique<yogi_network::YogiTcpServer>(child.second, node));
         }
 
-        std::vector<std::unique_ptr<YogiTcpClient>>  yogiTcpClients;
+        std::vector<std::unique_ptr<yogi_network::YogiTcpClient>>  yogiTcpClients;
         for (auto child : pi.config().get_child("yogi-tcp-clients")) {
-             yogiTcpClients.emplace_back(std::make_unique<YogiTcpClient>(child.second, node));
+             yogiTcpClients.emplace_back(std::make_unique<yogi_network::YogiTcpClient>(child.second, node));
         }
 
         // setup web servers
-        std::vector<std::unique_ptr<HttpServer>> httpServers;
+        std::vector<std::unique_ptr<web_servers::HttpServer>> httpServers;
         for (auto child : pi.config().get_child("http-servers")) {
-            httpServers.emplace_back(std::make_unique<HttpServer>(child.second));
+            httpServers.emplace_back(std::make_unique<web_servers::HttpServer>(child.second));
         }
 
-        std::vector<std::unique_ptr<WebSocketServer>> webSocketServers;
+        std::vector<std::unique_ptr<web_servers::WebSocketServer>> webSocketServers;
         for (auto child : pi.config().get_child("ws-servers")) {
-            webSocketServers.emplace_back(std::make_unique<WebSocketServer>(child.second, node));
+            webSocketServers.emplace_back(std::make_unique<web_servers::WebSocketServer>(child.second, node));
         }
 
         // install signal handlers

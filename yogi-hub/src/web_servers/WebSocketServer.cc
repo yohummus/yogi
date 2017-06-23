@@ -1,8 +1,10 @@
-#include "helpers/ostream.hh"
-#include "helpers/to_byte_array.hh"
-#include "WebSocketServer.hpp"
-#include "YogiSession.hpp"
+#include "../helpers/ostream.hh"
+#include "../helpers/to_byte_array.hh"
+#include "../web_servers/WebSocketServer.hh"
+#include "../yogi_network/YogiSession.hh"
 
+
+namespace web_servers {
 
 namespace {
 
@@ -12,6 +14,59 @@ QString make_client_identification(const QWebSocket* socket)
 }
 
 } // anonymous namespace
+
+const QVector<WebSocketServer*>& WebSocketServer::instances()
+{
+    return ms_instances;
+}
+
+WebSocketServer::WebSocketServer(const yogi::ConfigurationChild& config, yogi::Node& node, QObject* parent)
+: QObject(parent)
+, m_node(node)
+, m_logger("WS Server")
+, m_server(new QWebSocketServer("YOGI Hub", QWebSocketServer::NonSecureMode, this))
+, m_updateClientsTimer(new QTimer(this))
+{
+    auto addrStr = config.get<std::string>("address");
+    auto address = (addrStr == "any" || addrStr == "0.0.0.0" || addrStr == "::") ? QHostAddress::Any : QHostAddress(QString::fromStdString(addrStr));
+    auto port    = config.get<std::uint16_t>("port");
+    auto infoStr = addrStr + ":" + std::to_string(port);
+
+    if (!config.get<bool>("enabled")) {
+        YOGI_LOG_DEBUG(m_logger, "Disabled WS server listening on " << infoStr);
+        return;
+    }
+
+    if (m_server->listen(address, port)) {
+        YOGI_LOG_INFO(m_logger, "WS server listening on " << infoStr);
+        connect(m_server, SIGNAL(newConnection()), this, SLOT(on_new_connection()));
+        ms_instances.push_back(this);
+    }
+
+    connect(m_updateClientsTimer, SIGNAL(timeout()), this, SLOT(update_clients()));
+    auto interval = config.get<float>("update-interval");
+    if (interval > 0.0) {
+        int n = static_cast<int>(interval * 1000);
+        m_updateClientsTimer->setInterval(std::max(n, 1));
+        m_updateClientsTimer->start();
+    }
+}
+
+WebSocketServer::~WebSocketServer()
+{
+    if (ms_instances.indexOf(this) != -1) {
+        ms_instances.remove(ms_instances.indexOf(this));
+    }
+
+    m_server->close();
+
+    auto sockets = m_clients.keys();
+    qDeleteAll(sockets.begin(), sockets.end());
+
+    for (auto& client : m_clients) {
+        delete client.session;
+    }
+}
 
 QVector<WebSocketServer*> WebSocketServer::ms_instances;
 
@@ -28,7 +83,7 @@ void WebSocketServer::on_new_connection()
     connect(socket, SIGNAL(disconnected()),                           this, SLOT(on_connection_closed()));
 
     Client client;
-    client.session = new YogiSession(socket, m_node, make_client_identification(socket), this);
+    client.session = new yogi_network::YogiSession(socket, m_node, make_client_identification(socket), this);
     m_clients.insert(socket, client);
 
     connect(client.session, SIGNAL(notify_client(QWebSocket*, QByteArray)),
@@ -86,50 +141,4 @@ void WebSocketServer::update_clients()
     }
 }
 
-WebSocketServer::WebSocketServer(const yogi::ConfigurationChild& config, yogi::Node& node, QObject* parent)
-: QObject(parent)
-, m_node(node)
-, m_logger("WS Server")
-, m_server(new QWebSocketServer("YOGI Hub", QWebSocketServer::NonSecureMode, this))
-, m_updateClientsTimer(new QTimer(this))
-{
-    auto addrStr = config.get<std::string>("address");
-    auto address = (addrStr == "any" || addrStr == "0.0.0.0" || addrStr == "::") ? QHostAddress::Any : QHostAddress(QString::fromStdString(addrStr));
-    auto port    = config.get<std::uint16_t>("port");
-    auto infoStr = addrStr + ":" + std::to_string(port);
-
-    if (!config.get<bool>("enabled")) {
-        YOGI_LOG_DEBUG(m_logger, "Disabled WS server listening on " << infoStr);
-        return;
-    }
-
-    if (m_server->listen(address, port)) {
-        YOGI_LOG_INFO(m_logger, "WS server listening on " << infoStr);
-        connect(m_server, SIGNAL(newConnection()), this, SLOT(on_new_connection()));
-        ms_instances.push_back(this);
-    }
-
-    connect(m_updateClientsTimer, SIGNAL(timeout()), this, SLOT(update_clients()));
-    auto interval = config.get<float>("update-interval");
-    if (interval > 0.0) {
-        int n = static_cast<int>(interval * 1000);
-        m_updateClientsTimer->setInterval(std::max(n, 1));
-        m_updateClientsTimer->start();
-    }
-}
-
-WebSocketServer::~WebSocketServer()
-{
-    if (ms_instances.indexOf(this) != -1) {
-        ms_instances.remove(ms_instances.indexOf(this));
-    }
-
-    m_server->close();
-
-    auto sockets = m_clients.keys();
-    qDeleteAll(sockets.begin(), sockets.end());
-
-    for (auto& client : m_clients) {
-        delete client.session;
-    }
-}
+} // namespace web_servers

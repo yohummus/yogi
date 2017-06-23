@@ -1,9 +1,9 @@
-#include "YogiSession.hpp"
-#include "testing/TestService.hh"
-#include "KnownTerminalsMonitor.hpp"
-#include "helpers/ostream.hh"
-#include "helpers/read_from_stream.hh"
-#include "helpers/to_byte_array.hh"
+#include "YogiSession.hh"
+#include "KnownTerminalsMonitor.hh"
+#include "../testing/TestService.hh"
+#include "../helpers/ostream.hh"
+#include "../helpers/read_from_stream.hh"
+#include "../helpers/to_byte_array.hh"
 
 #include <QtDebug>
 #include <QDataStream>
@@ -18,6 +18,151 @@ using namespace std::string_literals;
 #define MESSAGE_BUFFER_SIZE 32 * 1024
 #define KNOWN_TERMINALS_BUFFER_SIZE TERMINAL_INFO_BUFFER_SIZE * 1024
 
+
+namespace yogi_network {
+
+YogiSession::YogiSession(QWebSocket* socket, yogi::Node& node, const QString& clientIdentification, QObject* parent)
+: QObject(parent)
+, m_logger("Yogi Session")
+, m_logPrefix(clientIdentification + ':')
+, m_clientIdentification(clientIdentification)
+, m_socket(socket)
+, m_node(node)
+, m_leaf(yogi::ProcessInterface::scheduler())
+, m_connection(m_node, m_leaf)
+, m_monitoringConnections(false)
+, m_monitoringKnownTerminals(false)
+, m_lastTerminalId(0)
+, m_lastBindingId(0)
+, m_lastCommandId(0)
+, m_commandLutMutex(QMutex::RecursionMode::Recursive)
+{
+    YOGI_LOG_INFO(m_logger, "YOGI session for " << m_clientIdentification << " started");
+
+    qRegisterMetaType<std::shared_ptr<yogi::RawScatterGatherTerminal::ScatteredMessage>>("std::shared_ptr<yogi::RawScatterGatherTerminal::ScatteredMessage>");
+    qRegisterMetaType<std::shared_ptr<yogi::RawScatterGatherTerminal::GatheredMessage>>("std::shared_ptr<yogi::RawScatterGatherTerminal::GatheredMessage>");
+    qRegisterMetaType<std::shared_ptr<yogi::RawServiceTerminal::Request>>("std::shared_ptr<yogi::RawServiceTerminal::Request>");
+    qRegisterMetaType<std::shared_ptr<yogi::RawClientTerminal::Response>>("std::shared_ptr<yogi::RawClientTerminal::Response>");
+
+    m_qtConnections.append(connect(&commands::CustomCommandService::instance(), &commands::CustomCommandService::process_update, this, &YogiSession::on_process_update));
+    m_qtConnections.append(connect(this, &YogiSession::received_sg_scatter_message, this, &YogiSession::handle_received_sg_scatter_message));
+    m_qtConnections.append(connect(this, &YogiSession::received_sg_gather_message,  this, &YogiSession::handle_received_sg_gather_message));
+    m_qtConnections.append(connect(this, &YogiSession::received_sc_request,         this, &YogiSession::handle_received_sc_request));
+    m_qtConnections.append(connect(this, &YogiSession::received_sc_response,        this, &YogiSession::handle_received_sc_response));
+}
+
+YogiSession::~YogiSession()
+{
+    for (auto connection : m_qtConnections) {
+        disconnect(connection);
+    }
+
+    YOGI_LOG_INFO(m_logger, "YOGI session for " << m_clientIdentification << " destroyed");
+}
+
+QByteArray YogiSession::handle_request(const QByteArray& request)
+{
+    try {
+        if (!request.isEmpty()) {
+            switch (request[0]) {
+            case REQ_VERSION:
+                return handle_version_request(request);
+
+            case REQ_CURRENT_TIME:
+                return handle_current_time_request(request);
+
+            case REQ_TEST_COMMAND:
+                return handle_test_command(request);
+
+            case REQ_KNOWN_TERMINALS:
+                return handle_known_terminals_request(request);
+
+            case REQ_KNOWN_TERMINALS_SUBTREE:
+                return handle_known_terminals_subtree_request(request);
+
+		    case REQ_FIND_KNOWN_TERMINALS:
+			    return handle_find_known_terminals(request);
+
+            case REQ_MONITOR_KNOWN_TERMINALS:
+                return handle_monitor_known_terminals_request(request);
+
+            case REQ_CONNECTION_FACTORIES:
+                return handle_connection_factories_request(request);
+
+            case REQ_CONNECTIONS:
+                return handle_connections_request(request);
+
+            case REQ_MONITOR_CONNECTIONS:
+                return handle_monitor_connections_request(request);
+
+            case REQ_CLIENT_ADDRESS:
+                return handle_client_address_request(request);
+
+		    case REQ_START_DNS_LOOKUP:
+			    return handle_dns_lookup_request(request);
+
+            case REQ_CREATE_TERMINAL:
+                return handle_create_terminal_request(request);
+
+            case REQ_DESTROY_TERMINAL:
+                return handle_destroy_terminal_request(request);
+
+            case REQ_CREATE_BINDING:
+                return handle_create_binding_request(request);
+
+            case REQ_DESTROY_BINDING:
+                return handle_destroy_binding_request(request);
+
+            case REQ_MONITOR_BINDING_STATE:
+                return handle_monitor_binding_state_request(request);
+
+		    case REQ_MONITOR_BUILTIN_BINDING_STATE:
+			    return handle_monitor_builtin_binding_state_request(request);
+
+            case REQ_MONITOR_SUBSCRIPTION_STATE:
+                return handle_monitor_subscription_state_request(request);
+
+            case REQ_PUBLISH_MESSAGE:
+                return handle_publish_message_request(request);
+
+            case REQ_MONITOR_RECEIVED_PUBLISH_MESSAGES:
+                return handle_monitor_received_publish_messages_request(request);
+
+            case REQ_SCATTER_GATHER:
+                return handle_scatter_gather_request(request);
+
+            case REQ_MONITOR_RECEIVED_SCATTER_MESSAGES:
+                return handle_monitor_received_scatter_messages_request(request);
+
+            case REQ_RESPOND_TO_SCATTERED_MESSAGE:
+                return handle_respond_to_scattered_message_request(request);
+
+            case REQ_IGNORE_SCATTERED_MESSAGE:
+                return handle_ignore_scattered_message_request(request);
+
+            case REQ_START_CUSTOM_COMMAND:
+                return handle_start_custom_command_request(request);
+
+            case REQ_TERMINATE_CUSTOM_COMMAND:
+                return handle_terminate_custom_command_request(request);
+
+            case REQ_WRITE_CUSTOM_COMMAND_STDIN:
+                return handle_write_custom_command_stdin(request);
+            }
+        }
+    }
+    catch (const yogi::Failure& failure) {
+        YOGI_LOG_ERROR(m_logger, "Handling request " << request.toHex().data() << " failed: " << failure);
+        return make_response(RES_API_ERROR) + failure.what();
+    }
+    catch (const std::exception& e) {
+        YOGI_LOG_ERROR(m_logger, "Handling request " << request.toHex().data() << " failed: " << e.what());
+        return make_response(RES_INTERNAL_SERVER_ERROR);
+    }
+
+    YOGI_LOG_ERROR(m_logger, "Invalid request: " << request.toHex().data());
+    return make_response(RES_INVALID_REQUEST);
+}
 
 YogiSession::TerminalInfo::TerminalInfo(yogi::Leaf& leaf, yogi::terminal_type type, const char* name, yogi::Signature signature)
 : terminal(yogi::Terminal::make_raw_terminal(leaf, type, name, signature))
@@ -1012,145 +1157,4 @@ void YogiSession::handle_received_sc_response(TerminalInfo* info, std::shared_pt
     emit(notify_client(m_socket, make_response(MON_GATHERED_MESSAGE_RECEIVED) + data));
 }
 
-YogiSession::YogiSession(QWebSocket* socket, yogi::Node& node, const QString& clientIdentification, QObject* parent)
-: QObject(parent)
-, m_logger("Yogi Session")
-, m_logPrefix(clientIdentification + ':')
-, m_clientIdentification(clientIdentification)
-, m_socket(socket)
-, m_node(node)
-, m_leaf(yogi::ProcessInterface::scheduler())
-, m_connection(m_node, m_leaf)
-, m_monitoringConnections(false)
-, m_monitoringKnownTerminals(false)
-, m_lastTerminalId(0)
-, m_lastBindingId(0)
-, m_lastCommandId(0)
-, m_commandLutMutex(QMutex::RecursionMode::Recursive)
-{
-    YOGI_LOG_INFO(m_logger, "YOGI session for " << m_clientIdentification << " started");
-
-    qRegisterMetaType<std::shared_ptr<yogi::RawScatterGatherTerminal::ScatteredMessage>>("std::shared_ptr<yogi::RawScatterGatherTerminal::ScatteredMessage>");
-    qRegisterMetaType<std::shared_ptr<yogi::RawScatterGatherTerminal::GatheredMessage>>("std::shared_ptr<yogi::RawScatterGatherTerminal::GatheredMessage>");
-    qRegisterMetaType<std::shared_ptr<yogi::RawServiceTerminal::Request>>("std::shared_ptr<yogi::RawServiceTerminal::Request>");
-    qRegisterMetaType<std::shared_ptr<yogi::RawClientTerminal::Response>>("std::shared_ptr<yogi::RawClientTerminal::Response>");
-
-    m_qtConnections.append(connect(&commands::CustomCommandService::instance(), &commands::CustomCommandService::process_update, this, &YogiSession::on_process_update));
-    m_qtConnections.append(connect(this, &YogiSession::received_sg_scatter_message, this, &YogiSession::handle_received_sg_scatter_message));
-    m_qtConnections.append(connect(this, &YogiSession::received_sg_gather_message,  this, &YogiSession::handle_received_sg_gather_message));
-    m_qtConnections.append(connect(this, &YogiSession::received_sc_request,         this, &YogiSession::handle_received_sc_request));
-    m_qtConnections.append(connect(this, &YogiSession::received_sc_response,        this, &YogiSession::handle_received_sc_response));
-}
-
-YogiSession::~YogiSession()
-{
-    for (auto connection : m_qtConnections) {
-        disconnect(connection);
-    }
-
-    YOGI_LOG_INFO(m_logger, "YOGI session for " << m_clientIdentification << " destroyed");
-}
-
-QByteArray YogiSession::handle_request(const QByteArray& request)
-{
-    try {
-        if (!request.isEmpty()) {
-            switch (request[0]) {
-            case REQ_VERSION:
-                return handle_version_request(request);
-
-            case REQ_CURRENT_TIME:
-                return handle_current_time_request(request);
-
-            case REQ_TEST_COMMAND:
-                return handle_test_command(request);
-
-            case REQ_KNOWN_TERMINALS:
-                return handle_known_terminals_request(request);
-
-            case REQ_KNOWN_TERMINALS_SUBTREE:
-                return handle_known_terminals_subtree_request(request);
-
-		    case REQ_FIND_KNOWN_TERMINALS:
-			    return handle_find_known_terminals(request);
-
-            case REQ_MONITOR_KNOWN_TERMINALS:
-                return handle_monitor_known_terminals_request(request);
-
-            case REQ_CONNECTION_FACTORIES:
-                return handle_connection_factories_request(request);
-
-            case REQ_CONNECTIONS:
-                return handle_connections_request(request);
-
-            case REQ_MONITOR_CONNECTIONS:
-                return handle_monitor_connections_request(request);
-
-            case REQ_CLIENT_ADDRESS:
-                return handle_client_address_request(request);
-
-		    case REQ_START_DNS_LOOKUP:
-			    return handle_dns_lookup_request(request);
-
-            case REQ_CREATE_TERMINAL:
-                return handle_create_terminal_request(request);
-
-            case REQ_DESTROY_TERMINAL:
-                return handle_destroy_terminal_request(request);
-
-            case REQ_CREATE_BINDING:
-                return handle_create_binding_request(request);
-
-            case REQ_DESTROY_BINDING:
-                return handle_destroy_binding_request(request);
-
-            case REQ_MONITOR_BINDING_STATE:
-                return handle_monitor_binding_state_request(request);
-
-		    case REQ_MONITOR_BUILTIN_BINDING_STATE:
-			    return handle_monitor_builtin_binding_state_request(request);
-
-            case REQ_MONITOR_SUBSCRIPTION_STATE:
-                return handle_monitor_subscription_state_request(request);
-
-            case REQ_PUBLISH_MESSAGE:
-                return handle_publish_message_request(request);
-
-            case REQ_MONITOR_RECEIVED_PUBLISH_MESSAGES:
-                return handle_monitor_received_publish_messages_request(request);
-
-            case REQ_SCATTER_GATHER:
-                return handle_scatter_gather_request(request);
-
-            case REQ_MONITOR_RECEIVED_SCATTER_MESSAGES:
-                return handle_monitor_received_scatter_messages_request(request);
-
-            case REQ_RESPOND_TO_SCATTERED_MESSAGE:
-                return handle_respond_to_scattered_message_request(request);
-
-            case REQ_IGNORE_SCATTERED_MESSAGE:
-                return handle_ignore_scattered_message_request(request);
-
-            case REQ_START_CUSTOM_COMMAND:
-                return handle_start_custom_command_request(request);
-
-            case REQ_TERMINATE_CUSTOM_COMMAND:
-                return handle_terminate_custom_command_request(request);
-
-            case REQ_WRITE_CUSTOM_COMMAND_STDIN:
-                return handle_write_custom_command_stdin(request);
-            }
-        }
-    }
-    catch (const yogi::Failure& failure) {
-        YOGI_LOG_ERROR(m_logger, "Handling request " << request.toHex().data() << " failed: " << failure);
-        return make_response(RES_API_ERROR) + failure.what();
-    }
-    catch (const std::exception& e) {
-        YOGI_LOG_ERROR(m_logger, "Handling request " << request.toHex().data() << " failed: " << e.what());
-        return make_response(RES_INTERNAL_SERVER_ERROR);
-    }
-
-    YOGI_LOG_ERROR(m_logger, "Invalid request: " << request.toHex().data());
-    return make_response(RES_INVALID_REQUEST);
-}
+} // namespace yogi_network
