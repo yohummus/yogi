@@ -9,23 +9,12 @@
 
 namespace yogi_network {
 
-const QVector<YogiTcpClient*>& YogiTcpClient::instances()
-{
-    return ms_instances;
-}
-
 YogiTcpClient::YogiTcpClient(yogi::ConfigurationChild& config, yogi::Endpoint& endpoint)
-: m_enabled(config.get<bool>("enabled"))
-, m_host(QString::fromStdString(config.get<std::string>("host")))
+: m_host(QString::fromStdString(config.get<std::string>("host")))
 , m_port(config.get<unsigned>("port"))
 , m_logger("YOGI TCP Client")
 , m_endpoint(endpoint)
 {
-    if (!m_enabled) {
-        YOGI_LOG_DEBUG(m_logger, "Disabled YOGI TCP client connecting to address " << m_host << " port " << m_port);
-        return;
-    }
-
     m_client = std::make_unique<yogi::AutoConnectingTcpClient>(endpoint, m_host.toStdString(), m_port,
         helpers::float_to_timeout(config.get<float>("timeout", 0)), config.get_optional<std::string>("identification"));
 
@@ -35,8 +24,6 @@ YogiTcpClient::YogiTcpClient(yogi::ConfigurationChild& config, yogi::Endpoint& e
 
     m_info.connected = false;
     m_info.stateChangedTime = std::chrono::system_clock::time_point(); // defaults to epoch
-
-    ms_instances.push_back(this);
 
     m_client->set_connect_observer([&](auto& result, auto& connection) {
         this->on_connected(result, connection);
@@ -51,16 +38,7 @@ YogiTcpClient::YogiTcpClient(yogi::ConfigurationChild& config, yogi::Endpoint& e
 
 YogiTcpClient::~YogiTcpClient()
 {
-    if (ms_instances.indexOf(this) != -1) {
-        ms_instances.remove(ms_instances.indexOf(this));
-    }
-
     m_client.reset();
-}
-
-bool YogiTcpClient::enabled() const
-{
-    return m_enabled;
 }
 
 QString YogiTcpClient::host() const
@@ -78,8 +56,6 @@ YogiTcpClient::ServerInformation YogiTcpClient::connection() const
     std::lock_guard<std::mutex> lock(m_mutex);
     return m_info;
 }
-
-QVector<YogiTcpClient*> YogiTcpClient::ms_instances;
 
 void YogiTcpClient::on_connected(const yogi::Result& res, const std::unique_ptr<yogi::TcpConnection>& connection)
 {

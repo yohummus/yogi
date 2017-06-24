@@ -1,6 +1,5 @@
 #include "HttpServer.hh"
 #include "../helpers/ostream.hh"
-#include "../protobuf/ProtoCompiler.hh"
 
 #include <QRegExp>
 #include <QFile>
@@ -15,8 +14,8 @@ using namespace std::string_literals;
 
 namespace web_servers {
 
-HttpServer::HttpServer(const yogi::ConfigurationChild& config, QObject* parent)
-: QObject(parent)
+HttpServer::HttpServer(const yogi::ConfigurationChild& config, std::shared_ptr<protobuf::ProtoCompilerService> pcs)
+: m_pcs(pcs)
 , m_logger("HTTP Server")
 , m_server(new QTcpServer(this))
 {
@@ -41,21 +40,10 @@ HttpServer::HttpServer(const yogi::ConfigurationChild& config, QObject* parent)
 
 HttpServer::~HttpServer()
 {
-    if (ms_instances.indexOf(this) != -1) {
-        ms_instances.remove(ms_instances.indexOf(this));
-    }
-
     m_server->close();
 
     auto sockets = m_clients.keys();
     qDeleteAll(sockets.begin(), sockets.end());
-}
-
-QVector<HttpServer*> HttpServer::ms_instances;
-
-const QVector<HttpServer*>& HttpServer::instances()
-{
-    return ms_instances;
 }
 
 QMap<QString, QString> HttpServer::extract_map_from_config(const yogi::ConfigurationChild& config, const char* childName)
@@ -66,28 +54,6 @@ QMap<QString, QString> HttpServer::extract_map_from_config(const yogi::Configura
     }
 
     return map;
-}
-
-void HttpServer::setup(const yogi::ConfigurationChild& config)
-{
-    auto addrStr = config.get<std::string>("address");
-    auto address = (addrStr == "any" || addrStr == "0.0.0.0" || addrStr == "::") ? QHostAddress::Any : QHostAddress(QString::fromStdString(addrStr));
-    auto port    = config.get<std::uint16_t>("port");
-    auto infoStr = addrStr + ":" + std::to_string(port);
-
-    if (!config.get<bool>("enabled")) {
-        YOGI_LOG_DEBUG(m_logger, "Disabled HTTP server listening on " << infoStr);
-        return;
-    }
-
-    if (m_server->listen(address, port)) {
-        YOGI_LOG_INFO(m_logger, "HTTP server listening on " << infoStr);
-        connect(m_server, SIGNAL(newConnection()), this, SLOT(on_new_connection()));
-        ms_instances.push_back(this);
-    }
-    else {
-        YOGI_LOG_ERROR(m_logger, "Disabled HTTP server since listening on " << infoStr << " failed: " << m_server->errorString());
-    }
 }
 
 bool HttpServer::parse_request_line(const QString& requestLine, Request* request)
@@ -113,6 +79,90 @@ bool HttpServer::parse_request_line(const QString& requestLine, Request* request
     request->uri = rx.cap(1);
 
     return true;
+}
+
+void HttpServer::setup(const yogi::ConfigurationChild& config)
+{
+    auto addrStr = config.get<std::string>("address");
+    auto address = (addrStr == "any" || addrStr == "0.0.0.0" || addrStr == "::") ? QHostAddress::Any : QHostAddress(QString::fromStdString(addrStr));
+    auto port    = config.get<std::uint16_t>("port");
+    auto infoStr = addrStr + ":" + std::to_string(port);
+
+    if (!config.get<bool>("enabled")) {
+        YOGI_LOG_DEBUG(m_logger, "Disabled HTTP server listening on " << infoStr);
+        return;
+    }
+
+    if (m_server->listen(address, port)) {
+        YOGI_LOG_INFO(m_logger, "HTTP server listening on " << infoStr);
+        connect(m_server, SIGNAL(newConnection()), this, SLOT(on_new_connection()));
+    }
+    else {
+        YOGI_LOG_ERROR(m_logger, "Disabled HTTP server since listening on " << infoStr << " failed: " << m_server->errorString());
+    }
+}
+
+void HttpServer::handle_receive_state_request_line(QTcpSocket* client, Request* request)
+{
+    if (client->canReadLine()) {
+        auto line = client->readLine();
+        if (!parse_request_line(line, request)) {
+            YOGI_LOG_WARNING(m_logger, "Invalid HTTP request line received from " << client->peerAddress().toString() << ": " << QString(line));
+            client->close();
+            return;
+        }
+
+        request->receiveState = RCV_HEADER;
+    }
+}
+
+void HttpServer::handle_receive_state_header(QTcpSocket* client, Request* request)
+{
+    while (client->canReadLine()) {
+        auto line = client->readLine();
+        if (line.trimmed().isEmpty()) {
+            request->contentLength = request->header.value("content-length", "0").toInt();
+            request->receiveState = RCV_CONTENT;
+            break;
+        }
+
+        int pos = line.indexOf(':');
+        request->header[line.left(pos).toLower()] = line.mid(pos + 2);
+    }
+}
+
+void HttpServer::handle_receive_state_content(QTcpSocket* client, Request* request)
+{
+    while ((request->content.size() != request->contentLength) && client->isReadable()) {
+        auto sizeBeforeRead = request->content.size();
+        request->content += client->read(request->contentLength - request->content.size());
+        if (request->content.size() == sizeBeforeRead) {
+            break;
+        }
+    }
+
+    if (request->content.size() == request->contentLength) {
+        request->receiveState = RCV_DONE;
+    }
+}
+
+void HttpServer::handle_receive_state_done(QTcpSocket* client, Request* request)
+{
+    switch (request->type) {
+    case REQ_GET:
+        handle_get_request(client, *request);
+        break;
+
+    case REQ_POST:
+        handle_post_request(client, *request);
+        break;
+
+    default:
+        respond(client, 400, "Unsupported HTTP request type.");
+        break;
+    }
+
+    *request = {};
 }
 
 void HttpServer::handle_get_request(QTcpSocket* client, const Request& request)
@@ -149,23 +199,23 @@ void HttpServer::handle_post_request(QTcpSocket* client, const Request& request)
 
     try {
         if (request.uri.startsWith("/compile/")) {
-            if (yogi::ProcessInterface::config().get<bool>("proto-compiler.enabled")) {
-                protobuf::ProtoCompiler::Language language;
+            if (m_pcs) {
+                protobuf::ProtoCompilerService::Language language;
                 if (request.uri == "/compile/python") {
-                    language = protobuf::ProtoCompiler::LNG_PYTHON;
+                    language = protobuf::ProtoCompilerService::LNG_PYTHON;
                 }
                 else if (request.uri == "/compile/cpp") {
-                    language = protobuf::ProtoCompiler::LNG_CPP;
+                    language = protobuf::ProtoCompilerService::LNG_CPP;
                 }
                 else if (request.uri == "/compile/csharp") {
-                    language = protobuf::ProtoCompiler::LNG_CSHARP;
+                    language = protobuf::ProtoCompilerService::LNG_CSHARP;
                 }
                 else {
                     respond(client, 404);
                     return;
                 }
 
-                auto files = protobuf::ProtoCompiler::instance().compile(request.content, language);
+                auto files = m_pcs->compile(request.content, language);
                 QByteArray json = "{";
                 for (auto& key : files.keys()) {
                     auto fileContent = files[key];
@@ -177,7 +227,7 @@ void HttpServer::handle_post_request(QTcpSocket* client, const Request& request)
                 respond(client, 201, json);
             }
             else {
-                respond(client, 403, "The Proto compiler on the server is disabled");
+                respond(client, 403, "The Proto compiler is disabled on this server");
             }
         }
         else {
@@ -423,58 +473,19 @@ void HttpServer::on_ready_read()
     auto& request = m_clients[client];
 
     if (request.receiveState == RCV_REQUEST_LINE) {
-        if (client->canReadLine()) {
-            auto line = client->readLine();
-            if (!parse_request_line(line, &request)) {
-                YOGI_LOG_WARNING(m_logger, "Invalid HTTP request line received from " << client->peerAddress().toString() << ": " << QString(line));
-                client->close();
-                return;
-            }
-
-            request.receiveState = RCV_HEADER;
-        }
+        handle_receive_state_request_line(client, &request);
     }
 
     if (request.receiveState == RCV_HEADER) {
-        while (client->canReadLine()) {
-            auto line = client->readLine();
-            if (line.trimmed().isEmpty()) {
-                request.contentLength = request.header.value("content-length", "0").toInt();
-                request.receiveState = RCV_CONTENT;
-                break;
-            }
-
-            int pos = line.indexOf(':');
-            request.header[line.left(pos).toLower()] = line.mid(pos + 2);
-        }
+        handle_receive_state_header(client, &request);
     }
 
     if (request.receiveState == RCV_CONTENT) {
-        while ((request.content.size() != request.contentLength) && client->isReadable()) {
-            auto sizeBeforeRead = request.content.size();
-            request.content += client->read(request.contentLength - request.content.size());
-            if (request.content.size() == sizeBeforeRead) {
-                break;
-            }
-        }
-
-        if (request.content.size() == request.contentLength) {
-            request.receiveState = RCV_DONE;
-        }
+        handle_receive_state_content(client, &request);
     }
 
     if (request.receiveState == RCV_DONE) {
-        switch (request.type) {
-        case REQ_GET:
-            handle_get_request(client, request);
-            break;
-
-        case REQ_POST:
-            handle_post_request(client, request);
-            break;
-        }
-
-        request = Request{};
+        handle_receive_state_done(client, &request);
     }
 }
 

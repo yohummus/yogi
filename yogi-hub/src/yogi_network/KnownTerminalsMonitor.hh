@@ -18,7 +18,7 @@ class KnownTerminalsMonitor : public QObject
     Q_OBJECT
 
 public:
-    KnownTerminalsMonitor(yogi::Node& node, QObject* parent = Q_NULLPTR);
+    KnownTerminalsMonitor(yogi::Node& node);
     ~KnownTerminalsMonitor();
     static KnownTerminalsMonitor& instance();
 

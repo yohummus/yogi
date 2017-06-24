@@ -1,4 +1,12 @@
 #include "Process.hh"
+#include "web_servers/HttpServer.hh"
+#include "web_servers/WebSocketServer.hh"
+#include "yogi_network/YogiTcpClient.hh"
+#include "yogi_network/YogiTcpServer.hh"
+#include "yogi_network/KnownTerminalsMonitor.hh"
+#include "protobuf/ProtoCompilerService.hh"
+#include "commands/CustomCommandService.hh"
+#include "testing/TestService.hh"
 
 #include <csignal>
 
@@ -14,8 +22,6 @@ Process::Process(int argc, char* argv[])
     setup_scheduler();
     setup_app();
     setup_services();
-    setup_yogi_servers_and_clients();
-    setup_web_servers();
 }
 
 int Process::exec()
@@ -54,30 +60,49 @@ void Process::setup_app()
 
 void Process::setup_services()
 {
-    m_knownTerminalsMonitor = std::make_unique<yogi_network::KnownTerminalsMonitor>(m_node);
-    m_testService           = std::make_unique<testing::TestService>(m_node);
-    m_protoCompiler         = std::make_unique<protobuf::ProtoCompiler>();
-    m_customCommandService  = std::make_unique<commands::CustomCommandService>();
+    add_service<yogi_network::KnownTerminalsMonitor>(m_node);
+    add_service<testing::TestService>(m_node);
+    add_service<commands::CustomCommandService>();
+
+    auto pcs = add_service_if_enabled<protobuf::ProtoCompilerService>("proto-compiler");
+
+    auto yogiServers = add_services_if_enabled<yogi_network::YogiTcpServer>("yogi-tcp-servers", m_node);
+    auto yogiClients = add_services_if_enabled<yogi_network::YogiTcpClient>("yogi-tcp-clients", m_node);
+
+    add_services_if_enabled<web_servers::HttpServer>("http-servers", pcs);
+    add_services_if_enabled<web_servers::WebSocketServer>("ws-servers", m_node, yogiServers, yogiClients);
 }
 
-void Process::setup_yogi_servers_and_clients()
+template <typename Service, typename... Args>
+std::shared_ptr<Service> Process::add_service(Args&&... args)
 {
-    for (auto child : m_pi.config().get_child("yogi-tcp-servers")) {
-        m_yogiServers.emplace_back(std::make_unique<yogi_network::YogiTcpServer>(child.second, m_node));
-    }
+    auto ptr = std::make_shared<Service>(std::forward<Args>(args)...);
+    m_services.emplace_back(ptr);
+    return ptr;
+}
 
-    for (auto child : m_pi.config().get_child("yogi-tcp-clients")) {
-        m_yogiClients.emplace_back(std::make_unique<yogi_network::YogiTcpClient>(child.second, m_node));
+template <typename Service, typename... Args>
+std::shared_ptr<Service> Process::add_service_if_enabled(const char* configPath, Args&&... args)
+{
+    if (m_pi.config().get<bool>(std::string(configPath) + ".enabled")) {
+        return add_service<Service>(std::forward<Args>(args)...);
+    }
+    else {
+        return {};
     }
 }
 
-void Process::setup_web_servers()
+template <typename Service, typename... Args>
+std::vector<std::shared_ptr<Service>> Process::add_services_if_enabled(const char* configPath, Args&&... args)
 {
-    for (auto child : m_pi.config().get_child("http-servers")) {
-        m_httpServers.emplace_back(std::make_unique<web_servers::HttpServer>(child.second));
+    std::vector<std::shared_ptr<Service>> services;
+
+    for (auto child : m_pi.config().get_child(configPath)) {
+        if (child.second.get<bool>("enabled")) {
+            auto service = add_service<Service>(child.second, std::forward<Args>(args)...);
+            services.push_back(service);
+        }
     }
 
-    for (auto child : m_pi.config().get_child("ws-servers")) {
-        m_wsServers.emplace_back(std::make_unique<web_servers::WebSocketServer>(child.second, m_node));
-    }
+    return services;
 }

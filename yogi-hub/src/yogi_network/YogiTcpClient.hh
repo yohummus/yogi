@@ -4,7 +4,6 @@
 #include <yogi.hpp>
 
 #include <QObject>
-#include <QVector>
 
 #include <mutex>
 #include <chrono>
@@ -26,13 +25,9 @@ public:
         std::chrono::system_clock::time_point stateChangedTime;
     };
 
-    static const QVector<YogiTcpClient*>& instances();
-
     YogiTcpClient(yogi::ConfigurationChild& config, yogi::Endpoint& endpoint);
     virtual ~YogiTcpClient();
 
-
-    bool enabled() const;
     QString host() const;
     unsigned port() const;
     ServerInformation connection() const;
@@ -42,9 +37,6 @@ Q_SIGNALS:
     void connection_dead();
 
 private:
-    static QVector<YogiTcpClient*>                 ms_instances;
-
-    const bool                                     m_enabled;
     const QString                                  m_host;
     const unsigned                                 m_port;
     yogi::Logger                                   m_logger;

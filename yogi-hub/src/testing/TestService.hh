@@ -6,6 +6,8 @@
 
 #include <yogi.hpp>
 
+#include <QObject>
+
 #include <memory>
 #include <atomic>
 #include <thread>
@@ -15,8 +17,10 @@
 
 namespace testing {
 
-class TestService
+class TestService : public QObject
 {
+    Q_OBJECT
+
 public:
     static bool execute_command(const QString& command);
 

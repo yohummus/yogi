@@ -11,9 +11,8 @@
 
 namespace yogi_network {
 
-KnownTerminalsMonitor::KnownTerminalsMonitor(yogi::Node& node, QObject* parent)
-: QObject(parent)
-, m_node(node)
+KnownTerminalsMonitor::KnownTerminalsMonitor(yogi::Node& node)
+: m_node(node)
 , m_logger("Known Terminals Monitor")
 {
     assert (ms_instance == nullptr);

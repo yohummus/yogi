@@ -62,7 +62,7 @@
   ],
   "yogi-tcp-clients": [
     {
-      "enabled": false,
+      "enabled": true,
       "host": "::1",
       "port": 44444,
       "identification": null,

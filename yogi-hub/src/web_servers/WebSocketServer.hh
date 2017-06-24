@@ -20,9 +20,11 @@ class WebSocketServer : public QObject
     Q_OBJECT
 
 public:
-    static const QVector<WebSocketServer*>& instances();
+    typedef std::vector<std::shared_ptr<yogi_network::YogiTcpServer>> yogi_servers_vector;
+    typedef std::vector<std::shared_ptr<yogi_network::YogiTcpClient>> yogi_clients_vector;
 
-    WebSocketServer(const yogi::ConfigurationChild& config, yogi::Node& node, QObject* parent = Q_NULLPTR);
+    WebSocketServer(const yogi::ConfigurationChild& config, yogi::Node& node,
+        const yogi_servers_vector& yogiServers, const yogi_clients_vector& yogiClients);
     ~WebSocketServer();
 
 private:
@@ -31,15 +33,16 @@ private:
         QQueue<QByteArray>         notificationMessages;
     };
 
-    static QVector<WebSocketServer*> ms_instances;
+    yogi::Node&               m_node;
+    const yogi_servers_vector m_yogiServers;
+    const yogi_clients_vector m_yogiClients;
+    yogi::Logger              m_logger;
+    QWebSocketServer*         m_server;
+    QMap<QWebSocket*, Client> m_clients;
+    QTimer*                   m_updateClientsTimer;
 
-    yogi::Node&                      m_node;
-    yogi::Logger                     m_logger;
-    QWebSocketServer*                m_server;
-    QMap<QWebSocket*, Client>        m_clients;
-    QTimer*                          m_updateClientsTimer;
-
-    QByteArray make_batch_message(QByteArray msg);
+    static QString make_client_identification(const QWebSocket* socket);
+    static QByteArray make_batch_message(QByteArray msg);
 
 private Q_SLOTS:
     void on_new_connection();

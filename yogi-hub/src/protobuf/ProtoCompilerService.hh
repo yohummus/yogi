@@ -1,5 +1,5 @@
-#ifndef PROTOBUF_PROTOCOMPILER_HPP
-#define PROTOBUF_PROTOCOMPILER_HPP
+#ifndef PROTOBUF_PROTOCOMPILERSERVICE_HPP
+#define PROTOBUF_PROTOCOMPILERSERVICE_HPP
 
 #include <yogi.hpp>
 
@@ -11,8 +11,10 @@
 
 namespace protobuf {
 
-class ProtoCompiler
+class ProtoCompilerService : public QObject
 {
+    Q_OBJECT
+
 public:
     enum Language {
         LNG_PYTHON,
@@ -20,17 +22,13 @@ public:
         LNG_CSHARP
     };
 
-    static ProtoCompiler& instance();
-
-    ProtoCompiler();
+    ProtoCompilerService();
 
     QMap<QString, QByteArray> compile(const QByteArray& protoFileContent, Language targetLanguage);
 
 private:
-    static ProtoCompiler* ms_instance;
-
-    yogi::Logger          m_logger;
-    QString               m_executable;
+    yogi::Logger m_logger;
+    QString      m_executable;
 
     void log_and_throw(const std::string& msg);
 	void check_protoc_exists();
@@ -49,4 +47,4 @@ private:
 
 } // namespace protobuf
 
-#endif // PROTOBUF_PROTOCOMPILER_HPP
+#endif // PROTOBUF_PROTOCOMPILERSERVICE_HPP

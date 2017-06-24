@@ -21,8 +21,11 @@ using namespace std::string_literals;
 
 namespace yogi_network {
 
-YogiSession::YogiSession(QWebSocket* socket, yogi::Node& node, const QString& clientIdentification, QObject* parent)
+YogiSession::YogiSession(QWebSocket* socket, yogi::Node& node, const QString& clientIdentification,
+    const yogi_servers_vector& yogiServers, const yogi_clients_vector& yogiClients, QObject* parent)
 : QObject(parent)
+, m_yogiServers(yogiServers)
+, m_yogiClients(yogiClients)
 , m_logger("Yogi Session")
 , m_logPrefix(clientIdentification + ':')
 , m_clientIdentification(clientIdentification)
@@ -203,16 +206,12 @@ QByteArray YogiSession::make_connections_byte_array()
 {
     QByteArray data;
 
-    for (auto client : YogiTcpClient::instances()) {
-        if (!client->enabled()) {
-            continue;
-        }
-
+    for (auto client : m_yogiClients) {
         data += make_idx(client);
         data += to_byte_array(client->connection());
     }
 
-    for (auto server : YogiTcpServer::instances()) {
+    for (auto server : m_yogiServers) {
         auto idx = make_idx(server);
         for (auto connection : server->connections()) {
             data += idx;
@@ -223,14 +222,18 @@ QByteArray YogiSession::make_connections_byte_array()
     return data;
 }
 
-char YogiSession::make_idx(YogiTcpClient* client)
+char YogiSession::make_idx(const std::shared_ptr<YogiTcpClient>& client)
 {
-    return static_cast<char>(1 + YogiTcpClient::instances().indexOf(client));
+    auto begin = m_yogiClients.begin();
+    auto end = m_yogiClients.end();
+    return static_cast<char>(1 + std::distance(begin, std::find(begin, end, client)));
 }
 
-char YogiSession::make_idx(YogiTcpServer* server)
+char YogiSession::make_idx(const std::shared_ptr<YogiTcpServer>& server)
 {
-    return static_cast<char>(1 + YogiTcpClient::instances().size() + YogiTcpServer::instances().indexOf(server));
+    auto begin = m_yogiServers.begin();
+    auto end = m_yogiServers.end();
+    return static_cast<char>(1 + m_yogiClients.size() + std::distance(begin, std::find(begin, end, server)));
 }
 
 template <typename Fn>
@@ -386,22 +389,14 @@ QByteArray YogiSession::handle_connection_factories_request(const QByteArray& re
 {
     QByteArray data;
 
-    for (auto client : YogiTcpClient::instances()) {
-        if (!client->enabled()) {
-            continue;
-        }
-
+    for (auto client : m_yogiClients) {
         data += static_cast<char>(CFT_TCP_CLIENT);
         data += make_idx(client);
         data += helpers::to_byte_array(client->port());
         data += client->host() + '\0';
     }
 
-    for (auto server : YogiTcpServer::instances()) {
-        if (!server->enabled()) {
-            continue;
-        }
-
+    for (auto server : m_yogiServers) {
         data += static_cast<char>(CFT_TCP_SERVER);
         data += make_idx(server);
         data += helpers::to_byte_array(server->port());
@@ -422,8 +417,8 @@ QByteArray YogiSession::handle_monitor_connections_request(const QByteArray& req
         return make_response(RES_ALREADY_MONITORING);
     }
 
-    for (auto client : YogiTcpClient::instances()) {
-        m_qtConnections.append(connect(client, &YogiTcpClient::connection_changed, [=](YogiTcpClient::ServerInformation info) {
+    for (auto client : m_yogiClients) {
+        m_qtConnections.append(connect(&*client, &YogiTcpClient::connection_changed, [=](YogiTcpClient::ServerInformation info) {
             QByteArray data;
             data += make_idx(client);
             data += to_byte_array(info);
@@ -431,8 +426,8 @@ QByteArray YogiSession::handle_monitor_connections_request(const QByteArray& req
         }));
     }
 
-    for (auto server : YogiTcpServer::instances()) {
-        m_qtConnections.append(connect(server, &YogiTcpServer::connection_changed, [=](std::shared_ptr<yogi::TcpConnection>, YogiTcpServer::ClientInformation info) {
+    for (auto server : m_yogiServers) {
+        m_qtConnections.append(connect(&*server, &YogiTcpServer::connection_changed, [=](std::shared_ptr<yogi::TcpConnection>, YogiTcpServer::ClientInformation info) {
             QByteArray data;
             data += make_idx(server);
             data += to_byte_array(info);

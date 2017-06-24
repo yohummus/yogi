@@ -9,14 +9,8 @@
 
 namespace yogi_network {
 
-const QVector<YogiTcpServer*>& YogiTcpServer::instances()
-{
-    return ms_instances;
-}
-
 YogiTcpServer::YogiTcpServer(yogi::ConfigurationChild& config, yogi::Node& node)
-: m_enabled(config.get<bool>("enabled"))
-, m_address(QString::fromStdString(config.get<std::string>("address")))
+: m_address(QString::fromStdString(config.get<std::string>("address")))
 , m_port(config.get<unsigned>("port"))
 , m_identification(QString::fromStdString(config.get<std::string>("identification")))
 , m_timeout(helpers::float_to_timeout(config.get<float>("timeout", 0)))
@@ -25,11 +19,6 @@ YogiTcpServer::YogiTcpServer(yogi::ConfigurationChild& config, yogi::Node& node)
 , m_activeAsyncOperations(0)
 , m_cleanupTimer(new QTimer(this))
 {
-    if (!m_enabled) {
-        YOGI_LOG_DEBUG(m_logger, "Disabled YOGI TCP server listening on address " << m_address << " port " << m_port);
-        return;
-    }
-
     m_server = std::make_unique<yogi::TcpServer>(node.scheduler(), m_address.toStdString(), m_port, config.get_optional<std::string>("identification"));
 
     qRegisterMetaType<ClientInformation>("ClientInformation");
@@ -37,8 +26,6 @@ YogiTcpServer::YogiTcpServer(yogi::ConfigurationChild& config, yogi::Node& node)
     connect(this, &YogiTcpServer::connection_changed, this, &YogiTcpServer::on_connection_changed);
     connect(this, &YogiTcpServer::connection_dead,    this, &YogiTcpServer::on_connection_dead);
     connect(m_cleanupTimer, &QTimer::timeout, this, &YogiTcpServer::on_periodic_cleanup);
-
-    ms_instances.push_back(this);
 
     start_accept();
     m_cleanupTimer->start(500);
@@ -48,21 +35,12 @@ YogiTcpServer::YogiTcpServer(yogi::ConfigurationChild& config, yogi::Node& node)
 
 YogiTcpServer::~YogiTcpServer()
 {
-    if (ms_instances.indexOf(this) != -1) {
-        ms_instances.remove(ms_instances.indexOf(this));
-    }
-
     m_server->cancel_accept();
     m_connections.clear();
 
     while (m_activeAsyncOperations) {
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
-}
-
-bool YogiTcpServer::enabled() const
-{
-    return m_enabled;
 }
 
 QString YogiTcpServer::address() const
@@ -79,8 +57,6 @@ QList<YogiTcpServer::ClientInformation> YogiTcpServer::connections() const
 {
     return m_connections.values();
 }
-
-QVector<YogiTcpServer*> YogiTcpServer::ms_instances;
 
 void YogiTcpServer::start_accept()
 {

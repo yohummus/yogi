@@ -6,8 +6,8 @@
 #include <QObject>
 #include <QMap>
 #include <QList>
-#include <QVector>
 #include <QTimer>
+#include <QVector>
 
 #include <chrono>
 #include <memory>
@@ -29,12 +29,9 @@ public:
         std::chrono::system_clock::time_point stateChangedTime;
     };
 
-    static const QVector<YogiTcpServer*>& instances();
-
     YogiTcpServer(yogi::ConfigurationChild& config, yogi::Node& node);
     virtual ~YogiTcpServer();
 
-    bool enabled() const;
     QString address() const;
     unsigned port() const;
     QList<ClientInformation> connections() const;
@@ -44,9 +41,6 @@ Q_SIGNALS:
     void connection_dead(std::shared_ptr<yogi::TcpConnection> connection);
 
 private:
-    static QVector<YogiTcpServer*>                                ms_instances;
-
-    const bool                                                    m_enabled;
     const QString                                                 m_address;
     const unsigned                                                m_port;
     const QString                                                 m_identification;

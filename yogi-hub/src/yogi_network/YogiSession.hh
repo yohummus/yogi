@@ -26,7 +26,11 @@ class YogiSession : public QObject
     struct TerminalInfo;
 
 public:
-    YogiSession(QWebSocket* socket, yogi::Node& node, const QString& clientIdentification, QObject* parent = Q_NULLPTR);
+    typedef std::vector<std::shared_ptr<yogi_network::YogiTcpServer>> yogi_servers_vector;
+    typedef std::vector<std::shared_ptr<yogi_network::YogiTcpClient>> yogi_clients_vector;
+
+    YogiSession(QWebSocket* socket, yogi::Node& node, const QString& clientIdentification,
+        const yogi_servers_vector& yogiServers, const yogi_clients_vector& yogiClients, QObject* parent);
     ~YogiSession();
 
     QByteArray handle_request(const QByteArray& request);
@@ -133,7 +137,8 @@ private:
     typedef QMap<unsigned, std::shared_ptr<BindingInfo>>                             binding_lut;
     typedef QMap<unsigned, std::shared_ptr<commands::CustomCommandService::Command>> command_lut;
 
-
+    const yogi_servers_vector        m_yogiServers;
+    const yogi_clients_vector        m_yogiClients;
     yogi::Logger                     m_logger;
     const QString                    m_logPrefix;
     const QString                    m_clientIdentification;
@@ -162,8 +167,8 @@ private:
     QByteArray to_byte_array(YogiTcpClient::ServerInformation info);
     QByteArray to_byte_array(YogiTcpServer::ClientInformation info);
     QByteArray make_connections_byte_array();
-    char make_idx(YogiTcpClient* client);
-    char make_idx(YogiTcpServer* server);
+    char make_idx(const std::shared_ptr<YogiTcpClient>& client);
+    char make_idx(const std::shared_ptr<YogiTcpServer>& server);
     template <typename Fn> QByteArray use_terminal(QByteArray request, Fn fn);
     template <typename Terminal> void create_message_observer_and_add_callback(TerminalInfo& info, void (YogiSession::*fn)(TerminalInfo&, const std::vector<char>&, yogi::cached_flag));
     template <typename Terminal, typename ScatteredMessage> void create_message_observer_and_add_callback(TerminalInfo& info, void (YogiSession::*fn)(TerminalInfo&, ScatteredMessage&&));
