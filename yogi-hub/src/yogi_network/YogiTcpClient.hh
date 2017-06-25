@@ -4,8 +4,8 @@
 #include <yogi.hpp>
 
 #include <QObject>
+#include <QMutex>
 
-#include <mutex>
 #include <chrono>
 #include <memory>
 
@@ -34,7 +34,6 @@ public:
 
 Q_SIGNALS:
     void connection_changed(ServerInformation);
-    void connection_dead();
 
 private:
     const QString                                  m_host;
@@ -42,15 +41,11 @@ private:
     yogi::Logger                                   m_logger;
     yogi::Endpoint&                                m_endpoint;
     ServerInformation                              m_info;
-    mutable std::mutex                             m_mutex;
+    mutable QMutex                                 m_mutex;
     std::unique_ptr<yogi::AutoConnectingTcpClient> m_client;
 
     void on_connected(const yogi::Result& res, const std::unique_ptr<yogi::TcpConnection>& connection);
     void on_disconnected(const yogi::Failure& failure);
-
-private Q_SLOTS:
-    void on_connection_changed(ServerInformation info);
-    void on_connection_dead();
 };
 
 } // namespace yogi_network

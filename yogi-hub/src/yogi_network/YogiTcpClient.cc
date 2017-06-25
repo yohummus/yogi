@@ -12,15 +12,13 @@ namespace yogi_network {
 YogiTcpClient::YogiTcpClient(yogi::ConfigurationChild& config, yogi::Endpoint& endpoint)
 : m_host(QString::fromStdString(config.get<std::string>("host")))
 , m_port(config.get<unsigned>("port"))
-, m_logger("YOGI TCP Client")
+, m_logger("Yogi TCP Client")
 , m_endpoint(endpoint)
 {
     m_client = std::make_unique<yogi::AutoConnectingTcpClient>(endpoint, m_host.toStdString(), m_port,
         helpers::float_to_timeout(config.get<float>("timeout", 0)), config.get_optional<std::string>("identification"));
 
     qRegisterMetaType<ServerInformation>("ServerInformation");
-    connect(this, &YogiTcpClient::connection_changed, this, &YogiTcpClient::on_connection_changed);
-    connect(this, &YogiTcpClient::connection_dead,    this, &YogiTcpClient::on_connection_dead);
 
     m_info.connected = false;
     m_info.stateChangedTime = std::chrono::system_clock::time_point(); // defaults to epoch
@@ -53,7 +51,7 @@ unsigned YogiTcpClient::port() const
 
 YogiTcpClient::ServerInformation YogiTcpClient::connection() const
 {
-    std::lock_guard<std::mutex> lock(m_mutex);
+    QMutexLocker lock(&m_mutex);
     return m_info;
 }
 
@@ -69,6 +67,11 @@ void YogiTcpClient::on_connected(const yogi::Result& res, const std::unique_ptr<
 
         YOGI_LOG_INFO(m_logger, "Connected to " << m_host << " port " << m_port);
 
+        {{
+        QMutexLocker lock(&m_mutex);
+        m_info = info;
+        }}
+
         emit(connection_changed(info));
     }
     else if (res != yogi::errors::Canceled()) {
@@ -79,22 +82,13 @@ void YogiTcpClient::on_connected(const yogi::Result& res, const std::unique_ptr<
 void YogiTcpClient::on_disconnected(const yogi::Failure& failure)
 {
     YOGI_LOG_ERROR(m_logger, "Connection to " << m_host << " port " << m_port << " died: " << failure);
-    emit(connection_dead());
-}
 
-void YogiTcpClient::on_connection_changed(ServerInformation info)
-{
-    std::lock_guard<std::mutex> lock(m_mutex);
-    m_info = info;
-}
+    QMutexLocker lock(&m_mutex);
 
-void YogiTcpClient::on_connection_dead()
-{
-    auto info = m_info;
-    info.connected = false;
-    info.stateChangedTime = std::chrono::system_clock::now();
+    m_info.connected = false;
+    m_info.stateChangedTime = std::chrono::system_clock::now();
 
-    emit(connection_changed(info));
+    emit(connection_changed(m_info));
 }
 
 } // namespace yogi_network

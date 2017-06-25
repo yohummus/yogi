@@ -427,7 +427,7 @@ QByteArray YogiSession::handle_monitor_connections_request(const QByteArray& req
     }
 
     for (auto server : m_yogiServers) {
-        m_qtConnections.append(connect(&*server, &YogiTcpServer::connection_changed, [=](std::shared_ptr<yogi::TcpConnection>, YogiTcpServer::ClientInformation info) {
+        m_qtConnections.append(connect(&*server, &YogiTcpServer::connection_changed, [=](std::weak_ptr<yogi::TcpConnection>, YogiTcpServer::ClientInformation info) {
             QByteArray data;
             data += make_idx(server);
             data += to_byte_array(info);
