@@ -137,8 +137,6 @@ private:
     typedef QMap<unsigned, std::shared_ptr<BindingInfo>>                             binding_lut;
     typedef QMap<unsigned, std::shared_ptr<commands::CustomCommandService::Command>> command_lut;
 
-    const yogi_servers_vector        m_yogiServers;
-    const yogi_clients_vector        m_yogiClients;
     yogi::Logger                     m_logger;
     const QString                    m_logPrefix;
     const QString                    m_clientIdentification;
@@ -146,6 +144,8 @@ private:
     yogi::Node&                      m_node;
     yogi::Leaf                       m_leaf;
     yogi::LocalConnection            m_connection;
+    const yogi_servers_vector        m_yogiServers;
+    const yogi_clients_vector        m_yogiClients;
     bool                             m_monitoringConnections;
     bool                             m_monitoringKnownTerminals;
     QByteArray                       m_monitorKnownTerminalsBuffer;

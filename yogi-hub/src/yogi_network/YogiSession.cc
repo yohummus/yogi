@@ -24,8 +24,6 @@ namespace yogi_network {
 YogiSession::YogiSession(QWebSocket* socket, yogi::Node& node, const QString& clientIdentification,
     const yogi_servers_vector& yogiServers, const yogi_clients_vector& yogiClients, QObject* parent)
 : QObject(parent)
-, m_yogiServers(yogiServers)
-, m_yogiClients(yogiClients)
 , m_logger("Yogi Session")
 , m_logPrefix(clientIdentification + ':')
 , m_clientIdentification(clientIdentification)
@@ -33,6 +31,8 @@ YogiSession::YogiSession(QWebSocket* socket, yogi::Node& node, const QString& cl
 , m_node(node)
 , m_leaf(yogi::ProcessInterface::scheduler())
 , m_connection(m_node, m_leaf)
+, m_yogiServers(yogiServers)
+, m_yogiClients(yogiClients)
 , m_monitoringConnections(false)
 , m_monitoringKnownTerminals(false)
 , m_lastTerminalId(0)
