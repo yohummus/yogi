@@ -8,15 +8,18 @@
       "max-verbosity": "TRACE",
       "component-verbosity": {
         "App": "TRACE",
-        "Yogi": "DEBUG",
+        "Yogi": "WARNING",
         "HTTP Server": "TRACE",
         "WS Server": "TRACE",
-        "Proto Compiler": "TRACE",
+        "Proto Compiler Service": "TRACE",
         "Known Terminals Monitor": "TRACE",
+        "Query Service": "TRACE",
+        "File Service": "TRACE",
+        "Custom Command Service": "TRACE",
         "Test Service": "TRACE",
         "Yogi Session": "TRACE",
         "Yogi TCP Server": "TRACE",
-        "Yogi TCP Client": "TRACE"
+        "Yogi TCP Client": "INFO"
       }
     }
   },
@@ -29,7 +32,7 @@
       "address": "0.0.0.0",
       "port": 1234,
       "queries": {
-        "/query/ws-uri": "ws://${HOST}:3000"
+        "ws-uri": "ws://${HOST}:3000"
       },
       "routes": {
         "/": ".",

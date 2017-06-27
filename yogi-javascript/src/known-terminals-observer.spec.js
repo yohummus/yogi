@@ -164,7 +164,7 @@ describe('KnownTerminalsObserver', () => {
 
         it('should return the sub-paths under "/" if called with an empty path', (done) => {
             kto.getSubtree('/').then((terminals) => {
-                expect(terminals.length).toBe(3);
+                expect(terminals.length).toBe(2);
                 expect(terminals.find((tm) => tm.name == 'Power Module')).toBeDefined();
                 expect(terminals.find((tm) => tm.name == 'Remote')).toBeDefined();
                 done();

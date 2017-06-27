@@ -67,10 +67,8 @@ void YogiTcpClient::on_connected(const yogi::Result& res, const std::unique_ptr<
 
         YOGI_LOG_INFO(m_logger, "Connected to " << m_host << " port " << m_port);
 
-        {{
         QMutexLocker lock(&m_mutex);
         m_info = info;
-        }}
 
         emit(connection_changed(info));
     }

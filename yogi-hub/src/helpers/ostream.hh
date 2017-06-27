@@ -1,5 +1,5 @@
-#ifndef HELPERS_OSTREAM_HPP
-#define HELPERS_OSTREAM_HPP
+#ifndef HELPERS_OSTREAM_HH
+#define HELPERS_OSTREAM_HH
 
 #include <QString>
 
@@ -8,4 +8,4 @@
 
 std::ostream& operator<< (std::ostream& os, const QString& str);
 
-#endif // HELPERS_OSTREAM_HPP
+#endif // HELPERS_OSTREAM_HH

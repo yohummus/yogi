@@ -92,8 +92,8 @@ void YogiTcpServer::assign_connection(std::shared_ptr<yogi::TcpConnection> conne
             << " with remote YOGI version " << connection->remote_version());
 
         {{
-        QMutexLocker lock(&m_mutex);
-        m_connections.insert(connection, info);
+            QMutexLocker lock(&m_mutex);
+            m_connections.insert(connection, info);
         }}
 
         auto weakConnection = std::weak_ptr<yogi::TcpConnection>(connection);
@@ -122,6 +122,7 @@ void YogiTcpServer::on_connection_died(const yogi::Failure& failure, std::shared
         YOGI_LOG_INFO(m_logger, "Connection " << connection->description() << " died: " << failure);
 
         ClientInformation info;
+
         {{
             QMutexLocker lock(&m_mutex);
             info = m_connections.take(connection);

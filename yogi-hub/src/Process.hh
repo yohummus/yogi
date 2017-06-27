@@ -27,6 +27,8 @@ private:
     void setup_scheduler();
     void setup_app();
     void setup_services();
+    void setup_http_servers();
+    void setup_ws_servers();
 
     template <typename Service, typename... Args>
     std::shared_ptr<Service> add_service(Args&&... args);

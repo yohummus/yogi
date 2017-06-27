@@ -1,19 +1,16 @@
 #include "ProtoCompilerService.hh"
 
-#include <QDebug>
 #include <QDir>
-#include <QTemporaryDir>
 #include <QFileInfo>
 #include <QProcess>
 #include <QRegExp>
 
 #include <exception>
 #include <cassert>
-#include <string>
 using namespace std::string_literals;
 
 
-namespace protobuf {
+namespace http_services {
 
 ProtoCompilerService::ProtoCompilerService()
 : m_logger("Proto Compiler Service")
@@ -23,13 +20,39 @@ ProtoCompilerService::ProtoCompilerService()
 	YOGI_LOG_INFO(m_logger, "Proto compiler enabled");
 }
 
+void ProtoCompilerService::async_handle_request(request_type type, const QString& path,
+	const QMap<QString, QString>& header, const QByteArray& content, completion_handler completionHandler)
+{
+	Language language = LNG_NONE;
+	if (path == "/python") {
+		language = LNG_PYTHON;
+	}
+	else if (path == "/cpp") {
+		language = LNG_CPP;
+	}
+	else if (path == "/csharp") {
+		language = LNG_CSHARP;
+	}
+
+	if (language == LNG_NONE || type != HTTP_POST) {
+		completionHandler(HTTP_404, {}, {}, false);
+		return;
+	}
+
+	auto files = compile(content, language);
+	QByteArray json = "{";
+	for (auto& key : files.keys()) {
+		auto fileContent = files[key];
+		fileContent.replace('"', "\\\"");
+		json += "\"" + key + "\":\"" + fileContent + "\",";
+	}
+	json[json.size() - 1] = '}';
+
+	completionHandler(HTTP_201, json, {}, false);
+}
+
 QMap<QString, QByteArray> ProtoCompilerService::compile(const QByteArray& protoFileContent, Language targetLanguage)
 {
-    if (!yogi::ProcessInterface::config().get<bool>("proto-compiler.enabled")) {
-        YOGI_LOG_INFO(m_logger, "Denied request since compiler is disabled");
-        throw std::runtime_error("Proto compiler is disabled");
-    }
-
 	check_protoc_exists();
 
     QTemporaryDir dir;
@@ -117,6 +140,9 @@ void ProtoCompilerService::run_protoc(const QTemporaryDir& dir, const QString& p
 	case LNG_CSHARP:
 		args << "--csharp_out=.";
         YOGI_LOG_INFO(m_logger, "Generating C# files...");
+		break;
+
+	default:
 		break;
 	}
 
@@ -266,4 +292,4 @@ void ProtoCompilerService::insert_after(QByteArray* content, const QString& str,
 	content->insert(pos + where.size(), str);
 }
 
-} // namespace protobuf
+} // namespace http_services

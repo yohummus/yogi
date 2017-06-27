@@ -4,9 +4,11 @@
 #include "yogi_network/YogiTcpClient.hh"
 #include "yogi_network/YogiTcpServer.hh"
 #include "yogi_network/KnownTerminalsMonitor.hh"
-#include "protobuf/ProtoCompilerService.hh"
 #include "commands/CustomCommandService.hh"
 #include "testing/TestService.hh"
+#include "http_services/ProtoCompilerService.hh"
+#include "http_services/QueryService.hh"
+#include "http_services/FileService.hh"
 
 #include <csignal>
 
@@ -64,12 +66,32 @@ void Process::setup_services()
     add_service<testing::TestService>(m_node);
     add_service<commands::CustomCommandService>();
 
-    auto pcs = add_service_if_enabled<protobuf::ProtoCompilerService>("proto-compiler");
+    setup_http_servers();
+    setup_ws_servers();
+}
 
+void Process::setup_http_servers()
+{
+    auto protocService = add_service_if_enabled<http_services::ProtoCompilerService>("proto-compiler");
+
+    for (auto& server : add_services_if_enabled<web_servers::HttpServer>("http-servers")) {
+        if (protocService) {
+            server->add_service(protocService, "/compile");
+        }
+
+        auto queryService = add_service<http_services::QueryService>(server->config());
+        server->add_service(queryService, "/query");
+
+        auto fileService = add_service<http_services::FileService>(server->config());
+        server->add_service(fileService, "/");
+    }
+}
+
+void Process::setup_ws_servers()
+{
     auto yogiServers = add_services_if_enabled<yogi_network::YogiTcpServer>("yogi-tcp-servers", m_node);
     auto yogiClients = add_services_if_enabled<yogi_network::YogiTcpClient>("yogi-tcp-clients", m_node);
 
-    add_services_if_enabled<web_servers::HttpServer>("http-servers", pcs);
     add_services_if_enabled<web_servers::WebSocketServer>("ws-servers", m_node, yogiServers, yogiClients);
 }
 
