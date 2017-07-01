@@ -7,11 +7,15 @@
 #include <QDir>
 #include <QStringList>
 #include <QProcess>
+#include <QMutex>
+#include <QMimeDatabase>
 
 using namespace std::string_literals;
 
 
 namespace http_services {
+
+
 
 FileService::FileService(const yogi::ConfigurationChild& config)
 : m_logger("File Service")
@@ -40,6 +44,12 @@ void FileService::async_handle_request(request_type type, const QString& path,
     }
 
     respond_with_file_content(filePath, completionHandler);
+}
+
+QString FileService::get_mime_type_for_file(const QString& filePath)
+{
+    static QMimeDatabase db;
+    return db.mimeTypeForFile(filePath).name();
 }
 
 void FileService::setup_gzip()
@@ -109,45 +119,28 @@ QString FileService::uri_to_file_path(const QString& uri)
     return QString();
 }
 
-void FileService::respond_with_file_content(const QString& filePath, completion_handler completionHandler)
-{
-    auto lastModified = QFileInfo(filePath).lastModified();
-
-    auto cacheEntry = update_file_cache(filePath);
-    if (cacheEntry) {
-        YOGI_LOG_TRACE(m_logger, "Serving file " << filePath << (cacheEntry->compressed ? " with gzip" : " without") << " compression...");
-        completionHandler(HTTP_200, cacheEntry->content, cacheEntry->contentType, cacheEntry->compressed);
-    }
-    else {
-        QFile file(filePath);
-        if (file.open(QIODevice::ReadOnly)) {
-            YOGI_LOG_TRACE(m_logger, "Serving file " << filePath << " without compression...");
-            auto contentType = m_mimeDb.mimeTypeForFile(filePath).name();
-            completionHandler(HTTP_200, file.readAll(), contentType, false);
-        }
-        else {
-            YOGI_LOG_WARNING(m_logger, "Could not open " << filePath << ": " << file.errorString());
-            completionHandler(HTTP_403, {}, {}, false);
-        }
-    }
-}
-
 FileService::FileCacheEntry* FileService::update_file_cache(const QString& filePath)
 {
+    static QMutex mutex;
+    static QMap<QString, FileCacheEntry> cache;
+
     if (!m_gzipEnabled) {
         return nullptr;
     }
 
     auto lastModified = QFileInfo(filePath).lastModified();
 
-    auto entryIt = m_fileCache.find(filePath);
-    if (entryIt != m_fileCache.end() && entryIt->lastModified == lastModified) {
-        return &*entryIt;
-    }
+    {{
+        QMutexLocker lock(&mutex);
+        auto entryIt = cache.find(filePath);
+        if (entryIt != cache.end() && entryIt->lastModified == lastModified) {
+            return &*entryIt;
+        }
+    }}
 
     FileCacheEntry entry;
     entry.lastModified = lastModified;
-    entry.contentType = m_mimeDb.mimeTypeForFile(filePath).name();
+    entry.contentType = get_mime_type_for_file(filePath);
 
     static const QStringList uncompressableTypes{
         "video/",
@@ -173,8 +166,34 @@ FileService::FileCacheEntry* FileService::update_file_cache(const QString& fileP
     }
 
     entry.compressed = true;
-    entryIt = m_fileCache.insert(filePath, entry);
+
+    QMutexLocker lock(&mutex);
+    auto entryIt = cache.insert(filePath, entry);
+
     return &*entryIt;
+}
+
+void FileService::respond_with_file_content(const QString& filePath, completion_handler completionHandler)
+{
+    auto lastModified = QFileInfo(filePath).lastModified();
+
+    auto cacheEntry = update_file_cache(filePath);
+    if (cacheEntry) {
+        YOGI_LOG_TRACE(m_logger, "Serving file " << filePath << (cacheEntry->compressed ? " with gzip" : " without") << " compression...");
+        completionHandler(HTTP_200, cacheEntry->content, cacheEntry->contentType, cacheEntry->compressed);
+    }
+    else {
+        QFile file(filePath);
+        if (file.open(QIODevice::ReadOnly)) {
+            YOGI_LOG_TRACE(m_logger, "Serving file " << filePath << " without compression...");
+            auto contentType = get_mime_type_for_file(filePath);
+            completionHandler(HTTP_200, file.readAll(), contentType, false);
+        }
+        else {
+            YOGI_LOG_WARNING(m_logger, "Could not open " << filePath << ": " << file.errorString());
+            completionHandler(HTTP_403, {}, {}, false);
+        }
+    }
 }
 
 bool FileService::compress_file(const QString& filePath, QByteArray* compressedContent)

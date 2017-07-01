@@ -6,7 +6,6 @@
 #include <yogi.hpp>
 
 #include <QDateTime>
-#include <QMimeDatabase>
 
 
 namespace http_services {
@@ -27,18 +26,18 @@ private:
         bool       compressed;
     };
 
-    yogi::Logger                  m_logger;
-    QMap<QString, QString>        m_routes;
-    bool						  m_gzipEnabled;
-	QString                       m_gzipExecutable;
-    QMap<QString, FileCacheEntry> m_fileCache;
-    QMimeDatabase                 m_mimeDb;
+    yogi::Logger                         m_logger;
+    QMap<QString, QString>               m_routes;
+    bool						         m_gzipEnabled;
+	QString                              m_gzipExecutable;
+
+    static QString get_mime_type_for_file(const QString& filePath);
 
     void setup_gzip();
     void check_gzip_exists();
     QString uri_to_file_path(const QString& uri);
-    void respond_with_file_content(const QString& filePath, completion_handler completionHandler);
     FileCacheEntry* update_file_cache(const QString& filePath);
+    void respond_with_file_content(const QString& filePath, completion_handler completionHandler);
     bool compress_file(const QString& filePath, QByteArray* compressedContent);
 };
 
