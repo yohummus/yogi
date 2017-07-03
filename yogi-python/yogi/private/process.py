@@ -636,10 +636,13 @@ class Dependency(OperationalCondition):
                 self._observers.append(observer)
                 observer_ref = weakref.ref(observer)
                 observer.add(lambda state: cls._on_state_changed(weak_self, observer_ref, state))
-                observer.start()
+                self._non_ready_observers += 1
         except:
             self.destroy()
             raise
+
+        for observer in self._observers:
+            observer.start()
 
     def destroy(self) -> None:
         for observer in self._observers:
@@ -655,6 +658,9 @@ class Dependency(OperationalCondition):
 
         nro = 0
         with self._lock:
+            if not observer_ref()._callbacks_called_since_start:
+                self._non_ready_observers -= 1
+
             if state in [BindingState.RELEASED, SubscriptionState.UNSUBSCRIBED]:
                 self._non_ready_observers += 1
             else:
