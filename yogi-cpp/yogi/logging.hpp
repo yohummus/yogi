@@ -63,13 +63,13 @@
 #define _YOGI_LOG_STREAM_APP_LOGGER(stream) \
     stream
 
-#define _YOGI_LOG_IMPL(severity, logger, stream)                                       \
-    {{                                                                                 \
-    if (yogi::verbosity::severity <= logger.max_effective_verbosity()) {               \
-        std::stringstream ss;                                                          \
-        ss << stream;                                                                  \
-        logger.log(yogi::verbosity::severity, __FILE__, __LINE__, __func__, ss.str()); \
-    }                                                                                  \
+#define _YOGI_LOG_IMPL(severity, logger, stream)                                         \
+    {{                                                                                   \
+    if (yogi::verbosity::severity <= (logger).max_effective_verbosity()) {               \
+        std::stringstream ss;                                                            \
+        ss << stream;                                                                    \
+        (logger).log(yogi::verbosity::severity, __FILE__, __LINE__, __func__, ss.str()); \
+    }                                                                                    \
     }}
 
 
