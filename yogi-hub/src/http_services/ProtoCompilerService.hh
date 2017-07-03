@@ -1,30 +1,35 @@
-#ifndef PROTOCOMPILER_HPP
-#define PROTOCOMPILER_HPP
+#ifndef HTTP_SERVICES_PROTOCOMPILERSERVICE_HPP
+#define HTTP_SERVICES_PROTOCOMPILERSERVICE_HPP
+
+#include "Service.hh"
 
 #include <yogi.hpp>
 
-#include <QMap>
-#include <QByteArray>
-#include <QString>
 #include <QTemporaryDir>
 
 
-class ProtoCompiler
+namespace http_services {
+
+class ProtoCompilerService : public Service
 {
 public:
+    ProtoCompilerService();
+
+    virtual void async_handle_request(request_type, const QString& path,
+        const QMap<QString, QString>& header, const QByteArray& content, completion_handler) override;
+
+private:
     enum Language {
+        LNG_NONE,
         LNG_PYTHON,
         LNG_CPP,
         LNG_CSHARP
     };
 
-private:
-    static ProtoCompiler* ms_instance;
-
     yogi::Logger m_logger;
-    QString          m_executable;
+    QString      m_executable;
 
-private:
+    QMap<QString, QByteArray> compile(const QByteArray& protoFileContent, Language targetLanguage);
     void log_and_throw(const std::string& msg);
 	void check_protoc_exists();
 	void check_temp_dir_valid(const QTemporaryDir& dir);
@@ -38,13 +43,8 @@ private:
 	void escape_file_contents(QMap<QString, QByteArray>* files);
 	void insert_before(QByteArray* content, const QString& str, const QString& where);
     void insert_after(QByteArray* content, const QString& str, const QString& where);
-
-public:
-    static ProtoCompiler& instance();
-
-    ProtoCompiler();
-
-    QMap<QString, QByteArray> compile(const QByteArray& protoFileContent, Language targetLanguage);
 };
 
-#endif // PROTOCOMPILER_HPP
+} // namespace http_services
+
+#endif // HTTP_SERVICES_PROTOCOMPILERSERVICE_HPP

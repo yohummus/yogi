@@ -1,6 +1,6 @@
-#include "CustomCommandService.hpp"
-#include "helpers/ostream.hh"
-#include "helpers/time.hh"
+#include "CustomCommandService.hh"
+#include "../helpers/ostream.hh"
+#include "../helpers/time.hh"
 
 #include <QDir>
 #include <QFile>
@@ -12,16 +12,7 @@
 using namespace std::string_literals;
 
 
-void CustomCommandService::Command::update_state()
-{
-    emit(m_service.process_update(this,
-        m_process.state(),
-        m_process.readAllStandardOutput(),
-        m_process.readAllStandardError(),
-        m_process.exitCode(),
-        m_process.error()
-    ));
-}
+namespace commands {
 
 CustomCommandService::Command::Command(CustomCommandService& service, const CommandInfo& info, const QStringList& args)
 : m_service(service)
@@ -103,26 +94,15 @@ void CustomCommandService::Command::write_stdin(const QByteArray& data)
     m_process.write(data);
 }
 
-CustomCommandService* CustomCommandService::ms_instance = nullptr;
-
-void CustomCommandService::log_and_throw(const std::string& msg)
+void CustomCommandService::Command::update_state()
 {
-    YOGI_LOG_ERROR(m_logger, msg);
-    throw std::runtime_error(msg);
-}
-
-void CustomCommandService::check_executable_exists(const QString& executable)
-{
-    if (!QFile::exists(executable)) {
-        log_and_throw("Cannot find executable '"s + executable.toStdString() + "'");
-    }
-}
-
-void CustomCommandService::check_directory_exists(const QString& dir)
-{
-    if (!QDir(dir).exists()) {
-        log_and_throw("Cannot find directory '"s + dir.toStdString() + "'");
-    }
+    emit(m_service.process_update(this,
+        m_process.state(),
+        m_process.readAllStandardOutput(),
+        m_process.readAllStandardError(),
+        m_process.exitCode(),
+        m_process.error()
+    ));
 }
 
 CustomCommandService& CustomCommandService::instance()
@@ -177,3 +157,27 @@ std::unique_ptr<CustomCommandService::Command> CustomCommandService::start_comma
 
     return std::make_unique<Command>(*this, *cmdIt, args);
 }
+
+CustomCommandService* CustomCommandService::ms_instance = nullptr;
+
+void CustomCommandService::log_and_throw(const std::string& msg)
+{
+    YOGI_LOG_ERROR(m_logger, msg);
+    throw std::runtime_error(msg);
+}
+
+void CustomCommandService::check_executable_exists(const QString& executable)
+{
+    if (!QFile::exists(executable)) {
+        log_and_throw("Cannot find executable '"s + executable.toStdString() + "'");
+    }
+}
+
+void CustomCommandService::check_directory_exists(const QString& dir)
+{
+    if (!QDir(dir).exists()) {
+        log_and_throw("Cannot find directory '"s + dir.toStdString() + "'");
+    }
+}
+
+} // namespace commands

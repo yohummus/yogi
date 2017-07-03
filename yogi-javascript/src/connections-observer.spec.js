@@ -54,7 +54,7 @@ describe('ConnectionsObserver', () => {
         });
     });
 
-    it('should support monitoring the state of connections', (done) => {
+    xit('should support monitoring the state of connections', (done) => {
         let session = new yogi.Session();
         let testIf  = new yogi.TestInterface(session);
         let co      = new yogi.ConnectionsObserver(session);

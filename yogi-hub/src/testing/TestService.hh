@@ -1,10 +1,12 @@
 #ifndef TESTING_TESTSERVICE_HPP
 #define TESTING_TESTSERVICE_HPP
 
-#include "../YogiTcpServer.hpp"
-#include "../YogiTcpClient.hpp"
+#include "../yogi_network/YogiTcpServer.hh"
+#include "../yogi_network/YogiTcpClient.hh"
 
 #include <yogi.hpp>
+
+#include <QObject>
 
 #include <memory>
 #include <atomic>
@@ -15,8 +17,10 @@
 
 namespace testing {
 
-class TestService
+class TestService : public QObject
 {
+    Q_OBJECT
+
 public:
     static bool execute_command(const QString& command);
 
@@ -76,8 +80,8 @@ private:
     std::atomic<bool>                                                               m_clientResponded;
     std::atomic<bool>                                                               m_clientIgnored;
 
-    std::unique_ptr<YogiTcpServer>                                                  m_yogiTcpServer;
-    std::unique_ptr<YogiTcpClient>                                                  m_yogiTcpClient;
+    std::unique_ptr<yogi_network::YogiTcpServer>                                    m_yogiTcpServer;
+    std::unique_ptr<yogi_network::YogiTcpClient>                                    m_yogiTcpClient;
 
     std::vector<std::unique_ptr<yogi::Terminal>>                                    m_treeTestTerminals;
     std::vector<std::unique_ptr<yogi::Terminal>>                                    m_signatureTestTerminals;

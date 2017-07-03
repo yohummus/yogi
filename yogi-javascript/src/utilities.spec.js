@@ -4,15 +4,15 @@ describe('Utilities', () => {
     });
 
     it('should support gettting the HUB\'s hostname or address', () => {
-        expect(yogi.hubHost).toEqual(window.location.hostname);
+        expect(yogi.hubHost).toEqual('127.0.0.1');
     });
 
     it('should support gettting the HUB\'s port', () => {
-        expect(yogi.hubPort).toEqual(parseInt(window.location.port !== '' ? window.location.port : '80'));
+        expect(yogi.hubPort).toEqual(1234);
     });
 
     it('should support gettting the HUB\'s URI', () => {
         let loc = window.location;
-        expect(yogi.hubUri).toMatch(loc.protocol + '//' + loc.host);
+        expect(yogi.hubUri).toMatch('http://127.0.0.1:1234');
     });
 });

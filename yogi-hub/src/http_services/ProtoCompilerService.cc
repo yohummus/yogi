@@ -1,41 +1,93 @@
-#include "ProtoCompiler.hpp"
+#include "ProtoCompilerService.hh"
 
-#include <QDebug>
 #include <QDir>
-#include <QTemporaryDir>
 #include <QFileInfo>
 #include <QProcess>
 #include <QRegExp>
 
 #include <exception>
 #include <cassert>
-#include <string>
 using namespace std::string_literals;
 
 
-ProtoCompiler* ProtoCompiler::ms_instance = nullptr;
+namespace http_services {
 
-void ProtoCompiler::log_and_throw(const std::string& msg)
+ProtoCompilerService::ProtoCompilerService()
+: m_logger("Proto Compiler Service")
+{
+	m_executable = QString::fromStdString(yogi::ProcessInterface::config().get<std::string>("proto-compiler.executable"));
+	check_protoc_exists();
+	YOGI_LOG_INFO(m_logger, "Proto compiler enabled");
+}
+
+void ProtoCompilerService::async_handle_request(request_type type, const QString& path,
+	const QMap<QString, QString>& header, const QByteArray& content, completion_handler completionHandler)
+{
+	Language language = LNG_NONE;
+	if (path == "/python") {
+		language = LNG_PYTHON;
+	}
+	else if (path == "/cpp") {
+		language = LNG_CPP;
+	}
+	else if (path == "/csharp") {
+		language = LNG_CSHARP;
+	}
+
+	if (language == LNG_NONE || type != HTTP_POST) {
+		completionHandler(HTTP_404, {}, {}, false);
+		return;
+	}
+
+	auto files = compile(content, language);
+	QByteArray json = "{";
+	for (auto& key : files.keys()) {
+		auto fileContent = files[key];
+		fileContent.replace('"', "\\\"");
+		json += "\"" + key + "\":\"" + fileContent + "\",";
+	}
+	json[json.size() - 1] = '}';
+
+	completionHandler(HTTP_201, json, {}, false);
+}
+
+QMap<QString, QByteArray> ProtoCompilerService::compile(const QByteArray& protoFileContent, Language targetLanguage)
+{
+	check_protoc_exists();
+
+    QTemporaryDir dir;
+	check_temp_dir_valid(dir);
+
+	auto protoFilename = write_proto_file(dir, protoFileContent);
+	run_protoc(dir, protoFilename, targetLanguage);
+	auto files = read_generated_files(dir, protoFilename);
+	post_process_generated_files(protoFileContent, &files);
+	escape_file_contents(&files);
+
+    return files;
+}
+
+void ProtoCompilerService::log_and_throw(const std::string& msg)
 {
     YOGI_LOG_ERROR(m_logger, msg);
     throw std::runtime_error(msg);
 }
 
-void ProtoCompiler::check_protoc_exists()
+void ProtoCompilerService::check_protoc_exists()
 {
 	if (!QFile::exists(m_executable)) {
         log_and_throw("Cannot find compiler executable '"s + m_executable.toStdString() + "'");
 	}
 }
 
-void ProtoCompiler::check_temp_dir_valid(const QTemporaryDir& dir)
+void ProtoCompilerService::check_temp_dir_valid(const QTemporaryDir& dir)
 {
 	if (!dir.isValid()) {
         log_and_throw("Cannot create temporary directory '"s + dir.path().toStdString() + "'");
 	}
 }
 
-QString ProtoCompiler::extract_proto_package(const QByteArray& protoFileContent)
+QString ProtoCompilerService::extract_proto_package(const QByteArray& protoFileContent)
 {
 	QRegExp rx("package ([\\w+\\.]*yogi_([0-9a-f]{8}));", Qt::CaseInsensitive);
 	rx.setMinimal(true);
@@ -46,13 +98,13 @@ QString ProtoCompiler::extract_proto_package(const QByteArray& protoFileContent)
 	return rx.cap(1);
 }
 
-QString ProtoCompiler::extract_innermost_proto_package(const QByteArray& protoFileContent)
+QString ProtoCompilerService::extract_innermost_proto_package(const QByteArray& protoFileContent)
 {
 	auto package = extract_proto_package(protoFileContent);
 	return package.mid(package.lastIndexOf("yogi_"));
 }
 
-QString ProtoCompiler::write_proto_file(const QTemporaryDir& dir, const QByteArray& protoFileContent)
+QString ProtoCompilerService::write_proto_file(const QTemporaryDir& dir, const QByteArray& protoFileContent)
 {
 	auto filename = extract_proto_package(protoFileContent).replace('.', "__") + ".proto";
 
@@ -70,7 +122,7 @@ QString ProtoCompiler::write_proto_file(const QTemporaryDir& dir, const QByteArr
 	return filename;
 }
 
-void ProtoCompiler::run_protoc(const QTemporaryDir& dir, const QString& protoFilename, Language targetLanguage)
+void ProtoCompilerService::run_protoc(const QTemporaryDir& dir, const QString& protoFilename, Language targetLanguage)
 {
 	QStringList args;
 	args << protoFilename;
@@ -88,6 +140,9 @@ void ProtoCompiler::run_protoc(const QTemporaryDir& dir, const QString& protoFil
 	case LNG_CSHARP:
 		args << "--csharp_out=.";
         YOGI_LOG_INFO(m_logger, "Generating C# files...");
+		break;
+
+	default:
 		break;
 	}
 
@@ -110,7 +165,7 @@ void ProtoCompiler::run_protoc(const QTemporaryDir& dir, const QString& protoFil
 	}
 }
 
-QMap<QString, QByteArray> ProtoCompiler::read_generated_files(const QTemporaryDir& dir, const QString& protoFilename)
+QMap<QString, QByteArray> ProtoCompilerService::read_generated_files(const QTemporaryDir& dir, const QString& protoFilename)
 {
     YOGI_LOG_TRACE(m_logger, "Reading generated files...");
 	auto genFiles = QDir(dir.path()).entryList();
@@ -137,7 +192,7 @@ QMap<QString, QByteArray> ProtoCompiler::read_generated_files(const QTemporaryDi
 	return files;
 }
 
-void ProtoCompiler::post_process_generated_files(const QByteArray& protoFileContent, QMap<QString, QByteArray>* files)
+void ProtoCompilerService::post_process_generated_files(const QByteArray& protoFileContent, QMap<QString, QByteArray>* files)
 {
     YOGI_LOG_TRACE(m_logger, "Post-processing generated files...");
 
@@ -198,7 +253,7 @@ void ProtoCompiler::post_process_generated_files(const QByteArray& protoFileCont
 	}
 }
 
-QString ProtoCompiler::extract_signature_from_generated_file(const QByteArray& content)
+QString ProtoCompilerService::extract_signature_from_generated_file(const QByteArray& content)
 {
     YOGI_LOG_TRACE(m_logger, "Extracting signature from generated files...");
 
@@ -210,14 +265,14 @@ QString ProtoCompiler::extract_signature_from_generated_file(const QByteArray& c
 	return rx.cap(1);
 }
 
-void ProtoCompiler::escape_file_contents(QMap<QString, QByteArray>* files)
+void ProtoCompilerService::escape_file_contents(QMap<QString, QByteArray>* files)
 {
 	for (auto& filename : files->keys()) {
 		(*files)[filename].replace('\\', "\\\\").replace('\r', "\\r").replace('\n', "\\n");
 	}
 }
 
-void ProtoCompiler::insert_before(QByteArray* content, const QString& str, const QString& where)
+void ProtoCompilerService::insert_before(QByteArray* content, const QString& str, const QString& where)
 {
 	auto pos = content->indexOf(where);
 	if (pos == -1) {
@@ -227,7 +282,7 @@ void ProtoCompiler::insert_before(QByteArray* content, const QString& str, const
 	content->insert(pos, str);
 }
 
-void ProtoCompiler::insert_after(QByteArray* content, const QString& str, const QString& where)
+void ProtoCompilerService::insert_after(QByteArray* content, const QString& str, const QString& where)
 {
 	auto pos = content->indexOf(where);
 	if (pos == -1) {
@@ -237,44 +292,4 @@ void ProtoCompiler::insert_after(QByteArray* content, const QString& str, const 
 	content->insert(pos + where.size(), str);
 }
 
-ProtoCompiler& ProtoCompiler::instance()
-{
-    assert (ms_instance != nullptr);
-    return *ms_instance;
-}
-
-ProtoCompiler::ProtoCompiler()
-: m_logger("Proto Compiler")
-{
-    if (yogi::ProcessInterface::config().get<bool>("proto-compiler.enabled")) {
-        m_executable = QString::fromStdString(yogi::ProcessInterface::config().get<std::string>("proto-compiler.executable"));
-        check_protoc_exists();
-        YOGI_LOG_INFO(m_logger, "Proto compiler enabled");
-    } else {
-        YOGI_LOG_DEBUG(m_logger, "Disabled Proto compiler");
-    }
-
-    assert (ms_instance == nullptr);
-    ms_instance = this;
-}
-
-QMap<QString, QByteArray> ProtoCompiler::compile(const QByteArray& protoFileContent, Language targetLanguage)
-{
-    if (!yogi::ProcessInterface::config().get<bool>("proto-compiler.enabled")) {
-        YOGI_LOG_INFO(m_logger, "Denied request since compiler is disabled");
-        throw std::runtime_error("Proto compiler is disabled");
-    }
-
-	check_protoc_exists();
-
-    QTemporaryDir dir;
-	check_temp_dir_valid(dir);
-
-	auto protoFilename = write_proto_file(dir, protoFileContent);
-	run_protoc(dir, protoFilename, targetLanguage);
-	auto files = read_generated_files(dir, protoFilename);
-	post_process_generated_files(protoFileContent, &files);
-	escape_file_contents(&files);
-
-    return files;
-}
+} // namespace http_services

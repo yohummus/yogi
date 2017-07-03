@@ -24,7 +24,7 @@ set (CMAKE_CXX_FLAGS_RELEASE "-O2 -DNDEBUG")
 
 include_directories (${Boost_INCLUDE_DIRS})
 include_directories (${PROTOBUF_INCLUDE_DIRS})
-file (GLOB_RECURSE src_files src/*.cc src/*.cpp src/*.hh src/*.hpp)
+file (GLOB_RECURSE src_files src/*.cc src/*.cpp src/*.h src/*.hh src/*.hpp)
 
 #===== build executable =====
 add_executable (yogi-supervisor ${src_files})
