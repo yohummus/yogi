@@ -1,6 +1,8 @@
 #ifndef PROCESS_HH
 #define PROCESS_HH
 
+#include "session_services/KnownTerminalsService.hh"
+
 #include <QCoreApplication>
 
 #include <yogi.hpp>
@@ -18,11 +20,12 @@ public:
     int exec();
 
 private:
-    yogi::ProcessInterface              m_pi;
-    yogi::Node                          m_node;
-    yogi::LocalConnection               m_piConnection;
-    QCoreApplication                    m_app;
-    std::list<std::shared_ptr<QObject>> m_services;
+    yogi::ProcessInterface                  m_pi;
+    yogi::Node                              m_node;
+    session_services::KnownTerminalsService m_kts;
+    yogi::LocalConnection                   m_piConnection;
+    QCoreApplication                        m_app;
+    std::list<std::shared_ptr<QObject>>     m_services;
 
     void setup_scheduler();
     void setup_app();

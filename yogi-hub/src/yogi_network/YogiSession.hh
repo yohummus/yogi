@@ -3,6 +3,7 @@
 
 #include "YogiTcpClient.hh"
 #include "YogiTcpServer.hh"
+#include "../session_services/Service.hh"
 #include "../commands/CustomCommandService.hh"
 
 #include <yogi.hpp>
@@ -16,6 +17,7 @@
 
 #include <chrono>
 #include <unordered_map>
+#include <vector>
 
 
 namespace yogi_network {
@@ -33,7 +35,10 @@ public:
         const yogi_servers_vector& yogiServers, const yogi_clients_vector& yogiClients, QObject* parent);
     ~YogiSession();
 
-    QByteArray handle_request(const QByteArray& request);
+    yogi::Node& node();
+
+    QByteArray handle_request(QByteArray* request);
+    void notify_client(session_services::Service::response_type notificationType, const QByteArray& data);
 
 Q_SIGNALS:
     void received_sg_scatter_message(TerminalInfo*, std::shared_ptr<yogi::RawScatterGatherTerminal::ScatteredMessage>);
@@ -43,63 +48,6 @@ Q_SIGNALS:
     void notify_client(QWebSocket*, QByteArray);
 
 private:
-    enum RequestType {
-        REQ_VERSION = 0,
-        REQ_CURRENT_TIME,
-        REQ_TEST_COMMAND,
-        REQ_KNOWN_TERMINALS,
-        REQ_KNOWN_TERMINALS_SUBTREE,
-		REQ_FIND_KNOWN_TERMINALS,
-        REQ_MONITOR_KNOWN_TERMINALS,
-        REQ_CONNECTION_FACTORIES,
-        REQ_CONNECTIONS,
-        REQ_MONITOR_CONNECTIONS,
-        REQ_CLIENT_ADDRESS,
-		REQ_START_DNS_LOOKUP,
-        REQ_CREATE_TERMINAL,
-        REQ_DESTROY_TERMINAL,
-        REQ_CREATE_BINDING,
-        REQ_DESTROY_BINDING,
-        REQ_MONITOR_BINDING_STATE,
-		REQ_MONITOR_BUILTIN_BINDING_STATE,
-        REQ_MONITOR_SUBSCRIPTION_STATE,
-        REQ_PUBLISH_MESSAGE,
-        REQ_MONITOR_RECEIVED_PUBLISH_MESSAGES,
-        REQ_SCATTER_GATHER,
-        REQ_MONITOR_RECEIVED_SCATTER_MESSAGES,
-        REQ_RESPOND_TO_SCATTERED_MESSAGE,
-        REQ_IGNORE_SCATTERED_MESSAGE,
-        REQ_START_CUSTOM_COMMAND,
-        REQ_TERMINATE_CUSTOM_COMMAND,
-        REQ_WRITE_CUSTOM_COMMAND_STDIN
-    };
-
-    enum Status {
-        RES_OK = 0,
-        RES_INTERNAL_SERVER_ERROR,
-        RES_INVALID_REQUEST,
-        RES_API_ERROR,
-        RES_ALREADY_MONITORING,
-        RES_INVALID_TERMINAL_ID,
-        RES_INVALID_BINDING_ID,
-        RES_INVALID_OPERATION_ID,
-        RES_INVALID_COMMAND_ID,
-        RES_INVALID_TERMINAL_TYPE,
-
-		ASY_DNS_LOOKUP,
-        ASY_CUSTOM_COMMAND_STATE,
-
-        MON_CONNECTION_CHANGED,
-        MON_KNOWN_TERMINALS_CHANGED,
-        MON_BINDING_STATE_CHANGED,
-		MON_BUILTIN_BINDING_STATE_CHANGED,
-        MON_SUBSCRIPTION_STATE_CHANGED,
-        MON_PUBLISHED_MESSAGE_RECEIVED,
-        MON_CACHED_PUBLISHED_MESSAGE_RECEIVED,
-        MON_SCATTERED_MESSAGE_RECEIVED,
-        MON_GATHERED_MESSAGE_RECEIVED
-    };
-
     enum ConnectionFactoryType {
         CFT_TCP_CLIENT = 0,
         CFT_TCP_SERVER
@@ -163,12 +111,16 @@ private:
     command_lut                      m_commandLut;
     QMutex                           m_commandLutMutex;
 
-    static QByteArray make_response(Status status = RES_OK);
+    std::vector<session_services::service_ptr>              m_services;
+    std::vector<session_services::Service::request_handler> m_requestHandlerLut;
+
+    static QByteArray make_response(session_services::Service::response_type status = session_services::Service::RES_OK);
     QByteArray to_byte_array(YogiTcpClient::ServerInformation info);
     QByteArray to_byte_array(YogiTcpServer::ClientInformation info);
     QByteArray make_connections_byte_array();
     char make_idx(const std::shared_ptr<YogiTcpClient>& client);
     char make_idx(const std::shared_ptr<YogiTcpServer>& server);
+    template <typename Service> void add_service();
     template <typename Fn> QByteArray use_terminal(QByteArray request, Fn fn);
     template <typename Terminal> void create_message_observer_and_add_callback(TerminalInfo& info, void (YogiSession::*fn)(TerminalInfo&, const std::vector<char>&, yogi::cached_flag));
     template <typename Terminal, typename ScatteredMessage> void create_message_observer_and_add_callback(TerminalInfo& info, void (YogiSession::*fn)(TerminalInfo&, ScatteredMessage&&));
@@ -179,10 +131,6 @@ private:
     QByteArray handle_version_request(const QByteArray& request);
     QByteArray handle_current_time_request(const QByteArray& request);
     QByteArray handle_test_command(const QByteArray& request);
-    QByteArray handle_known_terminals_request(const QByteArray& request);
-    QByteArray handle_known_terminals_subtree_request(const QByteArray& request);
-	QByteArray handle_find_known_terminals(const QByteArray& request);
-	QByteArray handle_monitor_known_terminals_request(const QByteArray& request);
     QByteArray handle_connection_factories_request(const QByteArray& request);
     QByteArray handle_connections_request(const QByteArray& request);
     QByteArray handle_monitor_connections_request(const QByteArray& request);

@@ -21,6 +21,7 @@ public:
 
     const yogi::ConfigurationChild& config() const;
     void add_service(const http_services::service_ptr& service, const QString& uriRoot);
+    void start();
 
 private:
     enum receive_state {

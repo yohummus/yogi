@@ -1,9 +1,9 @@
 #include "YogiSession.hh"
-#include "KnownTerminalsMonitor.hh"
 #include "../testing/TestService.hh"
 #include "../helpers/ostream.hh"
 #include "../helpers/read_from_stream.hh"
 #include "../helpers/to_byte_array.hh"
+#include "../session_services/KnownTerminalsService.hh"
 
 #include <QtDebug>
 #include <QDataStream>
@@ -11,6 +11,7 @@
 
 #include <yogi_core.h>
 
+#include <cassert>
 #include <memory>
 using namespace std::string_literals;
 
@@ -52,10 +53,15 @@ YogiSession::YogiSession(QWebSocket* socket, yogi::Node& node, const QString& cl
     m_qtConnections.append(connect(this, &YogiSession::received_sg_gather_message,  this, &YogiSession::handle_received_sg_gather_message));
     m_qtConnections.append(connect(this, &YogiSession::received_sc_request,         this, &YogiSession::handle_received_sc_request));
     m_qtConnections.append(connect(this, &YogiSession::received_sc_response,        this, &YogiSession::handle_received_sc_response));
+
+    using namespace session_services;
+    add_service<KnownTerminalsService>();
 }
 
 YogiSession::~YogiSession()
 {
+    m_services.clear();
+
     for (auto connection : m_qtConnections) {
         disconnect(connection);
     }
@@ -63,108 +69,115 @@ YogiSession::~YogiSession()
     YOGI_LOG_INFO(m_logger, "YOGI session for " << m_clientIdentification << " destroyed");
 }
 
-QByteArray YogiSession::handle_request(const QByteArray& request)
+yogi::Node& YogiSession::node()
+{
+    return m_node;
+}
+
+QByteArray YogiSession::handle_request(QByteArray* request)
 {
     try {
-        if (!request.isEmpty()) {
-            switch (request[0]) {
-            case REQ_VERSION:
-                return handle_version_request(request);
+        if (!request->isEmpty()) {
+            auto requestType = static_cast<session_services::Service::request_type>(request->at(0));
+            switch (requestType) {
+            case session_services::Service::REQ_VERSION:
+                return handle_version_request(*request);
 
-            case REQ_CURRENT_TIME:
-                return handle_current_time_request(request);
+            case session_services::Service::REQ_CURRENT_TIME:
+                return handle_current_time_request(*request);
 
-            case REQ_TEST_COMMAND:
-                return handle_test_command(request);
+            case session_services::Service::REQ_TEST_COMMAND:
+                return handle_test_command(*request);
 
-            case REQ_KNOWN_TERMINALS:
-                return handle_known_terminals_request(request);
+            case session_services::Service::REQ_KNOWN_TERMINALS:
+            case session_services::Service::REQ_KNOWN_TERMINALS_SUBTREE:
+		    case session_services::Service::REQ_FIND_KNOWN_TERMINALS:
+            case session_services::Service::REQ_MONITOR_KNOWN_TERMINALS: {{
+                auto response = m_requestHandlerLut[requestType](request);
+                return make_response(response.first) + response.second;
+            }}
 
-            case REQ_KNOWN_TERMINALS_SUBTREE:
-                return handle_known_terminals_subtree_request(request);
+            case session_services::Service::REQ_CONNECTION_FACTORIES:
+                return handle_connection_factories_request(*request);
 
-		    case REQ_FIND_KNOWN_TERMINALS:
-			    return handle_find_known_terminals(request);
+            case session_services::Service::REQ_CONNECTIONS:
+                return handle_connections_request(*request);
 
-            case REQ_MONITOR_KNOWN_TERMINALS:
-                return handle_monitor_known_terminals_request(request);
+            case session_services::Service::REQ_MONITOR_CONNECTIONS:
+                return handle_monitor_connections_request(*request);
 
-            case REQ_CONNECTION_FACTORIES:
-                return handle_connection_factories_request(request);
+            case session_services::Service::REQ_CLIENT_ADDRESS:
+                return handle_client_address_request(*request);
 
-            case REQ_CONNECTIONS:
-                return handle_connections_request(request);
+		    case session_services::Service::REQ_START_DNS_LOOKUP:
+			    return handle_dns_lookup_request(*request);
 
-            case REQ_MONITOR_CONNECTIONS:
-                return handle_monitor_connections_request(request);
+            case session_services::Service::REQ_CREATE_TERMINAL:
+                return handle_create_terminal_request(*request);
 
-            case REQ_CLIENT_ADDRESS:
-                return handle_client_address_request(request);
+            case session_services::Service::REQ_DESTROY_TERMINAL:
+                return handle_destroy_terminal_request(*request);
 
-		    case REQ_START_DNS_LOOKUP:
-			    return handle_dns_lookup_request(request);
+            case session_services::Service::REQ_CREATE_BINDING:
+                return handle_create_binding_request(*request);
 
-            case REQ_CREATE_TERMINAL:
-                return handle_create_terminal_request(request);
+            case session_services::Service::REQ_DESTROY_BINDING:
+                return handle_destroy_binding_request(*request);
 
-            case REQ_DESTROY_TERMINAL:
-                return handle_destroy_terminal_request(request);
+            case session_services::Service::REQ_MONITOR_BINDING_STATE:
+                return handle_monitor_binding_state_request(*request);
 
-            case REQ_CREATE_BINDING:
-                return handle_create_binding_request(request);
+		    case session_services::Service::REQ_MONITOR_BUILTIN_BINDING_STATE:
+			    return handle_monitor_builtin_binding_state_request(*request);
 
-            case REQ_DESTROY_BINDING:
-                return handle_destroy_binding_request(request);
+            case session_services::Service::REQ_MONITOR_SUBSCRIPTION_STATE:
+                return handle_monitor_subscription_state_request(*request);
 
-            case REQ_MONITOR_BINDING_STATE:
-                return handle_monitor_binding_state_request(request);
+            case session_services::Service::REQ_PUBLISH_MESSAGE:
+                return handle_publish_message_request(*request);
 
-		    case REQ_MONITOR_BUILTIN_BINDING_STATE:
-			    return handle_monitor_builtin_binding_state_request(request);
+            case session_services::Service::REQ_MONITOR_RECEIVED_PUBLISH_MESSAGES:
+                return handle_monitor_received_publish_messages_request(*request);
 
-            case REQ_MONITOR_SUBSCRIPTION_STATE:
-                return handle_monitor_subscription_state_request(request);
+            case session_services::Service::REQ_SCATTER_GATHER:
+                return handle_scatter_gather_request(*request);
 
-            case REQ_PUBLISH_MESSAGE:
-                return handle_publish_message_request(request);
+            case session_services::Service::REQ_MONITOR_RECEIVED_SCATTER_MESSAGES:
+                return handle_monitor_received_scatter_messages_request(*request);
 
-            case REQ_MONITOR_RECEIVED_PUBLISH_MESSAGES:
-                return handle_monitor_received_publish_messages_request(request);
+            case session_services::Service::REQ_RESPOND_TO_SCATTERED_MESSAGE:
+                return handle_respond_to_scattered_message_request(*request);
 
-            case REQ_SCATTER_GATHER:
-                return handle_scatter_gather_request(request);
+            case session_services::Service::REQ_IGNORE_SCATTERED_MESSAGE:
+                return handle_ignore_scattered_message_request(*request);
 
-            case REQ_MONITOR_RECEIVED_SCATTER_MESSAGES:
-                return handle_monitor_received_scatter_messages_request(request);
+            case session_services::Service::REQ_START_CUSTOM_COMMAND:
+                return handle_start_custom_command_request(*request);
 
-            case REQ_RESPOND_TO_SCATTERED_MESSAGE:
-                return handle_respond_to_scattered_message_request(request);
+            case session_services::Service::REQ_TERMINATE_CUSTOM_COMMAND:
+                return handle_terminate_custom_command_request(*request);
 
-            case REQ_IGNORE_SCATTERED_MESSAGE:
-                return handle_ignore_scattered_message_request(request);
-
-            case REQ_START_CUSTOM_COMMAND:
-                return handle_start_custom_command_request(request);
-
-            case REQ_TERMINATE_CUSTOM_COMMAND:
-                return handle_terminate_custom_command_request(request);
-
-            case REQ_WRITE_CUSTOM_COMMAND_STDIN:
-                return handle_write_custom_command_stdin(request);
+            case session_services::Service::REQ_WRITE_CUSTOM_COMMAND_STDIN:
+                return handle_write_custom_command_stdin(*request);
             }
         }
     }
     catch (const yogi::Failure& failure) {
-        YOGI_LOG_ERROR(m_logger, "Handling request " << request.toHex().data() << " failed: " << failure);
-        return make_response(RES_API_ERROR) + failure.what();
+        YOGI_LOG_ERROR(m_logger, "Handling request " << request->toHex().data() << " failed: " << failure);
+        return make_response(session_services::Service::RES_API_ERROR) + failure.what();
     }
     catch (const std::exception& e) {
-        YOGI_LOG_ERROR(m_logger, "Handling request " << request.toHex().data() << " failed: " << e.what());
-        return make_response(RES_INTERNAL_SERVER_ERROR);
+        YOGI_LOG_ERROR(m_logger, "Handling request " << request->toHex().data() << " failed: " << e.what());
+        return make_response(session_services::Service::RES_INTERNAL_SERVER_ERROR);
     }
 
-    YOGI_LOG_ERROR(m_logger, "Invalid request: " << request.toHex().data());
-    return make_response(RES_INVALID_REQUEST);
+    YOGI_LOG_ERROR(m_logger, "Invalid request: " << request->toHex().data());
+    return make_response(session_services::Service::RES_INVALID_REQUEST);
+}
+
+void YogiSession::notify_client(session_services::Service::response_type notificationType, const QByteArray& data)
+{
+    emit(notify_client(m_socket, make_response(notificationType) + data));
 }
 
 YogiSession::TerminalInfo::TerminalInfo(yogi::Leaf& leaf, yogi::terminal_type type, const char* name, yogi::Signature signature)
@@ -177,7 +190,7 @@ YogiSession::BindingInfo::BindingInfo(yogi::PrimitiveTerminal& terminal, const c
 {
 }
 
-QByteArray YogiSession::make_response(Status status)
+QByteArray YogiSession::make_response(session_services::Service::response_type status)
 {
     return QByteArray(1, status);
 }
@@ -236,6 +249,23 @@ char YogiSession::make_idx(const std::shared_ptr<YogiTcpServer>& server)
     return static_cast<char>(1 + m_yogiClients.size() + std::distance(begin, std::find(begin, end, server)));
 }
 
+template <typename Service>
+void YogiSession::add_service()
+{
+    auto service = std::make_shared<Service>(*this);
+    m_services.push_back(service);
+
+    for (auto& entry : service->make_request_handlers()) {
+        auto requestType = entry.first;
+        if (m_requestHandlerLut.size() < requestType + 1) {
+            m_requestHandlerLut.resize(requestType + 1);
+        }
+
+        assert (!m_requestHandlerLut[requestType]);
+        m_requestHandlerLut[requestType] = entry.second;
+    }
+}
+
 template <typename Fn>
 QByteArray YogiSession::use_terminal(QByteArray request, Fn fn)
 {
@@ -248,14 +278,14 @@ QByteArray YogiSession::use_terminal(QByteArray request, Fn fn)
         QMutexLocker lock(&m_terminalLutMutex);
         auto terminalIt = m_terminalLut.find(terminalId);
         if (terminalIt == m_terminalLut.end()) {
-            return make_response(RES_INVALID_TERMINAL_ID);
+            return make_response(session_services::Service::RES_INVALID_TERMINAL_ID);
         }
 
         try {
             return fn(**terminalIt, stream);
         }
         catch(const yogi::Failure& failure) {
-            return make_response(RES_API_ERROR) + QByteArray(failure.to_string().c_str());
+            return make_response(session_services::Service::RES_API_ERROR) + QByteArray(failure.to_string().c_str());
         }
     }}
 }
@@ -303,7 +333,7 @@ QByteArray YogiSession::respond_to_scattered_message(MessageMap& messages, yogi:
 {
     auto it = messages.find(opId);
     if (it == messages.end()) {
-        return make_response(RES_INVALID_OPERATION_ID);
+        return make_response(session_services::Service::RES_INVALID_OPERATION_ID);
     }
 
     it->second.respond(request.data() + 9, request.size() - 9);
@@ -317,7 +347,7 @@ QByteArray YogiSession::ignore_scattered_message(MessageMap& messages, yogi::raw
 {
     auto it = messages.find(opId);
     if (it == messages.end()) {
-        return make_response(RES_INVALID_OPERATION_ID);
+        return make_response(session_services::Service::RES_INVALID_OPERATION_ID);
     }
 
     it->second.ignore();
@@ -339,50 +369,7 @@ QByteArray YogiSession::handle_current_time_request(const QByteArray& request)
 QByteArray YogiSession::handle_test_command(const QByteArray& request)
 {
     bool ok = testing::TestService::execute_command(request.mid(1));
-    return make_response(ok ? RES_OK : RES_INVALID_REQUEST);
-}
-
-QByteArray YogiSession::handle_known_terminals_request(const QByteArray& request)
-{
-    return make_response() + KnownTerminalsMonitor::instance().get_all_terminals();
-}
-
-QByteArray YogiSession::handle_known_terminals_subtree_request(const QByteArray& request)
-{
-    QByteArray req(request);
-    bool absolute = request[1] ? true : false;
-    QString path = req.mid(2);
-
-    return make_response() + KnownTerminalsMonitor::instance().get_terminals_subtree(path, absolute);
-}
-
-QByteArray YogiSession::handle_find_known_terminals(const QByteArray& request)
-{
-    QByteArray req(request);
-	QDataStream stream(&req, QIODevice::ReadOnly);
-	stream.skipRawData(1);
-
-	auto caseSensitive = helpers::read_from_stream<bool>(&stream);
-
-	QString nameSubstr = req.mid(2);
-
-	return make_response() + KnownTerminalsMonitor::instance().get_terminals_containing(nameSubstr, !!caseSensitive);
-}
-
-QByteArray YogiSession::handle_monitor_known_terminals_request(const QByteArray& request)
-{
-    if (m_monitoringKnownTerminals) {
-        return make_response(RES_ALREADY_MONITORING);
-    }
-
-    m_qtConnections.append(connect(&KnownTerminalsMonitor::instance(), &KnownTerminalsMonitor::known_terminals_changed,
-        [=](QByteArray terminal) {
-            emit(notify_client(m_socket, make_response(MON_KNOWN_TERMINALS_CHANGED) + terminal));
-        }
-    ));
-    m_monitoringKnownTerminals = true;
-
-    return make_response() + KnownTerminalsMonitor::instance().get_all_terminals();
+    return make_response(ok ? session_services::Service::RES_OK : session_services::Service::RES_INVALID_REQUEST);
 }
 
 QByteArray YogiSession::handle_connection_factories_request(const QByteArray& request)
@@ -414,7 +401,7 @@ QByteArray YogiSession::handle_connections_request(const QByteArray& request)
 QByteArray YogiSession::handle_monitor_connections_request(const QByteArray& request)
 {
     if (m_monitoringConnections) {
-        return make_response(RES_ALREADY_MONITORING);
+        return make_response(session_services::Service::RES_ALREADY_MONITORING);
     }
 
     for (auto client : m_yogiClients) {
@@ -422,7 +409,7 @@ QByteArray YogiSession::handle_monitor_connections_request(const QByteArray& req
             QByteArray data;
             data += make_idx(client);
             data += to_byte_array(info);
-            emit(notify_client(m_socket, make_response(MON_CONNECTION_CHANGED) + data));
+            emit(notify_client(m_socket, make_response(session_services::Service::MON_CONNECTION_CHANGED) + data));
         }));
     }
 
@@ -431,7 +418,7 @@ QByteArray YogiSession::handle_monitor_connections_request(const QByteArray& req
             QByteArray data;
             data += make_idx(server);
             data += to_byte_array(info);
-            emit(notify_client(m_socket, make_response(MON_CONNECTION_CHANGED) + data));
+            emit(notify_client(m_socket, make_response(session_services::Service::MON_CONNECTION_CHANGED) + data));
         }));
     }
 
@@ -449,7 +436,7 @@ QByteArray YogiSession::handle_client_address_request(const QByteArray& request)
 QByteArray YogiSession::handle_dns_lookup_request(const QByteArray& request)
 {
 	if (request.size() < 2 || request[request.size() - 1] != '\0') {
-		return make_response(RES_INVALID_REQUEST);
+		return make_response(session_services::Service::RES_INVALID_REQUEST);
 	}
 
 	int id = QHostInfo::lookupHost(request.mid(1), this, SLOT(on_dns_lookup_finished(QHostInfo)));
@@ -460,7 +447,7 @@ QByteArray YogiSession::handle_dns_lookup_request(const QByteArray& request)
 QByteArray YogiSession::handle_create_terminal_request(const QByteArray& request)
 {
     if (request.size() < 7 || request[request.size() - 1] != '\0') {
-        return make_response(RES_INVALID_REQUEST);
+        return make_response(session_services::Service::RES_INVALID_REQUEST);
     }
 
     QByteArray req(request);
@@ -471,7 +458,7 @@ QByteArray YogiSession::handle_create_terminal_request(const QByteArray& request
     auto signature = helpers::read_from_stream<yogi::Signature>(&stream);
 
     if (type > yogi::CLIENT) {
-        return make_response(RES_INVALID_TERMINAL_TYPE);
+        return make_response(session_services::Service::RES_INVALID_TERMINAL_TYPE);
     }
 
     YOGI_LOG_DEBUG(m_logger, "Creating Terminal " << type << " '" << (req.constData() + 6) << "' [" << signature << "]...");
@@ -498,7 +485,7 @@ QByteArray YogiSession::handle_destroy_terminal_request(const QByteArray& reques
         QMutexLocker lock(&m_terminalLutMutex);
         auto terminalIt = m_terminalLut.find(id);
         if (terminalIt == m_terminalLut.end()) {
-            return make_response(RES_INVALID_TERMINAL_ID);
+            return make_response(session_services::Service::RES_INVALID_TERMINAL_ID);
         }
 
         m_terminalLut.erase(terminalIt);
@@ -510,7 +497,7 @@ QByteArray YogiSession::handle_destroy_terminal_request(const QByteArray& reques
 QByteArray YogiSession::handle_create_binding_request(const QByteArray& request)
 {
     if (request.size() < 7 || request[request.size() - 1] != '\0') {
-        return make_response(RES_INVALID_REQUEST);
+        return make_response(session_services::Service::RES_INVALID_REQUEST);
     }
 
     QByteArray req(request);
@@ -525,12 +512,12 @@ QByteArray YogiSession::handle_create_binding_request(const QByteArray& request)
 
         auto terminalIt = m_terminalLut.find(terminalId);
         if (terminalIt == m_terminalLut.end()) {
-            return make_response(RES_INVALID_TERMINAL_ID);
+            return make_response(session_services::Service::RES_INVALID_TERMINAL_ID);
         }
 
         auto terminal = dynamic_cast<yogi::PrimitiveTerminal*>(&*(*terminalIt)->terminal);
         if (terminal == nullptr) {
-            return make_response(RES_INVALID_TERMINAL_TYPE);
+            return make_response(session_services::Service::RES_INVALID_TERMINAL_TYPE);
         }
 
         YOGI_LOG_DEBUG(m_logger, "Creating Binding from Terminal " << terminal->type() << " '" << terminal->name()
@@ -560,7 +547,7 @@ QByteArray YogiSession::handle_destroy_binding_request(const QByteArray& request
 
         auto bindingIt = m_bindingLut.find(id);
         if (bindingIt == m_bindingLut.end()) {
-            return make_response(RES_INVALID_BINDING_ID);
+            return make_response(session_services::Service::RES_INVALID_BINDING_ID);
         }
 
         m_bindingLut.erase(bindingIt);
@@ -582,12 +569,12 @@ QByteArray YogiSession::handle_monitor_binding_state_request(const QByteArray& r
 
         auto bindingIt = m_bindingLut.find(id);
         if (bindingIt == m_bindingLut.end()) {
-            return make_response(RES_INVALID_BINDING_ID);
+            return make_response(session_services::Service::RES_INVALID_BINDING_ID);
         }
 
         const auto& info = *bindingIt;
         if (info->observer) {
-            return make_response(RES_ALREADY_MONITORING);
+            return make_response(session_services::Service::RES_ALREADY_MONITORING);
         }
 
         info->observer = std::make_unique<yogi::BindingObserver>(info->binding);
@@ -613,17 +600,17 @@ QByteArray YogiSession::handle_monitor_builtin_binding_state_request(const QByte
 
 		auto terminalIt = m_terminalLut.find(id);
 		if (terminalIt == m_terminalLut.end()) {
-			return make_response(RES_INVALID_TERMINAL_ID);
+			return make_response(session_services::Service::RES_INVALID_TERMINAL_ID);
 		}
 
         const auto& info = *terminalIt;
 		if (info->bindingObserver) {
-			return make_response(RES_ALREADY_MONITORING);
+			return make_response(session_services::Service::RES_ALREADY_MONITORING);
 		}
 
         auto terminal = dynamic_cast<yogi::Binder*>(&*info->terminal);
         if (terminal == nullptr) {
-            return make_response(RES_INVALID_TERMINAL_TYPE);
+            return make_response(session_services::Service::RES_INVALID_TERMINAL_TYPE);
         }
 
         info->bindingObserver = std::make_unique<yogi::BindingObserver>(*terminal);
@@ -650,17 +637,17 @@ QByteArray YogiSession::handle_monitor_subscription_state_request(const QByteArr
 
         auto terminalIt = m_terminalLut.find(id);
         if (terminalIt == m_terminalLut.end()) {
-            return make_response(RES_INVALID_TERMINAL_ID);
+            return make_response(session_services::Service::RES_INVALID_TERMINAL_ID);
         }
 
         const auto& info = *terminalIt;
         if (info->subscriptionObserver) {
-            return make_response(RES_ALREADY_MONITORING);
+            return make_response(session_services::Service::RES_ALREADY_MONITORING);
         }
 
         auto terminal = dynamic_cast<yogi::Subscribable*>(&*info->terminal);
         if (terminal == nullptr) {
-            return make_response(RES_INVALID_TERMINAL_TYPE);
+            return make_response(session_services::Service::RES_INVALID_TERMINAL_TYPE);
         }
 
         info->subscriptionObserver = std::make_unique<yogi::SubscriptionObserver>(*terminal);
@@ -713,7 +700,7 @@ QByteArray YogiSession::handle_publish_message_request(const QByteArray& request
             break;
 
         default:
-            return make_response(RES_INVALID_TERMINAL_TYPE);
+            return make_response(session_services::Service::RES_INVALID_TERMINAL_TYPE);
         }
 
         return make_response();
@@ -771,7 +758,7 @@ QByteArray YogiSession::handle_monitor_received_publish_messages_request(const Q
             break;
 
         default:
-            return make_response(RES_INVALID_TERMINAL_TYPE);
+            return make_response(session_services::Service::RES_INVALID_TERMINAL_TYPE);
         }
 
         auto response = make_response();
@@ -819,7 +806,7 @@ QByteArray YogiSession::handle_scatter_gather_request(const QByteArray& request)
             break;
 
         default:
-            return make_response(RES_INVALID_TERMINAL_TYPE);
+            return make_response(session_services::Service::RES_INVALID_TERMINAL_TYPE);
         }
 
         return make_response() + helpers::to_byte_array(opId);
@@ -839,7 +826,7 @@ QByteArray YogiSession::handle_monitor_received_scatter_messages_request(const Q
             break;
 
         default:
-            return make_response(RES_INVALID_TERMINAL_TYPE);
+            return make_response(session_services::Service::RES_INVALID_TERMINAL_TYPE);
         }
 
         return make_response();
@@ -859,7 +846,7 @@ QByteArray YogiSession::handle_respond_to_scattered_message_request(const QByteA
             return respond_to_scattered_message(info.scRequests, opId, request);
 
         default:
-            return make_response(RES_INVALID_TERMINAL_TYPE);
+            return make_response(session_services::Service::RES_INVALID_TERMINAL_TYPE);
         }
     });
 }
@@ -877,7 +864,7 @@ QByteArray YogiSession::handle_ignore_scattered_message_request(const QByteArray
             return ignore_scattered_message(info.scRequests, opId);
 
         default:
-            return make_response(RES_INVALID_TERMINAL_TYPE);
+            return make_response(session_services::Service::RES_INVALID_TERMINAL_TYPE);
         }
     });
 }
@@ -885,7 +872,7 @@ QByteArray YogiSession::handle_ignore_scattered_message_request(const QByteArray
 QByteArray YogiSession::handle_start_custom_command_request(const QByteArray& request)
 {
     if (request.size() < 2 || request[request.size() - 1] != '\0') {
-        return make_response(RES_INVALID_REQUEST);
+        return make_response(session_services::Service::RES_INVALID_REQUEST);
     }
 
     auto parts = request.mid(1, request.length() - 2).split('\0');
@@ -898,7 +885,7 @@ QByteArray YogiSession::handle_start_custom_command_request(const QByteArray& re
     auto command = commands::CustomCommandService::instance().start_command(cmd, args);
 
     if (!command) {
-        return make_response(RES_INVALID_REQUEST);
+        return make_response(session_services::Service::RES_INVALID_REQUEST);
     }
 
     QMutexLocker lock(&m_commandLutMutex);
@@ -918,7 +905,7 @@ QByteArray YogiSession::handle_terminate_custom_command_request(const QByteArray
 
     QMutexLocker lock(&m_commandLutMutex);
     bool erased = m_commandLut.remove(cmdId) > 0;
-    return make_response(erased ? RES_OK : RES_INVALID_COMMAND_ID);
+    return make_response(erased ? session_services::Service::RES_OK : session_services::Service::RES_INVALID_COMMAND_ID);
 }
 
 QByteArray YogiSession::handle_write_custom_command_stdin(const QByteArray& request)
@@ -932,7 +919,7 @@ QByteArray YogiSession::handle_write_custom_command_stdin(const QByteArray& requ
     QMutexLocker lock(&m_commandLutMutex);
     auto it = m_commandLut.find(cmdId);
     if (it == m_commandLut.end()) {
-        return make_response(RES_INVALID_COMMAND_ID);
+        return make_response(session_services::Service::RES_INVALID_COMMAND_ID);
     }
 
     (*it)->write_stdin(request.mid(5));
@@ -945,7 +932,7 @@ void YogiSession::on_binding_state_changed(BindingInfo& info, yogi::binding_stat
     QByteArray data;
     data += helpers::to_byte_array(info.id);
     data += helpers::to_byte_array(state);
-    emit(notify_client(m_socket, make_response(MON_BINDING_STATE_CHANGED) + data));
+    emit(notify_client(m_socket, make_response(session_services::Service::MON_BINDING_STATE_CHANGED) + data));
 }
 
 void YogiSession::on_builtin_binding_state_changed(TerminalInfo& info, yogi::binding_state state)
@@ -953,7 +940,7 @@ void YogiSession::on_builtin_binding_state_changed(TerminalInfo& info, yogi::bin
     QByteArray data;
     data += helpers::to_byte_array(info.id);
     data += helpers::to_byte_array(state);
-    emit(notify_client(m_socket, make_response(MON_BUILTIN_BINDING_STATE_CHANGED) + data));
+    emit(notify_client(m_socket, make_response(session_services::Service::MON_BUILTIN_BINDING_STATE_CHANGED) + data));
 }
 
 void YogiSession::on_subscription_state_changed(TerminalInfo& info, yogi::subscription_state state)
@@ -961,7 +948,7 @@ void YogiSession::on_subscription_state_changed(TerminalInfo& info, yogi::subscr
     QByteArray data;
     data += helpers::to_byte_array(info.id);
     data += helpers::to_byte_array(state);
-    emit(notify_client(m_socket, make_response(MON_SUBSCRIPTION_STATE_CHANGED) + data));
+    emit(notify_client(m_socket, make_response(session_services::Service::MON_SUBSCRIPTION_STATE_CHANGED) + data));
 }
 
 void YogiSession::on_published_message_received(TerminalInfo& info, const std::vector<char>& payload, yogi::cached_flag cached)
@@ -969,7 +956,7 @@ void YogiSession::on_published_message_received(TerminalInfo& info, const std::v
     QByteArray data;
     data += helpers::to_byte_array(info.id);
     data.append(payload.data(), static_cast<int>(payload.size()));
-    emit(notify_client(m_socket, make_response(MON_PUBLISHED_MESSAGE_RECEIVED) + data));
+    emit(notify_client(m_socket, make_response(session_services::Service::MON_PUBLISHED_MESSAGE_RECEIVED) + data));
 }
 
 void YogiSession::on_cached_published_message_received(TerminalInfo& info, const std::vector<char>& payload, yogi::cached_flag cached)
@@ -978,7 +965,7 @@ void YogiSession::on_cached_published_message_received(TerminalInfo& info, const
     data += helpers::to_byte_array(info.id);
     data += helpers::to_byte_array(cached);
     data.append(payload.data(), static_cast<int>(payload.size()));
-    emit(notify_client(m_socket, make_response(MON_CACHED_PUBLISHED_MESSAGE_RECEIVED) + data));
+    emit(notify_client(m_socket, make_response(session_services::Service::MON_CACHED_PUBLISHED_MESSAGE_RECEIVED) + data));
 }
 
 void YogiSession::on_scattered_message_received(TerminalInfo& info, yogi::RawScatterGatherTerminal::ScatteredMessage&& msg)
@@ -1049,7 +1036,7 @@ void YogiSession::on_dns_lookup_finished(QHostInfo info)
 	json += "}";
 
 	auto data = helpers::to_byte_array(info.lookupId()) + json;
-	emit(notify_client(m_socket, make_response(ASY_DNS_LOOKUP) + data));
+	emit(notify_client(m_socket, make_response(session_services::Service::ASY_DNS_LOOKUP) + data));
 }
 
 void YogiSession::on_process_update(commands::CustomCommandService::Command* command, QProcess::ProcessState state, QByteArray out, QByteArray err, int exitCode, QProcess::ProcessError error)
@@ -1087,7 +1074,7 @@ void YogiSession::on_process_update(commands::CustomCommandService::Command* com
     default:                                    data += helpers::to_byte_array(""s);                break;
     }
 
-    emit(notify_client(m_socket, make_response(ASY_CUSTOM_COMMAND_STATE) + data));
+    emit(notify_client(m_socket, make_response(session_services::Service::ASY_CUSTOM_COMMAND_STATE) + data));
 }
 
 void YogiSession::handle_received_sg_scatter_message(TerminalInfo* info, std::shared_ptr<yogi::RawScatterGatherTerminal::ScatteredMessage> msg)
@@ -1102,7 +1089,7 @@ void YogiSession::handle_received_sg_scatter_message(TerminalInfo* info, std::sh
         info->sgScatteredMessages.emplace(std::make_pair(msg->operation_id(), std::move(*msg)));
     }}
 
-    emit(notify_client(m_socket, make_response(MON_SCATTERED_MESSAGE_RECEIVED) + data));
+    emit(notify_client(m_socket, make_response(session_services::Service::MON_SCATTERED_MESSAGE_RECEIVED) + data));
 }
 
 void YogiSession::handle_received_sg_gather_message(TerminalInfo* info, std::shared_ptr<yogi::RawScatterGatherTerminal::GatheredMessage> msg)
@@ -1118,7 +1105,7 @@ void YogiSession::handle_received_sg_gather_message(TerminalInfo* info, std::sha
         info->sgOperations.erase(msg->operation_id());
     }
 
-    emit(notify_client(m_socket, make_response(MON_GATHERED_MESSAGE_RECEIVED) + data));
+    emit(notify_client(m_socket, make_response(session_services::Service::MON_GATHERED_MESSAGE_RECEIVED) + data));
 }
 
 void YogiSession::handle_received_sc_request(TerminalInfo* info, std::shared_ptr<yogi::RawServiceTerminal::Request> request)
@@ -1133,7 +1120,7 @@ void YogiSession::handle_received_sc_request(TerminalInfo* info, std::shared_ptr
         info->scRequests.emplace(std::make_pair(request->operation_id(), std::move(*request)));
     }}
 
-    emit(notify_client(m_socket, make_response(MON_SCATTERED_MESSAGE_RECEIVED) + data));
+    emit(notify_client(m_socket, make_response(session_services::Service::MON_SCATTERED_MESSAGE_RECEIVED) + data));
 }
 
 void YogiSession::handle_received_sc_response(TerminalInfo* info, std::shared_ptr<yogi::RawClientTerminal::Response> response)
@@ -1149,7 +1136,7 @@ void YogiSession::handle_received_sc_response(TerminalInfo* info, std::shared_pt
         info->scOperations.erase(response->operation_id());
     }
 
-    emit(notify_client(m_socket, make_response(MON_GATHERED_MESSAGE_RECEIVED) + data));
+    emit(notify_client(m_socket, make_response(session_services::Service::MON_GATHERED_MESSAGE_RECEIVED) + data));
 }
 
 } // namespace yogi_network

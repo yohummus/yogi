@@ -17,7 +17,7 @@ HttpServer::HttpServer(const yogi::ConfigurationChild& config)
 {
     qRegisterMetaType<http_services::status_code>("http_services::status_code");
 
-    start_listening();
+    connect(m_server, SIGNAL(newConnection()), this, SLOT(on_new_connection()));
 }
 
 HttpServer::~HttpServer()
@@ -44,6 +44,11 @@ void HttpServer::add_service(const http_services::service_ptr& service, const QS
     }
 
     m_services.insert(uriRoot, service);
+}
+
+void HttpServer::start()
+{
+    start_listening();
 }
 
 bool HttpServer::parse_request_line(const QString& requestLine, Request* request)
@@ -117,13 +122,14 @@ const QString& HttpServer::status_code_to_header(http_services::status_code stat
 void HttpServer::start_listening()
 {
     auto addrStr = m_config.get<std::string>("address");
-    auto address = (addrStr == "any" || addrStr == "0.0.0.0" || addrStr == "::") ? QHostAddress::Any : QHostAddress(QString::fromStdString(addrStr));
+    auto address = (addrStr == "any" || addrStr == "0.0.0.0" || addrStr == "::")
+                 ? QHostAddress::Any
+                 : QHostAddress(QString::fromStdString(addrStr));
     auto port    = m_config.get<std::uint16_t>("port");
     auto infoStr = addrStr + ":" + std::to_string(port);
 
     if (m_server->listen(address, port)) {
         YOGI_LOG_INFO(m_logger, "HTTP server listening on " << infoStr);
-        connect(m_server, SIGNAL(newConnection()), this, SLOT(on_new_connection()));
     }
     else {
         throw std::runtime_error("Listening on "s + infoStr + " failed: " + m_server->errorString().toStdString());

@@ -3,7 +3,6 @@
 #include "web_servers/WebSocketServer.hh"
 #include "yogi_network/YogiTcpClient.hh"
 #include "yogi_network/YogiTcpServer.hh"
-#include "yogi_network/KnownTerminalsMonitor.hh"
 #include "commands/CustomCommandService.hh"
 #include "testing/TestService.hh"
 #include "http_services/ProtoCompilerService.hh"
@@ -16,6 +15,7 @@
 Process::Process(int argc, char* argv[])
 : m_pi(argc, argv, true)
 , m_node(m_pi.scheduler())
+, m_kts(m_node) // create before connection for not missing the local ProcessInterface Terminals
 , m_piConnection(m_pi.leaf(), m_node)
 , m_app(argc, argv)
 {
@@ -62,7 +62,6 @@ void Process::setup_app()
 
 void Process::setup_services()
 {
-    add_service<yogi_network::KnownTerminalsMonitor>(m_node);
     add_service<testing::TestService>(m_node);
     add_service<commands::CustomCommandService>();
 
@@ -74,7 +73,8 @@ void Process::setup_http_servers()
 {
     auto protocService = add_service_if_enabled<http_services::ProtoCompilerService>("proto-compiler");
 
-    for (auto& server : add_services_if_enabled<web_servers::HttpServer>("http-servers")) {
+    auto servers = add_services_if_enabled<web_servers::HttpServer>("http-servers");
+    for (auto& server : servers) {
         if (protocService) {
             server->add_service(protocService, "/compile");
         }
@@ -84,6 +84,8 @@ void Process::setup_http_servers()
 
         auto fileService = add_service<http_services::FileService>(server->config());
         server->add_service(fileService, "/");
+
+        server->start();
     }
 }
 
@@ -92,7 +94,11 @@ void Process::setup_ws_servers()
     auto yogiServers = add_services_if_enabled<yogi_network::YogiTcpServer>("yogi-tcp-servers", m_node);
     auto yogiClients = add_services_if_enabled<yogi_network::YogiTcpClient>("yogi-tcp-clients", m_node);
 
-    add_services_if_enabled<web_servers::WebSocketServer>("ws-servers", m_node, yogiServers, yogiClients);
+    auto servers = add_services_if_enabled<web_servers::WebSocketServer>("ws-servers", m_node, yogiServers, yogiClients);
+
+    for (auto& server : servers) {
+        server->start();
+    };
 }
 
 template <typename Service, typename... Args>
