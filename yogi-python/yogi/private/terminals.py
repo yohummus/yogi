@@ -161,6 +161,9 @@ class Operation:
         return self._operation_id is not None
 
     def cancel(self):
+        if self._operation_id is None:
+            raise Exception('Operation has already been canceled')
+
         self.terminal._cancel_scatter_gather_api_fn(self.terminal._handle, self._operation_id)
         self._operation_id = None
 
@@ -194,6 +197,9 @@ class ScatteredMessage:
         if not terminal:
             raise Exception('Terminal has been destroyed')
 
+        if self._operation_id is None:
+            raise Exception('Message has already been responded to or ignored')
+
         if terminal._proto_module:
             data = msg.SerializeToString()
         else:
@@ -207,6 +213,9 @@ class ScatteredMessage:
         terminal = self.terminal
         if not terminal:
             raise Exception('Terminal has been destroyed')
+
+        if self._operation_id is None:
+            raise Exception('Message has already been responded to or ignored')
 
         terminal._ignore_scattered_message_api_fn(terminal._handle, self._operation_id)
         self._operation_id = None
