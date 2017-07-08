@@ -36,6 +36,7 @@ public:
     ~YogiSession();
 
     yogi::Node& node();
+    const QWebSocket& socket() const;
 
     QByteArray handle_request(QByteArray* request);
     void notify_client(session_services::Service::response_type notificationType, const QByteArray& data);

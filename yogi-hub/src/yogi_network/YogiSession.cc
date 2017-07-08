@@ -3,7 +3,10 @@
 #include "../helpers/ostream.hh"
 #include "../helpers/read_from_stream.hh"
 #include "../helpers/to_byte_array.hh"
+#include "../session_services/DnsService.hh"
 #include "../session_services/KnownTerminalsService.hh"
+#include "../session_services/TimeService.hh"
+#include "../session_services/VersionService.hh"
 
 #include <QtDebug>
 #include <QDataStream>
@@ -55,7 +58,10 @@ YogiSession::YogiSession(QWebSocket* socket, yogi::Node& node, const QString& cl
     m_qtConnections.append(connect(this, &YogiSession::received_sc_response,        this, &YogiSession::handle_received_sc_response));
 
     using namespace session_services;
+    add_service<DnsService>();
     add_service<KnownTerminalsService>();
+    add_service<TimeService>();
+    add_service<VersionService>();
 }
 
 YogiSession::~YogiSession()
@@ -74,28 +80,25 @@ yogi::Node& YogiSession::node()
     return m_node;
 }
 
+const QWebSocket& YogiSession::socket() const
+{
+    return *m_socket;
+}
+
 QByteArray YogiSession::handle_request(QByteArray* request)
 {
     try {
         if (!request->isEmpty()) {
             auto requestType = static_cast<session_services::Service::request_type>(request->at(0));
-            switch (requestType) {
-            case session_services::Service::REQ_VERSION:
-                return handle_version_request(*request);
 
-            case session_services::Service::REQ_CURRENT_TIME:
-                return handle_current_time_request(*request);
-
-            case session_services::Service::REQ_TEST_COMMAND:
-                return handle_test_command(*request);
-
-            case session_services::Service::REQ_KNOWN_TERMINALS:
-            case session_services::Service::REQ_KNOWN_TERMINALS_SUBTREE:
-		    case session_services::Service::REQ_FIND_KNOWN_TERMINALS:
-            case session_services::Service::REQ_MONITOR_KNOWN_TERMINALS: {{
+            if (requestType < m_requestHandlerLut.size() && m_requestHandlerLut[requestType]) {
                 auto response = m_requestHandlerLut[requestType](request);
                 return make_response(response.first) + response.second;
-            }}
+            }
+
+            switch (requestType) {
+            case session_services::Service::REQ_TEST_COMMAND:
+                return handle_test_command(*request);
 
             case session_services::Service::REQ_CONNECTION_FACTORIES:
                 return handle_connection_factories_request(*request);
@@ -105,12 +108,6 @@ QByteArray YogiSession::handle_request(QByteArray* request)
 
             case session_services::Service::REQ_MONITOR_CONNECTIONS:
                 return handle_monitor_connections_request(*request);
-
-            case session_services::Service::REQ_CLIENT_ADDRESS:
-                return handle_client_address_request(*request);
-
-		    case session_services::Service::REQ_START_DNS_LOOKUP:
-			    return handle_dns_lookup_request(*request);
 
             case session_services::Service::REQ_CREATE_TERMINAL:
                 return handle_create_terminal_request(*request);
@@ -159,6 +156,9 @@ QByteArray YogiSession::handle_request(QByteArray* request)
 
             case session_services::Service::REQ_WRITE_CUSTOM_COMMAND_STDIN:
                 return handle_write_custom_command_stdin(*request);
+
+            default:
+                break;
             }
         }
     }
