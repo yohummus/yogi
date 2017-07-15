@@ -4,7 +4,6 @@
 #include "YogiTcpClient.hh"
 #include "YogiTcpServer.hh"
 #include "../session_services/Service.hh"
-#include "../commands/CustomCommandService.hh"
 
 #include <yogi.hpp>
 
@@ -13,7 +12,6 @@
 #include <QWebSocket>
 #include <QMetaObject>
 #include <QMutex>
-#include <QHostInfo>
 
 #include <chrono>
 #include <unordered_map>
@@ -82,9 +80,8 @@ private:
         BindingInfo(yogi::PrimitiveTerminal& terminal, const char* targets);
     };
 
-    typedef QMap<unsigned, std::shared_ptr<TerminalInfo>>                            terminal_lut;
-    typedef QMap<unsigned, std::shared_ptr<BindingInfo>>                             binding_lut;
-    typedef QMap<unsigned, std::shared_ptr<commands::CustomCommandService::Command>> command_lut;
+    typedef QMap<unsigned, std::shared_ptr<TerminalInfo>> terminal_lut;
+    typedef QMap<unsigned, std::shared_ptr<BindingInfo>>  binding_lut;
 
     yogi::Logger                     m_logger;
     const QString                    m_logPrefix;
@@ -108,10 +105,6 @@ private:
     binding_lut                      m_bindingLut;
     QMutex                           m_bindingLutMutex;
 
-    unsigned                         m_lastCommandId;
-    command_lut                      m_commandLut;
-    QMutex                           m_commandLutMutex;
-
     std::vector<session_services::service_ptr>              m_services;
     std::vector<session_services::Service::request_handler> m_requestHandlerLut;
 
@@ -129,14 +122,10 @@ private:
     template <typename MessageMap> QByteArray respond_to_scattered_message(MessageMap& messages, yogi::raw_operation_id opId, const QByteArray& request);
     template <typename MessageMap> QByteArray ignore_scattered_message(MessageMap& messages, yogi::raw_operation_id opId);
 
-    QByteArray handle_version_request(const QByteArray& request);
-    QByteArray handle_current_time_request(const QByteArray& request);
     QByteArray handle_test_command(const QByteArray& request);
     QByteArray handle_connection_factories_request(const QByteArray& request);
     QByteArray handle_connections_request(const QByteArray& request);
     QByteArray handle_monitor_connections_request(const QByteArray& request);
-    QByteArray handle_client_address_request(const QByteArray& request);
-	QByteArray handle_dns_lookup_request(const QByteArray& request);
     QByteArray handle_create_terminal_request(const QByteArray& request);
     QByteArray handle_destroy_terminal_request(const QByteArray& request);
     QByteArray handle_create_binding_request(const QByteArray& request);
@@ -150,9 +139,6 @@ private:
     QByteArray handle_monitor_received_scatter_messages_request(const QByteArray& request);
     QByteArray handle_respond_to_scattered_message_request(const QByteArray& request);
     QByteArray handle_ignore_scattered_message_request(const QByteArray& request);
-    QByteArray handle_start_custom_command_request(const QByteArray& request);
-    QByteArray handle_terminate_custom_command_request(const QByteArray& request);
-    QByteArray handle_write_custom_command_stdin(const QByteArray& request);
 
     void on_binding_state_changed(BindingInfo& info, yogi::binding_state state);
     void on_builtin_binding_state_changed(TerminalInfo& info, yogi::binding_state state);
@@ -165,8 +151,6 @@ private:
     yogi::control_flow on_response_received(TerminalInfo& info, const yogi::Result& result, yogi::RawClientTerminal::Response&& response);
 
 private Q_SLOTS:
-	void on_dns_lookup_finished(QHostInfo info);
-    void on_process_update(commands::CustomCommandService::Command* command, QProcess::ProcessState state, QByteArray out, QByteArray err, int exitCode, QProcess::ProcessError error);
     void handle_received_sg_scatter_message(TerminalInfo* info, std::shared_ptr<yogi::RawScatterGatherTerminal::ScatteredMessage> msg);
     void handle_received_sg_gather_message(TerminalInfo* info, std::shared_ptr<yogi::RawScatterGatherTerminal::GatheredMessage> msg);
     void handle_received_sc_request(TerminalInfo* info, std::shared_ptr<yogi::RawServiceTerminal::Request> request);

@@ -3,11 +3,11 @@
 #include "web_servers/WebSocketServer.hh"
 #include "yogi_network/YogiTcpClient.hh"
 #include "yogi_network/YogiTcpServer.hh"
-#include "commands/CustomCommandService.hh"
 #include "testing/TestService.hh"
 #include "http_services/ProtoCompilerService.hh"
 #include "http_services/QueryService.hh"
 #include "http_services/FileService.hh"
+#include "session_services/CustomCommandService.hh"
 
 #include <csignal>
 
@@ -62,8 +62,9 @@ void Process::setup_app()
 
 void Process::setup_services()
 {
+    session_services::CustomCommandService::extract_command_details_from_config();
+
     add_service<testing::TestService>(m_node);
-    add_service<commands::CustomCommandService>();
 
     setup_http_servers();
     setup_ws_servers();

@@ -28,8 +28,8 @@ private:
 
     yogi::Logger           m_logger;
     QMap<QString, QString> m_routes;
-    bool					m_gzipEnabled;
-	QString                 m_gzipExecutable;
+    bool                   m_gzipEnabled;
+	QString                m_gzipExecutable;
 
     static QString get_mime_type_for_file(const QString& filePath);
 

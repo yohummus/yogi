@@ -5,6 +5,7 @@
 #include "../helpers/to_byte_array.hh"
 #include "../session_services/DnsService.hh"
 #include "../session_services/KnownTerminalsService.hh"
+#include "../session_services/CustomCommandService.hh"
 #include "../session_services/TimeService.hh"
 #include "../session_services/VersionService.hh"
 
@@ -12,15 +13,12 @@
 #include <QDataStream>
 #include <QIODevice>
 
-#include <yogi_core.h>
-
 #include <cassert>
 #include <memory>
 using namespace std::string_literals;
 
 #define TERMINAL_INFO_BUFFER_SIZE 1024
 #define MESSAGE_BUFFER_SIZE 32 * 1024
-#define KNOWN_TERMINALS_BUFFER_SIZE TERMINAL_INFO_BUFFER_SIZE * 1024
 
 
 namespace yogi_network {
@@ -41,8 +39,6 @@ YogiSession::YogiSession(QWebSocket* socket, yogi::Node& node, const QString& cl
 , m_monitoringKnownTerminals(false)
 , m_lastTerminalId(0)
 , m_lastBindingId(0)
-, m_lastCommandId(0)
-, m_commandLutMutex(QMutex::RecursionMode::Recursive)
 {
     YOGI_LOG_INFO(m_logger, "YOGI session for " << m_clientIdentification << " started");
 
@@ -51,7 +47,6 @@ YogiSession::YogiSession(QWebSocket* socket, yogi::Node& node, const QString& cl
     qRegisterMetaType<std::shared_ptr<yogi::RawServiceTerminal::Request>>("std::shared_ptr<yogi::RawServiceTerminal::Request>");
     qRegisterMetaType<std::shared_ptr<yogi::RawClientTerminal::Response>>("std::shared_ptr<yogi::RawClientTerminal::Response>");
 
-    m_qtConnections.append(connect(&commands::CustomCommandService::instance(), &commands::CustomCommandService::process_update, this, &YogiSession::on_process_update));
     m_qtConnections.append(connect(this, &YogiSession::received_sg_scatter_message, this, &YogiSession::handle_received_sg_scatter_message));
     m_qtConnections.append(connect(this, &YogiSession::received_sg_gather_message,  this, &YogiSession::handle_received_sg_gather_message));
     m_qtConnections.append(connect(this, &YogiSession::received_sc_request,         this, &YogiSession::handle_received_sc_request));
@@ -60,6 +55,7 @@ YogiSession::YogiSession(QWebSocket* socket, yogi::Node& node, const QString& cl
     using namespace session_services;
     add_service<DnsService>();
     add_service<KnownTerminalsService>();
+    add_service<CustomCommandService>();
     add_service<TimeService>();
     add_service<VersionService>();
 }
@@ -147,15 +143,6 @@ QByteArray YogiSession::handle_request(QByteArray* request)
 
             case session_services::Service::REQ_IGNORE_SCATTERED_MESSAGE:
                 return handle_ignore_scattered_message_request(*request);
-
-            case session_services::Service::REQ_START_CUSTOM_COMMAND:
-                return handle_start_custom_command_request(*request);
-
-            case session_services::Service::REQ_TERMINATE_CUSTOM_COMMAND:
-                return handle_terminate_custom_command_request(*request);
-
-            case session_services::Service::REQ_WRITE_CUSTOM_COMMAND_STDIN:
-                return handle_write_custom_command_stdin(*request);
 
             default:
                 break;
@@ -356,16 +343,6 @@ QByteArray YogiSession::ignore_scattered_message(MessageMap& messages, yogi::raw
     return make_response();
 }
 
-QByteArray YogiSession::handle_version_request(const QByteArray& request)
-{
-    return make_response() + yogi::get_version().c_str();
-}
-
-QByteArray YogiSession::handle_current_time_request(const QByteArray& request)
-{
-    return make_response() + helpers::to_byte_array(std::chrono::system_clock::now());
-}
-
 QByteArray YogiSession::handle_test_command(const QByteArray& request)
 {
     bool ok = testing::TestService::execute_command(request.mid(1));
@@ -425,23 +402,6 @@ QByteArray YogiSession::handle_monitor_connections_request(const QByteArray& req
     m_monitoringConnections = true;
 
     return make_response() + make_connections_byte_array();
-}
-
-QByteArray YogiSession::handle_client_address_request(const QByteArray& request)
-{
-    auto addr = m_socket->peerAddress().toString();
-    return make_response() + helpers::to_byte_array(addr);
-}
-
-QByteArray YogiSession::handle_dns_lookup_request(const QByteArray& request)
-{
-	if (request.size() < 2 || request[request.size() - 1] != '\0') {
-		return make_response(session_services::Service::RES_INVALID_REQUEST);
-	}
-
-	int id = QHostInfo::lookupHost(request.mid(1), this, SLOT(on_dns_lookup_finished(QHostInfo)));
-
-	return make_response() + helpers::to_byte_array(id);
 }
 
 QByteArray YogiSession::handle_create_terminal_request(const QByteArray& request)
@@ -869,64 +829,6 @@ QByteArray YogiSession::handle_ignore_scattered_message_request(const QByteArray
     });
 }
 
-QByteArray YogiSession::handle_start_custom_command_request(const QByteArray& request)
-{
-    if (request.size() < 2 || request[request.size() - 1] != '\0') {
-        return make_response(session_services::Service::RES_INVALID_REQUEST);
-    }
-
-    auto parts = request.mid(1, request.length() - 2).split('\0');
-    QString cmd = parts[0];
-    QStringList args;
-    for (int i = 1; i < parts.size(); ++i) {
-        args.push_back(parts[i]);
-    }
-
-    auto command = commands::CustomCommandService::instance().start_command(cmd, args);
-
-    if (!command) {
-        return make_response(session_services::Service::RES_INVALID_REQUEST);
-    }
-
-    QMutexLocker lock(&m_commandLutMutex);
-    auto id = ++m_lastCommandId;
-    m_commandLut.insert(id, std::move(command));
-
-    return make_response() + helpers::to_byte_array(id);
-}
-
-QByteArray YogiSession::handle_terminate_custom_command_request(const QByteArray& request)
-{
-    QByteArray req_(request);
-    QDataStream stream(&req_, QIODevice::ReadOnly);
-    stream.skipRawData(1);
-
-    auto cmdId = helpers::read_from_stream<unsigned>(&stream);
-
-    QMutexLocker lock(&m_commandLutMutex);
-    bool erased = m_commandLut.remove(cmdId) > 0;
-    return make_response(erased ? session_services::Service::RES_OK : session_services::Service::RES_INVALID_COMMAND_ID);
-}
-
-QByteArray YogiSession::handle_write_custom_command_stdin(const QByteArray& request)
-{
-    QByteArray req_(request);
-    QDataStream stream(&req_, QIODevice::ReadOnly);
-    stream.skipRawData(1);
-
-    auto cmdId = helpers::read_from_stream<unsigned>(&stream);
-
-    QMutexLocker lock(&m_commandLutMutex);
-    auto it = m_commandLut.find(cmdId);
-    if (it == m_commandLut.end()) {
-        return make_response(session_services::Service::RES_INVALID_COMMAND_ID);
-    }
-
-    (*it)->write_stdin(request.mid(5));
-
-    return make_response();
-}
-
 void YogiSession::on_binding_state_changed(BindingInfo& info, yogi::binding_state state)
 {
     QByteArray data;
@@ -1002,79 +904,6 @@ yogi::control_flow YogiSession::on_response_received(TerminalInfo& info, const y
     emit(received_sc_response(&info, response_));
 
     return yogi::control_flow::CONTINUE;
-}
-
-void YogiSession::on_dns_lookup_finished(QHostInfo info)
-{
-	QByteArray json;
-	json += "{";
-
-	json += "\"error\":";
-	if (info.error() == QHostInfo::NoError) {
-		json += "null";
-	}
-	else {
-		json += "\"" + info.errorString() + "\"";
-	}
-
-	json += ",";
-
-	json += "\"addresses\":[";
-	if (!info.addresses().empty()) {
-		for (auto& address : info.addresses()) {
-			json += "\"" + address.toString() + "\",";
-		}
-
-		json.chop(1);
-	}
-	json += "]";
-
-	json += ",";
-
-	json += "\"hostname\":\"" + info.hostName() + "\"";
-
-	json += "}";
-
-	auto data = helpers::to_byte_array(info.lookupId()) + json;
-	emit(notify_client(m_socket, make_response(session_services::Service::ASY_DNS_LOOKUP) + data));
-}
-
-void YogiSession::on_process_update(commands::CustomCommandService::Command* command, QProcess::ProcessState state, QByteArray out, QByteArray err, int exitCode, QProcess::ProcessError error)
-{
-    QMutexLocker lock(&m_commandLutMutex);
-
-    auto cmdIt = m_commandLut.begin();
-    while (cmdIt != m_commandLut.end()) {
-        if (cmdIt->get() == command) {
-            break;
-        }
-
-        ++cmdIt;
-    }
-
-    if (cmdIt == m_commandLut.end()) {
-        return;
-    }
-
-    QByteArray data;
-    data += helpers::to_byte_array(cmdIt.key());
-    data += helpers::to_byte_array(state == QProcess::ProcessState::Running);
-    data += helpers::to_byte_array(exitCode);
-    data += helpers::to_byte_array(out.size());
-    data += out;
-    data += helpers::to_byte_array(err.size());
-    data += err;
-
-    switch (error) {
-    case QProcess::ProcessError::FailedToStart: data += helpers::to_byte_array("Failed to start"s); break;
-    case QProcess::ProcessError::Crashed:       data += helpers::to_byte_array("Crashed"s);         break;
-    case QProcess::ProcessError::Timedout:      data += helpers::to_byte_array("Timed out"s);       break;
-    case QProcess::ProcessError::ReadError:     data += helpers::to_byte_array("Read error"s);      break;
-    case QProcess::ProcessError::WriteError:    data += helpers::to_byte_array("Write error"s);     break;
-    default:                                    data += helpers::to_byte_array(""s);                break;
-    }
-
-    emit(notify_client(m_socket, make_response(session_services::Service::ASY_CUSTOM_COMMAND_STATE) + data));
 }
 
 void YogiSession::handle_received_sg_scatter_message(TerminalInfo* info, std::shared_ptr<yogi::RawScatterGatherTerminal::ScatteredMessage> msg)

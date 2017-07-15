@@ -12,7 +12,7 @@
         "HTTP Server": "TRACE",
         "WS Server": "TRACE",
         "Proto Compiler Service": "TRACE",
-        "Known Terminals Monitor": "TRACE",
+        "Known Terminals Service": "INFO",
         "Query Service": "TRACE",
         "File Service": "TRACE",
         "Custom Command Service": "TRACE",
