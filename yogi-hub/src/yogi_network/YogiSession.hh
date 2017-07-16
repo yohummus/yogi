@@ -1,8 +1,6 @@
 #ifndef YOGI_NETWORK_YOGISESSION_HH
 #define YOGI_NETWORK_YOGISESSION_HH
 
-#include "YogiTcpClient.hh"
-#include "YogiTcpServer.hh"
 #include "../session_services/Service.hh"
 
 #include <yogi.hpp>
@@ -26,11 +24,7 @@ class YogiSession : public QObject
     struct TerminalInfo;
 
 public:
-    typedef std::vector<std::shared_ptr<yogi_network::YogiTcpServer>> yogi_servers_vector;
-    typedef std::vector<std::shared_ptr<yogi_network::YogiTcpClient>> yogi_clients_vector;
-
-    YogiSession(QWebSocket* socket, yogi::Node& node, const QString& clientIdentification,
-        const yogi_servers_vector& yogiServers, const yogi_clients_vector& yogiClients, QObject* parent);
+    YogiSession(QWebSocket* socket, yogi::Node& node, const QString& clientIdentification, QObject* parent);
     ~YogiSession();
 
     yogi::Node& node();
@@ -47,11 +41,6 @@ Q_SIGNALS:
     void notify_client(QWebSocket*, QByteArray);
 
 private:
-    enum ConnectionFactoryType {
-        CFT_TCP_CLIENT = 0,
-        CFT_TCP_SERVER
-    };
-
     typedef std::unordered_map<yogi::raw_operation_id, yogi::RawScatterGatherTerminal::Operation>        sg_operations_map;
     typedef std::unordered_map<yogi::raw_operation_id, yogi::RawScatterGatherTerminal::ScatteredMessage> sg_scattered_messages_map;
     typedef std::unordered_map<yogi::raw_operation_id, yogi::RawClientTerminal::Operation>               sc_operations_map;
@@ -90,11 +79,6 @@ private:
     yogi::Node&                      m_node;
     yogi::Leaf                       m_leaf;
     yogi::LocalConnection            m_connection;
-    const yogi_servers_vector        m_yogiServers;
-    const yogi_clients_vector        m_yogiClients;
-    bool                             m_monitoringConnections;
-    bool                             m_monitoringKnownTerminals;
-    QByteArray                       m_monitorKnownTerminalsBuffer;
     QVector<QMetaObject::Connection> m_qtConnections;
 
     unsigned                         m_lastTerminalId;
@@ -109,11 +93,6 @@ private:
     std::vector<session_services::Service::request_handler> m_requestHandlerLut;
 
     static QByteArray make_response(session_services::Service::response_type status = session_services::Service::RES_OK);
-    QByteArray to_byte_array(YogiTcpClient::ServerInformation info);
-    QByteArray to_byte_array(YogiTcpServer::ClientInformation info);
-    QByteArray make_connections_byte_array();
-    char make_idx(const std::shared_ptr<YogiTcpClient>& client);
-    char make_idx(const std::shared_ptr<YogiTcpServer>& server);
     template <typename Service> void add_service();
     template <typename Fn> QByteArray use_terminal(QByteArray request, Fn fn);
     template <typename Terminal> void create_message_observer_and_add_callback(TerminalInfo& info, void (YogiSession::*fn)(TerminalInfo&, const std::vector<char>&, yogi::cached_flag));
@@ -123,9 +102,6 @@ private:
     template <typename MessageMap> QByteArray ignore_scattered_message(MessageMap& messages, yogi::raw_operation_id opId);
 
     QByteArray handle_test_command(const QByteArray& request);
-    QByteArray handle_connection_factories_request(const QByteArray& request);
-    QByteArray handle_connections_request(const QByteArray& request);
-    QByteArray handle_monitor_connections_request(const QByteArray& request);
     QByteArray handle_create_terminal_request(const QByteArray& request);
     QByteArray handle_destroy_terminal_request(const QByteArray& request);
     QByteArray handle_create_binding_request(const QByteArray& request);

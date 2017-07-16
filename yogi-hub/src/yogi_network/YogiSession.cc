@@ -8,6 +8,7 @@
 #include "../session_services/CustomCommandService.hh"
 #include "../session_services/TimeService.hh"
 #include "../session_services/VersionService.hh"
+#include "../session_services/ConnectionsService.hh"
 
 #include <QtDebug>
 #include <QDataStream>
@@ -23,8 +24,7 @@ using namespace std::string_literals;
 
 namespace yogi_network {
 
-YogiSession::YogiSession(QWebSocket* socket, yogi::Node& node, const QString& clientIdentification,
-    const yogi_servers_vector& yogiServers, const yogi_clients_vector& yogiClients, QObject* parent)
+YogiSession::YogiSession(QWebSocket* socket, yogi::Node& node, const QString& clientIdentification, QObject* parent)
 : QObject(parent)
 , m_logger("Yogi Session")
 , m_logPrefix(clientIdentification + ':')
@@ -33,10 +33,6 @@ YogiSession::YogiSession(QWebSocket* socket, yogi::Node& node, const QString& cl
 , m_node(node)
 , m_leaf(yogi::ProcessInterface::scheduler())
 , m_connection(m_node, m_leaf)
-, m_yogiServers(yogiServers)
-, m_yogiClients(yogiClients)
-, m_monitoringConnections(false)
-, m_monitoringKnownTerminals(false)
 , m_lastTerminalId(0)
 , m_lastBindingId(0)
 {
@@ -58,6 +54,7 @@ YogiSession::YogiSession(QWebSocket* socket, yogi::Node& node, const QString& cl
     add_service<CustomCommandService>();
     add_service<TimeService>();
     add_service<VersionService>();
+    add_service<ConnectionsService>();
 }
 
 YogiSession::~YogiSession()
@@ -95,15 +92,6 @@ QByteArray YogiSession::handle_request(QByteArray* request)
             switch (requestType) {
             case session_services::Service::REQ_TEST_COMMAND:
                 return handle_test_command(*request);
-
-            case session_services::Service::REQ_CONNECTION_FACTORIES:
-                return handle_connection_factories_request(*request);
-
-            case session_services::Service::REQ_CONNECTIONS:
-                return handle_connections_request(*request);
-
-            case session_services::Service::REQ_MONITOR_CONNECTIONS:
-                return handle_monitor_connections_request(*request);
 
             case session_services::Service::REQ_CREATE_TERMINAL:
                 return handle_create_terminal_request(*request);
@@ -180,60 +168,6 @@ YogiSession::BindingInfo::BindingInfo(yogi::PrimitiveTerminal& terminal, const c
 QByteArray YogiSession::make_response(session_services::Service::response_type status)
 {
     return QByteArray(1, status);
-}
-
-QByteArray YogiSession::to_byte_array(YogiTcpClient::ServerInformation info)
-{
-    QByteArray data;
-    data += static_cast<char>(info.connected ? 1 : 0);
-    data += info.description + '\0';
-    data += info.remoteVersion + '\0';
-    data += helpers::to_byte_array(info.stateChangedTime);
-    return data;
-}
-
-QByteArray YogiSession::to_byte_array(YogiTcpServer::ClientInformation info)
-{
-    QByteArray data;
-    data += static_cast<char>(info.connected ? 1 : 0);
-    data += info.description + '\0';
-    data += info.remoteVersion + '\0';
-    data += helpers::to_byte_array(info.stateChangedTime);
-    return data;
-}
-
-QByteArray YogiSession::make_connections_byte_array()
-{
-    QByteArray data;
-
-    for (auto client : m_yogiClients) {
-        data += make_idx(client);
-        data += to_byte_array(client->connection());
-    }
-
-    for (auto server : m_yogiServers) {
-        auto idx = make_idx(server);
-        for (auto connection : server->connections()) {
-            data += idx;
-            data += to_byte_array(connection);
-        }
-    }
-
-    return data;
-}
-
-char YogiSession::make_idx(const std::shared_ptr<YogiTcpClient>& client)
-{
-    auto begin = m_yogiClients.begin();
-    auto end = m_yogiClients.end();
-    return static_cast<char>(1 + std::distance(begin, std::find(begin, end, client)));
-}
-
-char YogiSession::make_idx(const std::shared_ptr<YogiTcpServer>& server)
-{
-    auto begin = m_yogiServers.begin();
-    auto end = m_yogiServers.end();
-    return static_cast<char>(1 + m_yogiClients.size() + std::distance(begin, std::find(begin, end, server)));
 }
 
 template <typename Service>
@@ -347,61 +281,6 @@ QByteArray YogiSession::handle_test_command(const QByteArray& request)
 {
     bool ok = testing::TestService::execute_command(request.mid(1));
     return make_response(ok ? session_services::Service::RES_OK : session_services::Service::RES_INVALID_REQUEST);
-}
-
-QByteArray YogiSession::handle_connection_factories_request(const QByteArray& request)
-{
-    QByteArray data;
-
-    for (auto client : m_yogiClients) {
-        data += static_cast<char>(CFT_TCP_CLIENT);
-        data += make_idx(client);
-        data += helpers::to_byte_array(client->port());
-        data += client->host() + '\0';
-    }
-
-    for (auto server : m_yogiServers) {
-        data += static_cast<char>(CFT_TCP_SERVER);
-        data += make_idx(server);
-        data += helpers::to_byte_array(server->port());
-        data += server->address() + '\0';
-    }
-
-    return make_response() + data;
-}
-
-QByteArray YogiSession::handle_connections_request(const QByteArray& request)
-{
-    return make_response() + make_connections_byte_array();
-}
-
-QByteArray YogiSession::handle_monitor_connections_request(const QByteArray& request)
-{
-    if (m_monitoringConnections) {
-        return make_response(session_services::Service::RES_ALREADY_MONITORING);
-    }
-
-    for (auto client : m_yogiClients) {
-        m_qtConnections.append(connect(&*client, &YogiTcpClient::connection_changed, [=](YogiTcpClient::ServerInformation info) {
-            QByteArray data;
-            data += make_idx(client);
-            data += to_byte_array(info);
-            emit(notify_client(m_socket, make_response(session_services::Service::MON_CONNECTION_CHANGED) + data));
-        }));
-    }
-
-    for (auto server : m_yogiServers) {
-        m_qtConnections.append(connect(&*server, &YogiTcpServer::connection_changed, [=](std::weak_ptr<yogi::TcpConnection>, YogiTcpServer::ClientInformation info) {
-            QByteArray data;
-            data += make_idx(server);
-            data += to_byte_array(info);
-            emit(notify_client(m_socket, make_response(session_services::Service::MON_CONNECTION_CHANGED) + data));
-        }));
-    }
-
-    m_monitoringConnections = true;
-
-    return make_response() + make_connections_byte_array();
 }
 
 QByteArray YogiSession::handle_create_terminal_request(const QByteArray& request)

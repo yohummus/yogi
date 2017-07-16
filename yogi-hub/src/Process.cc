@@ -8,6 +8,7 @@
 #include "http_services/QueryService.hh"
 #include "http_services/FileService.hh"
 #include "session_services/CustomCommandService.hh"
+#include "session_services/ConnectionsService.hh"
 
 #include <csignal>
 
@@ -62,8 +63,6 @@ void Process::setup_app()
 
 void Process::setup_services()
 {
-    session_services::CustomCommandService::extract_command_details_from_config();
-
     add_service<testing::TestService>(m_node);
 
     setup_http_servers();
@@ -95,7 +94,10 @@ void Process::setup_ws_servers()
     auto yogiServers = add_services_if_enabled<yogi_network::YogiTcpServer>("yogi-tcp-servers", m_node);
     auto yogiClients = add_services_if_enabled<yogi_network::YogiTcpClient>("yogi-tcp-clients", m_node);
 
-    auto servers = add_services_if_enabled<web_servers::WebSocketServer>("ws-servers", m_node, yogiServers, yogiClients);
+    session_services::CustomCommandService::extract_command_details_from_config();
+    session_services::ConnectionsService::register_factories(yogiServers, yogiClients);
+
+    auto servers = add_services_if_enabled<web_servers::WebSocketServer>("ws-servers", m_node);
 
     for (auto& server : servers) {
         server->start();

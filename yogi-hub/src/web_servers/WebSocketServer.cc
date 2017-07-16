@@ -7,12 +7,9 @@ using namespace std::string_literals;
 
 namespace web_servers {
 
-WebSocketServer::WebSocketServer(const yogi::ConfigurationChild& config, yogi::Node& node,
-    const yogi_servers_vector& yogiServers, const yogi_clients_vector& yogiClients)
+WebSocketServer::WebSocketServer(const yogi::ConfigurationChild& config, yogi::Node& node)
 : m_config(config)
 , m_node(node)
-, m_yogiServers(yogiServers)
-, m_yogiClients(yogiClients)
 , m_logger("WS Server")
 , m_server(new QWebSocketServer("YOGI Hub", QWebSocketServer::NonSecureMode, this))
 , m_updateClientsTimer(new QTimer(this))
@@ -89,8 +86,7 @@ void WebSocketServer::on_new_connection()
     connect(socket, SIGNAL(disconnected()),                           this, SLOT(on_connection_closed()));
 
     Client client;
-    client.session = new yogi_network::YogiSession(socket, m_node,
-        make_client_identification(socket), m_yogiServers, m_yogiClients, this);
+    client.session = new yogi_network::YogiSession(socket, m_node, make_client_identification(socket), this);
     m_clients.insert(socket, client);
 
     connect(client.session, SIGNAL(notify_client(QWebSocket*, QByteArray)),

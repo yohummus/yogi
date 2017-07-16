@@ -21,11 +21,7 @@ class WebSocketServer : public QObject
     Q_OBJECT
 
 public:
-    typedef std::vector<std::shared_ptr<yogi_network::YogiTcpServer>> yogi_servers_vector;
-    typedef std::vector<std::shared_ptr<yogi_network::YogiTcpClient>> yogi_clients_vector;
-
-    WebSocketServer(const yogi::ConfigurationChild& config, yogi::Node& node,
-        const yogi_servers_vector& yogiServers, const yogi_clients_vector& yogiClients);
+    WebSocketServer(const yogi::ConfigurationChild& config, yogi::Node& node);
     ~WebSocketServer();
 
     void add_service(const session_services::service_ptr& service);
@@ -40,8 +36,6 @@ private:
     const yogi::ConfigurationChild         m_config;
     yogi::Node&                            m_node;
     QVector<session_services::service_ptr> m_services;
-    const yogi_servers_vector              m_yogiServers;
-    const yogi_clients_vector              m_yogiClients;
     yogi::Logger                           m_logger;
     QWebSocketServer*                      m_server;
     QMap<QWebSocket*, Client>              m_clients;
