@@ -49,13 +49,13 @@ CustomCommandService::CustomCommandService(yogi_network::YogiSession& session)
 CustomCommandService::request_handlers_map CustomCommandService::make_request_handlers()
 {
     return {{
-        REQ_START_CUSTOM_COMMAND, [this](auto request) {
+        REQ_START_CUSTOM_COMMAND, [this](auto& request) {
             return this->handle_start_command_request(request);
         }}, {
-        REQ_TERMINATE_CUSTOM_COMMAND, [this](auto request) {
+        REQ_TERMINATE_CUSTOM_COMMAND, [this](auto& request) {
             return this->handle_terminate_command_request(request);
         }}, {
-        REQ_WRITE_CUSTOM_COMMAND_STDIN, [this](auto request) {
+        REQ_WRITE_CUSTOM_COMMAND_STDIN, [this](auto& request) {
             return this->handle_write_command_request(request);
         }}
     };
@@ -96,13 +96,13 @@ std::shared_ptr<CustomCommandService::ActiveCommand> CustomCommandService::start
     return std::make_shared<ActiveCommand>(*this, *cmdIt, args);
 }
 
-CustomCommandService::response_pair CustomCommandService::handle_start_command_request(QByteArray* request)
+CustomCommandService::response_pair CustomCommandService::handle_start_command_request(const QByteArray& request)
 {
-    if (request->size() < 2 || request->at(request->size() - 1) != '\0') {
+    if (request.size() < 2 || request.at(request.size() - 1) != '\0') {
         return {RES_INVALID_REQUEST, {}};
     }
 
-    auto parts = request->mid(1, request->length() - 2).split('\0');
+    auto parts = request.mid(1, request.length() - 2).split('\0');
     QString cmd = parts[0];
     QStringList args;
     for (int i = 1; i < parts.size(); ++i) {
@@ -120,9 +120,9 @@ CustomCommandService::response_pair CustomCommandService::handle_start_command_r
     return {RES_OK, helpers::to_byte_array(id)};
 }
 
-CustomCommandService::response_pair CustomCommandService::handle_terminate_command_request(QByteArray* request)
+CustomCommandService::response_pair CustomCommandService::handle_terminate_command_request(const QByteArray& request)
 {
-    QDataStream stream(request, QIODevice::ReadOnly);
+    QDataStream stream(request);
     stream.skipRawData(1);
 
     auto id = helpers::read_from_stream<unsigned>(&stream);
@@ -136,9 +136,9 @@ CustomCommandService::response_pair CustomCommandService::handle_terminate_comma
     }
 }
 
-CustomCommandService::response_pair CustomCommandService::handle_write_command_request(QByteArray* request)
+CustomCommandService::response_pair CustomCommandService::handle_write_command_request(const QByteArray& request)
 {
-    QDataStream stream(request, QIODevice::ReadOnly);
+    QDataStream stream(request);
     stream.skipRawData(1);
 
     auto id = helpers::read_from_stream<unsigned>(&stream);
@@ -148,7 +148,7 @@ CustomCommandService::response_pair CustomCommandService::handle_write_command_r
         return {RES_INVALID_COMMAND_ID, {}};
     }
 
-    command->write_stdin(request->mid(5));
+    command->write_stdin(request.mid(5));
     return {RES_OK, {}};
 }
 

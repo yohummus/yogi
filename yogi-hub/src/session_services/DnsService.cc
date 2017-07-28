@@ -12,28 +12,28 @@ DnsService::DnsService(yogi_network::YogiSession& session)
 DnsService::request_handlers_map DnsService::make_request_handlers()
 {
     return {{
-        REQ_CLIENT_ADDRESS, [this](auto request) {
+        REQ_CLIENT_ADDRESS, [this](auto& request) {
             return this->handle_client_address_request(request);
         }}, {
-        REQ_START_DNS_LOOKUP, [this](auto request) {
+        REQ_START_DNS_LOOKUP, [this](auto& request) {
             return this->handle_start_dns_lookup_request(request);
         }}
     };
 }
 
-DnsService::response_pair DnsService::handle_client_address_request(QByteArray* request)
+DnsService::response_pair DnsService::handle_client_address_request(const QByteArray& request)
 {
     auto addr = m_session.socket().peerAddress().toString();
     return {RES_OK, helpers::to_byte_array(addr)};
 }
 
-DnsService::response_pair DnsService::handle_start_dns_lookup_request(QByteArray* request)
+DnsService::response_pair DnsService::handle_start_dns_lookup_request(const QByteArray& request)
 {
-    if (request->size() < 2 || request->at(request->size() - 1) != '\0') {
+    if (request.size() < 2 || request.at(request.size() - 1) != '\0') {
 		return {RES_INVALID_REQUEST, {}};
 	}
 
-	int id = QHostInfo::lookupHost(request->mid(1), this, SLOT(on_dns_lookup_finished(QHostInfo)));
+	int id = QHostInfo::lookupHost(request.mid(1), this, SLOT(on_dns_lookup_finished(QHostInfo)));
     return {RES_OK, helpers::to_byte_array(id)};
 }
 

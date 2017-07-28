@@ -21,8 +21,8 @@ public:
 private:
     yogi_network::YogiSession& m_session;
 
-    response_pair handle_client_address_request(QByteArray* request);
-    response_pair handle_start_dns_lookup_request(QByteArray* request);
+    response_pair handle_client_address_request(const QByteArray& request);
+    response_pair handle_start_dns_lookup_request(const QByteArray& request);
 
 private Q_SLOTS:
     void on_dns_lookup_finished(QHostInfo info);

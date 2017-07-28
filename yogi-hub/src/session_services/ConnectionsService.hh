@@ -43,9 +43,9 @@ private:
     bool                             m_monitoringConnections;
     QVector<QMetaObject::Connection> m_qtConnections;
 
-    response_pair handle_connection_factories_request(QByteArray* request);
-    response_pair handle_connections_request(QByteArray* request);
-    response_pair handle_monitor_connections_request(QByteArray* request);
+    response_pair handle_connection_factories_request(const QByteArray& request);
+    response_pair handle_connections_request(const QByteArray& request);
+    response_pair handle_monitor_connections_request(const QByteArray& request);
 
     QByteArray to_byte_array(yogi_network::YogiTcpClient::ServerInformation info);
     QByteArray to_byte_array(yogi_network::YogiTcpServer::ClientInformation info);

@@ -4,9 +4,6 @@
 #include "../helpers/ostream.hh"
 #include "../helpers/time.hh"
 
-#include <QDir>
-#include <QFile>
-#include <QRegExp>
 #include <QDataStream>
 
 using namespace std::string_literals;
@@ -37,13 +34,13 @@ ConnectionsService::~ConnectionsService()
 ConnectionsService::request_handlers_map ConnectionsService::make_request_handlers()
 {
     return {{
-        REQ_CONNECTION_FACTORIES, [this](auto request) {
+        REQ_CONNECTION_FACTORIES, [this](auto& request) {
             return this->handle_connection_factories_request(request);
         }}, {
-        REQ_CONNECTIONS, [this](auto request) {
+        REQ_CONNECTIONS, [this](auto& request) {
             return this->handle_connections_request(request);
         }}, {
-        REQ_MONITOR_CONNECTIONS, [this](auto request) {
+        REQ_MONITOR_CONNECTIONS, [this](auto& request) {
             return this->handle_monitor_connections_request(request);
         }}
     };
@@ -52,7 +49,7 @@ ConnectionsService::request_handlers_map ConnectionsService::make_request_handle
 ConnectionsService::yogi_servers_vector ConnectionsService::ms_yogiServers;
 ConnectionsService::yogi_clients_vector ConnectionsService::ms_yogiClients;
 
-ConnectionsService::response_pair ConnectionsService::handle_connection_factories_request(QByteArray* request)
+ConnectionsService::response_pair ConnectionsService::handle_connection_factories_request(const QByteArray& request)
 {
     QByteArray data;
 
@@ -73,12 +70,12 @@ ConnectionsService::response_pair ConnectionsService::handle_connection_factorie
     return {RES_OK, data};
 }
 
-ConnectionsService::response_pair ConnectionsService::handle_connections_request(QByteArray* request)
+ConnectionsService::response_pair ConnectionsService::handle_connections_request(const QByteArray& request)
 {
     return {RES_OK, make_connections_byte_array()};
 }
 
-ConnectionsService::response_pair ConnectionsService::handle_monitor_connections_request(QByteArray* request)
+ConnectionsService::response_pair ConnectionsService::handle_monitor_connections_request(const QByteArray& request)
 {
     if (m_monitoringConnections) {
         return {RES_ALREADY_MONITORING, {}};

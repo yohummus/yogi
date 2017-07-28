@@ -46,9 +46,9 @@ private:
 
     std::shared_ptr<ActiveCommand> start_command(const QString& cmd, const QStringList& args);
 
-    response_pair handle_start_command_request(QByteArray* request);
-    response_pair handle_terminate_command_request(QByteArray* request);
-    response_pair handle_write_command_request(QByteArray* request);
+    response_pair handle_start_command_request(const QByteArray& request);
+    response_pair handle_terminate_command_request(const QByteArray& request);
+    response_pair handle_write_command_request(const QByteArray& request);
 
     void on_process_updated(unsigned commandId, QProcess::ProcessState state, QByteArray out,
         QByteArray err, int exitCode, QProcess::ProcessError error);

@@ -64,10 +64,10 @@ private:
     static TreeNode* find_subtree(TreeNode* root, const QString& path);
     static TreeNode& create_subtree(const QString& path);
 
-    response_pair handle_known_terminals_request(QByteArray* request);
-    response_pair handle_known_terminals_subtree_request(QByteArray* request);
-    response_pair handle_find_known_terminals_request(QByteArray* request);
-    response_pair handle_monitor_known_terminals_request(QByteArray* request);
+    response_pair handle_known_terminals_request(const QByteArray& request);
+    response_pair handle_known_terminals_subtree_request(const QByteArray& request);
+    response_pair handle_find_known_terminals_request(const QByteArray& request);
+    response_pair handle_monitor_known_terminals_request(const QByteArray& request);
 };
 
 } // namespace session_services

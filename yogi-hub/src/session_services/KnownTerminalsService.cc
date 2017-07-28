@@ -49,16 +49,16 @@ KnownTerminalsService::~KnownTerminalsService()
 KnownTerminalsService::request_handlers_map KnownTerminalsService::make_request_handlers()
 {
     return {{
-        REQ_KNOWN_TERMINALS, [this](auto request) {
+        REQ_KNOWN_TERMINALS, [this](auto& request) {
             return this->handle_known_terminals_request(request);
         }}, {
-        REQ_KNOWN_TERMINALS_SUBTREE, [this](auto request) {
+        REQ_KNOWN_TERMINALS_SUBTREE, [this](auto& request) {
             return this->handle_known_terminals_subtree_request(request);
         }}, {
-        REQ_FIND_KNOWN_TERMINALS, [this](auto request) {
+        REQ_FIND_KNOWN_TERMINALS, [this](auto& request) {
             return this->handle_find_known_terminals_request(request);
         }}, {
-        REQ_MONITOR_KNOWN_TERMINALS, [this](auto request) {
+        REQ_MONITOR_KNOWN_TERMINALS, [this](auto& request) {
             return this->handle_monitor_known_terminals_request(request);
         }}
     };
@@ -219,7 +219,7 @@ KnownTerminalsService::TreeNode& KnownTerminalsService::create_subtree(const QSt
     return *node;
 }
 
-Service::response_pair KnownTerminalsService::handle_known_terminals_request(QByteArray* request)
+Service::response_pair KnownTerminalsService::handle_known_terminals_request(const QByteArray& request)
 {
     QByteArray response;
 
@@ -233,10 +233,10 @@ Service::response_pair KnownTerminalsService::handle_known_terminals_request(QBy
     return {RES_OK, response};
 }
 
-Service::response_pair KnownTerminalsService::handle_known_terminals_subtree_request(QByteArray* request)
+Service::response_pair KnownTerminalsService::handle_known_terminals_subtree_request(const QByteArray& request)
 {
-    bool absolute = request->at(1) ? true : false;
-    QString path = request->mid(2);
+    bool absolute = request.at(1) ? true : false;
+    QString path = request.mid(2);
 
     QByteArray response;
 
@@ -261,10 +261,10 @@ Service::response_pair KnownTerminalsService::handle_known_terminals_subtree_req
     return {RES_OK, response};
 }
 
-Service::response_pair KnownTerminalsService::handle_find_known_terminals_request(QByteArray* request)
+Service::response_pair KnownTerminalsService::handle_find_known_terminals_request(const QByteArray& request)
 {
-	bool caseSensitive = request->at(1) ? true : false;
-    QByteArray nameSubstr = request->mid(2);
+	bool caseSensitive = request.at(1) ? true : false;
+    QByteArray nameSubstr = request.mid(2);
 
 	QByteArray response;
 
@@ -281,7 +281,7 @@ Service::response_pair KnownTerminalsService::handle_find_known_terminals_reques
     return {RES_OK, response};
 }
 
-Service::response_pair KnownTerminalsService::handle_monitor_known_terminals_request(QByteArray* request)
+Service::response_pair KnownTerminalsService::handle_monitor_known_terminals_request(const QByteArray& request)
 {
     if (m_monitorTerminals) {
         return {RES_ALREADY_MONITORING, {}};

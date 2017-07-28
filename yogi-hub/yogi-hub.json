@@ -14,6 +14,7 @@
         "Proto Compiler Service": "TRACE",
         "Known Terminals Service": "INFO",
         "Connections Service": "TRACE",
+        "Terminals Service": "TRACE",
         "Query Service": "TRACE",
         "File Service": "TRACE",
         "Custom Command Service": "TRACE",

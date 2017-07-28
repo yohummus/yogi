@@ -73,9 +73,9 @@ public:
         MON_GATHERED_MESSAGE_RECEIVED
     };
 
-    typedef std::pair<response_type, QByteArray>               response_pair;
-    typedef std::function<response_pair (QByteArray* request)> request_handler;
-    typedef std::map<request_type, request_handler>            request_handlers_map;
+    typedef std::pair<response_type, QByteArray>                     response_pair;
+    typedef std::function<response_pair (const QByteArray& request)> request_handler;
+    typedef std::map<request_type, request_handler>                  request_handlers_map;
 
     virtual ~Service();
 

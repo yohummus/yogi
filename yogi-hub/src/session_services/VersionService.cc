@@ -13,13 +13,13 @@ VersionService::VersionService(yogi_network::YogiSession& session)
 VersionService::request_handlers_map VersionService::make_request_handlers()
 {
     return {{
-        REQ_VERSION, [this](auto request) {
+        REQ_VERSION, [this](auto& request) {
             return this->handle_version_request(request);
         }}
     };
 }
 
-VersionService::response_pair VersionService::handle_version_request(QByteArray* request)
+VersionService::response_pair VersionService::handle_version_request(const QByteArray& request)
 {
     return {RES_OK, QByteArray::fromStdString(yogi::get_version())};
 }

@@ -17,7 +17,7 @@ public:
     virtual request_handlers_map make_request_handlers() override;
 
 private:
-    response_pair handle_version_request(QByteArray* request);
+    response_pair handle_version_request(const QByteArray& request);
 };
 
 } // namespace session_services
