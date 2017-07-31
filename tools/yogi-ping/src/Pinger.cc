@@ -230,11 +230,24 @@ void Pinger::on_termination_signal_received(int sig)
 void Pinger::print_summary()
 {
     if (!m_times.empty()) {
-        auto avgDur = std::accumulate(m_times.begin(), m_times.end(), duration_type(0)) / m_times.size();
-        printf("\nSent %d pings with an average response time of %.03f ms and %d timeouts.\n",
-            static_cast<int>(m_times.size() + m_timeouts),
-            std::chrono::duration_cast<std::chrono::duration<double>>(avgDur).count() * 1000,
-            static_cast<int>(m_timeouts)
-        );
+        auto begin = m_times.begin();
+        auto end = m_times.end();
+
+        auto count    = static_cast<int>(m_times.size() + m_timeouts);
+        auto timeouts = static_cast<int>(m_timeouts);
+        auto minDur   = *std::min_element(begin, end);
+        auto maxDur   = *std::max_element(begin, end);
+        auto avgDur   = std::accumulate(begin, end, duration_type(0)) / m_times.size();
+
+        auto dur_to_ms = [](duration_type dur) {
+            return std::chrono::duration_cast<std::chrono::duration<double>>(dur).count() * 1000;
+        };
+
+        printf("\n");
+        printf("Number of pings sent:  %d\n", count);
+        printf("Number of timeouts:    %d\n", timeouts);
+        printf("Minimum response time: %.03f ms\n", dur_to_ms(minDur));
+        printf("Average response time: %.03f ms\n", dur_to_ms(avgDur));
+        printf("Maximum response time: %.03f ms\n", dur_to_ms(maxDur));
     }
 }
