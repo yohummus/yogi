@@ -1976,6 +1976,12 @@ public:
         Operation& operator= (const Operation&) = delete;
 
     public:
+        Operation()
+        : m_terminal(nullptr)
+        , m_operationId(0)
+        {
+        }
+
         Operation(Operation&& other)
         {
             *this = std::move(other);
@@ -2156,6 +2162,7 @@ public:
         Operation& operator= (const Operation&) = delete;
 
     public:
+        Operation();
         Operation(Operation&& other);
         Operation& operator= (Operation&& other);
 

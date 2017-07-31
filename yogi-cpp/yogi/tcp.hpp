@@ -99,16 +99,22 @@ public:
 
 class InvalidTarget : public std::exception
 {
+public:
+    virtual const char* what() const noexcept override;
 };
 
 
 class AlreadyStarted : public std::exception
 {
+public:
+    virtual const char* what() const noexcept override;
 };
 
 
 class NotRunning : public std::exception
 {
+public:
+    virtual const char* what() const noexcept override;
 };
 
 

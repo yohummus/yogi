@@ -740,6 +740,12 @@ RawClientTerminal::Operation::Operation(RawClientTerminal& terminal, ::yogi::raw
 {
 }
 
+RawClientTerminal::Operation::Operation()
+: m_terminal(nullptr)
+, m_operationId(0)
+{
+}
+
 RawClientTerminal::Operation::Operation(Operation&& other)
 {
     *this = std::move(other);

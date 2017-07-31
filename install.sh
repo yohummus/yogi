@@ -31,10 +31,14 @@ PROJECTS=(
     yogi-hub
     yogi-javascript
     yogi-supervisor
+    yogi-echoer
+    tools/yogi-ping
 )
 
 MIN_RAM_REQUIRED_IN_MB=1024
 SWAP_SIZE_IN_MB=1024
+
+ROOT=$(dirname $(readlink -f $0))
 
 function install_required_packages {
     echo
@@ -94,21 +98,19 @@ function build_project {
     echo
     echo "===== Building $PROJECT ====="
     local PROJECT=$1
-    cd $PROJECT
+    cd $ROOT/$PROJECT
     mkdir -p build
     cd build
     cmake ..
     make
-    cd ../..
 }
 
 function install_project {
     echo
     echo "===== Installing $PROJECT ====="
     local PROJECT=$1
-    cd $PROJECT/build
+    cd $ROOT/$PROJECT/build
     sudo make install
-    cd ../..
 }
 
 function build_and_install_all_projects {

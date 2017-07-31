@@ -228,6 +228,21 @@ struct AutoConnectingTcpClient::Implementation {
     }
 };
 
+const char* InvalidTarget::what() const noexcept
+{
+    return "Invalid connection target";
+}
+
+const char* AlreadyStarted::what() const noexcept
+{
+    return "TCP client already started";
+}
+
+const char* NotRunning::what() const noexcept
+{
+    return "TCP client is not running";
+}
+
 AutoConnectingTcpClient::AutoConnectingTcpClient(Endpoint& endpoint, const std::string& host, unsigned port,
     std::chrono::milliseconds timeout, const Optional<std::string>& identification)
 : m_impl(std::make_unique<Implementation>(endpoint))

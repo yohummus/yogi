@@ -21,7 +21,7 @@ CommandLineOptions parse_cmdline(int argc, const char* const argv[], bool config
     po::options_description visibleOptions("Allowed options");
     visibleOptions.add_options()(
         "help,h",
-         "Show this help message"
+        "Show this help message"
         )(
         "connection_target,c", po::value<std::string>()->notifier([&](auto& val) { opts.connectionTarget = val; }),
         "YOGI server to connect to (e.g. 'hostname:12000)"

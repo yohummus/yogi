@@ -15,27 +15,27 @@ using namespace yogi;
 
 struct ObserversTest : public testing::Test
 {
-    Scheduler                              scheduler;
-    Leaf                                   leafA;
-    Leaf                                   leafB;
+    Scheduler                             scheduler;
+    Leaf                                  leafA;
+    Leaf                                  leafB;
     ProducerTerminal<yogi_0000d007>       producer;
     ConsumerTerminal<yogi_0000d007>       consumer;
     CachedProducerTerminal<yogi_0000d007> cachedProducer;
     CachedConsumerTerminal<yogi_0000d007> cachedConsumer;
     ScatterGatherTerminal<yogi_0000d007>  scatterGatherA;
     ScatterGatherTerminal<yogi_0000d007>  scatterGatherB;
-    Binding                                scatterGatherBinding;
+    Binding                               scatterGatherBinding;
     ServiceTerminal<yogi_0000d007>        service;
     ClientTerminal<yogi_0000d007>         client;
-    RawProducerTerminal                    rawProducer;
-    RawConsumerTerminal                    rawConsumer;
-    RawCachedProducerTerminal              rawCachedProducer;
-    RawCachedConsumerTerminal              rawCachedConsumer;
-    RawScatterGatherTerminal               rawScatterGatherA;
-    RawScatterGatherTerminal               rawScatterGatherB;
-    Binding                                rawScatterGatherBinding;
-    RawServiceTerminal                     rawService;
-    RawClientTerminal                      rawClient;
+    RawProducerTerminal                   rawProducer;
+    RawConsumerTerminal                   rawConsumer;
+    RawCachedProducerTerminal             rawCachedProducer;
+    RawCachedConsumerTerminal             rawCachedConsumer;
+    RawScatterGatherTerminal              rawScatterGatherA;
+    RawScatterGatherTerminal              rawScatterGatherB;
+    Binding                               rawScatterGatherBinding;
+    RawServiceTerminal                    rawService;
+    RawClientTerminal                     rawClient;
 
     ObserversTest()
     : leafA                  (scheduler)
