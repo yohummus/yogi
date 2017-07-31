@@ -40,6 +40,13 @@ SWAP_SIZE_IN_MB=1024
 
 ROOT=$(dirname $(readlink -f $0))
 
+function check_usage {
+    if [ $# -gt 1 ] || [ $# -eq 1 ] && [ "$1" != "--debug" ]; then
+        echo "Usage: $0 [--debug]"
+        exit 1
+    fi
+}
+
 function install_required_packages {
     echo
     echo "===== Installing required packages ====="
@@ -98,10 +105,11 @@ function build_project {
     echo
     echo "===== Building $PROJECT ====="
     local PROJECT=$1
+    local BUILD_TYPE=$2
     cd $ROOT/$PROJECT
     mkdir -p build
     cd build
-    cmake ..
+    cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE ..
     make
 }
 
@@ -114,9 +122,10 @@ function install_project {
 }
 
 function build_and_install_all_projects {
+    local BUILD_TYPE=$1
     for PROJECT in "${PROJECTS[@]}"
     do
-        build_project $PROJECT
+        build_project $PROJECT $BUILD_TYPE
         install_project $PROJECT
     done
 }
@@ -124,11 +133,19 @@ function build_and_install_all_projects {
 #==============================================================================
 # MAIN CODE
 #==============================================================================
+check_usage $@
+
+if [ "$1" == "--debug" ]; then
+    BUILD_TYPE="Debug"
+else
+    BUILD_TYPE="Release"
+fi
+
 install_required_packages
 install_nodejs_legacy
 install_newer_npm
 make_swap_file
-build_and_install_all_projects
+build_and_install_all_projects $BUILD_TYPE
 
 echo
 echo "===== All done ====="
