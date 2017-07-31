@@ -2,7 +2,7 @@
 #include "../helpers/time.hh"
 #include "../helpers/ostream.hh"
 
-#include <QtDebug>
+#include <QMetaObject>
 
 #include <yogi_core.h>
 
@@ -20,6 +20,7 @@ YogiTcpServer::YogiTcpServer(yogi::ConfigurationChild& config, yogi::Node& node)
     m_server = std::make_unique<yogi::TcpServer>(node.scheduler(), m_address.toStdString(), m_port, config.get_optional<std::string>("identification"));
 
     qRegisterMetaType<ClientInformation>("ClientInformation");
+    qRegisterMetaType<std::shared_ptr<yogi::TcpConnection>>("std::shared_ptr<yogi::TcpConnection>");
     qRegisterMetaType<std::weak_ptr<yogi::TcpConnection>>("std::weak_ptr<yogi::TcpConnection>");
 
     start_accept();
@@ -133,7 +134,16 @@ void YogiTcpServer::on_connection_died(const yogi::Failure& failure, std::shared
 
         auto weakConnection = std::weak_ptr<yogi::TcpConnection>(connection);
         emit(connection_changed(weakConnection, info));
+
+        QMetaObject::invokeMethod(this, "destroy_connection_later", Qt::QueuedConnection,
+            Q_ARG(std::shared_ptr<yogi::TcpConnection>, connection));
     }
+}
+
+void YogiTcpServer::destroy_connection_later(std::shared_ptr<yogi::TcpConnection>)
+{
+    // the shared pointer will go out of scope once the caller of this function
+    // returns which will destroy the connection
 }
 
 } // namespace yogi_network

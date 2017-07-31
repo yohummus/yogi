@@ -58,6 +58,9 @@ private:
     void assign_connection(std::shared_ptr<yogi::TcpConnection> connection);
     void start_await_death(std::shared_ptr<yogi::TcpConnection> connection);
     void on_connection_died(const yogi::Failure& failure, std::shared_ptr<yogi::TcpConnection>);
+
+private Q_SLOTS:
+    void destroy_connection_later(std::shared_ptr<yogi::TcpConnection>);
 };
 
 } // namespace yogi_network
