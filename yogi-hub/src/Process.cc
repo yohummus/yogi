@@ -95,7 +95,10 @@ void Process::setup_ws_servers()
     auto yogiClients = add_services_if_enabled<yogi_network::YogiTcpClient>("yogi-tcp-clients", m_node);
 
     session_services::CustomCommandService::extract_command_details_from_config();
-    session_services::ConnectionsService::register_factories(yogiServers, yogiClients);
+    session_services::ConnectionsService::register_factories(
+        {yogiServers.begin(), yogiServers.end()},
+        {yogiClients.begin(), yogiClients.end()}
+    );
 
     auto servers = add_services_if_enabled<web_servers::WebSocketServer>("ws-servers", m_node);
 

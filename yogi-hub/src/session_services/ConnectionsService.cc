@@ -11,7 +11,8 @@ using namespace std::string_literals;
 
 namespace session_services {
 
-void ConnectionsService::register_factories(const yogi_servers_vector& servers, const yogi_clients_vector& clients)
+void ConnectionsService::register_factories(const yogi_servers_vector& servers,
+    const yogi_clients_vector& clients)
 {
     ms_yogiServers = servers;
     ms_yogiClients = clients;
@@ -49,40 +50,43 @@ ConnectionsService::request_handlers_map ConnectionsService::make_request_handle
 ConnectionsService::yogi_servers_vector ConnectionsService::ms_yogiServers;
 ConnectionsService::yogi_clients_vector ConnectionsService::ms_yogiClients;
 
-ConnectionsService::response_pair ConnectionsService::handle_connection_factories_request(const QByteArray& request)
+ConnectionsService::response_pair ConnectionsService::handle_connection_factories_request(
+    const QByteArray& request)
 {
     QByteArray data;
 
-    for (auto client : ms_yogiClients) {
+    for (auto& client : ms_yogiClients) {
         data += static_cast<char>(CFT_TCP_CLIENT);
         data += make_idx(client);
-        data += helpers::to_byte_array(client->port());
-        data += client->host() + '\0';
+        data += helpers::to_byte_array(client.lock()->port());
+        data += client.lock()->host() + '\0';
     }
 
-    for (auto server : ms_yogiServers) {
+    for (auto& server : ms_yogiServers) {
         data += static_cast<char>(CFT_TCP_SERVER);
         data += make_idx(server);
-        data += helpers::to_byte_array(server->port());
-        data += server->address() + '\0';
+        data += helpers::to_byte_array(server.lock()->port());
+        data += server.lock()->address() + '\0';
     }
 
     return {RES_OK, data};
 }
 
-ConnectionsService::response_pair ConnectionsService::handle_connections_request(const QByteArray& request)
+ConnectionsService::response_pair ConnectionsService::handle_connections_request(
+    const QByteArray& request)
 {
     return {RES_OK, make_connections_byte_array()};
 }
 
-ConnectionsService::response_pair ConnectionsService::handle_monitor_connections_request(const QByteArray& request)
+ConnectionsService::response_pair ConnectionsService::handle_monitor_connections_request(
+    const QByteArray& request)
 {
     if (m_monitoringConnections) {
         return {RES_ALREADY_MONITORING, {}};
     }
 
-    for (auto client : ms_yogiClients) {
-        m_qtConnections.append(connect(&*client, &yogi_network::YogiTcpClient::connection_changed,
+    for (auto& client : ms_yogiClients) {
+        m_qtConnections.append(connect(&*client.lock(), &yogi_network::YogiTcpClient::connection_changed,
             [=](yogi_network::YogiTcpClient::ServerInformation info) {
                 QByteArray data;
                 data += make_idx(client);
@@ -92,8 +96,8 @@ ConnectionsService::response_pair ConnectionsService::handle_monitor_connections
         ));
     }
 
-    for (auto server : ms_yogiServers) {
-        m_qtConnections.append(connect(&*server, &yogi_network::YogiTcpServer::connection_changed,
+    for (auto& server : ms_yogiServers) {
+        m_qtConnections.append(connect(&*server.lock(), &yogi_network::YogiTcpServer::connection_changed,
             [=](std::weak_ptr<yogi::TcpConnection>, yogi_network::YogiTcpServer::ClientInformation info) {
                 QByteArray data;
                 data += make_idx(server);
@@ -132,14 +136,14 @@ QByteArray ConnectionsService::make_connections_byte_array()
 {
     QByteArray data;
 
-    for (auto client : ms_yogiClients) {
+    for (auto& client : ms_yogiClients) {
         data += make_idx(client);
-        data += to_byte_array(client->connection());
+        data += to_byte_array(client.lock()->connection());
     }
 
-    for (auto server : ms_yogiServers) {
+    for (auto& server : ms_yogiServers) {
         auto idx = make_idx(server);
-        for (auto connection : server->connections()) {
+        for (auto connection : server.lock()->connections()) {
             data += idx;
             data += to_byte_array(connection);
         }
@@ -148,18 +152,26 @@ QByteArray ConnectionsService::make_connections_byte_array()
     return data;
 }
 
-char ConnectionsService::make_idx(const std::shared_ptr<yogi_network::YogiTcpClient>& client)
+char ConnectionsService::make_idx(const yogi_client_ptr& client)
 {
-    auto begin = ms_yogiClients.begin();
-    auto end = ms_yogiClients.end();
-    return static_cast<char>(1 + std::distance(begin, std::find(begin, end, client)));
+    return find_weak_ptr_idx(ms_yogiClients, client);
 }
 
-char ConnectionsService::make_idx(const std::shared_ptr<yogi_network::YogiTcpServer>& server)
+char ConnectionsService::make_idx(const yogi_server_ptr& server)
 {
-    auto begin = ms_yogiServers.begin();
-    auto end = ms_yogiServers.end();
-    return static_cast<char>(1 + ms_yogiClients.size() + std::distance(begin, std::find(begin, end, server)));
+    return static_cast<char>(ms_yogiClients.size()) + find_weak_ptr_idx(ms_yogiServers, server);
+}
+
+template <typename T>
+char ConnectionsService::find_weak_ptr_idx(const std::vector<std::weak_ptr<T>>& vec,
+    const std::weak_ptr<T>& val)
+{
+    auto fn = [&](const std::weak_ptr<T>& element) {
+        return element.lock() == val.lock();
+    };
+
+    auto n = std::distance(vec.begin(), std::find_if(vec.begin(), vec.end(), fn));
+    return static_cast<char>(1 + n);
 }
 
 } // namespace session_services

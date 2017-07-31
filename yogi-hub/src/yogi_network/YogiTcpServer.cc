@@ -20,8 +20,7 @@ YogiTcpServer::YogiTcpServer(yogi::ConfigurationChild& config, yogi::Node& node)
     m_server = std::make_unique<yogi::TcpServer>(node.scheduler(), m_address.toStdString(), m_port, config.get_optional<std::string>("identification"));
 
     qRegisterMetaType<ClientInformation>("ClientInformation");
-    qRegisterMetaType<std::shared_ptr<yogi::TcpConnection>>("std::shared_ptr<yogi::TcpConnection>");
-    qRegisterMetaType<std::weak_ptr<yogi::TcpConnection>>("std::weak_ptr<yogi::TcpConnection>");
+    qRegisterMetaType<weak_connection_ptr>("weak_connection_ptr");
 
     start_accept();
 
@@ -57,7 +56,7 @@ void YogiTcpServer::start_accept()
     });
 }
 
-void YogiTcpServer::on_accept(const yogi::Result& res, std::shared_ptr<yogi::TcpConnection> connection)
+void YogiTcpServer::on_accept(const yogi::Result& res, connection_ptr connection)
 {
     if (res == yogi::errors::Canceled()) {
         return;
@@ -77,15 +76,19 @@ void YogiTcpServer::on_accept(const yogi::Result& res, std::shared_ptr<yogi::Tcp
     }
 }
 
-void YogiTcpServer::assign_connection(std::shared_ptr<yogi::TcpConnection> connection)
+void YogiTcpServer::assign_connection(connection_ptr connection)
 {
     try {
         connection->assign(m_node, m_timeout);
 
+        auto remoteIdentification = connection->remote_identification()
+                                  ? QString::fromStdString(*connection->remote_identification())
+                                  : QString();
+
         ClientInformation info;
         info.description          = QString::fromStdString(connection->description());
         info.remoteVersion        = QString::fromStdString(connection->remote_version());
-        info.remoteIdentification = connection->remote_identification() ? QString::fromStdString(*connection->remote_identification()) : QString();
+        info.remoteIdentification = remoteIdentification;
         info.connected            = true;
         info.stateChangedTime     = std::chrono::system_clock::now();
 
@@ -97,7 +100,7 @@ void YogiTcpServer::assign_connection(std::shared_ptr<yogi::TcpConnection> conne
             m_connections.insert(connection, info);
         }}
 
-        auto weakConnection = std::weak_ptr<yogi::TcpConnection>(connection);
+        auto weakConnection = weak_connection_ptr(connection);
         emit(connection_changed(weakConnection, info));
     }
     catch(const yogi::Failure& failure) {
@@ -105,11 +108,12 @@ void YogiTcpServer::assign_connection(std::shared_ptr<yogi::TcpConnection> conne
     }
 }
 
-void YogiTcpServer::start_await_death(std::shared_ptr<yogi::TcpConnection> connection)
+void YogiTcpServer::start_await_death(connection_ptr connection)
 {
     try {
+        auto conn = weak_connection_ptr(connection);
         connection->async_await_death([=](auto& failure) {
-            this->on_connection_died(failure, connection);
+            this->on_connection_died(failure, conn);
         });
     }
     catch (const yogi::Failure& failure) {
@@ -117,33 +121,38 @@ void YogiTcpServer::start_await_death(std::shared_ptr<yogi::TcpConnection> conne
     }
 }
 
-void YogiTcpServer::on_connection_died(const yogi::Failure& failure, std::shared_ptr<yogi::TcpConnection> connection)
+void YogiTcpServer::on_connection_died(const yogi::Failure& failure, weak_connection_ptr connection)
 {
-    if (failure != yogi::errors::Canceled()) {
-        YOGI_LOG_INFO(m_logger, "Connection " << connection->description() << " died: " << failure);
+    if (failure == yogi::errors::Canceled()) {
+        return;
+    }
 
-        ClientInformation info;
+    auto conn = connection.lock();
+    if (!conn) {
+        return;
+    }
 
-        {{
-            QMutexLocker lock(&m_mutex);
-            info = m_connections.take(connection);
-        }}
+    YOGI_LOG_INFO(m_logger, "Connection " << conn->description() << " died: " << failure);
 
+    {{
+        QMutexLocker lock(&m_mutex);
+        auto& info = m_connections[conn];
         info.connected = false;
         info.stateChangedTime = std::chrono::system_clock::now();
+    }}
 
-        auto weakConnection = std::weak_ptr<yogi::TcpConnection>(connection);
-        emit(connection_changed(weakConnection, info));
-
-        QMetaObject::invokeMethod(this, "destroy_connection_later", Qt::QueuedConnection,
-            Q_ARG(std::shared_ptr<yogi::TcpConnection>, connection));
-    }
+    QMetaObject::invokeMethod(this, "handle_connection_death_in_qt_thread", Qt::QueuedConnection,
+        Q_ARG(weak_connection_ptr, connection));
 }
 
-void YogiTcpServer::destroy_connection_later(std::shared_ptr<yogi::TcpConnection>)
+void YogiTcpServer::handle_connection_death_in_qt_thread(weak_connection_ptr connection)
 {
-    // the shared pointer will go out of scope once the caller of this function
-    // returns which will destroy the connection
+    auto conn = connection.lock();
+    if (conn) {
+        auto infoIt = m_connections.find(conn);
+        emit(connection_changed(connection, *infoIt));
+        m_connections.erase(infoIt);
+    }
 }
 
 } // namespace yogi_network

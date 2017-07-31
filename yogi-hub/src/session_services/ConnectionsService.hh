@@ -19,10 +19,14 @@ class ConnectionsService : public Service
     Q_OBJECT
 
 public:
-    typedef std::vector<std::shared_ptr<yogi_network::YogiTcpServer>> yogi_servers_vector;
-    typedef std::vector<std::shared_ptr<yogi_network::YogiTcpClient>> yogi_clients_vector;
+    typedef std::weak_ptr<yogi_network::YogiTcpServer> yogi_server_ptr;
+    typedef std::weak_ptr<yogi_network::YogiTcpClient> yogi_client_ptr;
 
-    static void register_factories(const yogi_servers_vector& servers, const yogi_clients_vector& clients);
+    typedef std::vector<yogi_server_ptr> yogi_servers_vector;
+    typedef std::vector<yogi_client_ptr> yogi_clients_vector;
+
+    static void register_factories(const yogi_servers_vector& servers,
+        const yogi_clients_vector& clients);
 
     ConnectionsService(yogi_network::YogiSession& session);
     ~ConnectionsService();
@@ -50,8 +54,12 @@ private:
     QByteArray to_byte_array(yogi_network::YogiTcpClient::ServerInformation info);
     QByteArray to_byte_array(yogi_network::YogiTcpServer::ClientInformation info);
     QByteArray make_connections_byte_array();
-    char make_idx(const std::shared_ptr<yogi_network::YogiTcpClient>& client);
-    char make_idx(const std::shared_ptr<yogi_network::YogiTcpServer>& server);
+    char make_idx(const yogi_client_ptr& client);
+    char make_idx(const yogi_server_ptr& server);
+
+    template <typename T>
+    static char find_weak_ptr_idx(const std::vector<std::weak_ptr<T>>& vec,
+        const std::weak_ptr<T>& val);
 };
 
 } // namespace session_services

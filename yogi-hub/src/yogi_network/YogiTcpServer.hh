@@ -21,6 +21,8 @@ class YogiTcpServer : public QObject
     Q_OBJECT
 
 public:
+    typedef std::weak_ptr<yogi::TcpConnection> weak_connection_ptr;
+
     struct ClientInformation {
         QString                               description;
         QString                               remoteVersion;
@@ -37,10 +39,11 @@ public:
     QList<ClientInformation> connections() const;
 
 Q_SIGNALS:
-    void connection_changed(std::weak_ptr<yogi::TcpConnection> connection, ClientInformation);
+    void connection_changed(weak_connection_ptr, ClientInformation);
 
 private:
-    typedef QMap<std::shared_ptr<yogi::TcpConnection>, ClientInformation> connections_map;
+    typedef std::shared_ptr<yogi::TcpConnection>    connection_ptr;
+    typedef QMap<connection_ptr, ClientInformation> connections_map;
 
     const QString                    m_address;
     const unsigned                   m_port;
@@ -54,13 +57,13 @@ private:
 
 private:
     void start_accept();
-    void on_accept(const yogi::Result& res, std::shared_ptr<yogi::TcpConnection> connection);
-    void assign_connection(std::shared_ptr<yogi::TcpConnection> connection);
-    void start_await_death(std::shared_ptr<yogi::TcpConnection> connection);
-    void on_connection_died(const yogi::Failure& failure, std::shared_ptr<yogi::TcpConnection>);
+    void on_accept(const yogi::Result& res, connection_ptr connection);
+    void assign_connection(connection_ptr connection);
+    void start_await_death(connection_ptr connection);
+    void on_connection_died(const yogi::Failure& failure, weak_connection_ptr connection);
 
 private Q_SLOTS:
-    void destroy_connection_later(std::shared_ptr<yogi::TcpConnection>);
+    void handle_connection_death_in_qt_thread(weak_connection_ptr connection);
 };
 
 } // namespace yogi_network
