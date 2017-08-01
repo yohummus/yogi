@@ -57,7 +57,7 @@ int main(int argc, const char* argv[])
         po::notify(vm);
 
         std::string host;
-        unsigned    port;
+        unsigned    port = 0;
         std::string echoerLocation;
 
         bool targetValid = false;
