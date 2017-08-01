@@ -32,12 +32,12 @@ public:
     }
 
     Id()
-        : m_number{invalid_number()}
+    : m_number(invalid_number())
     {
     }
 
     explicit Id(number_type number)
-        : m_number{number}
+    : m_number(number)
     {
         YOGI_ASSERT(number != invalid_number());
     }

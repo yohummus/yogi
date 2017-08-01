@@ -48,7 +48,7 @@ template <>
 inline void deserialize_one<base::Id>(const std::vector<char>& buffer,
     std::vector<char>::const_iterator& it, base::Id& value)
 {
-    base::Id::number_type number;
+    base::Id::number_type number = base::Id().number();
     deserialize_one(buffer, it, number);
     value = base::Id{number};
 }
@@ -57,7 +57,7 @@ template <>
 inline void deserialize_one<base::Identifier>(const std::vector<char>& buffer,
     std::vector<char>::const_iterator& it, base::Identifier& value)
 {
-    base::Identifier::signature_type signature;
+    base::Identifier::signature_type signature = 0;
     deserialize_one(buffer, it, signature);
 
     bool hidden;
