@@ -267,8 +267,14 @@ void TcpConnection::wait_for_more_data_to_deserialize()
 {
     std::lock_guard<std::mutex> lock{m_receiveMutex};
     start_async_receive_some_data();
+
     m_deserializeRunning = false;
-    m_cv.notify_all();
+    if (!m_inBuffer.empty()) {
+        start_async_deserialization();
+    }
+    else {
+        m_cv.notify_all();
+    }
 }
 
 void TcpConnection::deserialize_message_and_forward_to_communicator()
