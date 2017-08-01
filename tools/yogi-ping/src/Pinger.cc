@@ -104,6 +104,7 @@ void Pinger::send_ping()
     }
 
     fill_payload();
+    m_pingSentTime = clock_type::now();
     
     if (m_useServiceTerminals) {
         m_clientOperation = m_clientTerminal.async_request(m_pingPayload, [=](auto& res, auto&& response) {
@@ -121,8 +122,6 @@ void Pinger::send_ping()
     else {
         m_slaveTerminal.publish(m_pingPayload);
     }
-
-    m_pingSentTime = clock_type::now();
 
     start_ping_timeout();
 }
