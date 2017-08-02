@@ -17,7 +17,7 @@ namespace internal {
 template <typename THandlerFn>
 class AsyncOperationBase
 {
-    typedef THandlerFn                  handler_fn;
+    typedef THandlerFn handler_fn;
 
 protected:
     handler_fn              m_armedHandler;
@@ -71,14 +71,12 @@ public:
 
     void disarm()
     {
-        {{
-            std::lock_guard<std::mutex> lock{m_mutex};
+        std::lock_guard<std::mutex> lock{m_mutex};
 
-            if (m_armedHandler) {
-                m_armedHandler = handler_fn{};
-                --m_runningOperations;
-            }
-        }}
+        if (m_armedHandler) {
+            m_armedHandler = handler_fn{};
+            --m_runningOperations;
+        }
 
         m_cv.notify_all();
     }
@@ -104,11 +102,9 @@ public:
             TReturnType result = handler(api::ExceptionT<TErrorCode>{},
                 std::forward<THandlerArgs>(handlerArgs)...);
 
-            {{
-                std::lock_guard<std::mutex> lock{super::m_mutex};
-                --super::m_runningOperations;
-            }}
-
+            std::lock_guard<std::mutex> lock{super::m_mutex};
+            --super::m_runningOperations;
+            
             super::m_cv.notify_all();
 
             return result;
@@ -145,10 +141,8 @@ public:
             handler(api::ExceptionT<TErrorCode>{},
                 std::forward<THandlerArgs>(handlerArgs)...);
 
-            {{
-                std::lock_guard<std::mutex> lock{super::m_mutex};
-                --super::m_runningOperations;
-            }}
+            std::lock_guard<std::mutex> lock{super::m_mutex};
+            --super::m_runningOperations;
 
             super::m_cv.notify_all();
         }
@@ -161,10 +155,8 @@ public:
         if (handler) {
             handler(e, std::forward<THandlerArgs>(handlerArgs)...);
 
-            {{
-                std::lock_guard<std::mutex> lock{super::m_mutex};
-                --super::m_runningOperations;
-            }}
+            std::lock_guard<std::mutex> lock{super::m_mutex};
+            --super::m_runningOperations;
 
             super::m_cv.notify_all();
         }

@@ -66,12 +66,14 @@ void TcpConnection::start_send_communicator_type()
     auto data = std::make_shared<char>(
         std::dynamic_pointer_cast<interfaces::INode>(m_communicator) ? 1 : 0);
 
-    boost::asio::async_write(m_socket, boost::asio::buffer(data.get(), 1),
-        [=](const boost::system::error_code& ec, std::size_t) {
-        auto _ = data; // just so data does not get destroyed too early
-        on_send_communicator_type_completed(ec);
-    }
-    );
+    use_socket([&](auto& socket) {
+        boost::asio::async_write(socket, boost::asio::buffer(data.get(), 1),
+            [=](const boost::system::error_code& ec, std::size_t) {
+                auto _ = data; // just so data does not get destroyed too early
+                on_send_communicator_type_completed(ec);
+            }
+        );
+    });
 
     m_preMessagingRunning = true;
 }
@@ -93,11 +95,14 @@ void TcpConnection::on_send_communicator_type_completed(
 void TcpConnection::start_receive_communicator_type()
 {
     auto data = std::make_shared<char>();
-    boost::asio::async_read(m_socket, boost::asio::buffer(data.get(), 1),
-        [=](const boost::system::error_code& ec, std::size_t) {
-        on_receive_communicator_type_completed(ec, data);
-    }
-    );
+
+    use_socket([&](auto& socket) {
+        boost::asio::async_read(socket, boost::asio::buffer(data.get(), 1),
+            [=](const boost::system::error_code& ec, std::size_t) {
+                on_receive_communicator_type_completed(ec, data);
+            }
+        );
+    });
 }
 
 void TcpConnection::on_receive_communicator_type_completed(
@@ -131,11 +136,13 @@ void TcpConnection::start_async_receive_some_data()
         return;
     }
 
-    m_socket.async_receive(m_inBuffer.first_write_array(),
-        [=](const boost::system::error_code& ec, std::size_t bytesReceived) {
-            on_receive_some_data_completed(ec, bytesReceived);
-        }
-    );
+    use_socket([&](auto& socket) {
+        socket.async_receive(m_inBuffer.first_write_array(),
+            [=](const boost::system::error_code& ec, std::size_t bytesReceived) {
+                on_receive_some_data_completed(ec, bytesReceived);
+            }
+        );
+    });
 
     m_recvSomeDataRunning = true;
 }
@@ -164,7 +171,7 @@ void TcpConnection::on_receive_some_data_completed(
         BOOST_LOG_TRIVIAL(error) << m_description << ": Async receive some data"
             " failed: " << ec.message();
 
-        std::lock_guard<std::mutex> lock{m_receiveMutex};
+        std::lock_guard<std::mutex> lock{m_receiveMutex}; // required for dtor to notice m_cv.notify()
         die(ec, &m_recvSomeDataRunning);
     }
 }
@@ -175,11 +182,13 @@ void TcpConnection::start_async_send_some_data()
         return;
     }
 
-    m_socket.async_send(m_outBuffer.first_read_array(),
-        [=](const boost::system::error_code& ec, std::size_t bytesSent) {
-        on_send_some_data_completed(ec, bytesSent);
-    }
-    );
+    use_socket([&](auto& socket) {
+        socket.async_send(m_outBuffer.first_read_array(),
+            [=](const boost::system::error_code& ec, std::size_t bytesSent) {
+                on_send_some_data_completed(ec, bytesSent);
+            }
+        );
+    });
 
     m_sendSomeDataRunning = true;
 }
@@ -366,8 +375,11 @@ void TcpConnection::on_timeout(const boost::system::error_code& ec)
 void TcpConnection::close_socket()
 {
     boost::system::error_code ec;
-    m_socket.shutdown(boost::asio::ip::tcp::socket::shutdown_both, ec);
-    m_socket.close(ec);
+
+    use_socket([&](auto& socket) {
+        socket.shutdown(boost::asio::ip::tcp::socket::shutdown_both, ec);
+        socket.close(ec);
+    });
 }
 
 void TcpConnection::send_heartbeat(std::unique_lock<std::recursive_mutex>& lock)
@@ -383,6 +395,13 @@ void TcpConnection::send_heartbeat(std::unique_lock<std::recursive_mutex>& lock)
         return !m_alive || m_outBuffer.write(it, buffer.end())
             == buffer.end();
     });
+}
+
+template <typename Fn>
+void TcpConnection::use_socket(Fn fn)
+{
+    std::lock_guard<std::mutex> lock(m_socketMutex);
+    fn(m_socket);
 }
 
 TcpConnection::TcpConnection(interfaces::IScheduler& scheduler,

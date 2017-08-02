@@ -36,6 +36,7 @@ private:
 
     mutable std::recursive_mutex           m_mutex;
     mutable std::condition_variable_any    m_cv;
+    mutable std::mutex                     m_socketMutex;
     boost::asio::ip::tcp::socket           m_socket;
     interfaces::communicator_ptr           m_communicator;
     bool                                   m_alive;
@@ -87,6 +88,7 @@ private:
     void on_timeout(const boost::system::error_code& ec);
     void close_socket();
     void send_heartbeat(std::unique_lock<std::recursive_mutex>& lock);
+    template <typename Fn> void use_socket(Fn fn);
 
 public:
     TcpConnection(interfaces::IScheduler& scheduler,
