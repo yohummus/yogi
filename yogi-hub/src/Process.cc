@@ -10,11 +10,18 @@
 #include "session_services/CustomCommandService.hh"
 #include "session_services/ConnectionsService.hh"
 
+#include <boost/algorithm/string/replace.hpp>
+
 #include <csignal>
+#include <unistd.h>
+#include <limits.h>
+
+using namespace std::string_literals;
 
 
 Process::Process(int argc, char* argv[])
-: m_pi(argc, argv, true)
+: m_config(argc, argv, true)
+, m_pi(resolve_hostname_in_location(m_config))
 , m_node(m_pi.scheduler())
 , m_kts(m_node) // create before connection for not missing the local ProcessInterface Terminals
 , m_piConnection(m_pi.leaf(), m_node)
@@ -105,6 +112,19 @@ void Process::setup_ws_servers()
     for (auto& server : servers) {
         server->start();
     };
+}
+
+yogi::Configuration& Process::resolve_hostname_in_location(yogi::Configuration& config)
+{
+    char hostname[HOST_NAME_MAX];
+    gethostname(hostname, sizeof(hostname));
+
+    auto location = config.location().to_string();
+    boost::replace_all(location, "${HOSTNAME}", hostname);
+
+    config.update("{\"yogi\": {\"location\": \""s + location + "\"}}");
+
+    return config;
 }
 
 template <typename Service, typename... Args>

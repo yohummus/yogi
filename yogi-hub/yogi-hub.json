@@ -1,6 +1,6 @@
 {
   "yogi": {
-    "location": "/Hubs/Main"
+    "location": "/Hubs/${HOSTNAME}"
   },
   "logging": {
     "stdout": {

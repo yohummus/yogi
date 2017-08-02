@@ -20,6 +20,7 @@ public:
     int exec();
 
 private:
+    yogi::Configuration                     m_config;
     yogi::ProcessInterface                  m_pi;
     yogi::Node                              m_node;
     session_services::KnownTerminalsService m_kts;
@@ -32,6 +33,8 @@ private:
     void setup_services();
     void setup_http_servers();
     void setup_ws_servers();
+
+    static yogi::Configuration& resolve_hostname_in_location(yogi::Configuration& config);
 
     template <typename Service, typename... Args>
     std::shared_ptr<Service> add_service(Args&&... args);
