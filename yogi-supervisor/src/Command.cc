@@ -77,7 +77,7 @@ void Command::async_run(const template_string_vector& variables, boost::optional
 
     m_childPid = fork();
     if (m_childPid == -1) {
-        YOGI_LOG_ERROR("Could not fork() for " << *this);
+        YOGI_LOG_ERROR("Could not fork() for " << *this << ": " << strerror(errno));
         m_ios.post([=] {
             fn(STARTUP_FAILURE, {}, {});
         });
@@ -106,6 +106,9 @@ void Command::async_run(const template_string_vector& variables, boost::optional
     }
     // parent process
     else {
+        m_outPipeWriteSd.close();
+        m_errPipeWriteSd.close();
+
         m_ios.notify_fork(boost::asio::io_service::fork_parent);
         YOGI_LOG_DEBUG("Started " << *this << " with child PID " << m_childPid);
 
@@ -138,7 +141,7 @@ void Command::create_pipe(boost::asio::posix::stream_descriptor* readSd,
     int fds[2];
     if (pipe(fds) == -1) {
         std::ostringstream oss;
-        oss << "Could not create pipe for "s << *this;
+        oss << "Could not create pipe for "s << *this << ": " << strerror(errno);
         throw std::runtime_error(oss.str());
     }
 
@@ -273,7 +276,8 @@ void Command::kill_child()
 {
     if (m_childPid && !m_killed) {
         if (::kill(-m_childPid, SIGTERM) == -1) {
-            YOGI_LOG_TRACE("Could not kill process (PID: " << m_childPid << ") for " << *this << ". Trying again...");
+            YOGI_LOG_TRACE("Could not kill process (PID: " << m_childPid << ") for "
+                << *this << ". Trying again...");
             
             auto self = shared_from_this();
             m_ios.post([=, self=self] {
