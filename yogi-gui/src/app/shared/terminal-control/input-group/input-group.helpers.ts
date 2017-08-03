@@ -184,6 +184,10 @@ export class GuiPrimitiveData {
   }
 
   set value(val: any) {
+    if (val instanceof Uint8Array) {
+      val = ByteBuffer.wrap(val);
+    }
+
     this.storeValueIfValid(val);
     this._valueString = this._makeValueStringFn(val);
     this._tooltip = this._makeTooltipFn(val);

@@ -12,7 +12,7 @@ import {
 
 export class ReceivedRegularMessage {
   cached: boolean;
-  msg: yogi.Message | ByteBuffer;
+  msg: yogi.Message | Uint8Array;
 };
 
 export class ScatterGatherReply {

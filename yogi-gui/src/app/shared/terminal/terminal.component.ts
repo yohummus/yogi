@@ -88,7 +88,7 @@ export class TerminalComponent implements OnInit, OnDestroy {
 
   onRegularMessageReceived(msg: yogi.Message | Uint8Array, cached?: boolean) {
     this.lastReceivedRegularMessage = {
-      msg: msg instanceof Uint8Array ? ByteBuffer.wrap(msg) : msg,
+      msg: msg,
       cached: !!cached
     };
   }
@@ -104,12 +104,7 @@ export class TerminalComponent implements OnInit, OnDestroy {
   }
 
   sendRegularMessage(msg: yogi.Message | ByteBuffer) {
-    if (msg instanceof yogi.Message) {
-      (this.terminal as any).publish(msg);
-    }
-    else {
-      (this.terminal as any).publish((msg as ByteBuffer).toArrayBuffer());
-    }
+    this.transmitMessage(msg, (tm, msg) => tm.publish(msg));
   }
 
   sendScatterMessage(msg: yogi.Message) {
@@ -121,10 +116,10 @@ export class TerminalComponent implements OnInit, OnDestroy {
 
     let operationPromise: Promise<yogi.Operation>;
     if ('scatterGather' in this.terminal) {
-      operationPromise = (this.terminal as any).scatterGather(msg, fn);
+      operationPromise = this.transmitMessage(msg, (tm, msg) => tm.scatterGather(msg, fn));
     }
     else {
-      operationPromise = (this.terminal as any).request(msg, fn);
+      operationPromise = this.transmitMessage(msg, (tm, msg) => tm.request(msg, fn));
     }
 
     operationPromise.then((operation: yogi.Operation) => {
@@ -134,5 +129,14 @@ export class TerminalComponent implements OnInit, OnDestroy {
 
   onScatterGatherReplyChanged(reply: ScatterGatherReply) {
     this.scatterGatherReply = reply;
+  }
+
+  transmitMessage(msg: yogi.Message | ByteBuffer, fn: (terminal: any, msg: yogi.Message | ArrayBuffer) => void): any {
+    if (msg instanceof yogi.Message) {
+      return fn(this.terminal as any, msg as yogi.Message);
+    }
+    else {
+      return fn(this.terminal as any, (msg as ByteBuffer).toArrayBuffer());
+    }
   }
 }
