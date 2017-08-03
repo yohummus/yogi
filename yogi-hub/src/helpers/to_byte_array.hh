@@ -103,6 +103,12 @@ inline QByteArray to_byte_array<QString>(const QString& str)
     return to_byte_array(str.toStdString());
 }
 
+template <>
+inline QByteArray to_byte_array<yogi::Failure>(const yogi::Failure& failure)
+{
+    return to_byte_array(std::string(failure.what()));
+}
+
 } // namespace helpers
 
 #endif // HELPERS_TO_BYTE_ARRAY_HH

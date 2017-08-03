@@ -89,20 +89,28 @@ TerminalsService::response_pair TerminalsService::handle_create_terminal_request
 
     auto type      = helpers::read_from_stream<yogi::terminal_type>(&stream);
     auto signature = helpers::read_from_stream<yogi::Signature>(&stream);
+    auto name      = (request.constData() + 6);
 
     if (type > yogi::CLIENT) {
         return {RES_INVALID_TERMINAL_TYPE, {}};
     }
 
-    YOGI_LOG_DEBUG(m_logger, "Creating Terminal " << type << " '" << (request.constData() + 6)
+    YOGI_LOG_DEBUG(m_logger, "Creating " << type << " Terminal '" << name
         << "' [" << signature << "]...");
 
-    auto info = std::make_shared<TerminalInfo>(m_session.leaf(), type, request.constData() + 6, signature);
+    try {
+        auto info = std::make_shared<TerminalInfo>(m_session.leaf(), type, name, signature);
+        auto id = m_terminals.add(info);
+        info->id = id;
 
-    auto id = m_terminals.add(info);
-    info->id = id;
+        return {RES_OK, helpers::to_byte_array(id)};
+    }
+    catch (const yogi::Failure& e) {
+        YOGI_LOG_WARNING("Could not create " << type << " Terminal '" << name
+            << "' [" << signature << "]: " << e.what());
 
-    return {RES_OK, helpers::to_byte_array(id)};
+        return {RES_API_ERROR, helpers::to_byte_array(e)};
+    }
 }
 
 TerminalsService::response_pair TerminalsService::handle_destroy_terminal_request(
@@ -131,6 +139,7 @@ TerminalsService::response_pair TerminalsService::handle_create_binding_request(
     stream.skipRawData(1);
 
     auto terminalId = helpers::read_from_stream<unsigned>(&stream);
+    auto targets = request.constData() + 5;
     auto tmInfo = m_terminals.get(terminalId);
     if (!tmInfo) {
         return {RES_INVALID_TERMINAL_ID, {}};
@@ -140,17 +149,26 @@ TerminalsService::response_pair TerminalsService::handle_create_binding_request(
         return {RES_INVALID_TERMINAL_TYPE, {}};
     }
 
-    YOGI_LOG_DEBUG(m_logger, "Creating Binding from Terminal " << tmInfo->terminal->type() << " '"
-        << tmInfo->terminal->name() << "' [" << tmInfo->terminal->signature() << "] to '"
-        << (request.constData() + 5) << "'...");
+    YOGI_LOG_DEBUG(m_logger, "Creating Binding from " << tmInfo->terminal->type()
+        << " Terminal '" << tmInfo->terminal->name() << "' ["
+        << tmInfo->terminal->signature() << "] to '" << targets << "'...");
 
-    auto bdInfo = std::make_shared<BindingInfo>(*static_cast<yogi::PrimitiveTerminal*>(
-        tmInfo->terminal.get()), request.constData() + 5);
+    try {
+        auto bdInfo = std::make_shared<BindingInfo>(*static_cast<yogi::PrimitiveTerminal*>(
+            tmInfo->terminal.get()), targets);
 
-    auto bindingId = m_bindings.add(bdInfo);
-    bdInfo->id = bindingId;
+        auto bindingId = m_bindings.add(bdInfo);
+        bdInfo->id = bindingId;
 
-    return {RES_OK, helpers::to_byte_array(bindingId)};
+        return {RES_OK, helpers::to_byte_array(bindingId)};
+    }
+    catch (const yogi::Failure& e) {
+        YOGI_LOG_WARNING("Could not create Binding from " << tmInfo->terminal->type()
+            << " Terminal '" << tmInfo->terminal->name() << "' ["
+            << tmInfo->terminal->signature() << "] to '" << targets << "': " << e.what());
+
+        return {RES_API_ERROR, helpers::to_byte_array(e)};
+    }
 }
 
 TerminalsService::response_pair TerminalsService::handle_destroy_binding_request(
