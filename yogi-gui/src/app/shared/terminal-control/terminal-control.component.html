@@ -3,7 +3,7 @@
   [enabled]="bound"
   [signatureHalf]="recvSignatureHalf"
   [timestamp]="lastReceivedRegularMessage?.msg.timestamp"
-  [value]="lastReceivedRegularMessage?.msg.value"
+  [value]="getMessageValue(lastReceivedRegularMessage?.msg)"
   [cached]="lastReceivedRegularMessage?.cached"
   [isReadonly]="true"
 ></ce-input-group>
@@ -15,7 +15,7 @@
   [hasSendButton]="true"
   [timestamp]="dummySendableTimestamp"
   [value]="dummySendableValue"
-  (changed)="onMessageChanged(lastSendableRegularMsg, $event)"
+  (changed)="onSendableRegularMsgChanged($event)"
   (sendButtonClicked)="onSendButtonClicked()"
 ></ce-input-group>
 
@@ -24,7 +24,7 @@
   [enabled]="bound"
   [signatureHalf]="sendSignatureHalf"
   [timestamp]="lastReceivedScatterMessage?.message.timestamp"
-  [value]="lastReceivedScatterMessage?.message.value"
+  [value]="getMessageValue(lastReceivedScatterMessage?.message)"
   [isReadonly]="true"
 ></ce-input-group>
 
@@ -35,7 +35,7 @@
   [hasReplyButton]="true"
   [timestamp]="dummySendableTimestamp"
   [value]="dummySendableValue"
-  (changed)="onMessageChanged(lastSendableGatherMsg, $event)"
+  (changed)="onSendableGatherMsgChanged($event)"
 ></ce-input-group>
 
 <ce-input-group *ngIf="canReceiveGatherMsg"
@@ -43,7 +43,7 @@
   [enabled]="subscribed"
   [signatureHalf]="recvSignatureHalf"
   [timestamp]="lastReceivedGatherMessage?.message.timestamp"
-  [value]="lastReceivedGatherMessage?.message.value"
+  [value]="getMessageValue(lastReceivedGatherMessage?.message)"
   [isReadonly]="true"
   [hasGatherButton]="false"
 ></ce-input-group>
@@ -56,6 +56,6 @@
   [hasSendButton]="true"
   [timestamp]="dummySendableTimestamp"
   [value]="dummySendableValue"
-  (changed)="onMessageChanged(lastSendableScatterMsg, $event)"
+  (changed)="onSendableScatterMsgChanged($event)"
   (sendButtonClicked)="onSendButtonClicked()"
 ></ce-input-group>

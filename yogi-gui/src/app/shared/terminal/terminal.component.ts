@@ -50,7 +50,7 @@ export class TerminalComponent implements OnInit, OnDestroy {
     }
 
     if ('onMessageReceived' in this.terminal) {
-      (this.terminal as any).onMessageReceived = (msg: yogi.Message, cached?: boolean) => {
+      (this.terminal as any).onMessageReceived = (msg: yogi.Message | Uint8Array, cached?: boolean) => {
         this.onRegularMessageReceived(msg, cached);
       };
     }
@@ -86,9 +86,9 @@ export class TerminalComponent implements OnInit, OnDestroy {
     this.terminal.destroy();
   }
 
-  onRegularMessageReceived(msg: yogi.Message, cached?: boolean) {
+  onRegularMessageReceived(msg: yogi.Message | Uint8Array, cached?: boolean) {
     this.lastReceivedRegularMessage = {
-      msg: msg,
+      msg: msg instanceof Uint8Array ? ByteBuffer.wrap(msg) : msg,
       cached: !!cached
     };
   }
@@ -96,15 +96,20 @@ export class TerminalComponent implements OnInit, OnDestroy {
   onScatterMessageReceived(msg: yogi.ScatterMessage) {
     this.lastReceivedScatterMessage = msg;
     if (this.scatterGatherReply && !this.scatterGatherReply.ignore) {
-      msg.respond(this.scatterGatherReply.msg as yogi.Message); // TODO: what about custom Terminals?
+      msg.respond(this.scatterGatherReply.msg as yogi.Message);
     }
     else {
       msg.ignore();
     }
   }
 
-  sendRegularMessage(msg: yogi.Message) {
-    (this.terminal as any).publish(msg);
+  sendRegularMessage(msg: yogi.Message | ByteBuffer) {
+    if (msg instanceof yogi.Message) {
+      (this.terminal as any).publish(msg);
+    }
+    else {
+      (this.terminal as any).publish((msg as ByteBuffer).toArrayBuffer());
+    }
   }
 
   sendScatterMessage(msg: yogi.Message) {

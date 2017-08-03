@@ -67,6 +67,12 @@ describe("Signature", () => {
         expect(new yogi.Signature(0x01FFFFFF).isReserved).toBe(false);
     });
 
+    it('should have a getter for checking if the signature represents a Protocol Buffers message', () => {
+        expect(new yogi.Signature(0x00000000).representsProtoMessage).toBe(true);
+        expect(new yogi.Signature(0x00FFFFFF).representsProtoMessage).toBe(false);
+        expect(new yogi.Signature(0x01FFFFFF).representsProtoMessage).toBe(false);
+    });
+
     it('should have a getter for individual bytes', () => {
         expect(new yogi.Signature(0x12345678).bytes).toEqual([0x78, 0x56, 0x34, 0x12]);
     });

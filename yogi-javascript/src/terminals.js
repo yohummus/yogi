@@ -50,9 +50,11 @@
         }
 
         _createMsgCls(type) {
-            if (type !== undefined && !this._signature.isCustom) {
+            if (type !== undefined && this._signature.representsProtoMessage) {
                 return window.yogi.MessageFactory.createMessageClass(type, this._signature);
             }
+
+            return undefined;
         }
 
         _create(type) {
@@ -219,8 +221,8 @@
         }
 
         makeMessage() {
-            if (this._signature.isCustom) {
-                throw new Error('Cannot create message for Terminal with custom signature');
+            if (!this._signature.representsProtoMessage) {
+                throw new Error('Cannot create message for Terminal whose signature does not represent a Protocol Buffers message');
             }
             else {
                 return new this._sendOrScatterMsgCls();
@@ -229,7 +231,7 @@
 
         publish(msg) {
             let data = msg;
-            if (!this._signature.isCustom) {
+            if (this._signature.representsProtoMessage) {
                 if (!(msg instanceof this._sendOrScatterMsgCls)) {
                     throw new Error('Incompatible message type');
                 }
@@ -261,7 +263,7 @@
             }
 
             let msg = data;
-            if (!this._signature.isCustom) {
+            if (this._signature.representsProtoMessage) {
                 msg = new this._recvOrGatherMsgCls();
                 msg.deserialize(data);
             }
@@ -277,8 +279,8 @@
         }
 
         makeScatterMessage() {
-            if (this._signature.isCustom) {
-                throw new Error('Cannot create message for Terminal with custom signature');
+            if (!this._signature.representsProtoMessage) {
+                throw new Error('Cannot create message for Terminal whose signature does not represent a Protocol Buffers message');
             }
             else {
                 return new this._sendOrScatterMsgCls();
@@ -287,7 +289,7 @@
 
         _scatterGather(msg, gatherFn) {
             let data = msg;
-            if (!this._signature.isCustom) {
+            if (this._signature.representsProtoMessage) {
                 if (!(msg instanceof this._sendOrScatterMsgCls)) {
                     throw new Error('Incompatible message type');
                 }
@@ -308,7 +310,7 @@
             let operation = this._operations.get(opId);
             if (operation) {
                 let msg = data;
-                if (!this._signature.isCustom) {
+                if (this._signature.representsProtoMessage) {
                     msg = new this._recvOrGatherMsgCls();
                     msg.deserialize(data);
                 }
@@ -330,8 +332,8 @@
         }
 
         makeGatherMessage() {
-            if (this._signature.isCustom) {
-                throw new Error('Cannot create message for Terminal with custom signature');
+            if (!this._signature.representsProtoMessage) {
+                throw new Error('Cannot create message for Terminal whose signature does not represent a Protocol Buffers message');
             }
             else {
                 return new this._recvOrGatherMsgCls();
@@ -340,7 +342,7 @@
 
         _notifyReceivedScatterMessage(opId, data) {
             let msg = data;
-            if (!this._signature.isCustom) {
+            if (this._signature.representsProtoMessage) {
                 msg = new this._sendOrScatterMsgCls();
                 msg.deserialize(data);
             }
@@ -395,7 +397,7 @@
 
         respond(msg) {
             let data = msg;
-            if (!this._terminal.signature.isCustom) {
+            if (this._terminal.signature.representsProtoMessage) {
                 if (!(msg instanceof this._terminal._recvOrGatherMsgCls)) {
                     throw new Error('Incompatible message type');
                 }

@@ -191,6 +191,10 @@
             return this._lowerHalf.isReserved || this._upperHalf.isReserved;
         }
 
+        get representsProtoMessage() {
+            return !this.isCustom && !this.isReserved;
+        }
+
         get bytes() {
             return [
                 (this._raw >>  0) & 0xFF,
@@ -235,7 +239,7 @@
         constructor(signature) {
             this._signature = signature instanceof Signature ? signature : new Signature(signature);
 
-            if (this._signature.isReserved || this._signature.isCustom) {
+            if (!this._signature.representsProtoMessage) {
                 throw new Error('Cannot create ProtoFile for reserved or custom signatures');
             }
 
@@ -331,8 +335,8 @@
     }
 
     window.yogi = window.yogi || {};
-    window.yogi.PrimitiveType = PrimitiveType;
-    window.yogi.Tribool = Tribool;
+    window.yogi.PrimitiveType         = PrimitiveType;
+    window.yogi.Tribool               = Tribool;
     window.yogi.OfficialSignatureHalf = OfficialSignatureHalf;
     window.yogi.Signature             = Signature;
     window.yogi.ProtoFile             = ProtoFile;

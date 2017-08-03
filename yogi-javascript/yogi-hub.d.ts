@@ -107,6 +107,7 @@ declare module yogi {
         readonly lowerHalf: OfficialSignatureHalf;
         readonly upperHalf: OfficialSignatureHalf;
         readonly isReserved: boolean;
+        readonly representsProtoMessage: boolean;
         readonly bytes: Array<number>;
         readonly bits: Array<number>;
         readonly hex: string;

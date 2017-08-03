@@ -12,7 +12,7 @@ import {
 
 export class ReceivedRegularMessage {
   cached: boolean;
-  msg: yogi.Message;
+  msg: yogi.Message | ByteBuffer;
 };
 
 export class ScatterGatherReply {
@@ -155,14 +155,19 @@ export class TerminalControlComponent implements OnInit {
       default:
         throw new Error(`Unknown terminal type: ${this.terminalType}.`);
     }
+
+    if (!this.signature.representsProtoMessage) {
+      this.sendSignatureHalf = null;
+      this.recvSignatureHalf = null;
+    }
   }
 
   setupDummyVariablesAndMessages() {
-    if (!this.sendSignatureHalf) {
+    if (typeof this.sendSignatureHalf === 'undefined') {
       return;
     }
 
-    if (!this.signature.isCustom && !this.signature.isReserved) {
+    if (this.signature.representsProtoMessage) {
       let msgType = this.sendSignatureHalf.raw === this.signature.upperHalf.raw
                   ? yogi.MessageType.Master
                   : yogi.MessageType.Slave;
@@ -179,22 +184,49 @@ export class TerminalControlComponent implements OnInit {
       this.lastSendableRegularMsg = new ByteBuffer(0);
       this.lastSendableScatterMsg = new ByteBuffer(0);
       this.lastSendableGatherMsg = new ByteBuffer(0);
+      this.dummySendableValue = new ByteBuffer(0);
     }
   }
 
-  onMessageChanged(msg: yogi.Message | ByteBuffer, change: Change) {
+  onSendableRegularMsgChanged(change: Change) {
+    this.lastSendableRegularMsg = this.changeMessage(this.lastSendableRegularMsg, change);
+  }
+
+  onSendableGatherMsgChanged(change: Change) {
+    this.lastSendableGatherMsg = this.changeMessage(this.lastSendableGatherMsg, change);
+
+    this.scatterGatherReplyChanged.emit({
+      msg: this.lastSendableGatherMsg,
+      ignore: change.ignoreScatteredMsg
+    });
+  }
+
+  onSendableScatterMsgChanged(change: Change) {
+    this.lastSendableScatterMsg = this.changeMessage(this.lastSendableScatterMsg, change);
+  }
+
+  changeMessage(msg: yogi.Message | ByteBuffer, change: Change): yogi.Message | ByteBuffer {
     if (change.valid) {
-      msg['value'] = change.value;
-      if (change.hasOwnProperty('timestamp')) {
-        msg['timestamp'] = change.timestamp;
+      if (msg instanceof yogi.Message) {
+        msg['value'] = change.value;
+        if (change.hasOwnProperty('timestamp')) {
+          msg['timestamp'] = change.timestamp;
+        }
+      }
+      else {
+        msg = change.value;
       }
     }
 
-    if (msg === this.lastSendableGatherMsg) {
-      this.scatterGatherReplyChanged.emit({
-        msg: this.lastSendableGatherMsg,
-        ignore: change.ignoreScatteredMsg
-      });
+    return msg;
+  }
+
+  getMessageValue(msg: yogi.Message | ByteBuffer) {
+    if (msg instanceof yogi.Message) {
+      return msg.value;
+    }
+    else {
+      return msg;
     }
   }
 

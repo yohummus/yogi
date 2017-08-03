@@ -47,7 +47,7 @@ export class InputGroupComponent implements OnInit, OnChanges, OnDestroy {
   @Input() enabled: boolean = true;
   @Input() signatureHalf: yogi.OfficialSignatureHalf;
   @Input() timestamp: Long;
-  @Input() value: any | ValuePair | any[] | ValuePair[];
+  @Input() value: any | ValuePair | any[] | ValuePair[] | ByteBuffer;
   @Input() cached: boolean = false;
   @Input() isListElement: boolean = false;
   @Input() hasSendButton: boolean = false;
@@ -113,16 +113,16 @@ export class InputGroupComponent implements OnInit, OnChanges, OnDestroy {
     }
   }
 
-  get isOfficial(): boolean {
+  get representsProtoMessage(): boolean {
     return !!this.signatureHalf;
   }
 
   get isList(): boolean {
-    return this.isOfficial && this.signatureHalf.isList && !this.isListElement;
+    return this.representsProtoMessage && this.signatureHalf.isList && !this.isListElement;
   }
 
   get hasTimestamp(): boolean {
-    return this.isOfficial && this.signatureHalf.hasTimestamp && !this.isListElement;
+    return this.representsProtoMessage && this.signatureHalf.hasTimestamp && !this.isListElement;
   }
 
 
@@ -136,7 +136,7 @@ export class InputGroupComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   makeListValue(): any {
-    if (this.isOfficial && this.signatureHalf.isPair) {
+    if (this.representsProtoMessage && this.signatureHalf.isPair) {
       return {
         first: this.primitiveValues[1].value,
         second: this.primitiveValues[0].value
@@ -181,7 +181,7 @@ export class InputGroupComponent implements OnInit, OnChanges, OnDestroy {
 
   getListValues(): any[] {
     let values: any[];
-    if (this.isOfficial && this.signatureHalf.isPair) {
+    if (this.representsProtoMessage && this.signatureHalf.isPair) {
       return this.listViewChildren.map((child) => {
         return {
           first: child.primitiveValues[1].value,
@@ -215,7 +215,7 @@ export class InputGroupComponent implements OnInit, OnChanges, OnDestroy {
 
   //===== PRIMITIVES =====
   setupPrimitiveValues() {
-    if (this.isOfficial) {
+    if (this.representsProtoMessage) {
       this.primitiveValues = [new GuiPrimitiveData(this, this.signatureHalf.primitiveTypes.first, this.isReadonly)];
 
       if (this.signatureHalf.isPair) {
@@ -232,7 +232,7 @@ export class InputGroupComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   updatePrimitiveValues() {
-    if (this.isOfficial && this.signatureHalf.isPair) {
+    if (this.representsProtoMessage && this.signatureHalf.isPair) {
       this.primitiveValues[0].value = this.value.second;
       this.primitiveValues[1].value = this.value.first;
     }
@@ -294,7 +294,7 @@ export class InputGroupComponent implements OnInit, OnChanges, OnDestroy {
     if (this.isList) {
       value = listValues ? listValues : [];
     }
-    else if (this.isOfficial && this.signatureHalf.isPair) {
+    else if (this.representsProtoMessage && this.signatureHalf.isPair) {
       value = {
         first: this.primitiveValues[1].value,
         second: this.primitiveValues[0].value
