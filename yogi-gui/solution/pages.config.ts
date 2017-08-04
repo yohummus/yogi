@@ -6,7 +6,7 @@ import * as addonPages from './pages/pages.module';
 export const mainPages: Component[] = [
   builtinPages.HomePageComponent,
   builtinPages.ExplorerPageComponent,
-  builtinPages.ProcessesPageComponent,
+//  builtinPages.ProcessesPageComponent,
   builtinPages.AnomaliesPageComponent,
   builtinPages.LogPageComponent,
   builtinPages.ConnectionsPageComponent
