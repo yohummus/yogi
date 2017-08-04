@@ -1,6 +1,11 @@
 (function () {
     window.yogi = window.yogi || {};
 
+    // run a function in the next JS engine tick
+    window.yogi.nextTick = function (fn) {
+        Promise.resolve().then(fn);
+    };
+
     // HUB URI information
     let scripts = document.getElementsByTagName('script');
     for (let script of scripts) {

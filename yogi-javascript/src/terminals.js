@@ -59,44 +59,46 @@
 
         _create(type) {
             this._comeAlivePromise = new Promise((resolve, reject) => {
-                this._session._requestCreateTerminal(this, type)
-                .then((id) => {
-                    let promises = [];
-                    let cachedMessageData = null;
+                window.yogi.nextTick(() => { // next tick to send request after destroy requests have been sent
+                    this._session._requestCreateTerminal(this, type)
+                    .then((id) => {
+                        let promises = [];
+                        let cachedMessageData = null;
 
-                    if (this._isSubscribable) {
-                        promises.push(this._session._requestMonitorSubscriptionState(id));
-                    }
-
-                    if (this._isBinder) {
-                        promises.push(this._session._requestMonitorBuiltinBindingState(id));
-                    }
-
-                    if (this._isPublishMessageReceiver) {
-                        let promise = this._session._requestMonitorReceivedPublishMessages(id);
-                        promise.then((data) => cachedMessageData = data);
-                        promises.push(promise);
-                    }
-
-                    if (this._isScatterMessageReceiver) {
-                        promises.push(this._session._requestMonitorReceivedScatterMessages(id));
-                    }
-
-                    Promise.all(promises)
-                    .then(() => {
-                        this._id = id;
-                        resolve();
-
-                        if (cachedMessageData !== null) {
-                            this._notifyReceivedMessage(cachedMessageData, true);
+                        if (this._isSubscribable) {
+                            promises.push(this._session._requestMonitorSubscriptionState(id));
                         }
+
+                        if (this._isBinder) {
+                            promises.push(this._session._requestMonitorBuiltinBindingState(id));
+                        }
+
+                        if (this._isPublishMessageReceiver) {
+                            let promise = this._session._requestMonitorReceivedPublishMessages(id);
+                            promise.then((data) => cachedMessageData = data);
+                            promises.push(promise);
+                        }
+
+                        if (this._isScatterMessageReceiver) {
+                            promises.push(this._session._requestMonitorReceivedScatterMessages(id));
+                        }
+
+                        Promise.all(promises)
+                        .then(() => {
+                            this._id = id;
+                            resolve();
+
+                            if (cachedMessageData !== null) {
+                                this._notifyReceivedMessage(cachedMessageData, true);
+                            }
+                        })
+                        .catch((err) => {
+                            reject(`Could not start monitoring subscription state or messages for ${this}: ${err}`);
+                        });
                     })
                     .catch((err) => {
-                        reject(`Could not start monitoring subscription state or messages for ${this}: ${err}`);
+                        reject(`Could not create ${this}: ${err}`);
                     });
-                })
-                .catch((err) => {
-                    reject(`Could not create ${this}: ${err}`);
                 });
             });
         }
