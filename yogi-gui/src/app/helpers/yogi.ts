@@ -52,12 +52,12 @@ export function makeSignatureString(signature: yogi.Signature, terminalType: any
     return `Custom Signature ${signature.hex}`;
   }
   else if (signature.isReserved) {
-    return 'Reserved Signature ${signature.hex}';
+    return `Reserved Signature ${signature.hex}`;
   }
   else {
     switch (terminalType) {
       case yogi.DeafMuteTerminal:
-        return 'Official Signature ${signature.hex}';
+        return `Official Signature ${signature.hex}`;
 
       case yogi.ScatterGatherTerminal:
       case yogi.ServiceTerminal:

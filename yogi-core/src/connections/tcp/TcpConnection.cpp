@@ -392,8 +392,7 @@ void TcpConnection::send_heartbeat(std::unique_lock<std::recursive_mutex>& lock)
     }
 
     m_cv.wait(lock, [&] {
-        return !m_alive || m_outBuffer.write(it, buffer.end())
-            == buffer.end();
+        return !m_alive || m_outBuffer.write(it, buffer.end()) == buffer.end();
     });
 }
 
