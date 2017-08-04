@@ -307,7 +307,7 @@ void TcpConnection::start_async_wait()
 
     boost::system::error_code ec;
     m_timer.expires_from_now(boost::posix_time::milliseconds(
-        m_timeout.count() / 2), ec);
+        m_timeout.count() / 3), ec);
 
     if (ec) {
         BOOST_LOG_TRIVIAL(error) << m_description << "Could not start timer: "
@@ -328,7 +328,7 @@ void TcpConnection::on_timeout(const boost::system::error_code& ec)
 
     if (!ec) {
         // receive timeout
-        if (m_heartbeatsSinceLastReceive >= 2) {
+        if (m_heartbeatsSinceLastReceive >= 3) {
             BOOST_LOG_TRIVIAL(error) << m_description << ": Connection timed "
                 "out";
 
@@ -386,10 +386,7 @@ void TcpConnection::send_heartbeat(std::unique_lock<std::recursive_mutex>& lock)
 {
     static const std::vector<char> buffer{0};
     auto it = m_outBuffer.write(buffer.begin(), buffer.end());
-
-    if (it != buffer.end()) {
-        start_async_send_some_data();
-    }
+    start_async_send_some_data();
 
     m_cv.wait(lock, [&] {
         return !m_alive || m_outBuffer.write(it, buffer.end()) == buffer.end();
@@ -482,7 +479,7 @@ void TcpConnection::assign(interfaces::ICommunicator& communicator,
         throw api::ExceptionT<YOGI_ERR_CONNECTION_DEAD>{};
     }
 
-    if (timeout.count() / 2 == 0) {
+    if (timeout.count() / 3 == 0) {
         throw api::ExceptionT<YOGI_ERR_INVALID_PARAM>{};
     }
 
