@@ -10,9 +10,5 @@
     "removeComments": true,
     "noImplicitAny": true,
     "suppressImplicitAnyIndexErrors": true
-  },
-  "files": [
-    "typings/index.d.ts",
-    "../yogi-javascript/yogi-hub.d.ts"
-  ]
+  }
 }
