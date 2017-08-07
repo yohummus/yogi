@@ -438,6 +438,16 @@ public:
         m_terminal.cancel_receive_scattered_message();
     }
 
+    const Terminal& terminal() const
+    {
+        return m_terminal;
+    }
+
+    Terminal& terminal()
+    {
+        return m_terminal;
+    }
+
     void set(std::function<void (ScatteredMessage&&)> callbackFn)
     {
         std::lock_guard<std::mutex> lock(m_mutex);
@@ -519,6 +529,16 @@ public:
     virtual void stop() override
     {
         m_terminal.cancel_receive_request();
+    }
+
+    const Terminal& terminal() const
+    {
+        return m_terminal;
+    }
+
+    Terminal& terminal()
+    {
+        return m_terminal;
     }
 
     void set(std::function<void (Request&&)> callbackFn)
