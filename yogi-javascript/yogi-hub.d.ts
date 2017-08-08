@@ -377,7 +377,7 @@ declare module yogi {
         onSubscriptionStateChanged: (subscribed: boolean) => any;
 
         makeScatterMessage(): Message;
-        scatterGather(msg: ScatterMessage, gatherFn: (msg: GatherMessage) => any): Promise<Operation>;
+        request(msg: ScatterMessage, gatherFn: (msg: GatherMessage) => any): Promise<Operation>;
     }
 
     export class Binding {
