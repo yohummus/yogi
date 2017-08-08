@@ -246,7 +246,7 @@ declare module yogi {
 
         makeScatterMessage(): Message;
         makeGatherMessage(): Message;
-        scatterGather(msg: ScatterMessage, gatherFn: (msg: GatherMessage) => any): Promise<Operation>;
+        scatterGather(msg: Message, gatherFn: (msg: GatherMessage) => any): Promise<Operation>;
     }
 
     export class ProducerTerminal extends ConvenienceTerminal {
@@ -377,7 +377,7 @@ declare module yogi {
         onSubscriptionStateChanged: (subscribed: boolean) => any;
 
         makeScatterMessage(): Message;
-        request(msg: ScatterMessage, gatherFn: (msg: GatherMessage) => any): Promise<Operation>;
+        request(msg: Message, gatherFn: (msg: GatherMessage) => any): Promise<Operation>;
     }
 
     export class Binding {
