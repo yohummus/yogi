@@ -168,7 +168,8 @@ void KnownTerminalsService::remove_terminal(const QString& name, const TerminalI
 
     while (node->terminals.empty() && node->children.empty() && node->parent) {
         auto parent = node->parent;
-        parent->children.remove(node->name);
+        assert (parent->children.contains(node->name));
+        parent->children.remove(QString(node->name)); // copy required since node will be destroyed in remove()
         node = parent;
     }
 }

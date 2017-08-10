@@ -127,20 +127,23 @@ void YogiTcpServer::on_connection_died(const yogi::Failure& failure, weak_connec
         return;
     }
 
-    auto conn = connection.lock();
-    if (!conn) {
-        return;
-    }
-
-    YOGI_LOG_INFO(m_logger, "Connection " << conn->description() << " died: " << failure);
-
     {{
+        auto conn = connection.lock();
+        if (!conn) {
+            return;
+        }
+
+        YOGI_LOG_INFO(m_logger, "Connection " << conn->description() << " died: " << failure);
+
         QMutexLocker lock(&m_mutex);
         auto& info = m_connections[conn];
         info.connected = false;
         info.stateChangedTime = std::chrono::system_clock::now();
     }}
 
+    // we may not hold any shared_ptr's for connection any more at this point, otherwise this
+    // function might return after handle_connection_death_in_qt_thread, resulting in a dead
+    // lock since this function is called from within the async_await_dead completion handler
     QMetaObject::invokeMethod(this, "handle_connection_death_in_qt_thread", Qt::QueuedConnection,
         Q_ARG(weak_connection_ptr, connection));
 }
