@@ -190,20 +190,38 @@ IMPLEMENT_GET_VALUE_OPTIONAL(float)
 IMPLEMENT_GET_VALUE_OPTIONAL(double)
 IMPLEMENT_GET_VALUE_OPTIONAL(std::string)
 
-template<>
-Optional<std::chrono::milliseconds> ConfigurationChild::get_value_optional<std::chrono::milliseconds>() const
-{
-    typedef std::chrono::milliseconds type;
+namespace {
 
-    auto val = get_value_optional<float>();
+template <typename T>
+Optional<T> get_duration_optional(const ConfigurationChild& child)
+{
+    auto val = child.get_value_optional<double>();
     if (val) {
-        auto dur = *val < 0 ? type::max() : type(static_cast<type::rep>(*val * 1000));
-        return Optional<type>(dur);
+        auto val_in_given_period = *val * T::period::den / T::period::num;
+        auto val_in_rep = static_cast<typename T::rep>(val_in_given_period);
+        auto dur = val_in_given_period < 0.0 ? T::max() : T(val_in_rep);
+        return Optional<T>(dur);
     }
     else {
-        return Optional<type>();
+        return Optional<T>();
     }
 }
+
+} // anonymous namespace
+
+#define IMPLEMENT_GET_DURATION_OPTIONAL(type)                           \
+    template<>                                                          \
+    Optional<type> ConfigurationChild::get_value_optional<type>() const \
+    {                                                                   \
+        return get_duration_optional<type>(*this);                      \
+    }
+
+IMPLEMENT_GET_DURATION_OPTIONAL(std::chrono::nanoseconds);
+IMPLEMENT_GET_DURATION_OPTIONAL(std::chrono::microseconds);
+IMPLEMENT_GET_DURATION_OPTIONAL(std::chrono::milliseconds);
+IMPLEMENT_GET_DURATION_OPTIONAL(std::chrono::seconds);
+IMPLEMENT_GET_DURATION_OPTIONAL(std::chrono::minutes);
+IMPLEMENT_GET_DURATION_OPTIONAL(std::chrono::hours);
 
 ConfigurationChild ConfigurationChild::get_child(const std::string& path) const
 {

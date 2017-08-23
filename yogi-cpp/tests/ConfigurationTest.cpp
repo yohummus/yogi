@@ -161,6 +161,8 @@ TEST_F(ConfigurationTest, AccessConfiguration)
     EXPECT_EQ("localhost:12345", cfg.get<std::string>("yogi.connection.target"));
     EXPECT_FLOAT_EQ(1.234f, cfg.get<float>("yogi.connection.timeout"));
     EXPECT_EQ(std::chrono::milliseconds(1234), cfg.get<std::chrono::milliseconds>("yogi.connection.timeout"));
+    EXPECT_EQ(std::chrono::microseconds(1234000), cfg.get<std::chrono::microseconds>("yogi.connection.timeout"));
+    EXPECT_EQ(std::chrono::seconds(1), cfg.get<std::chrono::seconds>("yogi.connection.timeout"));
     EXPECT_EQ(std::chrono::milliseconds::max(), cfg.get<std::chrono::milliseconds>("infinity"));
     EXPECT_EQ(888, cfg.get<int>("yogi.connection.something.that.does.not.exist", 888));
     EXPECT_THROW(cfg.get<int>("yogi.connection.something.that.does.not.exist"), BadConfigurationPath);
