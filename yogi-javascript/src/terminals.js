@@ -148,7 +148,7 @@
                     return ClientTerminal;
 
                 default:
-                    throw new Error('Invalid Terminal type number');
+                    throw new Error('Invalid Terminal type number: ' + typeNumber);
             }
         }
     }

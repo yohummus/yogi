@@ -85,6 +85,7 @@
 
         _connect(uri, resolveComeAlive, rejectComeAlive, resolveDie) {
             this._socket = new WebSocket(uri.replace('${HOST}', window.yogi.hubHost));
+            this._socket.binaryType = 'arraybuffer';
 
             this._socket.addEventListener('open', (evt) => {
                 this._alive = true;
@@ -117,21 +118,23 @@
         }
 
         _onMessageReceived(data) {
-            let fileReader = new FileReader();
-            fileReader.onload = (evt) => {
-                this._handleBatchMessage(evt.target.result);
-            }
-            fileReader.readAsArrayBuffer(data);
+            this._handleBatchMessage(data);
         }
 
         _handleBatchMessage(data) {
-            let offset = 0;
-            while (offset < data.byteLength) {
-                let msgSize = (new Uint32Array(data.slice(offset, offset + 4)))[0];
-                offset += 4;
-                let msg = data.slice(offset, offset + msgSize);
-                offset += msgSize;
-                this._handleMessage(msg);
+            try {
+                let offset = 0;
+                while (offset < data.byteLength) {
+                    let msgSize = (new Uint32Array(data.slice(offset, offset + 4)))[0];
+                    offset += 4;
+                    let msg = data.slice(offset, offset + msgSize);
+                    offset += msgSize;
+                    this._handleMessage(msg);
+                }
+            }
+            catch (err) {
+                console.error(err);
+                this._socket.close();
             }
         }
 
@@ -220,7 +223,7 @@
                     break;
 
                 default:
-                    console.error('Invalid message header');
+                    throw new Error('Invalid received message status: ' + status);
                     break;
             }
         }
