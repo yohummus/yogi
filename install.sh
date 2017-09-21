@@ -32,6 +32,7 @@ PROJECTS=(
     yogi-javascript
     yogi-supervisor
     yogi-echoer
+    yogi-account-manager
     tools/yogi-ping
 )
 

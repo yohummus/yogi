@@ -1,18 +1,18 @@
 #!/bin/sh
 
 ### BEGIN INIT INFO
-# Provides:          yogi-echoer
+# Provides:          yogi-account-manager
 # Required-Start:    $all
 # Required-Stop:
 # Default-Start:     2 3 4 5
 # Default-Stop:      0 1 6
-# Short-Description: YOGI-Echoer
-# Description:       Service for performance testing
+# Short-Description: YOGI-Account-Manager
+# Description:       Service for managing user accounts and sessions
 ### END INIT INFO
 
 # Author: Johannes Bergmann <mail@johannes-bergmann.de>
 
-NAME="yogi-echoer"
+NAME="yogi-account-manager"
 DAEMON="/usr/bin/$NAME"
 CONFIG_FILE="/etc/$NAME.json"
 DAEMON_ARGS="$CONFIG_FILE"
