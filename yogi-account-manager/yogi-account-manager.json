@@ -38,7 +38,6 @@
   },
   "account-provider": {
     "type": "file",
-    "read-only": false,
     "file": "/etc/yogi-accounts.json"
   },
   "account-storage-provider": {
