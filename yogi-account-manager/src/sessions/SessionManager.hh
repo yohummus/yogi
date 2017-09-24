@@ -8,6 +8,8 @@
 #include "../proto/yogi_001ad001.h"
 #include "../proto/yogi_001ad1a1.h"
 
+#include <boost/optional.hpp>
+
 
 namespace sessions {
 
@@ -37,6 +39,8 @@ private:
     yogi::ManualOperationalCondition m_readyOc;
     create_terminal                  m_createTerminal;
     create_observer                  m_createObserver;
+    create_terminal                  m_webCreateTerminal;
+    create_observer                  m_webCreateObserver;
     get_sessions_terminal            m_getSessionsTerminal;
     get_sessions_observer            m_getSessionsObserver;
 
@@ -45,7 +49,10 @@ private:
 
     void on_clear_storage_finished(bool success);
     void on_create_request_received(create_request req);
+    void on_web_create_request_received(create_request req);
     void on_get_sessions_request_received(get_sessions_request req);
+
+    void respond_to_create_request(create_request req, session_ptr session);
 };
 
 } // namespace sessions

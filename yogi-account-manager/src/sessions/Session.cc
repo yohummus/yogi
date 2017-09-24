@@ -7,10 +7,10 @@
 namespace sessions {
 
 Session::Session(SessionManager& manager, accounts::account_ptr account,
-    const std::string& description)
+    const std::string& tag, const std::string& description)
 : m_manager(manager)
 , m_logger("Session")
-, m_name(account->username() + "-" + make_name_suffix(account))
+, m_name(account->username() + "-" + make_name_suffix(account, tag))
 , m_path(yogi::Path("Sessions") / m_name)
 , m_storage(manager.io_service(), manager.storage_provider(), m_logger, m_path, m_name)
 , m_accountTerminal(m_path / "Account")
@@ -37,14 +37,20 @@ const std::string& Session::name() const
     return m_name;
 }
 
-std::string Session::make_name_suffix(accounts::account_ptr account)
+std::string Session::make_name_suffix(accounts::account_ptr account, const std::string& tag)
 {
     static std::unordered_map<std::string, unsigned> counters;
     static std::mutex mutex;
 
     std::lock_guard<std::mutex> lock(mutex);
     auto cnt = ++counters[account->username()];
-    return std::to_string(cnt);
+
+    if (tag.empty()) {
+        return std::to_string(cnt);
+    }
+    else {
+        return tag + "-" + std::to_string(cnt);
+    }
 }
 
 void Session::setup_observers()

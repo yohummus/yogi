@@ -20,7 +20,7 @@ class Session : public std::enable_shared_from_this<Session>
 {
 public:
     Session(SessionManager& manager, accounts::account_ptr account,
-        const std::string& description);
+        const std::string& tag, const std::string& description);
     virtual ~Session();
 
     const std::string& name() const;
@@ -43,7 +43,7 @@ private:
     terminate_terminal        m_terminateTerminal;
     terminate_observer        m_terminateObserver;
 
-    static std::string make_name_suffix(accounts::account_ptr account);
+    static std::string make_name_suffix(accounts::account_ptr account, const std::string& tag);
 
     void setup_observers();
     void on_terminate_request_received(terminate_request req);

@@ -18,6 +18,7 @@ public:
     storage::StorageProvider& storage_provider();
 
     account_ptr get_account(const std::string& username) const;
+    account_ptr try_get_account(const std::string& username) const;
 
 private:
     typedef std::unordered_map<std::string, account_ptr>    accounts_map;

@@ -33,6 +33,16 @@ storage::StorageProvider& AccountManager::storage_provider()
 
 account_ptr AccountManager::get_account(const std::string& username) const
 {
+    auto account = try_get_account(username);
+    if (!account) {
+        throw std::runtime_error("Unknown username "s + username);
+    }
+
+    return account;
+}
+
+account_ptr AccountManager::try_get_account(const std::string& username) const
+{
     auto it = m_accountProvider->accounts().find(username);
     return it != m_accountProvider->accounts().end() ? it->second : account_ptr();
 }
