@@ -7,6 +7,7 @@
 #include "http_services/ProtoCompilerService.hh"
 #include "http_services/QueryService.hh"
 #include "http_services/FileService.hh"
+#include "session_services/AccountService.hh"
 #include "session_services/CustomCommandService.hh"
 #include "session_services/ConnectionsService.hh"
 
@@ -39,6 +40,7 @@ int Process::exec()
     auto exitCode = m_app.exec();
 
     YOGI_LOG_INFO("Shutting down with exit code " << exitCode << "...");
+    session_services::AccountService::destroy();
     return exitCode;
 }
 
@@ -106,6 +108,10 @@ void Process::setup_ws_servers()
         {yogiServers.begin(), yogiServers.end()},
         {yogiClients.begin(), yogiClients.end()}
     );
+
+    if (m_config.get<bool>("account-service.enabled")) {
+        session_services::AccountService::init();
+    }
 
     auto servers = add_services_if_enabled<web_servers::WebSocketServer>("ws-servers", m_node);
 

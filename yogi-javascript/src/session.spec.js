@@ -71,4 +71,7 @@ describe('Session', () => {
             done();
         });
     });
+
+    xit('should allow logging in once with valid credentials', (done) => {
+    });
 });

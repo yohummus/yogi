@@ -1,13 +1,20 @@
 (function () {
     class Session {
         constructor(name = '') {
-            this._name           = name;
-            this._alive          = false;
-            this._transactions   = [];
-            this._dnsQueries     = new Map();
-            this._terminals      = new Map();
-            this._bindings       = new Map();
-            this._customCommands = new Map();
+            this._name                = name;
+            this._alive               = false;
+            this._transactions        = [];
+            this._nextTaskId          = 1;
+            this._taskHandlers        = new Map();
+            this._dnsQueries          = new Map();
+            this._terminals           = new Map();
+            this._bindings            = new Map();
+            this._customCommands      = new Map();
+
+            this._webSessionName      = null;
+            this._loggedInPromise     = new Promise((resolve, reject) => {
+                this._loggedInResolve = resolve;
+            });
 
             this._requestWsUriAndConnect();
         }
@@ -28,6 +35,18 @@
             return this._diePromise;
         }
 
+        get loggedInPromise() {
+            return this._loggedInPromise;
+        }
+
+        get loggedIn() {
+            return this._webSessionName !== null;
+        }
+
+        get webSessionName() {
+            return this._webSessionName;
+        }
+
         close() {
             this._socket.close();
         }
@@ -42,6 +61,23 @@
 
         getClientAddress() {
             return this._request(REQ_CLIENT_ADDRESS, null, this._parseStringResponse);
+        }
+
+        logIn(username, password) {
+            return this._runLogInTask(username, password)
+                .then((webSessionName) => {
+                    this._webSessionName = webSessionName;
+                    this._loggedInResolve();
+                    this._loggedInResolve = null;
+                });
+        }
+
+        _storeData(isAccountData, variable, data) {
+            return this._runStoreDataTask(isAccountData, variable, data);
+        }
+
+        _readData(isAccountData, variable) {
+            return this._runReadDataTask(isAccountData, variable);
         }
 
         _registerConnectionsObserver(observer) {
@@ -178,12 +214,28 @@
                     this._transactions.shift()('Invalid terminal type', null);
                     break;
 
+                case RES_ALREADY_LOGGED_IN:
+                    this._transactions.shift()('Already logged in', null);
+                    break;
+
+                case RES_NOT_LOGGED_IN:
+                    this._transactions.shift()('Not logged in', null);
+                    break;
+
+                case RES_NOT_READY:
+                    this._transactions.shift()('Hub not ready; try again later', null);
+                    break;
+
                 case ASY_DNS_LOOKUP:
                     this._handleDnsQueryCompletion(msg);
                     break;
 
                 case ASY_CUSTOM_COMMAND_STATE:
                     this._handleCustomCommandState(msg);
+                    break;
+
+                case ASY_TASK_COMPLETED:
+                    this._handleTaskCompleted(msg);
                     break;
 
                 case MON_CONNECTION_CHANGED:
@@ -495,6 +547,65 @@
             return this._request(REQ_FIND_KNOWN_TERMINALS, data, this._parseKnownTerminalsResponse);
         }
 
+        _runTask(requestType, data, completionParserFn) {
+            return new Promise((resolve, reject) => {
+                let taskId = this._nextTaskId;
+                ++this._nextTaskId;
+
+                let taskIdData = new Uint32Array(1);
+                taskIdData[0] = taskId;
+
+                let buffer = new Uint8Array(4 + data.byteLength);
+                buffer.set(taskIdData, 0);
+                buffer.set(data, 4);
+
+                this._request(requestType, buffer)
+                .then((data) => {
+                    this._taskHandlers.set(taskId, (response) => {
+                        try {
+                            resolve(completionParserFn(response));
+                        }
+                        catch (err) {
+                            reject(err);
+                        }
+                    });
+                })
+                .catch(reject);
+            });
+        }
+
+        _runLogInTask(username, password) {
+            let usernameData = this._stringToBuffer(username);
+            let passwordData = this._stringToBuffer(password);
+
+            let buffer = new Uint8Array(usernameData.byteLength + passwordData.byteLength);
+            buffer.set(usernameData, 0);
+            buffer.set(passwordData, usernameData.byteLength);
+
+            return this._runTask(REQ_START_LOGIN_TASK, buffer, this._parseLoginTaskCompletion);
+        }
+
+        _runStoreDataTask(isAccountData, variable, data) {
+            let variableData = this._stringToBuffer(variable);
+            let buffer = new Uint8Array(1 + variableData.byteLength + data.byteLength);
+
+            buffer[0] = isAccountData ? 1 : 0;
+            buffer.set(variableData, 1);
+            buffer.set(data, 1 + variableData.byteLength);
+
+            return this._runTask(REQ_START_STORE_DATA_TASK, buffer, this._parseStoreDataTaskCompletion);
+        }
+
+        _runReadDataTask(isAccountData, variable) {
+            let variableData = this._stringToBuffer(variable);
+            let buffer = new Uint8Array(1 + variableData.byteLength);
+
+            buffer[0] = isAccountData ? 1 : 0;
+            buffer.set(variableData, 1);
+
+            return this._runTask(REQ_START_READ_DATA_TASK, buffer, this._parseReadDataTaskCompletion);
+        }
+
         _handleDnsQueryCompletion(msg) {
             let id = (new Int32Array(msg.slice(1, 5)))[0]
             let str = String.fromCharCode.apply(null, new Uint8Array(msg, 5));
@@ -537,6 +648,13 @@
             if (!running) {
                 this._customCommands.delete(cmdId);
             }
+        }
+
+        _handleTaskCompleted(msg) {
+            let taskId = (new Uint32Array(msg.slice(1, 5)))[0];
+            let handler = this._taskHandlers.get(taskId);
+            this._taskHandlers.delete(taskId);
+            handler(msg);
         }
 
         _handleConnectionsChangedNotification(msg) {
@@ -763,6 +881,32 @@
             return children;
         }
 
+        _parseLoginTaskCompletion(msg) {
+            let webSessionName = String.fromCharCode.apply(null, new Uint8Array(msg, 5));
+            if (!webSessionName) {
+                throw new Error('Login failed (probably invalid credentials)');
+            }
+
+            return webSessionName;
+        }
+
+        _parseStoreDataTaskCompletion(msg) {
+            let success = new Uint8Array(msg)[5];
+            if (!success) {
+                throw new Error('Could not store data');
+            }
+        }
+
+        _parseReadDataTaskCompletion(msg) {
+            let success = new Uint8Array(msg)[5];
+            if (!success) {
+                throw new Error('Could not read data');
+            }
+
+            let data = msg.slice(6)
+            return data;
+        }
+
         _stringToBuffer(str, trailingZero = true)
         {
             let data = new Uint8Array(str.length + (trailingZero ? 1 : 0));
@@ -806,6 +950,9 @@
     const REQ_START_CUSTOM_COMMAND              = 25;
     const REQ_TERMINATE_CUSTOM_COMMAND          = 26;
     const REQ_WRITE_CUSTOM_COMMAND_STDIN        = 27;
+    const REQ_START_LOGIN_TASK                  = 28;
+    const REQ_START_STORE_DATA_TASK             = 29;
+    const REQ_START_READ_DATA_TASK              = 30;
 
     const RES_OK                                = 0;
     const RES_INTERNAL_SERVER_ERROR             = 1;
@@ -817,19 +964,23 @@
     const RES_INVALID_OPERATION_ID              = 7;
     const RES_INVALID_COMMAND_ID                = 8;
     const RES_INVALID_TERMINAL_TYPE             = 9;
+    const RES_ALREADY_LOGGED_IN                 = 10;
+    const RES_NOT_LOGGED_IN                     = 11;
+    const RES_NOT_READY                         = 12;
 
-    const ASY_DNS_LOOKUP                        = 10;
-    const ASY_CUSTOM_COMMAND_STATE              = 11;
+    const ASY_DNS_LOOKUP                        = 13;
+    const ASY_CUSTOM_COMMAND_STATE              = 14;
+    const ASY_TASK_COMPLETED                    = 15;
 
-    const MON_CONNECTION_CHANGED                = 12;
-    const MON_KNOWN_TERMINALS_CHANGED           = 13;
-    const MON_BINDING_STATE_CHANGED             = 14;
-    const MON_BUILTIN_BINDING_STATE_CHANGED     = 15;
-    const MON_SUBSCRIPTION_STATE_CHANGED        = 16;
-    const MON_PUBLISHED_MESSAGE_RECEIVED        = 17;
-    const MON_CACHED_PUBLISHED_MESSAGE_RECEIVED = 18;
-    const MON_SCATTERED_MESSAGE_RECEIVED        = 19;
-    const MON_GATHERED_MESSAGE_RECEIVED         = 20;
+    const MON_CONNECTION_CHANGED                = 16;
+    const MON_KNOWN_TERMINALS_CHANGED           = 17;
+    const MON_BINDING_STATE_CHANGED             = 18;
+    const MON_BUILTIN_BINDING_STATE_CHANGED     = 19;
+    const MON_SUBSCRIPTION_STATE_CHANGED        = 20;
+    const MON_PUBLISHED_MESSAGE_RECEIVED        = 21;
+    const MON_CACHED_PUBLISHED_MESSAGE_RECEIVED = 22;
+    const MON_SCATTERED_MESSAGE_RECEIVED        = 23;
+    const MON_GATHERED_MESSAGE_RECEIVED         = 24;
 
     window.yogi = window.yogi || {};
     window.yogi.Session = Session;

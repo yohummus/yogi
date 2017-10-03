@@ -10,6 +10,7 @@
 #include "../session_services/VersionService.hh"
 #include "../session_services/ConnectionsService.hh"
 #include "../session_services/TerminalsService.hh"
+#include "../session_services/AccountService.hh"
 
 #include <QtDebug>
 #include <QDataStream>
@@ -32,7 +33,7 @@ YogiSession::YogiSession(QWebSocket* socket, yogi::Node& node, const QString& cl
 , m_clientIdentification(clientIdentification)
 , m_socket(socket)
 , m_node(node)
-, m_leaf(yogi::ProcessInterface::scheduler())
+, m_leaf(m_node.scheduler())
 , m_connection(m_node, m_leaf)
 {
     YOGI_LOG_INFO(m_logger, "YOGI session for " << m_clientIdentification << " started");
@@ -45,6 +46,10 @@ YogiSession::YogiSession(QWebSocket* socket, yogi::Node& node, const QString& cl
     add_service<VersionService>();
     add_service<ConnectionsService>();
     add_service<TerminalsService>();
+
+    if (yogi::ProcessInterface::config().get<bool>("account-service.enabled")) {
+        add_service<AccountService>();
+    }
 }
 
 YogiSession::~YogiSession()
