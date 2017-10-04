@@ -8,10 +8,15 @@ ul {
   padding: 0;
   overflow: hidden;
   background-color: #333;
+  color: white;
   height: 32px;
   position: fixed;
   width: 100%;
   z-index: 10;
+}
+
+ul.disconnected {
+  background-color: #f10f0f;
 }
 
 li {
@@ -26,6 +31,7 @@ a {
   text-decoration: none;
   font-size: 18px;
   line-height: 27px;
+  transition: all .1s ease-in-out;
 }
 
 #dropdown-button {
@@ -36,24 +42,37 @@ a.text {
   color: #999;
 }
 
+a.disconnected.text {
+  color: #9B2424;
+}
+
 a.icon {
   margin-right: 18px;
+  line-height: 28px;
+  font-size: 20px;
 }
 
 a.text:hover,
-.dropdown-content a.text:hover {
-  background-color: #111;
-  color: white;
-}
-
 a.text.active,
+.dropdown-content a.text:hover,
 .dropdown-content a.text.active {
   background-color: #111;
   color: white;
+}
+
+a.disconnected.text:hover,
+a.disconnected.text.active,
+.dropdown-content a.disconnected.text:hover,
+.dropdown-content a.disconnected.text.active {
+  background-color: #c30303;
+  color: white;
+}
+
+a.text.active {
   text-decoration: underline;
 }
 
-li.dropdown-button {
+.dropdown-button {
   float: right;
   margin-left: 10px;
 }
@@ -74,13 +93,15 @@ li.dropdown-button {
   background-color: #333;
 }
 
-li.dropdown-button:hover .dropdown-content {
+.dropdown-content a.disconnected {
+  background-color: #f10f0f;
+}
+
+.dropdown-button:hover .dropdown-content {
   display: block;
 }
 
-li.display {
+.display {
   float: right;
   height: 32px;
-  margin-left: 8px;
-  margin-right: 8px;
 }

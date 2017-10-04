@@ -11,6 +11,7 @@
             this._bindings            = new Map();
             this._customCommands      = new Map();
 
+            this._username            = null;
             this._webSessionName      = null;
             this._loggedInPromise     = new Promise((resolve, reject) => {
                 this._loggedInResolve = resolve;
@@ -43,6 +44,10 @@
             return this._webSessionName !== null;
         }
 
+        get username() {
+            return this._username;
+        }
+
         get webSessionName() {
             return this._webSessionName;
         }
@@ -66,6 +71,7 @@
         logIn(username, password) {
             return this._runLogInTask(username, password)
                 .then((webSessionName) => {
+                    this._username = username;
                     this._webSessionName = webSessionName;
                     this._loggedInResolve();
                     this._loggedInResolve = null;

@@ -3,6 +3,7 @@ build/
 
 # Visual Studio Code
 .vscode/
+.editorconfig
 
 # NodeJS
 node_modules/

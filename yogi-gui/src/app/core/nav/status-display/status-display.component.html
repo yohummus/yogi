@@ -1,8 +1,8 @@
 <div id="status-display" [title]="tooltip">
   <span [ngSwitch]="yogiService.connectionStatus">
-    <span *ngSwitchCase="ConnectionStatus.CONNECTING" class="connecting"><i class="fa fa-spinner fa-spin fa-fw"></i> Connecting...</span>
-    <span *ngSwitchCase="ConnectionStatus.CONNECTED" class="connected"><i class="fa fa-chain fa-fw"></i> Connected</span>
-    <span *ngSwitchCase="ConnectionStatus.CONNECTION_FAILED" class="failed"><i class="fa fa-warning fa-fw"></i> Connection failed</span>
-    <span *ngSwitchCase="ConnectionStatus.CONNECTION_LOST" class="lost"><i class="fa fa-chain-broken fa-fw"></i> Connection lost</span>
+    <span *ngSwitchCase="ConnectionStatus.CONNECTING"><i class="fa fa-spinner fa-spin fa-fw"></i></span>
+    <span *ngSwitchCase="ConnectionStatus.CONNECTED"><i class="fa fa-chain fa-fw"></i></span>
+    <span *ngSwitchCase="ConnectionStatus.CONNECTION_FAILED"><i class="fa fa-warning fa-fw"></i></span>
+    <span *ngSwitchCase="ConnectionStatus.CONNECTION_LOST"><i class="fa fa-chain-broken fa-fw"></i></span>
   </span>
 </div>

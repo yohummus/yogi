@@ -1,5 +1,6 @@
 import {
   Injectable,
+  NgZone,
 } from '@angular/core';
 
 import {
@@ -12,6 +13,12 @@ export enum ConnectionStatus {
   CONNECTED,
   CONNECTION_LOST,
   CONNECTION_FAILED
+}
+
+export enum LoginState {
+  LOGGED_OUT,
+  LOGGING_IN,
+  LOGGED_IN
 }
 
 export type KnownTerminalsChangedHandler = (info: yogi.KnownTerminalChangeInfo) => any;
@@ -28,8 +35,9 @@ export class YogiService {
   private _connectionsObserver: yogi.ConnectionsObserver;
   private _connectionsChangedHandlers: ConnectionsChangedHandler[] = [];
   private _dnsService: yogi.DnsService;
+  private _loginState = LoginState.LOGGED_OUT;
 
-  constructor() {
+  constructor(private _ngZone: NgZone) {
     this._setupPromises();
   }
 
@@ -83,6 +91,36 @@ export class YogiService {
     return this._dnsService;
   }
 
+  get loginState(): LoginState {
+    return this._loginState;
+  }
+
+  get username(): string | null {
+    return this._session.username;
+  }
+
+  get webSessionName(): string | null {
+    return this._session.webSessionName;
+  }
+
+  logIn(username: string, password: string): void {
+    if (this._session.loggedIn) {
+      throw new Error('Already logged in');
+    }
+
+    this._ngZone.run(() => {
+      this._session.logIn(username, password)
+      .then(() => {
+        this._loginState = LoginState.LOGGED_IN;
+      })
+      .catch((err) => {
+        this._loginState = LoginState.LOGGED_OUT;
+      });
+
+      this._loginState = LoginState.LOGGING_IN;
+    })
+  }
+
   private _setupPromises() {
     this._disconnectedPromise = new Promise<void>((disconnResolve) => {
       this._connectedPromise = new Promise<void>((connResolve, connReject) => {
@@ -94,9 +132,9 @@ export class YogiService {
             this._connectionStatus = ConnectionStatus.CONNECTED;
             connResolve();
           })
-          .catch(() => {
+          .catch((err) => {
             this._connectionStatus = ConnectionStatus.CONNECTION_FAILED;
-            connReject();
+            connReject(err);
           });
 
           this._session.diePromise

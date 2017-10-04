@@ -72,11 +72,30 @@ declare module yogi {
         readonly alive: boolean;
         readonly comeAlivePromise: Promise<void>;
         readonly diePromise: Promise<void>;
+        readonly loggedInPromise: Promise<void>;
+        readonly loggedIn: boolean;
+        readonly username: string | null;
+        readonly webSessionName: string | null;
 
         close(): void;
         getVersion(): Promise<string>;
         getServerTime(): Promise<Date>;
         getClientAddress(): Promise<string>;
+        logIn(username: string, password: string): Promise<string>;
+    }
+
+    export class AccountStorage {
+        constructor(session: Session);
+
+        store(variable: string, data: ArrayBuffer): Promise<void>;
+        read(variable: string): Promise<ArrayBuffer>;
+    }
+
+    export class SessionStorage {
+        constructor(session: Session);
+
+        store(variable: string, data: ArrayBuffer): Promise<void>;
+        read(variable: string): Promise<ArrayBuffer>;
     }
 
     export class DnsService {

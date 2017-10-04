@@ -1,12 +1,11 @@
 #status-display {
   height: 100%;
   color: white;
-  font-size: 14px;
+  font-size: 20px;
   line-height: 32px;
+  transition: all .2s ease-in-out;
 }
 
-#status-display .failed,
-#status-display .lost {
-  color: red;
-  font-size: 16px;
+#status-display:hover {
+  transform: scale(1.1);
 }

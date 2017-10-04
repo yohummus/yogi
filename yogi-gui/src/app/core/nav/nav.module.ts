@@ -30,6 +30,10 @@ import {
   ErrorDisplayComponent,
 } from './error-display/error-display.component';
 
+import {
+  AccountDisplayComponent,
+} from './account-display/account-display.component';
+
 @NgModule({
   imports: [
     CommonModule,
@@ -43,6 +47,7 @@ import {
     NavComponent,
     StatusDisplayComponent,
     ErrorDisplayComponent,
+    AccountDisplayComponent,
   ],
   providers: [
     ErrorDisplayService,

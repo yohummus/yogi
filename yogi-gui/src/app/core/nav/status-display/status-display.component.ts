@@ -24,14 +24,27 @@ export class StatusDisplayComponent implements OnInit {
     this.tooltip = 'Downloading YOGI lib from the configured YOGI-Hub and creating a YOGI session...';
 
     this.yogiService.connectedPromise
-    .then(() => {
-      this.yogiService.session.getVersion()
-      .then((version) => {
-        this.tooltip = `YOGI version ${version}`;
-      });
-    })
-    .catch((err) => {
-      this.tooltip = `Could not connect to YOGI-Hub:\n${err}\nRefresh this page when the error is fixed.`;
-    });
+    .then(this.onConnected.bind(this))
+    .catch(this.onConnectFailed.bind(this));
+
+    this.yogiService.disconnectedPromise
+    .then(this.onDisconnected.bind(this));
+  }
+
+  onConnected() {
+    this.yogiService.session.getVersion()
+    .then(this.onVersionReceived.bind(this));
+  }
+
+  onVersionReceived(version: string) {
+    this.tooltip = `Connected to YOGI-Hub.\nYOGI version: ${version}`;
+  }
+
+  onConnectFailed(err: string) {
+    this.tooltip = `Could not connect to YOGI-Hub:\n${err}\nRefresh this page when the error is fixed.`;
+  }
+
+  onDisconnected() {
+    this.tooltip = 'Connection to YOGI-Hub lost.';
   }
 }

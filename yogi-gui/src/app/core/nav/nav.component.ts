@@ -3,6 +3,11 @@ import {
 } from '@angular/core';
 
 import {
+  YogiService,
+  ConnectionStatus,
+} from '../yogi/yogi.service';
+
+import {
   configuredRoutes,
   mainPages,
   additionalPages,
@@ -23,7 +28,7 @@ export class NavComponent {
   private mainPages: PageInfo[] = [];
   private addonPages: PageInfo[] = [];
 
-  constructor() {
+  constructor(private yogiService: YogiService) {
     for (let route of configuredRoutes) {
       let page = {
         routerLink: route.path,
@@ -39,5 +44,10 @@ export class NavComponent {
         this.addonPages.push(page);
       }
     }
+  }
+
+  get disconnected(): boolean {
+    return this.yogiService.connectionStatus === ConnectionStatus.CONNECTION_FAILED
+      || this.yogiService.connectionStatus === ConnectionStatus.CONNECTION_LOST;
   }
 }
