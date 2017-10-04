@@ -12,6 +12,10 @@
   width: 90px;
 }
 
+.signature-type-icon {
+  margin-right: 10px;
+}
+
 input.ng-invalid {
   background: #d9534f;
   color: white;
@@ -37,4 +41,11 @@ input.ng-invalid {
 
 #code-examples .card-header {
   text-align: left;
+}
+
+/* Fix to add border around button */
+.btn-light {
+  border-top-right-radius: 0.25rem;
+  border-bottom-right-radius: 0.25rem;
+  border: 1px solid rgba(0, 0, 0, 0.15);
 }

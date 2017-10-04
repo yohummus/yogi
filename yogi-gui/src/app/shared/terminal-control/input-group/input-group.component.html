@@ -22,7 +22,7 @@
   <input *ngIf="hasTimestamp"
     type="datetime-local"
     step=".001"
-    class="form-control primitive-control"
+    class="form-control primitive-control timestamp-primitive"
     [class.cached]="cached"
     [title]="timestampTitle"
     [readonly]="isReadonly || null"
@@ -39,11 +39,11 @@
     [class.bg-danger]="!listValuesValid"
     (click)="$event.stopPropagation(); listDropdown.open();">
     <span
-      class="badge badge-default"
+      class="badge badge-dark"
       [class.bg-inverse]="enabled"
       [class.bg-faded]="!enabled"
     >{{listValues ? listValues.length : '.'}}</span>
-    <div *ngIf="listValues" class="dropdown-menu">
+    <div *ngIf="listValues" class="dropdown-menu" ngbDropdownMenu>
       <ce-input-group *ngFor="let element of listValues; let idx = index; trackBy: trackListByIndex"
         class="dropdown-item"
         [label]="idx"
@@ -56,7 +56,7 @@
       ></ce-input-group>
       <button *ngIf="!isReadonly && listValues.length === 0"
         type="button"
-        class="btn btn-secondary custom-button enabled-button list-append-button"
+        class="btn btn-light custom-button enabled-button list-append-button"
         title="Append element"
         (click)="onListAppendButtonClicked()"
       ><i class="fa fa-fw fa-plus"></i></button>
@@ -110,7 +110,7 @@
       <input *ngIf="pv.guiPrimitiveType === GuiPrimitiveType.TIMESTAMP_PRIMITIVE"
         type="datetime-local"
         step=".001"
-        class="form-control primitive-control"
+        class="form-control primitive-control timestamp-primitive"
         [class.cached]="cached"
         [title]="pv.tooltip"
         [readonly]="isReadonly || null"
@@ -130,7 +130,7 @@
 
   <!-- Gather button -->
   <span *ngIf="hasGatherButton" class="input-group-btn">
-    <button class="btn btn-secondary" type="button">
+    <button class="btn btn-light" type="button">
       <i class="fa fa-fw fa-tasks"></i>
     </button>
   </span>
@@ -139,7 +139,7 @@
   <span *ngIf="hasSendButton" class="input-group-btn">
     <button
       type="button"
-      class="btn btn-secondary"
+      class="btn btn-light"
       [class.disabled]="!enabled"
       (click)="onSendButtonClickedOrEnterPressed()"
     ><i class="fa fa-fw fa-envelope"></i></button>

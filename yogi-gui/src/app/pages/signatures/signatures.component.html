@@ -1,27 +1,27 @@
 <div id="page">
   <!-- Signature input row -->
   <div class="container">
-    <div class="row">
+    <div class="row justify-content-md-center">
       <div class="col-xs">
       </div>
-      <div class="col-xs">
+      <div class="col-xs col-md-auto">
         <div class="input-group input-group-sm">
           <span class="input-group-addon">Signature</span>
           <input [(ngModel)]="rawSignatureString" id="signature-input" type="text" class="form-control" pattern="{{rawSignatureValidPattern}}" maxlength="8" title="Signature as a 32 bit hexadecimal number">
           <span *ngIf="signatureType === 'custom'" id="signature-type-addon" class="input-group-addon text-white bg-info">
-            <i class="fa fa-question-circle-o"></i> {{signatureType}}
+            <i class="signature-type-icon fa fa-question-circle-o"></i> {{signatureType}}
           </span>
           <span *ngIf="signatureType === 'reserved'" id="signature-type-addon" class="input-group-addon text-white bg-warning">
-            <i class="fa fa-ban"></i> {{signatureType}}
+            <i class="signature-type-icon fa fa-ban"></i> {{signatureType}}
           </span>
           <span *ngIf="signatureType === 'official'" id="signature-type-addon" class="input-group-addon text-white bg-success">
-            <i class="fa fa-check-circle-o"></i> {{signatureType}}
+            <i class="signature-type-icon fa fa-check-circle-o"></i> {{signatureType}}
           </span>
           <span *ngIf="signatureType === 'invalid'" id="signature-type-addon" class="input-group-addon text-white bg-danger">
-            <i class="fa fa-exclamation"></i> {{signatureType}}
+            <i class="signature-type-icon fa fa-exclamation"></i> {{signatureType}}
           </span>
           <div class="input-group-btn">
-            <button *ngFor="let language of ['Proto', 'C++', 'Python']" type="button" class="btn btn-secondary" (click)="onDownloadButtonClicked(language)" [ngClass]="{disabled : !isOfficial}">
+            <button *ngFor="let language of ['Proto', 'C++', 'Python']" type="button" class="btn btn-light" (click)="onDownloadButtonClicked(language)" [ngClass]="{disabled : !isOfficial}">
               <i class="fa" [ngClass]="{'fa-download' : downloading !== language, 'fa-spinner fa-spin fa-fw' : downloading === language}"></i> {{language}}
             </button>
           </div>
@@ -35,22 +35,22 @@
   <!-- Message configurators -->
   <div *ngIf="signature && !signature.isCustom">
     <div class="container">
-      <div class="row flex-items-xs-center">
-        <div *ngFor="let prefix of ['Master / Scatter', 'Publish / Slave / Gather']; let msgIdx=index">
+      <div class="row justify-content-md-center">
+        <div class="col-xs col-md-auto" *ngFor="let prefix of ['Master / Scatter', 'Publish / Slave / Gather']; let msgIdx=index">
           <div class="input-group input-group-sm">
             <span class="input-group-addon">{{prefix}} Message</span>
             <div class="input-group-btn">
-              <button type="button" class="btn btn-secondary" [class.bg-info]="timestampEnabled(!msgIdx)" [class.text-white]="timestampEnabled(!msgIdx)" (click)="onTimestampButtonClicked(!msgIdx)" title="Include a timestamp">
+              <button type="button" class="btn btn-light" [class.bg-info]="timestampEnabled(!msgIdx)" [class.text-white]="timestampEnabled(!msgIdx)" (click)="onTimestampButtonClicked(!msgIdx)" title="Include a timestamp">
                 <i class="fa fa-clock-o"></i>
               </button>
             </div>
             <div class="input-group-btn">
-              <button type="button" class="btn btn-secondary" [class.bg-info]="listEnabled(!msgIdx)" [class.text-white]="listEnabled(!msgIdx)" (click)="onListButtonClicked(!msgIdx)" title="List of values">
+              <button type="button" class="btn btn-light" [class.bg-info]="listEnabled(!msgIdx)" [class.text-white]="listEnabled(!msgIdx)" (click)="onListButtonClicked(!msgIdx)" title="List of values">
                 <i class="fa fa-list-ol"></i>
               </button>
             </div>
             <div *ngFor="let firstPrimitive of [false, true]" class="input-group-btn" ngbDropdown>
-              <button type="button" class="btn btn-secondary dropdown-toggle" ngbDropdownToggle [class.disabled]="!primitiveTypeSelectionEnabled(!msgIdx, firstPrimitive)">
+              <button type="button" class="btn btn-light dropdown-toggle" ngbDropdownToggle [class.disabled]="!primitiveTypeSelectionEnabled(!msgIdx, firstPrimitive)">
                 {{selectedPrimitiveTypeName(!msgIdx, firstPrimitive).toLowerCase()}}
               </button>
               <div *ngIf="primitiveTypeSelectionEnabled(!msgIdx, firstPrimitive)" class="dropdown-menu dropdown-menu-right">
