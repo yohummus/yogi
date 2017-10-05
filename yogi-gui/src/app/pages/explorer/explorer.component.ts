@@ -4,6 +4,7 @@ import {
 
 import {
   YogiService,
+  SessionStorageService,
 } from '../../core/core.module';
 
 @Component({
@@ -14,7 +15,7 @@ import {
 export class ExplorerPageComponent {
   public static pageTitle = 'Explorer';
 
-  constructor(private yogiService: YogiService) {
+  constructor(private yogiService: YogiService, private _asdf: SessionStorageService) {
   }
 
   onCreateTerminalsButtonClicked() {

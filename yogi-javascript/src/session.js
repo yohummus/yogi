@@ -597,7 +597,7 @@
 
             buffer[0] = isAccountData ? 1 : 0;
             buffer.set(variableData, 1);
-            buffer.set(data, 1 + variableData.byteLength);
+            buffer.set(new Uint8Array(data), 1 + variableData.byteLength);
 
             return this._runTask(REQ_START_STORE_DATA_TASK, buffer, this._parseStoreDataTaskCompletion);
         }

@@ -1,6 +1,5 @@
 import {
   Injectable,
-  NgZone,
 } from '@angular/core';
 
 import {
@@ -10,6 +9,10 @@ import {
 import {
   ErrorDisplayService,
 } from '../nav/error-display/error-display.service';
+
+import {
+  BrowserStorageService,
+} from '../storage/browser-storage.service';
 
 export enum LoginState {
   LOGGED_OUT,
@@ -21,12 +24,13 @@ export enum LoginState {
 export class AuthService {
   private _loginState = LoginState.LOGGED_OUT;
 
-  constructor(private _yogiService: YogiService, private _errorDisplayService: ErrorDisplayService, private _ngZone: NgZone) {
-    let username = window.localStorage.getItem('username');
-    let password = window.localStorage.getItem('password');
-    if (username && password) {
+  constructor(private _yogiService: YogiService,
+              private _errorDisplayService: ErrorDisplayService,
+              private _browserStorageService: BrowserStorageService) {
+    let creds = this._browserStorageService.read('credentials');
+    if (creds) {
       this._yogiService.connectedPromise.then(() => {
-        this._logInHashed(username, password, true)
+        this._logInHashed(creds.username, creds.password, true)
         .catch(err => {});
       });
     }
@@ -56,8 +60,7 @@ export class AuthService {
   }
 
   logOut(): void {
-    window.localStorage.removeItem('username');
-    window.localStorage.removeItem('password');
+    this._browserStorageService.erase('credentials');
     window.location.reload();
   }
 
@@ -82,31 +85,30 @@ export class AuthService {
     }
 
     if (!remember) {
-      window.localStorage.removeItem('username');
-      window.localStorage.removeItem('password');
+      this._browserStorageService.erase('credentials');
     }
 
     return new Promise<void>((resolve, reject) => {
-      this._ngZone.run(() => {
-        this._yogiService.session.logIn(username, hashedPassword)
-        .then(() => {
-          this._loginState = LoginState.LOGGED_IN;
+      this._yogiService.session.logIn(username, hashedPassword)
+      .then(() => {
+        this._loginState = LoginState.LOGGED_IN;
 
-          if (remember) {
-            window.localStorage.setItem('username', username);
-            window.localStorage.setItem('password', hashedPassword);
-          }
+        if (remember) {
+          this._browserStorageService.store('credentials', {
+            username: username,
+            password: hashedPassword
+          });
+        }
 
-          resolve();
-        })
-        .catch((err) => {
-          this._loginState = LoginState.LOGGED_OUT;
-          this._errorDisplayService.show('Login failed', `Failed to log in as ${username}.\n${err}`);
-          reject(err);
-        });
-
-        this._loginState = LoginState.LOGGING_IN;
+        resolve();
+      })
+      .catch((err) => {
+        this._loginState = LoginState.LOGGED_OUT;
+        this._errorDisplayService.show('Login failed', `Failed to log in as ${username}.\n${err}`);
+        reject(err);
       });
+
+      this._loginState = LoginState.LOGGING_IN;
     });
   }
 }

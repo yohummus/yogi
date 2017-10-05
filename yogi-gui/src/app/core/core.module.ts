@@ -13,6 +13,22 @@ import {
 } from './auth/auth.service';
 
 import {
+  AccountStorageService,
+} from './storage/account-storage.service';
+
+import {
+  SessionStorageService,
+} from './storage/session-storage.service';
+
+import {
+  WindowStorageService,
+} from './storage/window-storage.service';
+
+import {
+  BrowserStorageService,
+} from './storage/browser-storage.service';
+
+import {
   NavModule,
   ErrorDisplayService,
 } from './nav/nav.module';
@@ -39,6 +55,10 @@ import {
   providers: [
     YogiService,
     AuthService,
+    AccountStorageService,
+    SessionStorageService,
+    WindowStorageService,
+    BrowserStorageService,
   ],
 })
 export class CoreModule {
@@ -61,3 +81,19 @@ export {
   AuthService,
   LoginState,
 } from './auth/auth.service';
+
+export {
+  AccountStorageService,
+} from './storage/account-storage.service';
+
+export {
+  SessionStorageService,
+} from './storage/session-storage.service';
+
+export {
+  WindowStorageService,
+} from './storage/window-storage.service';
+
+export {
+  BrowserStorageService,
+} from './storage/browser-storage.service';
