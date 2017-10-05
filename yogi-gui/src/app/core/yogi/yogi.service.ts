@@ -1,6 +1,5 @@
 import {
   Injectable,
-  NgZone,
 } from '@angular/core';
 
 import {
@@ -13,12 +12,6 @@ export enum ConnectionStatus {
   CONNECTED,
   CONNECTION_LOST,
   CONNECTION_FAILED
-}
-
-export enum LoginState {
-  LOGGED_OUT,
-  LOGGING_IN,
-  LOGGED_IN
 }
 
 export type KnownTerminalsChangedHandler = (info: yogi.KnownTerminalChangeInfo) => any;
@@ -35,9 +28,8 @@ export class YogiService {
   private _connectionsObserver: yogi.ConnectionsObserver;
   private _connectionsChangedHandlers: ConnectionsChangedHandler[] = [];
   private _dnsService: yogi.DnsService;
-  private _loginState = LoginState.LOGGED_OUT;
 
-  constructor(private _ngZone: NgZone) {
+  constructor() {
     this._setupPromises();
   }
 
@@ -89,36 +81,6 @@ export class YogiService {
 
   get dnsService(): yogi.DnsService {
     return this._dnsService;
-  }
-
-  get loginState(): LoginState {
-    return this._loginState;
-  }
-
-  get username(): string | null {
-    return this._session.username;
-  }
-
-  get webSessionName(): string | null {
-    return this._session.webSessionName;
-  }
-
-  logIn(username: string, password: string): void {
-    if (this._session.loggedIn) {
-      throw new Error('Already logged in');
-    }
-
-    this._ngZone.run(() => {
-      this._session.logIn(username, password)
-      .then(() => {
-        this._loginState = LoginState.LOGGED_IN;
-      })
-      .catch((err) => {
-        this._loginState = LoginState.LOGGED_OUT;
-      });
-
-      this._loginState = LoginState.LOGGING_IN;
-    })
   }
 
   private _setupPromises() {

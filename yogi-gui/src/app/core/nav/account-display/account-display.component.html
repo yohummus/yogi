@@ -1,0 +1,22 @@
+<div [ngSwitch]="authService.loginState" class="icon" (click)="onClicked()">
+  <div *ngSwitchCase="LoginState.LOGGED_OUT" title="Click to sign in">
+    <span><i class="fa fa-fw fa-user-secret"></i></span>
+  </div>
+  <div *ngSwitchCase="LoginState.LOGGING_IN" title="Signing in...">
+    <span><i class="fa fa-fw fa-user-secret fa-spin"></i></span>
+  </div>
+  <div *ngSwitchCase="LoginState.LOGGED_IN" title="Signed in as {{authService.username}}&#013;Click to sign out">
+    <span><i class="fa fa-fw fa-user"></i></span>
+  </div>
+</div>
+
+<ce-login-modal
+  #loginModal
+></ce-login-modal>
+
+<ce-confirm-modal
+  #logoutConfirmModal
+  title="Log out"
+>
+  <p>Logging out will cause the page to refresh. Click OK to proceed.</p>
+</ce-confirm-modal>

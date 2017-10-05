@@ -15,6 +15,10 @@ import {
 } from '@angular/platform-browser/animations'
 
 import {
+  ModalsModule,
+} from '../modals/modals.module';
+
+import {
   NavComponent,
 } from './nav.component';
 
@@ -39,6 +43,7 @@ import {
     CommonModule,
     RouterModule,
     BrowserAnimationsModule,
+    ModalsModule,
   ],
   exports: [
     NavComponent,

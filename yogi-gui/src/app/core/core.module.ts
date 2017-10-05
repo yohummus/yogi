@@ -9,9 +9,17 @@ import {
 } from './yogi/yogi.service';
 
 import {
+  AuthService,
+} from './auth/auth.service';
+
+import {
   NavModule,
   ErrorDisplayService,
 } from './nav/nav.module';
+
+import {
+  ModalsModule,
+} from './modals/modals.module';
 
 import {
   throwIfAlreadyLoaded,
@@ -20,14 +28,17 @@ import {
 @NgModule({
   imports: [
     NavModule,
+    ModalsModule,
   ],
   exports: [
     NavModule,
+    ModalsModule,
   ],
   declarations: [
   ],
   providers: [
     YogiService,
+    AuthService,
   ],
 })
 export class CoreModule {
@@ -45,3 +56,8 @@ export {
   ConnectionsChangedHandler,
   KnownTerminalsChangedHandler,
 } from './yogi/yogi.service';
+
+export {
+  AuthService,
+  LoginState,
+} from './auth/auth.service';
