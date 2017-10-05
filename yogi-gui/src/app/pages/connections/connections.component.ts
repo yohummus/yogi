@@ -8,6 +8,7 @@ import {
   YogiService,
   ConnectionsChangedHandler,
   ErrorDisplayService,
+  DnsService,
 } from '../../core/core.module';
 
 import {
@@ -43,17 +44,18 @@ export class ConnectionsPageComponent implements OnInit {
   private timeUpdateTimer: NodeJS.Timer;
   private serverClientTimeDeltaInMs = 0;
 
-  constructor(private YogiService: YogiService,
-              private errorDisplayService: ErrorDisplayService) {
+  constructor(private yogiService: YogiService,
+              private errorDisplayService: ErrorDisplayService,
+              private dnsService: DnsService) {
   }
 
   ngOnInit() {
-    this.YogiService.session.getServerTime()
+    this.yogiService.session.getServerTime()
     .then((time) => {
       this.serverClientTimeDeltaInMs = time.getTime() - new Date().getTime();
     });
 
-    this.YogiService.connectionsObserver.getFactories()
+    this.yogiService.connectionsObserver.getFactories()
     .then((factories) => {
       this.tcpServers = factories.tcpServers.map((server) => {
         return {
@@ -74,14 +76,14 @@ export class ConnectionsPageComponent implements OnInit {
       });
     });
 
-    this.YogiService.connectionsObserver.getAll()
+    this.yogiService.connectionsObserver.getAll()
     .then((connections) => {
       for (let connection of connections) {
         this.onConnectionUpdated(connection);
       }
     });
 
-    this.YogiService.addConnectionsChangedHandler((connection) => {
+    this.yogiService.addConnectionsChangedHandler((connection) => {
       this.onConnectionUpdated(connection);
     });
 
@@ -90,7 +92,7 @@ export class ConnectionsPageComponent implements OnInit {
 
   ngOnDestroy() {
     clearInterval(this.timeUpdateTimer);
-    this.YogiService.removeConnectionsChangedHandler(this.connectionsChangedHandler);
+    this.yogiService.removeConnectionsChangedHandler(this.connectionsChangedHandler);
   }
 
   get allFactories(): FactoryInfo[] {
@@ -129,7 +131,7 @@ export class ConnectionsPageComponent implements OnInit {
         conn.remoteHost = info.description.substr(0, info.description.lastIndexOf(':'));
         conn.remotePort = Number.parseInt(info.description.substr(
           info.description.lastIndexOf(':') + 1));
-        this.YogiService.dnsService.lookup(conn.remoteHost)
+        this.dnsService.lookup(conn.remoteHost)
         .then((ifo) => {
           conn.remoteHost = ifo.hostname;
         });

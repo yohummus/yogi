@@ -29,6 +29,10 @@ import {
 } from './storage/browser-storage.service';
 
 import {
+  DnsService,
+} from './dns/dns.service';
+
+import {
   NavModule,
   ErrorDisplayService,
 } from './nav/nav.module';
@@ -59,6 +63,7 @@ import {
     SessionStorageService,
     WindowStorageService,
     BrowserStorageService,
+    DnsService,
   ],
 })
 export class CoreModule {
@@ -97,3 +102,7 @@ export {
 export {
   BrowserStorageService,
 } from './storage/browser-storage.service';
+
+export {
+  DnsService,
+} from './dns/dns.service';

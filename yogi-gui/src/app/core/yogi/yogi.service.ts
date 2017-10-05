@@ -27,7 +27,6 @@ export class YogiService {
   private _knownTerminalsChangedHandlers: KnownTerminalsChangedHandler[] = [];
   private _connectionsObserver: yogi.ConnectionsObserver;
   private _connectionsChangedHandlers: ConnectionsChangedHandler[] = [];
-  private _dnsService: yogi.DnsService;
 
   constructor() {
     this._setupPromises();
@@ -79,10 +78,6 @@ export class YogiService {
     this._connectionsChangedHandlers.splice(idx, 1);
   }
 
-  get dnsService(): yogi.DnsService {
-    return this._dnsService;
-  }
-
   private _setupPromises() {
     this._disconnectedPromise = new Promise<void>((disconnResolve) => {
       this._connectedPromise = new Promise<void>((connResolve, connReject) => {
@@ -111,8 +106,6 @@ export class YogiService {
 
           this._connectionsObserver = new yogi.ConnectionsObserver(this._session);
           this._connectionsObserver.onChanged = (info) => this._onConnectionsChanged(info);
-
-          this._dnsService = new yogi.DnsService(this._session);
         })
         .catch((err) => {
           this._connectionStatus = ConnectionStatus.CONNECTION_FAILED;
