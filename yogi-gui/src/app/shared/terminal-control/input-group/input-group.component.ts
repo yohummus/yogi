@@ -128,7 +128,7 @@ export class InputGroupComponent implements OnInit, OnChanges, OnDestroy {
 
   //===== VALUE LISTS =====
   setupListValues() {
-    this.listValues = [];
+    this.listValues = this.value || [];
   }
 
   updateListValues() {
