@@ -44,6 +44,10 @@ export class AuthService {
     return this._yogiService.session.username;
   }
 
+  get groups(): string[] | null {
+    return this._yogiService.session.groups;
+  }
+
   get webSessionName(): string | null {
     return this._yogiService.session.webSessionName;
   }

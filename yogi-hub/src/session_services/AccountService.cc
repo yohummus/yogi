@@ -204,7 +204,13 @@ void AccountService::try_completing_login_request_in_qt_thread()
     YOGI_LOG_INFO(m_logger, "[" << m_loginTaskId << ":" << m_username
         << "] Login successful; session is " << m_webSessionName);
 
-    auto data = helpers::to_byte_array(m_loginTaskId) + helpers::to_byte_array(m_webSessionName);
+    auto data = helpers::to_byte_array(m_loginTaskId)
+              + helpers::to_byte_array(m_webSessionName);
+
+    for (auto& group : *m_groups) {
+        data += helpers::to_byte_array(group);
+    }
+
     m_session.notify_client(ASY_TASK_COMPLETED, data);
 }
 
@@ -297,7 +303,8 @@ void AccountService::handle_store_data_request_answer_in_qt_thread(int res_, boo
         YOGI_LOG_DEBUG(m_logger, "[" << taskId << ":" << m_username << "] Successfully stored data");
     }
 
-    auto data = helpers::to_byte_array(taskId) + helpers::to_byte_array(res && success);
+    auto data = helpers::to_byte_array(taskId)
+              + helpers::to_byte_array(res && success);
     m_session.notify_client(ASY_TASK_COMPLETED, data);
 }
 
@@ -388,7 +395,9 @@ Q_SLOT void AccountService::handle_read_data_request_answer_in_qt_thread(int res
             << readData.size() << " bytes of data");
     }
 
-    auto data = helpers::to_byte_array(taskId) + helpers::to_byte_array(res && success) + readData;
+    auto data = helpers::to_byte_array(taskId)
+              + helpers::to_byte_array(res && success)
+              + readData;
     m_session.notify_client(ASY_TASK_COMPLETED, data);
 }
 

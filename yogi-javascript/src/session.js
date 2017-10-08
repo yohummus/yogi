@@ -12,6 +12,7 @@
             this._customCommands      = new Map();
 
             this._username            = null;
+            this._groups              = null;
             this._webSessionName      = null;
             this._loggedInPromise     = new Promise((resolve, reject) => {
                 this._loggedInResolve = resolve;
@@ -48,6 +49,10 @@
             return this._username;
         }
 
+        get groups() {
+            return this._groups;
+        }
+
         get webSessionName() {
             return this._webSessionName;
         }
@@ -69,13 +74,18 @@
         }
 
         logIn(username, password) {
-            return this._runLogInTask(username, password)
-                .then((webSessionName) => {
+            return new Promise((resolve, reject) => {
+                this._runLogInTask(username, password)
+                .then((info) => {
                     this._username = username;
-                    this._webSessionName = webSessionName;
+                    this._groups = info.groups;
+                    this._webSessionName = info.webSessionName;
+                    resolve();
                     this._loggedInResolve();
                     this._loggedInResolve = null;
-                });
+                })
+                .catch(reject);
+            });
         }
 
         _storeData(isAccountData, variable, data) {
@@ -888,12 +898,28 @@
         }
 
         _parseLoginTaskCompletion(msg) {
-            let webSessionName = String.fromCharCode.apply(null, new Uint8Array(msg, 5));
-            if (!webSessionName) {
+            let data = new Uint8Array(msg, 5);
+            let strings = [];
+
+            let start = 0;
+            while (true) {
+                let end = data.indexOf(0, start);
+                if (end === -1) {
+                    break;
+                }
+
+                strings.push(String.fromCharCode.apply(null, data.slice(start, end)));
+                start = end + 1;
+            }
+
+            if (!strings) {
                 throw new Error('Login failed (probably invalid credentials)');
             }
 
-            return webSessionName;
+            return {
+                webSessionName: strings[0],
+                groups: strings.slice(1)
+            };
         }
 
         _parseStoreDataTaskCompletion(msg) {

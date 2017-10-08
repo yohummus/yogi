@@ -76,12 +76,13 @@ declare module yogi {
         readonly loggedIn: boolean;
         readonly username: string | null;
         readonly webSessionName: string | null;
+        readonly groups: string[] | null;
 
         close(): void;
         getVersion(): Promise<string>;
         getServerTime(): Promise<Date>;
         getClientAddress(): Promise<string>;
-        logIn(username: string, password: string): Promise<string>;
+        logIn(username: string, password: string): Promise<void>;
     }
 
     export class AccountStorage {
