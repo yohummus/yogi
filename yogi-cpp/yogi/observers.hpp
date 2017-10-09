@@ -19,20 +19,55 @@ class Binder;
 class Subscribable;
 class ProcessInterface;
 
+class CalledFromHandler : public std::exception
+{
+public:
+    virtual const char* what() const noexcept override;
+};
+
+class BadCallbackId : public std::exception
+{
+public:
+    virtual const char* what() const noexcept override;
+};
 
 class Observer
 {
-public:
-    virtual void start() =0;
-    virtual void stop() =0;
-};
+private:
+    std::recursive_mutex m_mutex;
+    bool                 m_running;
+    bool                 m_stop;
+    bool                 m_inCallback;
 
-class BadCallbackId : public std::runtime_error
-{
-public:
-    BadCallbackId();
-};
+protected:
+    std::unique_lock<std::recursive_mutex> _make_lock();
+    std::unique_lock<std::recursive_mutex> _make_lock_outside_of_handler();
 
+    template <typename Fn>
+    void _handle_change(const Result& res, Fn notifyFn)
+    {
+        auto lock = this->_make_lock();
+        if (!res || m_stop) {
+            m_running = false;
+            return;
+        }
+
+        m_inCallback = true;
+        _continue_impl();
+        notifyFn();
+        m_inCallback = false;
+    }
+
+    virtual void _start_impl() =0;
+    virtual void _continue_impl() =0;
+    virtual void _stop_impl() =0;
+
+public:
+    Observer();
+
+    void start();
+    void stop();
+};
 
 class BindingObserver final
 : public internal::StateObserver<Observer, binding_state, BadCallbackId>
@@ -281,6 +316,9 @@ public:
 class OperationalObserver final
 : public internal::StateObserver<Observer, operational_flag, BadCallbackId>
 {
+private:
+    std::function<void (const Result&, operational_flag)> m_completionHandler;
+
 protected:
     virtual void _async_get_state(std::function<void (const Result&, operational_flag)> completionHandler) override;
     virtual void _async_await_state_change(std::function<void (const Result&, operational_flag)> completionHandler) override;

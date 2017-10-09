@@ -8,8 +8,7 @@
 #include <mutex>
 #include <stdexcept>
 #include <algorithm>
-
-#include <cassert>
+#include <thread>
 
 
 namespace yogi {
@@ -53,30 +52,17 @@ private:
     };
 
 private:
-    std::recursive_mutex m_mutex;
-    std::vector<Entry>   m_callbacks;
-    int                  m_idCounter;
-    bool                 m_terminate;
+    std::vector<Entry> m_callbacks;
+    int                m_idCounter;
 
 private:
     void _on_state_received(const Result& res, State state)
     {
-        if (!res) {
-            return;
-        }
-
-        std::lock_guard<std::recursive_mutex> lock(m_mutex);
-        if (m_terminate) {
-            return;
-        }
-
-        _async_await_state_change([&](auto& res, auto state) {
-            this->_on_state_received(res, state);
+        this->_handle_change(res, [&] {
+            for (auto& entry : m_callbacks) {
+                entry.fn(state);
+            }
         });
-
-        for (auto& entry : m_callbacks) {
-            entry.fn(state);
-        }
     }
 
     typename std::vector<Entry>::iterator _find_callback(CallbackId id)
@@ -91,17 +77,28 @@ protected:
     virtual void _async_await_state_change(std::function<void (const Result&, State)> completionHandler) =0;
     virtual void _cancel_await_state() =0;
 
-    void _destroy()
+    virtual void _start_impl() override
     {
-        std::lock_guard<std::recursive_mutex> lock(m_mutex);
-        m_terminate = true;
+        _async_get_state([&](auto& res, auto state) {
+            this->_on_state_received(res, state);
+        });
+    }
+
+    virtual void _continue_impl() override
+    {
+        _async_await_state_change([&](auto& res, auto state) {
+            this->_on_state_received(res, state);
+        });
+    }
+
+    virtual void _stop_impl() override
+    {
         _cancel_await_state();
     }
 
 public:
     StateObserver()
     : m_idCounter(0)
-    , m_terminate(false)
     {
     }
 
@@ -109,22 +106,9 @@ public:
     {
     }
 
-    virtual void start() override
-    {
-        std::lock_guard<std::recursive_mutex> lock(m_mutex);
-        _async_get_state([&](auto& res, auto state) {
-            this->_on_state_received(res, state);
-        });
-    }
-
-    virtual void stop() override
-    {
-        _cancel_await_state();
-    }
-
     CallbackId add(std::function<void (State)> callback)
     {
-        std::lock_guard<std::recursive_mutex> lock(m_mutex);
+        auto lock = this->_make_lock_outside_of_handler();
 
         CallbackId id(this, m_idCounter++);
         while (_find_callback(id) != m_callbacks.end()) {
@@ -138,7 +122,8 @@ public:
 
     void remove(CallbackId id)
     {
-        std::lock_guard<std::recursive_mutex> lock(m_mutex);
+        auto lock = this->_make_lock_outside_of_handler();
+
         auto it = _find_callback(id);
 
         if (it == m_callbacks.end()) {
@@ -194,11 +179,9 @@ private:
 
 private:
     Terminal&                      m_terminal;
-    std::mutex                     m_mutex;
     std::vector<EntryWithoutCache> m_callbacksWithoutCache;
     std::vector<EntryWithCache>    m_callbacksWithCache;
     int                            m_idCounter;
-    bool                           m_terminate;
 
 private:
     CallbackId _make_id()
@@ -227,54 +210,62 @@ private:
         return false;
     }
 
-    void _on_message_received(PayloadType&& payload, cached_flag cached)
+    void _on_message_received(const Result& res, PayloadType&& payload, cached_flag cached)
     {
-        std::lock_guard<std::mutex> lock(m_mutex);
-        if (m_terminate) {
-            return;
-        }
+        this->_handle_change(res, [&] {
+            for (auto& entry : m_callbacksWithoutCache) {
+                entry.fn(payload);
+            }
 
-        _async_receive_message(&Terminal::async_receive_message);
-
-        for (auto& entry : m_callbacksWithoutCache) {
-            entry.fn(payload);
-        }
-        for (auto& entry : m_callbacksWithCache) {
-            entry.fn(payload, cached);
-        }
+            for (auto& entry : m_callbacksWithCache) {
+                entry.fn(payload, cached);
+            }
+        });
     }
 
     void _async_receive_message(void (Terminal::*fn)(std::function<void (const Result&, PayloadType&&, cached_flag)>))
     {
         (m_terminal.*fn)([&](auto& res, auto&& payload, auto cached) {
-            if (res) {
-                this->_on_message_received(std::move(payload), cached);
-            }
+            this->_on_message_received(res, std::move(payload), cached);
         });
     }
 
     void _async_receive_message(void (Terminal::*fn)(std::function<void (const Result&, PayloadType&&)>))
     {
         (m_terminal.*fn)([&](auto& res, auto&& payload) {
-            if (res) {
-                this->_on_message_received(std::move(payload), false);
-            }
+            this->_on_message_received(res, std::move(payload), false);
         });
+    }
+
+protected:
+    virtual void _start_impl() override
+    {
+        _async_receive_message(&Terminal::async_receive_message);
+    }
+
+    virtual void _continue_impl() override
+    {
+        _async_receive_message(&Terminal::async_receive_message);
+    }
+
+    virtual void _stop_impl() override
+    {
+        m_terminal.cancel_receive_message();
     }
 
 public:
     PublishMessageObserverBase(Terminal& terminal)
     : m_terminal(terminal)
     , m_idCounter(0)
-    , m_terminate(false)
     {
     }
 
     virtual ~PublishMessageObserverBase()
     {
-        std::lock_guard<std::mutex> lock(m_mutex);
-        m_terminate = true;
-        m_terminal.cancel_receive_message();
+        this->stop();
+
+        // make sure m_mutex exists as long as it is used by _on_message_received()
+        auto lock = this->_make_lock();
     }
 
     const Terminal& terminal() const
@@ -287,20 +278,9 @@ public:
         return m_terminal;
     }
 
-    virtual void start() override
-    {
-        std::lock_guard<std::mutex> lock(m_mutex);
-        _async_receive_message(&Terminal::async_receive_message);
-    }
-
-    virtual void stop() override
-    {
-        m_terminal.cancel_receive_message();
-    }
-
     CallbackId add(std::function<void (const PayloadType&)> callback)
     {
-        std::lock_guard<std::mutex> lock(m_mutex);
+        auto lock = this->_make_lock_outside_of_handler();
 
         auto id = _make_id();
         m_callbacksWithoutCache.push_back({id, callback});
@@ -310,7 +290,7 @@ public:
 
     CallbackId add(std::function<void (const PayloadType&, cached_flag)> callback)
     {
-        std::lock_guard<std::mutex> lock(m_mutex);
+        auto lock = this->_make_lock_outside_of_handler();
 
         auto id = _make_id();
         m_callbacksWithCache.push_back({id, callback});
@@ -320,7 +300,8 @@ public:
 
     void remove(CallbackId id)
     {
-        std::lock_guard<std::mutex> lock(m_mutex);
+        auto lock = this->_make_lock_outside_of_handler();
+
         if (!_try_remove(&m_callbacksWithoutCache, id) && !_try_remove(&m_callbacksWithCache, id)) {
             throw BadCallbackIdException();
         }
@@ -377,65 +358,59 @@ public:
 
 private:
     Terminal&                                    m_terminal;
-    std::mutex                                   m_mutex;
     std::function<void (ScatteredMessage&& msg)> m_callbackFn;
-    bool                                         m_terminate;
 
 private:
     void _on_message_received(const Result& res, ScatteredMessage&& msg)
     {
-        if (!res) {
-            return;
-        }
+        this->_handle_change(res, [&] {
+            if (res == YOGI_ERR_BUFFER_TOO_SMALL) {
+                YOGI_LOG_WARNING(Logger::yogi_logger(), "ScatterMessageObserver<...> could not receive message: " << res);
+                msg.ignore();
+            }
+            else {
+                if (m_callbackFn) {
+                    m_callbackFn(std::move(msg));
+                }
+                else {
+                    msg.ignore();
+                }
+            }
+        });
+    }
 
-        std::lock_guard<std::mutex> lock(m_mutex);
-        if (m_terminate) {
-            return;
-        }
-
+protected:
+    virtual void _start_impl() override
+    {
         m_terminal.async_receive_scattered_message([&](auto& res, auto&& msg) {
             this->_on_message_received(res, std::move(msg));
         });
+    }
 
-        if (res == YOGI_ERR_BUFFER_TOO_SMALL) {
-            YOGI_LOG_WARNING(Logger::yogi_logger(), "ScatterMessageObserver<...> could not receive message: " << res);
-            msg.ignore();
-        }
-        else {
-            if (m_callbackFn) {
-                m_callbackFn(std::move(msg));
-            }
-            else {
-                msg.ignore();
-            }
-        }
+    virtual void _continue_impl() override
+    {
+        m_terminal.async_receive_scattered_message([&](auto& res, auto&& msg) {
+            this->_on_message_received(res, std::move(msg));
+        });
+    }
+
+    virtual void _stop_impl() override
+    {
+        m_terminal.cancel_receive_scattered_message();
     }
 
 public:
     ScatterMessageObserver(Terminal& terminal)
     : m_terminal(terminal)
-    , m_terminate(false)
     {
     }
 
     virtual ~ScatterMessageObserver()
     {
-        std::lock_guard<std::mutex> lock(m_mutex);
-        m_terminate = true;
-        stop();
-    }
+        this->stop();
 
-    virtual void start() override
-    {
-        std::lock_guard<std::mutex> lock(m_mutex);
-        m_terminal.async_receive_scattered_message([&](auto& res, auto&& msg) {
-            this->_on_message_received(res, std::move(msg));
-        });
-    }
-
-    virtual void stop() override
-    {
-        m_terminal.cancel_receive_scattered_message();
+        // make sure m_mutex exists as long as it is used by _on_message_received()
+        auto lock = this->_make_lock();
     }
 
     const Terminal& terminal() const
@@ -450,13 +425,13 @@ public:
 
     void set(std::function<void (ScatteredMessage&&)> callbackFn)
     {
-        std::lock_guard<std::mutex> lock(m_mutex);
+        auto lock = this->_make_lock_outside_of_handler();
         m_callbackFn = callbackFn;
     }
 
     void clear()
     {
-        std::lock_guard<std::mutex> lock(m_mutex);
+        auto lock = this->_make_lock_outside_of_handler();
         m_callbackFn = decltype(m_callbackFn)();
     }
 };
@@ -470,65 +445,59 @@ public:
 
 private:
     Terminal&                           m_terminal;
-    std::mutex                          m_mutex;
     std::function<void (Request&& req)> m_callbackFn;
-    bool                                m_terminate;
 
 private:
     void _on_request_received(const Result& res, Request&& req)
     {
-        if (!res) {
-            return;
-        }
+        this->_handle_change(res, [&] {
+            if (res == YOGI_ERR_BUFFER_TOO_SMALL) {
+                YOGI_LOG_WARNING(Logger::yogi_logger(), "RequestObserver<...> could not receive request: " << res);
+                req.ignore();
+            }
+            else {
+                if (m_callbackFn) {
+                    m_callbackFn(std::move(req));
+                }
+                else {
+                    req.ignore();
+                }
+            }
+        });
+    }
 
-        std::lock_guard<std::mutex> lock(m_mutex);
-        if (m_terminate) {
-            return;
-        }
-
+protected:
+    virtual void _start_impl() override
+    {
         m_terminal.async_receive_request([&](auto& res, auto&& req) {
             this->_on_request_received(res, std::move(req));
         });
+    }
 
-        if (res == YOGI_ERR_BUFFER_TOO_SMALL) {
-            YOGI_LOG_WARNING(Logger::yogi_logger(), "RequestObserver<...> could not receive request: " << res);
-            req.ignore();
-        }
-        else {
-            if (m_callbackFn) {
-                m_callbackFn(std::move(req));
-            }
-            else {
-                req.ignore();
-            }
-        }
+    virtual void _continue_impl() override
+    {
+        m_terminal.async_receive_request([&](auto& res, auto&& req) {
+            this->_on_request_received(res, std::move(req));
+        });
+    }
+
+    virtual void _stop_impl() override
+    {
+        m_terminal.cancel_receive_request();
     }
 
 public:
     RequestObserver(Terminal& terminal)
     : m_terminal(terminal)
-    , m_terminate(false)
     {
     }
 
     virtual ~RequestObserver()
     {
-        std::lock_guard<std::mutex> lock(m_mutex);
-        m_terminate = true;
-        stop();
-    }
+        this->stop();
 
-    virtual void start() override
-    {
-        std::lock_guard<std::mutex> lock(m_mutex);
-        m_terminal.async_receive_request([&](auto& res, auto&& req) {
-            this->_on_request_received(res, std::move(req));
-        });
-    }
-
-    virtual void stop() override
-    {
-        m_terminal.cancel_receive_request();
+        // make sure m_mutex exists as long as it is used by _on_message_received()
+        auto lock = this->_make_lock();
     }
 
     const Terminal& terminal() const
@@ -543,13 +512,13 @@ public:
 
     void set(std::function<void (Request&&)> callbackFn)
     {
-        std::lock_guard<std::mutex> lock(m_mutex);
+        auto lock = this->_make_lock_outside_of_handler();
         m_callbackFn = callbackFn;
     }
 
     void clear()
     {
-        std::lock_guard<std::mutex> lock(m_mutex);
+        auto lock = this->_make_lock_outside_of_handler();
         m_callbackFn = decltype(m_callbackFn)();
     }
 };

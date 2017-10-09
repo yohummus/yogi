@@ -2,14 +2,71 @@
 #include "binder.hpp"
 #include "subscribable.hpp"
 #include "process.hpp"
+#include "errors.hpp"
 
 #include <algorithm>
 
 
 namespace yogi {
 
-BadCallbackId::BadCallbackId()
-: std::runtime_error("No matching callback found")
+const char* CalledFromHandler::what() const noexcept
+{
+    return "Function cannot be called from within a handler function";
+}
+
+const char* BadCallbackId::what() const noexcept
+{
+    return "No matching callback found";
+}
+
+std::unique_lock<std::recursive_mutex> Observer::_make_lock()
+{
+    return std::unique_lock<std::recursive_mutex>(m_mutex);
+}
+
+std::unique_lock<std::recursive_mutex> Observer::_make_lock_outside_of_handler()
+{
+    auto lock = _make_lock();
+
+    if (m_inCallback) {
+        throw CalledFromHandler();
+    }
+
+    return std::move(lock);
+}
+
+void Observer::start()
+{
+    auto lock = _make_lock_outside_of_handler();
+
+    if (!m_running) {
+        _start_impl();
+        m_running = true;
+        m_stop = false;
+    }
+}
+
+void Observer::stop()
+{
+    {{
+    auto lock = _make_lock_outside_of_handler();
+    m_stop = true;
+    }}
+
+    _stop_impl(); // not holding lock to avoid deadlock
+
+    while (true) {
+        auto lock = this->_make_lock();
+        if (!m_running) {
+            break;
+        }
+    }
+}
+
+Observer::Observer()
+: m_running(false)
+, m_stop(false)
+, m_inCallback(false)
 {
 }
 
@@ -35,7 +92,10 @@ BindingObserver::BindingObserver(Binder& binder)
 
 BindingObserver::~BindingObserver()
 {
-    this->_destroy();
+    this->stop();
+
+    // make sure m_mutex exists as long as it is used by _on_message_received()
+    auto lock = this->_make_lock();
 }
 
 void SubscriptionObserver::_async_get_state(std::function<void (const Result&, subscription_state)> completionHandler)
@@ -60,21 +120,27 @@ SubscriptionObserver::SubscriptionObserver(Subscribable& subscribable)
 
 SubscriptionObserver::~SubscriptionObserver()
 {
-    this->_destroy();
+    this->stop();
+
+    // make sure m_mutex exists as long as it is used by _on_message_received()
+    auto lock = this->_make_lock();
 }
 
 void OperationalObserver::_async_get_state(std::function<void (const Result&, operational_flag)> completionHandler)
 {
     ProcessInterface::_add_operational_observer(this, completionHandler);
+    m_completionHandler = completionHandler;
 }
 
 void OperationalObserver::_async_await_state_change(std::function<void (const Result&, operational_flag)> completionHandler)
 {
+    m_completionHandler = completionHandler;
 }
 
 void OperationalObserver::_cancel_await_state()
 {
     ProcessInterface::_remove_operational_observer(this);
+    m_completionHandler(errors::Canceled(), {});
 }
 
 OperationalObserver::OperationalObserver()
@@ -83,7 +149,10 @@ OperationalObserver::OperationalObserver()
 
 OperationalObserver::~OperationalObserver()
 {
-    this->_destroy();
+    this->stop();
+
+    // make sure m_mutex exists as long as it is used by _on_message_received()
+    auto lock = this->_make_lock();
 }
 
 } // namespace yogi
