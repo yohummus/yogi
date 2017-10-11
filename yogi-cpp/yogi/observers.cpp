@@ -70,6 +70,10 @@ Observer::Observer()
 {
 }
 
+Observer::~Observer()
+{
+}
+
 void BindingObserver::_async_get_state(std::function<void (const Result&, binding_state)> completionHandler)
 {
     m_binder.async_get_binding_state(completionHandler);

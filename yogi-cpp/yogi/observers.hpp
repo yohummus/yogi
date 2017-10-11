@@ -64,6 +64,7 @@ protected:
 
 public:
     Observer();
+    virtual ~Observer();
 
     void start();
     void stop();
