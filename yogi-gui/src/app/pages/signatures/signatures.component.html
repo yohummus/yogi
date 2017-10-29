@@ -53,7 +53,7 @@
               <button type="button" class="btn btn-light dropdown-toggle" ngbDropdownToggle [class.disabled]="!primitiveTypeSelectionEnabled(!msgIdx, firstPrimitive)">
                 {{selectedPrimitiveTypeName(!msgIdx, firstPrimitive).toLowerCase()}}
               </button>
-              <div *ngIf="primitiveTypeSelectionEnabled(!msgIdx, firstPrimitive)" class="dropdown-menu dropdown-menu-right">
+              <div *ngIf="primitiveTypeSelectionEnabled(!msgIdx, firstPrimitive)" class="dropdown-menu dropdown-menu-right" ngbDropdownMenu>
                 <a *ngFor="let name of primitiveTypeNames" class="dropdown-item" (click)="onPrimitiveTypeSelected(!msgIdx, firstPrimitive, name)">{{name.toLowerCase()}}</a>
               </div>
             </div>
