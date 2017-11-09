@@ -2,6 +2,7 @@
 set -e
 
 REQUIRED_PACKAGES=(
+    curl
     cmake
     g++
     libboost-all-dev
@@ -11,8 +12,6 @@ REQUIRED_PACKAGES=(
     libqt5core5a
     libqt5network5
     libqt5websockets5-dev
-    nodejs
-    npm
     phantomjs
     python3-protobuf
     python-protobuf
@@ -57,6 +56,19 @@ function install_required_packages {
         PACKAGE_LIST="$PACKAGE_LIST $PACKAGE"
     done
     sudo apt-get install -y $PACKAGE_LIST
+}
+
+function install_nodejs {
+    local LINK="/usr/bin/node"
+
+    echo
+    echo "===== Installing nodejs ====="
+    if [ ! -f $LINK ]; then
+        curl -sL https://deb.nodesource.com/setup_8.x | sudo -E bash -
+        sudo apt-get install -y nodejs
+    else
+        echo "No need to install nodejs since $LINK already exists."
+    fi
 }
 
 function install_nodejs_legacy {
@@ -143,8 +155,9 @@ else
 fi
 
 install_required_packages
-install_nodejs_legacy
-install_newer_npm
+install_nodejs
+#install_nodejs_legacy
+#install_newer_npm
 make_swap_file
 build_and_install_all_projects $BUILD_TYPE
 
