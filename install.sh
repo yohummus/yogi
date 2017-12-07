@@ -35,8 +35,8 @@ PROJECTS=(
     tools/yogi-ping
 )
 
-MIN_RAM_REQUIRED_IN_MB=1024
-SWAP_SIZE_IN_MB=1024
+MIN_RAM_REQUIRED_IN_MB=2048
+SWAP_SIZE_IN_MB=2048
 
 ROOT=$(dirname $(readlink -f $0))
 
@@ -107,7 +107,8 @@ function make_swap_file {
             dd if=/dev/zero of=$FILE bs=1024 count=$(expr $SWAP_SIZE_IN_MB \* 1024)
             chmod 0600 $FILE
             mkswap $FILE
-            swapon $FILE
+            sudo chown root:root $FILE
+            sudo swapon $FILE
         fi
     else
         echo "No need for a SWAP file since the system seems to have enough RAM (>= $MIN_RAM_REQUIRED_IN_MB MB)."

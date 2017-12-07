@@ -8,7 +8,7 @@ set (npm_ok_file
 
 add_custom_command (
     OUTPUT ${npm_ok_file}
-    COMMAND npm install
+    COMMAND QT_QPA_PLATFORM=offscreen npm install
     COMMAND echo > ${PROJECT_BINARY_DIR}/${npm_ok_file}
     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
 )
