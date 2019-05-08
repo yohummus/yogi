@@ -1,8 +1,0 @@
-{
-  "device-groups": {
-    "fake-group": {
-      "pre-execution-command": "sleep 10s",
-      "pre-execution-timeout": 0.1
-    }
-  }
-}

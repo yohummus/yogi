@@ -1,8 +1,0 @@
-{
-  "device-groups": {
-    "fake-group": {
-      "startup-command": "sleep 5s",
-      "startup-timeout": 0.1
-    }
-  }
-}

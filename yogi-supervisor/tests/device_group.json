@@ -1,8 +1,0 @@
-{
-  "device-groups": {
-    "fake-group": {
-      "logfile": "${TMP_DIR}/log.${DEVICE_NAME}",
-      "execution-command": "touch ${TMP_DIR}/executed.${DEVICE_NAME} && echo hello && sleep 1m"
-    }
-  }
-}

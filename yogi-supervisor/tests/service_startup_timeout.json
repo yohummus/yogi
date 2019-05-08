@@ -1,8 +1,0 @@
-{
-  "services": {
-    "fake-service": {
-      "startup-command": "sleep 5s",
-      "startup-timeout": 0.1
-    }
-  }
-}

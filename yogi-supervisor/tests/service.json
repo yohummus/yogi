@@ -1,9 +1,0 @@
-{
-  "services": {
-    "fake-service": {
-      "logfile": "${LOG_DIR}/${SERVICE}.log",
-      "restart-delay": "0.1",
-      "execution-command": "touch ${TMP_DIR}/executed && echo hello && sleep 0.5s"
-    }
-  }
-}

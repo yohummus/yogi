@@ -1,9 +1,0 @@
-{
-  "device-groups": {
-    "fake-group": {
-      "files-triggering-restart": [
-        "${TMP_DIR}/watched"
-      ]
-    }
-  }
-}

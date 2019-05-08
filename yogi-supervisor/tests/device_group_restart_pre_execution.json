@@ -1,8 +1,0 @@
-{
-  "device-groups": {
-    "fake-group": {
-      "restart-delay": 0.1,
-      "pre-execution-command": "touch ${TMP_DIR}/pre-executed.${DEVICE_NAME} && exit 1"
-    }
-  }
-}

@@ -1,7 +1,0 @@
-{
-  "device-groups": {
-    "fake-group": {
-      "startup-command": "exit 1"
-    }
-  }
-}

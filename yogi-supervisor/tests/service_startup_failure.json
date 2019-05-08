@@ -1,7 +1,0 @@
-{
-  "services": {
-    "fake-service": {
-      "startup-command": "exit 1"
-    }
-  }
-}
