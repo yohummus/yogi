@@ -1,26 +1,33 @@
-# CMake
+# General
 build/
+build-*/
+*.dll
+.DS_Store
 
-# Visual Studio Code
-.vscode/
-.editorconfig
+# IDEs
+.vs/
+.idea/
+*.userprefs
+*.user
+.vscode/.ropeproject
+.vscode/ipch
 
 # NodeJS
 node_modules/
-typings/
+npm-debug.log
+package-lock.json
+.exe/
 
 # Python
 __pycache__/
-*.pyc
-dist/
 *.egg-info/
+yogi-python/dist/
 
-# Logfiles
-*.log
+# .NET
+yogi-dotnet/**/bin/
+yogi-dotnet/**/obj/
+yogi-dotnet/**/packages/
 
-# C++
-*.dll
-
-# GUI solution
-yogi-gui/solution/
-
+# Doxygen
+**/doc/*.tmp
+**/doc/html/

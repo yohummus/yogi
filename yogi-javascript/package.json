@@ -1,0 +1,22 @@
+{
+  "author": "Johannes Bergmann",
+  "name": "yogi-javascript",
+  "description": "Javascript bindings for Yogi",
+  "scripts": {
+    "build": "webpack",
+    "test": "karma start --single-run"
+  },
+  "license": "GPL-3.0",
+  "repository": {},
+  "devDependencies": {
+    "jasmine-core": "^2.8.0",
+    "karma": "^1.7.1",
+    "karma-chrome-launcher": "^2.2.0",
+    "karma-jasmine": "^1.1.1",
+    "karma-mocha-reporter": "^2.2.5",
+    "karma-sourcemap-loader": "^0.3.7",
+    "karma-webpack": "^2.0.6",
+    "uglifyjs-webpack-plugin": "^1.1.2",
+    "webpack": "^3.10.0"
+  }
+}
