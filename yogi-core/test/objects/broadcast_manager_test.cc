@@ -60,6 +60,15 @@ class BroadcastReceiver {
       if (clock::now() > start + 1s) {
         throw std::runtime_error("No broadcast received within one second.");
       }
+
+      // TODO: Removing the next line causes the tests SendJson, SendMsgpack,
+      //       AsyncSendJson and AsyncSendMsgpack to time out under Windows. The
+      //       symptom is that due to the artificial transmit size limit of
+      //       branch_c, a async_read_some() on a TCP connection leaves some
+      //       data in the internal buffer (because of the limit) and a
+      //       subsequent async_read_some() never finishes even though it should
+      //       data is available in the buffer.
+      std::this_thread::sleep_for(100us);
     }
   }
 
