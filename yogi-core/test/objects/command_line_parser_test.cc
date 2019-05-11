@@ -167,7 +167,6 @@ TEST_F(CommandLineParserTest, BranchAdvertisingInterfacesOption) {
   auto section = CheckParsingSucceeds(cmdline, api::kBranchAdvInterfacesOption,
                                       "branch")["advertising_interfaces"];
 
-  std::cout << section << std::endl;
   EXPECT_EQ(section[0].get<std::string>(), "localhost");
   EXPECT_EQ(section[1].get<std::string>(), "wlan0");
 }
