@@ -1,0 +1,31 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Build yogi-core",
+      "group": "build",
+      "command": "make",
+      "args": ["-j"],
+      "options": {
+        "cwd": "${workspaceFolder}/build/yogi-core"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      }
+    },
+    {
+      "label": "Build yogi-cpp",
+      "group": "build",
+      "command": "make",
+      "args": ["-j"],
+      "options": {
+        "cwd": "${workspaceFolder}/build/yogi-cpp"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      }
+    }
+  ]
+}

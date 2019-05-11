@@ -1,0 +1,46 @@
+{
+  // Use IntelliSense to find out which attributes exist for C# debugging
+  // Use hover for the description of the existing attributes
+  // For further information visit https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Test: yogi-core",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/build/yogi-core/yogi-core-test",
+      "args": [
+        "--gtest_break_on_failure",
+        "--gtest_catch_exceptions=0",
+        "--gtest_filter=*",
+        "--gtest_repeat=1"
+      ],
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}/build/yogi-core",
+      "environment": [],
+      "externalConsole": true,
+      "MIMode": "lldb",
+      "preLaunchTask": "Build yogi-core",
+      "miDebuggerPath": "/Applications/Xcode.app/Contents/Developer/usr/bin/lldb-mi"
+    },
+    {
+      "name": "Test: yogi-cpp",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/build/yogi-cpp/yogi-cpp-test",
+      "args": [
+        "--gtest_break_on_failure",
+        "--gtest_catch_exceptions=0",
+        "--gtest_filter=*",
+        "--gtest_repeat=1"
+      ],
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}/build/yogi-core",
+      "environment": [],
+      "externalConsole": true,
+      "MIMode": "lldb",
+      "preLaunchTask": "Build yogi-cpp",
+      "miDebuggerPath": "/Applications/Xcode.app/Contents/Developer/usr/bin/lldb-mi"
+    }
+  ]
+}

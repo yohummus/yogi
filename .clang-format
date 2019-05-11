@@ -1,0 +1,7 @@
+---
+BasedOnStyle: Google
+SortIncludes: false
+DerivePointerAlignment: false
+PointerAlignment: Left
+...
+
