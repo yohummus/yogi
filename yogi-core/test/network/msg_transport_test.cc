@@ -423,7 +423,7 @@ TEST_F(MessageTransportTest, Stress) {
       { std::lock_guard<std::mutex> lock(mutex); }
 
       for (auto& msg : msgs) {
-        bool called = false;
+        std::atomic<bool> called(false);
         uut_->SendAsync(&msg, [&](auto& res) {
           EXPECT_EQ(res, api::kSuccess);
           auto bytes = msg.Serialize();
@@ -450,7 +450,7 @@ TEST_F(MessageTransportTest, Stress) {
         std::generate(msg_bytes.begin(), msg_bytes.end(),
                       [] { return static_cast<utils::Byte>(0); });
 
-        bool called = false;
+        std::atomic<bool> called(false);
         uut_->ReceiveAsync(boost::asio::buffer(msg_bytes), [&](auto& res,
                                                                auto msg_size) {
           EXPECT_EQ(res, api::kSuccess);
