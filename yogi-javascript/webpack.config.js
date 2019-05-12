@@ -1,23 +1,19 @@
 const path = require('path');
 const glob = require('glob');
-const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
 
 const namespaceFile = './src/namespace.js';
 
 module.exports = {
+  mode: 'production',
   entry: {
-    yogi: [namespaceFile].concat(glob.sync('./src/*.js').filter(x => x !== namespaceFile))
+    // namespaceFile goes first in list
+    yogi: [namespaceFile].concat(
+      glob.sync('./src/*.js').filter(x => x !== namespaceFile)
+    )
   },
   output: {
-    filename: '[name].js'
+    filename: '[name].js',
+    path: path.resolve(__dirname, 'dist')
   },
-  module: {
-    rules: []
-  },
-  plugins: [
-    new UglifyJsPlugin({
-      sourceMap: true
-    })
-  ],
   devtool: 'source-map'
 };
