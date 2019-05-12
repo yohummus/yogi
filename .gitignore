@@ -15,7 +15,6 @@ build-*/
 # NodeJS
 node_modules/
 npm-debug.log
-package-lock.json
 .exe/
 dist/
 
