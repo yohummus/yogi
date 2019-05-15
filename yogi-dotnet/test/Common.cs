@@ -48,7 +48,7 @@ namespace test
 
             if (m.Groups[1].Value.StartsWith('('))
             {
-                regex = new Regex($"#define {macroName} (\\(.+\\)).*");
+                regex = new Regex($"#define {macroName} (\\(.+?\\)).*");
                 m = regex.Match(yogiCoreH);
                 if (!m.Success)
                 {

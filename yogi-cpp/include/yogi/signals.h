@@ -53,40 +53,19 @@ _YOGI_DEFINE_API_FN(int, YOGI_SignalSetCancelAwaitSignal, (void* sigset))
 /// Signals.
 ////////////////////////////////////////////////////////////////////////////////
 enum class Signals {
-  /// No signal.
-  kNone = 0,
+  kNone = 0,          ///< No signal.
+  kInt = (1 << 0),    ///< Interrupt (e.g. by pressing STRG + C).
+  kTerm = (1 << 1),   ///< Termination request.
+  kUsr1 = (1 << 24),  ///< User-defined signal 1.
+  kUsr2 = (1 << 25),  ///< User-defined signal 2.
+  kUsr3 = (1 << 26),  ///< User-defined signal 3.
+  kUsr4 = (1 << 27),  ///< User-defined signal 4.
+  kUsr5 = (1 << 28),  ///< User-defined signal 5.
+  kUsr6 = (1 << 29),  ///< User-defined signal 6.
+  kUsr7 = (1 << 30),  ///< User-defined signal 7.
+  kUsr8 = (1 << 31),  ///< User-defined signal 8.
 
-  /// Interrupt (e.g. by receiving SIGINT or pressing STRG + C).
-  kInt = (1 << 0),
-
-  /// Termination request (e.g. by receiving SIGTERM).
-  kTerm = (1 << 1),
-
-  /// User-defined signal 1.
-  kUsr1 = (1 << 24),
-
-  /// User-defined signal 2.
-  kUsr2 = (1 << 25),
-
-  /// User-defined signal 3.
-  kUsr3 = (1 << 26),
-
-  /// User-defined signal 4.
-  kUsr4 = (1 << 27),
-
-  /// User-defined signal 5.
-  kUsr5 = (1 << 28),
-
-  /// User-defined signal 6.
-  kUsr6 = (1 << 29),
-
-  /// User-defined signal 7.
-  kUsr7 = (1 << 30),
-
-  /// User-defined signal 8.
-  kUsr8 = (1 << 31),
-
-  /// All flags.
+  /// All signals.
   kAll = kInt | kTerm | kUsr1 | kUsr2 | kUsr3 | kUsr4 | kUsr5 | kUsr6 | kUsr7 |
          kUsr8
 };

@@ -74,10 +74,10 @@ public static partial class Yogi
         /// <summary>No signal.</summary>
         None = 0,
 
-        /// <summary>Interrupt (e.g. by receiving SIGINT or pressing STRG + C).</summary>
+        /// <summary>Interrupt (e.g. by pressing STRG + C).</summary>
         Int = (1 << 0),
 
-        /// <summary>Termination request (e.g. by receiving SIGTERM).</summary>
+        /// <summary>Termination request.</summary>
         Term = (1 << 1),
 
         /// <summary>User-defined signal 1.</summary>

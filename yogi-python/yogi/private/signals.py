@@ -31,8 +31,8 @@ class Signals(IntEnum):
 
     Attributes:
         NONE No signal.
-        INT  Interrupt (e.g. by receiving SIGINT or pressing STRG + C).
-        TERM Termination request (e.g. by receiving SIGTERM).
+        INT  Interrupt (e.g. by pressing STRG + C).
+        TERM Termination request.
         USR1 User-defined signal 1.
         USR2 User-defined signal 2.
         USR3 User-defined signal 3.

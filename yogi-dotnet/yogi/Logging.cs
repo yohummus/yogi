@@ -116,7 +116,7 @@ public static partial class Yogi
     /// </summary>
     public enum Verbosity
     {
-        /// <summary>Fatal errors are errors that require a process restart.</summary>
+        /// <summary>Errors that require a process restart.</summary>
         Fatal = 0,
 
         /// <summary>Errors that the system can recover from.</summary>
@@ -125,7 +125,7 @@ public static partial class Yogi
         /// <summary>Warnings.</summary>
         Warning = 2,
 
-        /// <summary>Useful general information about the system state.</summary>
+        /// <summary>General information about the system state.</summary>
         Info = 3,
 
         /// <summary>Information for debugging.</summary>

@@ -276,26 +276,13 @@
 //!
 //! @{
 
-//! Used to disable logging
-#define YOGI_VB_NONE -1
-
-//! Fatal errors are error that requires a process restart
-#define YOGI_VB_FATAL 0
-
-//! Errors that the system can recover from
-#define YOGI_VB_ERROR 1
-
-//! Warnings
-#define YOGI_VB_WARNING 2
-
-//! Useful general information about the system state
-#define YOGI_VB_INFO 3
-
-//! Information for debugging
-#define YOGI_VB_DEBUG 4
-
-//! Detailed debugging
-#define YOGI_VB_TRACE 5
+#define YOGI_VB_NONE -1    ///< Used to disable logging
+#define YOGI_VB_FATAL 0    ///< Errors that require a process restart
+#define YOGI_VB_ERROR 1    ///< Errors that the system can recover from
+#define YOGI_VB_WARNING 2  ///< Warnings
+#define YOGI_VB_INFO 3     ///< General information about the system state
+#define YOGI_VB_DEBUG 4    ///< Information for debugging
+#define YOGI_VB_TRACE 5    ///< Detailed debugging
 
 //! @}
 //!
@@ -305,11 +292,8 @@
 //!
 //! @{
 
-//! Represents a logical false
-#define YOGI_FALSE 0
-
-//! Represents a logical true
-#define YOGI_TRUE 1
+#define YOGI_FALSE 0  ///< Represents a logical false
+#define YOGI_TRUE 1   ///< Represents a logical true
 
 //! @}
 //!
@@ -319,11 +303,8 @@
 //!
 //! @{
 
-//! Standard output
-#define YOGI_ST_STDOUT 0
-
-//! Standard error output
-#define YOGI_ST_STDERR 1
+#define YOGI_ST_STDOUT 0  ///< Standard output
+#define YOGI_ST_STDERR 1  ///< Standard error output
 
 //! @}
 //!
@@ -338,38 +319,17 @@
 //!
 //! @{
 
-//! No signal
-#define YOGI_SIG_NONE 0
-
-//! Interrupt (e.g. by receiving SIGINT or pressing STRG + C)
-#define YOGI_SIG_INT (1 << 0)
-
-//! Termination request (e.g. by receiving SIGTERM)
-#define YOGI_SIG_TERM (1 << 1)
-
-//! User-defined signal 1
-#define YOGI_SIG_USR1 (1 << 24)
-
-//! User-defined signal 2
-#define YOGI_SIG_USR2 (1 << 25)
-
-//! User-defined signal 3
-#define YOGI_SIG_USR3 (1 << 26)
-
-//! User-defined signal 4
-#define YOGI_SIG_USR4 (1 << 27)
-
-//! User-defined signal 5
-#define YOGI_SIG_USR5 (1 << 28)
-
-//! User-defined signal 6
-#define YOGI_SIG_USR6 (1 << 29)
-
-//! User-defined signal 7
-#define YOGI_SIG_USR7 (1 << 30)
-
-//! User-defined signal 8
-#define YOGI_SIG_USR8 (1 << 31)
+#define YOGI_SIG_NONE 0          ///< No signal
+#define YOGI_SIG_INT (1 << 0)    ///< Interrupt (e.g. by pressing STRG + C)
+#define YOGI_SIG_TERM (1 << 1)   ///< Termination request
+#define YOGI_SIG_USR1 (1 << 24)  ///< User-defined signal 1
+#define YOGI_SIG_USR2 (1 << 25)  ///< User-defined signal 2
+#define YOGI_SIG_USR3 (1 << 26)  ///< User-defined signal 3
+#define YOGI_SIG_USR4 (1 << 27)  ///< User-defined signal 4
+#define YOGI_SIG_USR5 (1 << 28)  ///< User-defined signal 5
+#define YOGI_SIG_USR6 (1 << 29)  ///< User-defined signal 6
+#define YOGI_SIG_USR7 (1 << 30)  ///< User-defined signal 7
+#define YOGI_SIG_USR8 (1 << 31)  ///< User-defined signal 8
 
 //! All signals
 #define YOGI_SIG_ALL                                               \
@@ -605,11 +565,8 @@
 //!
 //! @{
 
-//! Data is encoded as JSON
-#define YOGI_ENC_JSON 0
-
-//! Data is encoded as MessagePack
-#define YOGI_ENC_MSGPACK 1
+#define YOGI_ENC_JSON 0     ///< Data is encoded as JSON
+#define YOGI_ENC_MSGPACK 1  ///< Data is encoded as MessagePack
 
 //! @}
 //!
@@ -652,6 +609,118 @@
 
 //! Role is set to _Consumer_.
 #define YOGI_RLS_CONSUMER 3
+
+//! @}
+//!
+//! @defgroup REQ HTTP request methods
+//!
+//! Request methods supported by the built-in web server.
+//!
+//! @{
+
+//! No methods
+#define YOGI_MET_NONE 0
+
+//! GET method for retrieving data.
+#define YOGI_MET_GET (1 << 0)
+
+//! HEAD method for retrieving the same header as with the GET request but
+//! without the response body.
+#define YOGI_MET_HEAD (1 << 1)
+
+//! POST method for submitting data.
+#define YOGI_MET_POST (1 << 2)
+
+//! PUT method for modifying data.
+#define YOGI_MET_PUT (1 << 3)
+
+//! DELETE method for deleting data.
+#define YOGI_MET_DELETE (1 << 4)
+
+//! PATCH method for partially modifying data.
+#define YOGI_MET_PATCH (1 << 5)
+
+//! @}
+//!
+//! @defgroup HTTP response status codes
+//!
+//! Status codes for responses to HTTP requests.
+//!
+//! @{
+
+#define YOGI_HTTP_200 200  ///< OK
+#define YOGI_HTTP_201 201  ///< Created
+#define YOGI_HTTP_202 202  ///< Accepted
+#define YOGI_HTTP_203 203  ///< Non-Authoritative Information
+#define YOGI_HTTP_204 204  ///< No Content
+#define YOGI_HTTP_205 205  ///< Reset Content
+#define YOGI_HTTP_206 206  ///< Partial Content
+#define YOGI_HTTP_300 300  ///< Multiple Choices
+#define YOGI_HTTP_301 301  ///< Moved Permanently
+#define YOGI_HTTP_302 302  ///< Found
+#define YOGI_HTTP_303 303  ///< See Other
+#define YOGI_HTTP_304 304  ///< Not Modified
+#define YOGI_HTTP_307 307  ///< Temporary Redirect
+#define YOGI_HTTP_308 308  ///< Permanent Redirect
+#define YOGI_HTTP_400 400  ///< Bad Request
+#define YOGI_HTTP_401 401  ///< Unauthorized
+#define YOGI_HTTP_403 403  ///< Forbidden
+#define YOGI_HTTP_404 404  ///< Not Found
+#define YOGI_HTTP_405 405  ///< Method Not Allowed
+#define YOGI_HTTP_406 406  ///< Not Acceptable
+#define YOGI_HTTP_407 407  ///< Proxy Authentication Required
+#define YOGI_HTTP_408 408  ///< Request Timeout
+#define YOGI_HTTP_409 409  ///< Conflict
+#define YOGI_HTTP_410 410  ///< Gone
+#define YOGI_HTTP_411 411  ///< Length Required
+#define YOGI_HTTP_412 412  ///< Precondition Failed
+#define YOGI_HTTP_413 413  ///< Payload Too Large
+#define YOGI_HTTP_414 414  ///< URI Too Long
+#define YOGI_HTTP_415 415  ///< Unsupported Media Type
+#define YOGI_HTTP_416 416  ///< Range Not Satisfiable
+#define YOGI_HTTP_417 417  ///< Expectation Failed
+#define YOGI_HTTP_418 418  ///< I'm a teapot
+#define YOGI_HTTP_422 422  ///< Unprocessable Entity
+#define YOGI_HTTP_425 425  ///< Too Early
+#define YOGI_HTTP_426 426  ///< Upgrade Required
+#define YOGI_HTTP_428 428  ///< Precondition Required
+#define YOGI_HTTP_429 429  ///< Too Many Requests
+#define YOGI_HTTP_431 431  ///< Request Header Fields Too Large
+#define YOGI_HTTP_451 451  ///< Unavailable For Legal Reasons
+#define YOGI_HTTP_500 500  ///< Internal Server Error
+#define YOGI_HTTP_501 501  ///< Not Implemented
+#define YOGI_HTTP_502 502  ///< Bad Gateway
+#define YOGI_HTTP_503 503  ///< Service Unavailable
+#define YOGI_HTTP_504 504  ///< Gateway Timeout
+#define YOGI_HTTP_505 505  ///< HTTP Version Not Supported
+#define YOGI_HTTP_511 511  ///< Network Authentication Required
+
+//! @}
+//!
+//! @defgroup WPA Web process actions
+//!
+//! Actions on a web process, originating from a web client.
+//!
+//! @{
+
+#define YOGI_WPA_START     ///< Client requests to start a process
+#define YOGI_WPA_INPUT     ///< Client sent some input to the process
+#define YOGI_WPA_CANCELED  ///< Client canceled the process
+
+//! @}
+//!
+//! @defgroup WPU Web process updates
+//!
+//! Updates from a web process, originating from the web server.
+//!
+//! @{
+
+#define YOGI_WPU_STARTED 0          ///< Process has been started
+#define YOGI_WPU_FAILED_TO_START 1  ///< Process could not be started
+#define YOGI_WPU_FINISHED 2         ///< Process finished gracefully
+#define YOGI_WPU_CRASHED 3          ///< Process finished by crashing
+#define YOGI_WPU_CANCELED 4         ///< Process finished by cancelation
+#define YOGI_WPU_OUTPUT 5           ///< Process created some output
 
 //! @}
 
@@ -2076,6 +2145,399 @@ YOGI_API int YOGI_Destroy(void* object);
  * \returns [<0] An error code in case of a failure (see \ref EC)
  */
 YOGI_API int YOGI_DestroyAll();
+
+/*!
+ * Creates a web server.
+ *
+ * Apart from serving static content from files and dynamic content from
+ * user-defined routes, this web server controls a single branch that can be
+ * accessed via JavaScript on a web page. The web server is sufficient for
+ * simple web applications. However, more complex applications can utilize a
+ * more sophisticated web server and use this built-in web server only as a
+ * means to access the Yogi network.
+ *
+ * For security reasons and browser security restrictions, connections are
+ * served over HTTPS/WSS only.
+ *
+ * The web server supports the following core features:
+ * - Serving static content from files with configurable routes
+ * - Serving user-defined, dynamic content over HTTPS
+ * - Long-running server-side processes controlled by the client
+ * - User authentication and access control for routes and resources
+ * - Per-user persistant storage
+ *
+ * The web server is configured via the \p props parameter in JSON. While none
+ * of the properties are mandatory the following excerpt shows the default
+ * values of the core parameters:
+ *
+ * \code
+ *   {
+ *     "port":            8443,
+ *     "interfaces":      ["localhost"],
+ *     "ssl_cert_chain":  "cert.pem",
+ *     "ssl_private_key": "key.pem",
+ *     "compression":     true,
+ *     "timeout":         30.0,
+ *     "test_mode":       false,
+ *     "worker_threads"   -1,
+ *     ... continued below ...
+ * \endcode
+ *
+ * The parameters above have the following meaning:
+ *  - __port__: HTTPS port to use.
+ *  - __interfaces__: Network interfaces to use. Valid strings are Unix devices
+ *    names ("eth5", "en5", "wlan0"), adapter names on Windows ("Ethernet",
+ *    "WMware Network Adapter WMnet1") or MAC addresses ("11:22:33:44:55:66").
+ *    Furthermore, the special strings "localhost" and "all" can be used to
+ *    denote loopback and all available interfaces respectively.
+ *  - __ssl_cert_chain__: File containing the SSL certificate chain.
+ *  - __ssl_private_key__: File containing the SSL private key.
+ *  - __compression__: Enable compression.
+ *  - __timeout__: Time of inactivity before terminating a client connection.
+ *  - __test_mode__: Set to true to enable functionality for testing both server
+ *    and client code. Should only be enabled during development.
+ *  - __worker_threads__: Number of threads handling client requests. Set this
+ *    value to -1 to automatically determine a suitable value based on the
+ *    number of available CPU cores.
+ *
+ * The next part of the configuration contains the routing information. If the
+ * _routes_ section is unspecified, the server will send a welcome page to the
+ * client for every requested URI.
+ *
+ * To customize the server routes, the _routes_ section can be specified as
+ * follows:
+ *
+ * \code
+ *     ... continued from above ...
+ *     "routes": {
+ *       "/": {
+ *         "type":        "filesystem",
+ *         "path":        "www"
+ *       },
+ *       "/secret": {
+ *         "type":     "content",
+ *         "mime":     "text/plain",
+ *         "content":  "I am your father!",
+ *         "acl": {
+ *           "vip":    "g"
+ *         },
+ *         "enabled":  true
+ *       }
+ *     },
+ *     ... continued below ...
+ * \endcode
+ *
+ * The section above defines two routes. The first route maps the folder _www_
+ * of the server's current working directory to the root URI of the server, i.e.
+ * when a client performs a GET request for https://localhost/my-app.html the
+ * server will deliver the file www/my-app.html. The second route makes the
+ * server respond with some static content to GET requests to the /secret URI,
+ * and only for an authorized subset of users. The _enabled_ property is
+ * optional and is _true_ by default.
+ *
+ * Note: If the client issues a  GET request on a URI leading to a directory in
+ *       the filesystem then the corresponding index.html in that directory will
+ *       be delivered if that file exists.
+ *
+ * Note: More specific routes override less specific routes, i.e. if route A
+ *       handles /app and route B handle /app/data then only route B will be
+ *       used to handle URIs to /app/data and below.
+ *
+ * Each route has an associated access control list (ACL) in the form of the
+ * _acl_ dictionary, mapping _groups_ (see below) to _permissions_ for that
+ * group. The permissions string is a combination of the five letters in _gouda_
+ * (the Danish cheese) whereby the letters stand for the different HTTP request
+ * types GET/HEAD (g), POST (o), PUT (u), DELETE (d) and PATCH (a). In the
+ * example above, the _vip_ group would be granted only GET/HEAD permissions.
+ * Groups that are not listed in the ACL have no access to the route.
+ *
+ * Only if no ACL has been specified, the route implicitly grants GET/HEAD
+ * permissions to the _everybody_ group which every user, logged in or not, is
+ * part of.
+ *
+ * A separate configuration is dedicated to the configuration of methods for
+ * accessing branch-related functionality, a.k.a. the Branch API:
+ *
+ * \code
+ *     ... continued from above ...
+ *     "branch_api": {
+ *       "/broadcast/send": {
+ *         "enabled": false,
+ *         "acl":     { "vip": "p" }
+ *       },
+ *       "/broadcast/receive": {
+ *         "acl":     { "everybody": "g" }
+ *       }
+ *     },
+ *     ... continued below ...
+ * \endcode
+ *
+ * Branch API endpoints are enabled only if they appear in the _branch_api_
+ * section and their _enabled_ property is either not present or set to _true_.
+ * The ACLs work identically to the ACLs for routes (see above) with the
+ * exception that they must be specified, i.e. even if the ACL is empty, no
+ * implicit permissions are granted.
+ *
+ * For access control the web server supports users, groups and permissions as
+ * described earlier. The implicit _everybody_ group is always present and
+ * contains every registered user as well as anonymous users, i.e. users that
+ * have not logged in (yet).
+ *
+ * Access to the Authentication API endpoints can be configured in the
+ * _auth_api_ section:
+ *
+ * \code
+ *     ... continued from above ...
+ *     "auth_api": {
+ *       "/login":            { "acl": { "everybody": "p" } },
+ *       "/logout":           { "acl": { "everybody": "p" } },
+ *       "/account":          { "acl": { "everybody": "gua", "vip": "od" } },
+ *       "/password":         { "acl": { "everybody": "u" } },
+ *       "/password-anybody": { "acl": { "vip": "u" } },
+ *       "/users":            { "acl": { "vip": "g" } }
+ *     },
+ *     ... continued below ...
+ * \endcode
+ *
+ * ACLs work identically to the Branch API, i.e. they must be specified and
+ * therefore, no implicit permissions are granted. The _enabled_ property is
+ * optional and _true_ by default. Any authentication endpoints not listed in
+ * _auth_api_ are disabled.
+ *
+ * The following section shows the simplest authentication provider type. The
+ * users and groups are specified as part of the server's configuration:
+ *
+ * \code
+ *     ... continued from above ...
+ *     "authentication": {
+ *       "provider":        "config",
+ *       "readonly":        true,
+ *       "groups": {
+ *         "vip": {
+ *           "name":        "VIPs",
+ *           "description": "Very important people"
+ *         }
+ *       },
+ *       "users": {
+ *         "luke": {
+ *           "first_name":  "Luke",
+ *           "last_name":   "Skywalker",
+ *           "email":       "",
+ *           "phone":       "0123456789",
+ *           "password":     "8C6976E5B5410415BDE908BD4DEE15DFB...",
+ *           "groups":      [ "vip" ],
+ *           "enabled":     true
+ *         }
+ *       }
+ *     }
+ *   }
+ * /endcode
+ *
+ * Important things of note in the excerpt above are that passwords are stored
+ * as SHA-256 hashes, a user can belong to multiple groups and individual user
+ * accounts can be enabled/disabled. Furthermore, the authentication data can be
+ * write-protected via the _readonly_ property. In case of the authentication
+ * provider above, any changes to users and groups will be lost when the server
+ * is restarted.
+ *
+ * An alternative method of providing the user and group information is through
+ * external JSON files containing the _groups_ and _users_ sections directly
+ * under the root JSON object, i.e.:
+ *
+ * \code
+ *   {
+ *     "groups": {
+ *         ... as above ...
+ *     }
+ *   }
+ * \endcode
+ *
+ * The server configuration for using files as authentication providers looks
+ * as follows:
+ *
+ * \code
+ *     "authentication": {
+ *       "provider":    "files",
+ *       "users_file":  "users.json",
+ *       "groups_file": "groups.json",
+ *       "readonly":    false,
+ *     }
+ * /endcode
+ *
+ * The users and groups files can be write-protected via the _readonly_
+ * property; however, this will prevent users to change their information
+ * through the web API.
+ *
+ * \param[out] server   Pointer to the server handle
+ * \param[in]  context  The context to use (set to NULL to use the branch's
+ *                      context)
+ * \param[in]  branch   Branch to use (set to NULL to disable all
+ *                      branch-specific features)
+ * \param[in]  props    Server properties as JSON (set to NULL to use defaults)
+ * \param[in]  section  Section in \p props to use (set to NULL for root);
+ *                      syntax is JSON pointer (RFC 6901)
+ * \param[out] err      Pointer to a char array for storing an error description
+ *                      (can be set to NULL)
+ * \param[in]  errsize  Maximum number of bytes to write to \p err
+ *
+ * \returns [=0] #YOGI_OK if successful
+ * \returns [<0] An error code in case of a failure (see \ref EC)
+ */
+YOGI_API int YOGI_WebServerCreate(void** server, void* context, void* branch,
+                                  const char* props, const char* section,
+                                  char* err, int errsize);
+
+/*!
+ * Creates a dynamic route.
+ *
+ * Registers a custom callback for handling requests on a custom URI.
+ *
+ * The handler function \p fn will be called on reception of a HTTP request from
+ * a client. Its parameters are:
+ *  -# __res__: #YOGI_OK or error code in case of a failure (see \ref EC)
+ *  -# __rid__: Request ID to identify a new or running request
+ *  -# __user__: User issuing the request or NULL if the client hasn't logged in
+ *  -# __method__: HTTP request method (see \ref MET)
+ *  -# __uri__: The URI requested by the client without query parameters
+ *  -# __params__: Query parameters; terminated by NULL as the last string
+ *  -# __userarg__: Value of \p userarg
+ *
+ * Once a request has been received and \p fn has been called, one or more calls
+ * to YOGI_WebDynamicRouteRespond() have to be made in order to respond to the
+ * client's request. In case of connection errors such as a disconnected client
+ * or a timeout \p will be called with a corresponding error and the _rid_ of
+ * the request.
+ *
+ * \param[out] route    Pointer to the route handle
+ * \param[in]  server   The server to use
+ * \param[in]  baseuri  Base URI for the route (e.g. "/app/hello")
+ * \param[in]  fn       Handler function to call for incoming HTTP requests
+ * \param[in]  userarg  User-specified argument to be passed to \p fn
+ *
+ * \returns [=0] #YOGI_OK if successful
+ * \returns [<0] An error code in case of a failure (see \ref EC)
+ */
+YOGI_API int YOGI_WebDynamicRouteCreate(
+    void** route, void* server, const char* baseuri,
+    void (*fn)(int res, int rid, const char* user, int method, const char* uri,
+               const char* const* params, void* userarg),
+    void* userarg);
+
+/*!
+ * Responds to a dynamic route request.
+ *
+ * This function must be called after the handler function registered via
+ * YOGI_WebDynamicRouteCreate() has been invoked in order to respond to the
+ * client's request.
+ *
+ * Calling this function multiple times will use chunked transfer encoding to
+ * deliver the data to the client. The response is considered complete once
+ * this function is called with \p finished set to #YOGI_TRUE.
+ *
+ * \param[in] route    The route to use
+ * \param[in] rid      ID of the received request
+ * \param[in] finished Response completed (#YOGI_TRUE or #YOGI_FALSE)
+ * \param[in] status   HTTP status code to return (see \ref HTTP)
+ * \param[in] contype  Mime type of the data in \p content (e.g. "text/plain")
+ * \param[in] content  Content (body) of the response
+ *
+ * \returns [=0] #YOGI_OK if successful
+ * \returns [<0] An error code in case of a failure (see \ref EC)
+ */
+YOGI_API int YOGI_WebDynamicRouteRespond(void* route, int rid, int finished,
+                                         int status, const char* contype,
+                                         const char* content);
+
+/*!
+ * Creates a client-controllable web process.
+ *
+ * A web process is a potentially long-running operation controlled by the
+ * client. Examples are performing computationally expensive operations such as
+ * image recognition or running external programs on the server.
+ *
+ * This function registers a handler function \p which is called whenever a
+ * client starts a web process, sends input to the process or cancels it (see
+ * \ref WPA). In order to send process output and status updates back to the
+ * client, YOGI_WebProcessUpdate() has to be called.
+ *
+ * The handler function \p fn will be called upon the client's request:
+ *  -# __res__: #YOGI_OK or error code in case of a failure (see \ref EC)
+ *  -# __wpid__: Web process ID to identify a new or running process
+ *  -# __user__: User issuing the request or NULL if the client hasn't logged in
+ *  -# __wpa__: Requested web process action (see \WPA)
+ *  -# __data__: Start of the received parameters or input data from the client
+ *  -# __sizes__: Lenths of the individual data blocks (see below for details)
+ *  -# __userarg__: Value of \p userarg
+ *
+ * The _data_ parameter contains either the parameters to start the process with
+ * or input data to be sent to the process. The concept is the same as running
+ * processes in a terminal: They are started with a set of parameters (i.e.
+ * argc/argv) and input can be sent to them through the standard input (stdin).
+ *
+ * The _sizes_ is a -1-terminated array containing the sizes of the individual
+ * data blocks in _data_. For input data, _sizes_ will only contain a single
+ * size, e.g. for 10 bytes of received input data, _sizes_ will consist of the
+ * values [10, -1]. For process parameters, _size_ will contain as many sizes
+ * as parameters, e.g. for 3 received process parameters, _sizes_ consists of
+ * values like [12, 34, 56, -1]. In this example, the first 12 bytes in _data_
+ * make up the first parameter, the next 34 bytes make up the second parameter
+ * and the following 56 bytes make up the third parameter.
+ *
+ * Having received a request and \p fn having been called, one or more calls to
+ * YOGI_WebProcessUpdate() have to be made in order to inform the client about
+ * new output from the process or a change in its state. In case of connection
+ * errors such as a disconnected client \p will be called with a corresponding
+ * error and the _wpid_ of the process.
+ *
+ * \param[out] wproc    Pointer to the web process handle
+ * \param[in]  server   The server to use
+ * \param[in]  name     Name (identifier) of the process (e.g. "echo")
+ * \param[in]  fn       Handler function to call for incoming action requests
+ * \param[in]  userarg  User-specified argument to be passed to \p fn
+ *
+ * \returns [=0] #YOGI_OK if successful
+ * \returns [<0] An error code in case of a failure (see \ref EC)
+ */
+YOGI_API int YOGI_WebProcessCreate(void** wproc, void* server, const char* name,
+                                   void (*fn)(int res, int wpid,
+                                              const char* user, int wpa,
+                                              const void* data,
+                                              const int* sizes, void* userarg),
+                                   void* userarg);
+
+/*!
+ * Sends output from a web process or a change in its state to the client.
+ *
+ * This function has to be called after having received a request from a client
+ * to start a web process. It is used to inform the client about new output from
+ * and process and changes in its state (see \ref WPU).
+ *
+ * For a new process, the first call to this function must be with \p wpu set to
+ * either #YOGI_WPU_STARTED or #YOGI_WPU_FAILED_TO_START. If the process started
+ * successfully, an arbitrary number of calls with \p wpu set to
+ * #YOGI_WPU_OUTPUT can be made in order to send new process output to the
+ * client. Once finished, the process calls this function once with either one
+ * of #YOGI_WPU_FINISHED, #YOGI_WPU_CRASHED or #YOGI_WPU_CANCELED and the \p
+ * exitcode optionally set to a value indicating the success or failure of the
+ * process.
+ *
+ * Calling this function either one of #YOGI_WPU_FAILED_TO_START,
+ * #YOGI_WPU_FINISHED, #YOGI_WPU_CRASHED or #YOGI_WPU_CANCELED will invalidate
+ * the \p wpid and allow no further calls to this function for that particular
+ * process.
+ *
+ * \param[in] wproc    The web process to use
+ * \param[in] wpid     ID of the running web process
+ * \param[in] wpu      Update type (see \ref WPU)
+ * \param[in] exitcode Exit code of the process for indicating success/failure
+ * \param[in] output   Output data (potantially binary) to send to the client
+ * \param[in] outsize  Size of \p output in bytes
+ *
+ * \returns [=0] #YOGI_OK if successful
+ * \returns [<0] An error code in case of a failure (see \ref EC)
+ */
+YOGI_API int YOGI_WebProcessUpdate(void* wproc, int wpid, int wpu, int exitcode,
+                                   const void* output, int outsize);
 
 //! @}
 

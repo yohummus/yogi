@@ -215,23 +215,12 @@ _YOGI_DEFINE_API_FN(int, YOGI_LoggerLog,
 /// The term _severity_ is refers to the same type.
 ////////////////////////////////////////////////////////////////////////////////
 enum class Verbosity {
-  /// Fatal errors are errors that require a process restart.
-  kFatal = 0,
-
-  /// Errors that the system can recover from.
-  kError = 1,
-
-  /// Warnings.
-  kWarning = 2,
-
-  /// Useful general information about the system state.
-  kInfo = 3,
-
-  /// Information for debugging.
-  kDebug = 4,
-
-  /// Detailed debugging information.
-  kTrace = 5,
+  kFatal = 0,    ///< Errors that require a process restart.
+  kError = 1,    ///< Errors that the system can recover from.
+  kWarning = 2,  ///< Warnings.
+  kInfo = 3,     ///< General information about the system state.
+  kDebug = 4,    ///< Information for debugging.
+  kTrace = 5,    ///< Detailed debugging.
 };
 
 template <>
@@ -254,11 +243,8 @@ inline std::string ToString<Verbosity>(const Verbosity& vb) {
 /// Output streams for writing to the terminal.
 ////////////////////////////////////////////////////////////////////////////////
 enum class Stream {
-  /// Standard output.
-  kStdout = 0,
-
-  /// Stanard error.
-  kStderr = 1,
+  kStdout = 0,  ///< Standard output.
+  kStderr = 1,  ///< Stanard error.
 };
 
 template <>

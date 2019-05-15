@@ -31,11 +31,8 @@ namespace yogi {
 /// Possible data/payload encoding types.
 ////////////////////////////////////////////////////////////////////////////////
 enum class EncodingType {
-  /// Data is encoded as JSON.
-  kJson = 0,
-
-  /// Data is encoded as MessagePack.
-  kMsgpack = 1,
+  kJson = 0,     ///< Data is encoded as JSON.
+  kMsgpack = 1,  ///< Data is encoded as MessagePack
 };
 
 ////////////////////////////////////////////////////////////////////////////////

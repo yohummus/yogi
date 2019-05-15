@@ -40,7 +40,7 @@ class TestCase(unittest.TestCase):
                 "Macro {} not found in yogi_core.h".format(macro_name))
 
         if m.group(1).startswith('('):
-            regex = re.compile("#define {} (\\(.+\\)).*".format(macro_name))
+            regex = re.compile("#define {} (\\(.+?\\)).*".format(macro_name))
             m = re.search(regex, yogi_core_h)
             if not m:
                 raise Exception(
