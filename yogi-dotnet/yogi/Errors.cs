@@ -101,7 +101,7 @@ public static partial class Yogi
         /// <summary>The magic prefix sent when establishing a connection is wrong.</summary>
         InvalidMagicPrefix = -20,
 
-        /// <summary>The local and remote branches use incompatible Yogi versions.</summary>
+        /// <summary>The Yogi versions are not compatible.</summary>
         IncompatibleVersion = -21,
 
         /// <summary>Could not deserialize a message.</summary>

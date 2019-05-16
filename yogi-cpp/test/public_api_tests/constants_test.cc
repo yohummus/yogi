@@ -21,8 +21,8 @@
 
 using namespace std::chrono_literals;
 
-TEST(ConstantsTest, kVersionNumber) {
-  EXPECT_EQ(yogi::constants::kVersionNumber, YOGI_HDR_VERSION);
+TEST(ConstantsTest, kVersion) {
+  EXPECT_EQ(yogi::constants::kVersion, YOGI_HDR_VERSION);
 }
 
 TEST(ConstantsTest, kVersionMajor) {
@@ -35,6 +35,10 @@ TEST(ConstantsTest, kVersionMinor) {
 
 TEST(ConstantsTest, kVersionPatch) {
   EXPECT_EQ(yogi::constants::kVersionPatch, YOGI_HDR_VERSION_PATCH);
+}
+
+TEST(ConstantsTest, kVersionSuffix) {
+  EXPECT_EQ(yogi::constants::kVersionSuffix, YOGI_HDR_VERSION_SUFFIX);
 }
 
 TEST(ConstantsTest, kDefaultAdvInterfaces) {

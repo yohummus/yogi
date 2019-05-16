@@ -23,10 +23,10 @@ namespace test
     public class ConstantsTest : TestCase
     {
         [Fact]
-        public void VersionNumber()
+        public void Version()
         {
-            Assert.IsType<string>(Yogi.Constants.VersionNumber);
-            Assert.Equal(Yogi.Constants.VersionNumber, GetCoreMacroString("YOGI_HDR_VERSION"));
+            Assert.IsType<string>(Yogi.Constants.Version);
+            Assert.Equal(Yogi.Constants.Version, GetCoreMacroString("YOGI_HDR_VERSION"));
         }
 
         [Fact]
@@ -48,6 +48,14 @@ namespace test
         {
             Assert.IsType<int>(Yogi.Constants.VersionPatch);
             Assert.Equal(Yogi.Constants.VersionPatch, GetCoreMacroInt("YOGI_HDR_VERSION_PATCH"));
+        }
+
+        [Fact]
+        public void VersionSuffix()
+        {
+            Assert.IsType<string>(Yogi.Constants.VersionSuffix);
+            Assert.Equal(Yogi.Constants.VersionSuffix,
+                         GetCoreMacroString("YOGI_HDR_VERSION_SUFFIX"));
         }
 
         [Fact]

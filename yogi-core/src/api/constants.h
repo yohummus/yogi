@@ -23,10 +23,11 @@ namespace api {
 
 // clang-format off
 #define SCC static constexpr const
-SCC char*     kVersionNumber                 = YOGI_HDR_VERSION;
+SCC char*     kVersion                       = YOGI_HDR_VERSION;
 SCC int       kVersionMajor                  = YOGI_HDR_VERSION_MAJOR;
 SCC int       kVersionMinor                  = YOGI_HDR_VERSION_MINOR;
 SCC int       kVersionPatch                  = YOGI_HDR_VERSION_PATCH;
+SCC char*     kVersionSuffix                 = YOGI_HDR_VERSION_SUFFIX;
 SCC char*     kDefaultAdvInterfaces          = "[\"localhost\"]";
 SCC char*     kDefaultAdvAddress             = "ff02::8000:2439";
 SCC int       kDefaultAdvPort                = 13531;

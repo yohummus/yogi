@@ -23,6 +23,7 @@
 
 #include <boost/uuid/uuid_io.hpp>
 #include <boost/asio.hpp>
+#include <sstream>
 using namespace std::string_literals;
 
 namespace fs = boost::filesystem;
@@ -321,6 +322,13 @@ CommandLine::~CommandLine() {
   }
 
   delete[] argv;
+}
+
+std::string MakeVersionString(int major, int minor, int patch,
+                              const std::string& suffix) {
+  std::ostringstream ss;
+  ss << major << '.' << minor << '.' << patch << suffix;
+  return ss.str();
 }
 
 void SetupLogging(int verbosity) {

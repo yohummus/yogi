@@ -190,6 +190,8 @@ struct CommandLine final {
   CommandLine& operator=(const CommandLine&) = delete;
 };
 
+std::string MakeVersionString(int major, int minor, int patch,
+                              const std::string& suffix = {});
 void SetupLogging(int verbosity);
 void* CreateContext();
 void PollContext(void* context);

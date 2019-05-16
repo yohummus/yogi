@@ -20,8 +20,8 @@ from .common import TestCase
 
 
 class TestConstants(TestCase):
-    def test_version_number(self):
-        c = yogi.Constants.VERSION_NUMBER
+    def test_version(self):
+        c = yogi.Constants.VERSION
         self.assertIsInstance(c, str)
         self.assertGreater(len(c), 4)
         self.assertEqual(c, self.get_core_macro("YOGI_HDR_VERSION"))
@@ -43,6 +43,11 @@ class TestConstants(TestCase):
         self.assertIsInstance(c, int)
         self.assertGreaterEqual(
             c, self.get_core_macro("YOGI_HDR_VERSION_PATCH"))
+
+    def test_version_suffix(self):
+        c = yogi.Constants.VERSION_SUFFIX
+        self.assertIsInstance(c, str)
+        self.assertEqual(c, self.get_core_macro("YOGI_HDR_VERSION_SUFFIX"))
 
     def test_default_adv_interfaces(self):
         c = yogi.Constants.DEFAULT_ADV_INTERFACES

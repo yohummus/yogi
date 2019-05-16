@@ -19,6 +19,6 @@
 
 #include <yogi_core.h>
 
-TEST(LibraryTest, GetVersion) {
+TEST(VersionTest, GetVersion) {
   EXPECT_EQ(yogi::GetVersion(), YOGI_HDR_VERSION);
 }

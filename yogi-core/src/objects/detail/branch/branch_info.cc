@@ -215,7 +215,7 @@ api::Result RemoteBranchInfo::CheckMagicPrefixAndVersion(
     return api::Error(YOGI_ERR_INVALID_MAGIC_PREFIX);
   }
 
-  if (adv_msg[5] != api::kVersionMajor || adv_msg[6] != api::kVersionMinor) {
+  if (adv_msg[5] != api::kVersionMajor) {
     return api::Error(YOGI_ERR_INCOMPATIBLE_VERSION);
   }
 

@@ -17,6 +17,7 @@
 
 using System;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.ComponentModel;
 
 public static partial class Yogi
@@ -144,6 +145,22 @@ public static partial class Yogi
             }
 
             dll = utils.LoadLibrary(filename);
+            CheckVersionCompatibility();
+        }
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        delegate int CheckBindingsCompatibilityDelegate(string bindver,
+            [MarshalAs(UnmanagedType.LPStr)] StringBuilder err, int errsize);
+
+        static void CheckVersionCompatibility()
+        {
+            var fn = GetDelegateForFunction<CheckBindingsCompatibilityDelegate>(
+                "YOGI_CheckBindingsCompatibility");
+
+            CheckDescriptiveErrorCode((err) =>
+            {
+                return fn(BindingsInfo.Version, err, err.Capacity);
+            });
         }
 
         internal static T GetDelegateForFunction<T>(string functionName) where T : class

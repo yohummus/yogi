@@ -17,14 +17,54 @@
 
 #include "common.h"
 
-TEST(VersionTest, Macros) {
-	std::ostringstream ss;
-	ss << YOGI_HDR_VERSION_MAJOR << '.' << YOGI_HDR_VERSION_MINOR << '.' << YOGI_HDR_VERSION_PATCH;
+TEST(VersionTest, HeaderVersion) {
+  EXPECT_GE(YOGI_HDR_VERSION_MAJOR, 0);
+  EXPECT_GE(YOGI_HDR_VERSION_MINOR, 0);
+  EXPECT_GE(YOGI_HDR_VERSION_PATCH, 0);
 
-	auto version = ss.str();
-	EXPECT_EQ(version, YOGI_HDR_VERSION);
+  auto version =
+      MakeVersionString(YOGI_HDR_VERSION_MAJOR, YOGI_HDR_VERSION_MINOR,
+                        YOGI_HDR_VERSION_PATCH, YOGI_HDR_VERSION_SUFFIX);
+
+  EXPECT_EQ(version, YOGI_HDR_VERSION);
 }
 
 TEST(VersionTest, GetVersion) {
   EXPECT_STREQ(YOGI_HDR_VERSION, YOGI_GetVersion());
+}
+
+TEST(VersionTest, CheckBindingsCompatibility) {
+  char err[128] = {123};
+
+  EXPECT_OK(
+      YOGI_CheckBindingsCompatibility(YOGI_HDR_VERSION, err, sizeof(err)));
+  EXPECT_STREQ(err, "");
+
+  EXPECT_EQ(
+      YOGI_CheckBindingsCompatibility(YOGI_HDR_VERSION " ", err, sizeof(err)),
+      YOGI_ERR_INVALID_PARAM);
+  EXPECT_NE(std::string(err).find("not have a valid format"),
+            std::string::npos);
+
+  auto version =
+      MakeVersionString(YOGI_HDR_VERSION_MAJOR, YOGI_HDR_VERSION_MINOR + 1,
+                        YOGI_HDR_VERSION_PATCH + 1);
+  EXPECT_OK(YOGI_CheckBindingsCompatibility(version.c_str(), err, sizeof(err)));
+  EXPECT_STREQ(err, "");
+
+  version = MakeVersionString(YOGI_HDR_VERSION_MAJOR + 1,
+                              YOGI_HDR_VERSION_MINOR, YOGI_HDR_VERSION_PATCH);
+  EXPECT_EQ(YOGI_CheckBindingsCompatibility(version.c_str(), err, sizeof(err)),
+            YOGI_ERR_INCOMPATIBLE_VERSION);
+  EXPECT_NE(std::string(err).find("is incompatible with"), std::string::npos);
+
+  if (YOGI_HDR_VERSION_MINOR > 0) {
+    version =
+        MakeVersionString(YOGI_HDR_VERSION_MAJOR, YOGI_HDR_VERSION_MINOR - 1,
+                          YOGI_HDR_VERSION_PATCH);
+    EXPECT_EQ(
+        YOGI_CheckBindingsCompatibility(version.c_str(), err, sizeof(err)),
+        YOGI_ERR_INCOMPATIBLE_VERSION);
+    EXPECT_NE(std::string(err).find("is incompatible with"), std::string::npos);
+  }
 }

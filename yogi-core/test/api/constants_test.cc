@@ -51,10 +51,11 @@ TEST(ConstantsTest, GetEachConstant) {
   using namespace api;
 
   // clang-format off
-  check(YOGI_CONST_VERSION_NUMBER,                kVersionNumber);
+  check(YOGI_CONST_VERSION,                       kVersion);
   check(YOGI_CONST_VERSION_MAJOR,                 kVersionMajor);
   check(YOGI_CONST_VERSION_MINOR,                 kVersionMinor);
   check(YOGI_CONST_VERSION_PATCH,                 kVersionPatch);
+  check(YOGI_CONST_VERSION_SUFFIX,                kVersionSuffix);
   check(YOGI_CONST_DEFAULT_ADV_INTERFACES,        kDefaultAdvInterfaces);
   check(YOGI_CONST_DEFAULT_ADV_ADDRESS,           kDefaultAdvAddress);
   check(YOGI_CONST_DEFAULT_ADV_PORT,              kDefaultAdvPort);

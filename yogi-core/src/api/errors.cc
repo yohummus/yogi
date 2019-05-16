@@ -90,7 +90,7 @@ const char* Result::GetDescription() const {
       return "The magic prefix sent when establishing a connection is wrong";
 
     case YOGI_ERR_INCOMPATIBLE_VERSION:
-      return "The local and remote branches use incompatible Yogi versions";
+      return "The Yogi versions are not compatible";
 
     case YOGI_ERR_DESERIALIZE_MSG_FAILED:
       return "Could not deserialize a message";

@@ -5,7 +5,7 @@ set (CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
 include (check_toolchain)
 include (yogi_version)
 
-project (yogi VERSION ${YOGI_VERSION} LANGUAGES CXX)
+project (yogi VERSION ${YOGI_VERSION_NO_SUFFIX} LANGUAGES CXX)
 
 include (build_type)
 include (cotire)

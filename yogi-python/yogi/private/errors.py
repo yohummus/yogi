@@ -242,7 +242,7 @@ def run_with_discriptive_failure_awareness(fn: Callable[[any], int]) -> None:
     err = create_string_buffer(256)
     res = fn(err)
     if res < 0:
-        description = err.value.decode("utf-8")
+        description = err.value.decode()
         if len(description):
             raise DescriptiveFailureException(ErrorCode(res), description)
         else:

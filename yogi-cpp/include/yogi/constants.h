@@ -50,8 +50,8 @@ inline T GetConstant(int constant) {
 /// Constants built into the Yogi Core library.
 ////////////////////////////////////////////////////////////////////////////////
 struct constants {
-  /// Complete Yogi Core version number.
-  static const std::string kVersionNumber;
+  /// Complete Yogi Core version string.
+  static const std::string kVersion;
 
   /// Yogi Core major version number.
   static const int kVersionMajor;
@@ -61,6 +61,9 @@ struct constants {
 
   /// Yogi Core patch version number.
   static const int kVersionPatch;
+
+  /// Yogi Core patch version number.
+  static const std::string kVersionSuffix;
 
   /// Default network interfaces to use for advertising.
   static const std::string kDefaultAdvInterfaces;
@@ -123,7 +126,7 @@ struct constants {
   static const int kDefaultRxQueueSize;
 };
 
-_YOGI_WEAK_SYMBOL const std::string constants::kVersionNumber =
+_YOGI_WEAK_SYMBOL const std::string constants::kVersion =
     internal::GetConstant<char*>(1);
 
 _YOGI_WEAK_SYMBOL const int constants::kVersionMajor =
@@ -135,65 +138,68 @@ _YOGI_WEAK_SYMBOL const int constants::kVersionMinor =
 _YOGI_WEAK_SYMBOL const int constants::kVersionPatch =
     internal::GetConstant<int>(4);
 
-_YOGI_WEAK_SYMBOL const std::string constants::kDefaultAdvInterfaces =
+_YOGI_WEAK_SYMBOL const std::string constants::kVersionSuffix =
     internal::GetConstant<char*>(5);
 
-_YOGI_WEAK_SYMBOL const std::string constants::kDefaultAdvAddress =
+_YOGI_WEAK_SYMBOL const std::string constants::kDefaultAdvInterfaces =
     internal::GetConstant<char*>(6);
 
+_YOGI_WEAK_SYMBOL const std::string constants::kDefaultAdvAddress =
+    internal::GetConstant<char*>(7);
+
 _YOGI_WEAK_SYMBOL const int constants::kDefaultAdvPort =
-    internal::GetConstant<int>(7);
+    internal::GetConstant<int>(8);
 
 _YOGI_WEAK_SYMBOL const Duration constants::kDefaultAdvInterval =
-    Duration::FromNanoseconds(internal::GetConstant<long long>(8));
-
-_YOGI_WEAK_SYMBOL const Duration constants::kDefaultConnectionTimeout =
     Duration::FromNanoseconds(internal::GetConstant<long long>(9));
 
+_YOGI_WEAK_SYMBOL const Duration constants::kDefaultConnectionTimeout =
+    Duration::FromNanoseconds(internal::GetConstant<long long>(10));
+
 _YOGI_WEAK_SYMBOL const Verbosity constants::kDefaultLoggerVerbosity =
-    static_cast<Verbosity>(internal::GetConstant<int>(10));
+    static_cast<Verbosity>(internal::GetConstant<int>(11));
 
 _YOGI_WEAK_SYMBOL const std::string constants::kDefaultLogTimeFormat =
-    internal::GetConstant<char*>(11);
-
-_YOGI_WEAK_SYMBOL const std::string constants::kDefaultLogFormat =
     internal::GetConstant<char*>(12);
 
+_YOGI_WEAK_SYMBOL const std::string constants::kDefaultLogFormat =
+    internal::GetConstant<char*>(13);
+
 _YOGI_WEAK_SYMBOL const int constants::kMaxMessagePayloadSize =
-    internal::GetConstant<int>(13);
+    internal::GetConstant<int>(14);
 
 _YOGI_WEAK_SYMBOL const std::string constants::kDefaultTimeFormat =
-    internal::GetConstant<char*>(14);
-
-_YOGI_WEAK_SYMBOL const std::string constants::kDefaultInfiniteDurationString =
     internal::GetConstant<char*>(15);
 
-_YOGI_WEAK_SYMBOL const std::string constants::kDefaultDurationFormat =
+_YOGI_WEAK_SYMBOL const std::string constants::kDefaultInfiniteDurationString =
     internal::GetConstant<char*>(16);
 
-_YOGI_WEAK_SYMBOL const std::string constants::kDefaultInvalidHandleString =
+_YOGI_WEAK_SYMBOL const std::string constants::kDefaultDurationFormat =
     internal::GetConstant<char*>(17);
 
-_YOGI_WEAK_SYMBOL const std::string constants::kDefaultObjectFormat =
+_YOGI_WEAK_SYMBOL const std::string constants::kDefaultInvalidHandleString =
     internal::GetConstant<char*>(18);
 
-_YOGI_WEAK_SYMBOL const int constants::kMinTxQueueSize =
-    internal::GetConstant<int>(19);
+_YOGI_WEAK_SYMBOL const std::string constants::kDefaultObjectFormat =
+    internal::GetConstant<char*>(19);
 
-_YOGI_WEAK_SYMBOL const int constants::kMaxTxQueueSize =
+_YOGI_WEAK_SYMBOL const int constants::kMinTxQueueSize =
     internal::GetConstant<int>(20);
 
-_YOGI_WEAK_SYMBOL const int constants::kDefaultTxQueueSize =
+_YOGI_WEAK_SYMBOL const int constants::kMaxTxQueueSize =
     internal::GetConstant<int>(21);
 
-_YOGI_WEAK_SYMBOL const int constants::kMinRxQueueSize =
+_YOGI_WEAK_SYMBOL const int constants::kDefaultTxQueueSize =
     internal::GetConstant<int>(22);
 
-_YOGI_WEAK_SYMBOL const int constants::kMaxRxQueueSize =
+_YOGI_WEAK_SYMBOL const int constants::kMinRxQueueSize =
     internal::GetConstant<int>(23);
 
-_YOGI_WEAK_SYMBOL const int constants::kDefaultRxQueueSize =
+_YOGI_WEAK_SYMBOL const int constants::kMaxRxQueueSize =
     internal::GetConstant<int>(24);
+
+_YOGI_WEAK_SYMBOL const int constants::kDefaultRxQueueSize =
+    internal::GetConstant<int>(25);
 
 }  // namespace yogi
 

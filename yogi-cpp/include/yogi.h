@@ -37,6 +37,7 @@
 
 #include "yogi/branch.h"
 #include "yogi/buffer.h"
+#include "yogi/bindings_info.h"
 #include "yogi/configuration.h"
 #include "yogi/constants.h"
 #include "yogi/context.h"

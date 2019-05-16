@@ -50,8 +50,8 @@ public static partial class Yogi
     /// </summary>
     public static class Constants
     {
-        /// <summary>Complete Yogi Core version number.</summary>
-        public static readonly string VersionNumber;
+        /// <summary>Complete Yogi Core version.</summary>
+        public static readonly string Version;
 
         /// <summary>Yogi Core major version number.</summary>
         public static readonly int VersionMajor;
@@ -61,6 +61,9 @@ public static partial class Yogi
 
         /// <summary>Yogi Core patch version number.</summary>
         public static readonly int VersionPatch;
+
+        /// <summary>Yogi Core version suffix.</summary>
+        public static readonly string VersionSuffix;
 
         /// <summary>Default network interfaces to use for advertising.</summary>
         public static readonly string DefaultAdvInterfaces;
@@ -126,61 +129,64 @@ public static partial class Yogi
         {
             IntPtr str = new IntPtr();
             CheckErrorCode(Api.YOGI_GetStringConstant(ref str, 1));
-            VersionNumber = Marshal.PtrToStringAnsi(str);
+            Version = Marshal.PtrToStringAnsi(str);
 
             CheckErrorCode(Api.YOGI_GetIntConstant(ref VersionMajor, 2));
             CheckErrorCode(Api.YOGI_GetIntConstant(ref VersionMinor, 3));
             CheckErrorCode(Api.YOGI_GetIntConstant(ref VersionPatch, 4));
 
             CheckErrorCode(Api.YOGI_GetStringConstant(ref str, 5));
-            DefaultAdvInterfaces = Marshal.PtrToStringAnsi(str);
+            VersionSuffix = Marshal.PtrToStringAnsi(str);
 
             CheckErrorCode(Api.YOGI_GetStringConstant(ref str, 6));
+            DefaultAdvInterfaces = Marshal.PtrToStringAnsi(str);
+
+            CheckErrorCode(Api.YOGI_GetStringConstant(ref str, 7));
             DefaultAdvAddress = Marshal.PtrToStringAnsi(str);
 
-            CheckErrorCode(Api.YOGI_GetIntConstant(ref DefaultAdvPort, 7));
+            CheckErrorCode(Api.YOGI_GetIntConstant(ref DefaultAdvPort, 8));
 
             long t = -1;
-            CheckErrorCode(Api.YOGI_GetLongLongConstant(ref t, 8));
+            CheckErrorCode(Api.YOGI_GetLongLongConstant(ref t, 9));
             DefaultAdvInterval = Duration.FromNanoseconds(t);
 
-            CheckErrorCode(Api.YOGI_GetLongLongConstant(ref t, 9));
+            CheckErrorCode(Api.YOGI_GetLongLongConstant(ref t, 10));
             DefaultConnectionTimeout = Duration.FromNanoseconds(t);
 
             int n = -1;
-            CheckErrorCode(Api.YOGI_GetIntConstant(ref n, 10));
+            CheckErrorCode(Api.YOGI_GetIntConstant(ref n, 11));
             DefaultLoggerVerbosity = (Verbosity)n;
 
-            CheckErrorCode(Api.YOGI_GetStringConstant(ref str, 11));
+            CheckErrorCode(Api.YOGI_GetStringConstant(ref str, 12));
             DefaultLogTimeFormat = Marshal.PtrToStringAnsi(str);
 
-            CheckErrorCode(Api.YOGI_GetStringConstant(ref str, 12));
+            CheckErrorCode(Api.YOGI_GetStringConstant(ref str, 13));
             DefaultLogFormat = Marshal.PtrToStringAnsi(str);
 
-            CheckErrorCode(Api.YOGI_GetIntConstant(ref MaxMessagePayloadSize, 13));
-
-            CheckErrorCode(Api.YOGI_GetStringConstant(ref str, 14));
-            DefaultTimeFormat = Marshal.PtrToStringAnsi(str);
+            CheckErrorCode(Api.YOGI_GetIntConstant(ref MaxMessagePayloadSize, 14));
 
             CheckErrorCode(Api.YOGI_GetStringConstant(ref str, 15));
-            DefaultInfiniteDurationString = Marshal.PtrToStringAnsi(str);
+            DefaultTimeFormat = Marshal.PtrToStringAnsi(str);
 
             CheckErrorCode(Api.YOGI_GetStringConstant(ref str, 16));
-            DefaultDurationFormat = Marshal.PtrToStringAnsi(str);
+            DefaultInfiniteDurationString = Marshal.PtrToStringAnsi(str);
 
             CheckErrorCode(Api.YOGI_GetStringConstant(ref str, 17));
-            DefaultInvalidHandleString = Marshal.PtrToStringAnsi(str);
+            DefaultDurationFormat = Marshal.PtrToStringAnsi(str);
 
             CheckErrorCode(Api.YOGI_GetStringConstant(ref str, 18));
+            DefaultInvalidHandleString = Marshal.PtrToStringAnsi(str);
+
+            CheckErrorCode(Api.YOGI_GetStringConstant(ref str, 19));
             DefaultObjectFormat = Marshal.PtrToStringAnsi(str);
 
-            CheckErrorCode(Api.YOGI_GetIntConstant(ref MinTxQueueSize, 19));
-            CheckErrorCode(Api.YOGI_GetIntConstant(ref MaxTxQueueSize, 20));
-            CheckErrorCode(Api.YOGI_GetIntConstant(ref DefaultTxQueueSize, 21));
+            CheckErrorCode(Api.YOGI_GetIntConstant(ref MinTxQueueSize, 20));
+            CheckErrorCode(Api.YOGI_GetIntConstant(ref MaxTxQueueSize, 21));
+            CheckErrorCode(Api.YOGI_GetIntConstant(ref DefaultTxQueueSize, 22));
 
-            CheckErrorCode(Api.YOGI_GetIntConstant(ref MinRxQueueSize, 22));
-            CheckErrorCode(Api.YOGI_GetIntConstant(ref MaxRxQueueSize, 23));
-            CheckErrorCode(Api.YOGI_GetIntConstant(ref DefaultRxQueueSize, 24));
+            CheckErrorCode(Api.YOGI_GetIntConstant(ref MinRxQueueSize, 23));
+            CheckErrorCode(Api.YOGI_GetIntConstant(ref MaxRxQueueSize, 24));
+            CheckErrorCode(Api.YOGI_GetIntConstant(ref DefaultRxQueueSize, 25));
         }
     }
 }

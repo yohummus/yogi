@@ -27,12 +27,16 @@
 //! macros only denote the version of the header file which does not necessarily
 //! have to match the version of the actual library that is loaded at runtime.
 //!
+//! This header file constitutes the bindings for the C language and therefore,
+//! the version macros defined here denote the version of these bindings.
+//!
 //! @{
 
-#define YOGI_HDR_VERSION "0.0.3"  ///< Whole version number
-#define YOGI_HDR_VERSION_MAJOR 0  ///< Major version number
-#define YOGI_HDR_VERSION_MINOR 0  ///< Minor version number
-#define YOGI_HDR_VERSION_PATCH 3  ///< Patch version number
+#define YOGI_HDR_VERSION "0.0.3-alpha"    ///< Whole version string
+#define YOGI_HDR_VERSION_MAJOR 0          ///< Major version number
+#define YOGI_HDR_VERSION_MINOR 0          ///< Minor version number
+#define YOGI_HDR_VERSION_PATCH 3          ///< Patch version number
+#define YOGI_HDR_VERSION_SUFFIX "-alpha"  ///< Version suffix (e.g. "-beta")
 
 //! @}
 //!
@@ -46,8 +50,8 @@
 //!
 //! @{
 
-//! Whole version number of the library (const char*)
-#define YOGI_CONST_VERSION_NUMBER 1
+//! Whole version string of the library (const char*)
+#define YOGI_CONST_VERSION 1
 
 //! Major version number of the library (int)
 #define YOGI_CONST_VERSION_MAJOR 2
@@ -58,65 +62,68 @@
 //! Major version number of the library (int)
 #define YOGI_CONST_VERSION_PATCH 4
 
+//! Suffix of the library version (const char*)
+#define YOGI_CONST_VERSION_SUFFIX 5
+
 //! Default network interfaces to use for advertising (const char*)
-#define YOGI_CONST_DEFAULT_ADV_INTERFACES 5
+#define YOGI_CONST_DEFAULT_ADV_INTERFACES 6
 
 //! Default multicast addresses to use for advertising (const char*)
-#define YOGI_CONST_DEFAULT_ADV_ADDRESS 6
+#define YOGI_CONST_DEFAULT_ADV_ADDRESS 7
 
 //! Default port to use for advertising via UDP IPv6 multicasts (int)
-#define YOGI_CONST_DEFAULT_ADV_PORT 7
+#define YOGI_CONST_DEFAULT_ADV_PORT 8
 
 //! Default advertising interval in nanoseconds (long long)
-#define YOGI_CONST_DEFAULT_ADV_INTERVAL 8
+#define YOGI_CONST_DEFAULT_ADV_INTERVAL 9
 
 //! Default connection timeout in nanoseconds (long long)
-#define YOGI_CONST_DEFAULT_CONNECTION_TIMEOUT 9
+#define YOGI_CONST_DEFAULT_CONNECTION_TIMEOUT 10
 
 //! Default logging verbosity (int)
-#define YOGI_CONST_DEFAULT_LOGGER_VERBOSITY 10
+#define YOGI_CONST_DEFAULT_LOGGER_VERBOSITY 11
 
 //! Default textual format for timestamps in log entries (const char*)
-#define YOGI_CONST_DEFAULT_LOG_TIME_FORMAT 11
+#define YOGI_CONST_DEFAULT_LOG_TIME_FORMAT 12
 
 //! Default textual format for log entries (const char*)
-#define YOGI_CONST_DEFAULT_LOG_FORMAT 12
+#define YOGI_CONST_DEFAULT_LOG_FORMAT 13
 
 //! Maximum size of the payload in a message (int)
-#define YOGI_CONST_MAX_MESSAGE_PAYLOAD_SIZE 13
+#define YOGI_CONST_MAX_MESSAGE_PAYLOAD_SIZE 14
 
 //! Default textual format for timestamps (const char*)
-#define YOGI_CONST_DEFAULT_TIME_FORMAT 14
+#define YOGI_CONST_DEFAULT_TIME_FORMAT 15
 
 //! Default string to denote an infinite duration (const char*)
-#define YOGI_CONST_DEFAULT_INF_DURATION_STRING 15
+#define YOGI_CONST_DEFAULT_INF_DURATION_STRING 16
 
 //! Default textual format for duration strings (const char*)
-#define YOGI_CONST_DEFAULT_DURATION_FORMAT 16
+#define YOGI_CONST_DEFAULT_DURATION_FORMAT 17
 
 //! Default string to denote an invalid object handle (const char*)
-#define YOGI_CONST_DEFAULT_INVALID_HANDLE_STRING 17
+#define YOGI_CONST_DEFAULT_INVALID_HANDLE_STRING 18
 
 //! Default textual format for strings describing an object (const char*)
-#define YOGI_CONST_DEFAULT_OBJECT_FORMAT 18
+#define YOGI_CONST_DEFAULT_OBJECT_FORMAT 19
 
 //! Minimum size of a send queue for a remote branch (int)
-#define YOGI_CONST_MIN_TX_QUEUE_SIZE 19
+#define YOGI_CONST_MIN_TX_QUEUE_SIZE 20
 
 //! Maximum size of a send queue for a remote branch (int)
-#define YOGI_CONST_MAX_TX_QUEUE_SIZE 20
+#define YOGI_CONST_MAX_TX_QUEUE_SIZE 21
 
 //! Default size of a send queue for a remote branch (int)
-#define YOGI_CONST_DEFAULT_TX_QUEUE_SIZE 21
+#define YOGI_CONST_DEFAULT_TX_QUEUE_SIZE 22
 
 // Minimum size of a receive queue for a remote branch (int)
-#define YOGI_CONST_MIN_RX_QUEUE_SIZE 22
+#define YOGI_CONST_MIN_RX_QUEUE_SIZE 23
 
 // Maximum size of a receive queue for a remote branch (int)
-#define YOGI_CONST_MAX_RX_QUEUE_SIZE 23
+#define YOGI_CONST_MAX_RX_QUEUE_SIZE 24
 
 // Default size of a receive queue for a remote branch (int)
-#define YOGI_CONST_DEFAULT_RX_QUEUE_SIZE 24
+#define YOGI_CONST_DEFAULT_RX_QUEUE_SIZE 25
 
 //! @}
 //!
@@ -190,7 +197,7 @@
 //! The magic prefix sent when establishing a connection is wrong
 #define YOGI_ERR_INVALID_MAGIC_PREFIX -20
 
-//! The local and remote branches use incompatible Yogi versions
+//! The Yogi versions are not compatible
 #define YOGI_ERR_INCOMPATIBLE_VERSION -21
 
 //! Could not deserialize a message
@@ -753,6 +760,42 @@ extern "C" {
  * \returns Library version
  */
 YOGI_API const char* YOGI_GetVersion();
+
+/*!
+ * Checks if the bindings for Yogi used in a program are compatible with the
+ * loaded Yogi core library.
+ *
+ * This function should be used straight after loading the Yogi library in order
+ * to ensure that the user code is compatible with the library. All official
+ * Yogi bindings (yogi-cpp, yogi-python, etc.) perform this check automatically
+ * on startup and terminate the program if the library version is not compatible
+ * with the bindings.
+ *
+ * Bindings are compatible if and only if the major version numbers are
+ * identical and the minor version number of the bindings is greater or equal to
+ * the minor version number of the Yogi library.
+ *
+ * In case that the versions are not compatible, the \p err parameter can be
+ * used to obtain a message that can be shown to the end user in order to
+ * inform them about the version mismatch. If the string to be written to \p err
+ * is larger than \p errsize then \p err will be populated as much as possible
+ * (and null-terminated).
+ *
+ * Attention: Even though an error code will be returned if the versions are
+ *            incompatible or the supplied version string is invalid, the
+ *            returned value should be compared only against 0 (#YOGI_OK) since
+ *            error codes may change between versions!
+ *
+ * \param[in]  bindver Version of the bindings
+ * \param[out] err     Pointer to a char array for storing an error description
+ *                     (can be set to NULL)
+ * \param[in]  errsize Maximum number of bytes to write to \p err
+ *
+ * \returns [=0] #YOGI_OK if successful
+ * \returns [<0] if versions are not compatible
+ */
+YOGI_API int YOGI_CheckBindingsCompatibility(const char* bindver, char* err,
+                                             int errsize);
 
 /*!
  * Get the license that Yogi is published under.

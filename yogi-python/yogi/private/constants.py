@@ -19,7 +19,6 @@ from .library import yogi
 from .duration import Duration
 
 from ctypes import c_void_p, c_int, c_char_p, c_longlong, byref
-from typing import ClassVar
 
 
 yogi.YOGI_GetConstant.restype = api_result_handler
@@ -34,8 +33,8 @@ def get_constant(api_id, api_type):
 
 class MetaConstants(type):
     @property
-    def VERSION_NUMBER(self) -> str:
-        """Complete Yogi Core version number."""
+    def VERSION(self) -> str:
+        """Complete Yogi Core version."""
         return get_constant(1, c_char_p)
 
     @property
@@ -54,104 +53,109 @@ class MetaConstants(type):
         return get_constant(4, c_int)
 
     @property
+    def VERSION_SUFFIX(self) -> str:
+        """Yogi Core version suffix."""
+        return get_constant(5, c_char_p)
+
+    @property
     def DEFAULT_ADV_INTERFACES(self) -> str:
         """Default network interfaces to use for advertising."""
-        return get_constant(5, c_char_p)
+        return get_constant(6, c_char_p)
 
     @property
     def DEFAULT_ADV_ADDRESS(self) -> str:
         """Default IP address for advertising."""
-        return get_constant(6, c_char_p)
+        return get_constant(7, c_char_p)
 
     @property
     def DEFAULT_ADV_PORT(self) -> int:
         """Default UDP port for advertising."""
-        return get_constant(7, c_int)
+        return get_constant(8, c_int)
 
     @property
     def DEFAULT_ADV_INTERVAL(self) -> Duration:
         """Default time between two advertising messages."""
-        return Duration.from_nanoseconds(get_constant(8, c_longlong))
+        return Duration.from_nanoseconds(get_constant(9, c_longlong))
 
     @property
     def DEFAULT_CONNECTION_TIMEOUT(self) -> Duration:
         """Default timeout for connections between two branches."""
-        return Duration.from_nanoseconds(get_constant(9, c_longlong))
+        return Duration.from_nanoseconds(get_constant(10, c_longlong))
 
     @property
     def DEFAULT_LOGGER_VERBOSITY(self) -> Verbosity:
         """Default verbosity for newly created loggers."""
-        return Verbosity(get_constant(10, c_int))
+        return Verbosity(get_constant(11, c_int))
 
     @property
     def DEFAULT_LOG_TIME_FORMAT(self) -> str:
         """Default format of the time string in log entries."""
-        return get_constant(11, c_char_p)
+        return get_constant(12, c_char_p)
 
     @property
     def DEFAULT_LOG_FORMAT(self) -> str:
         """Default format of a log entry."""
-        return get_constant(12, c_char_p)
+        return get_constant(13, c_char_p)
 
     @property
     def MAX_MESSAGE_PAYLOAD_SIZE(self) -> int:
         """Maximum size of the payload of a message between branches."""
-        return get_constant(13, c_int)
+        return get_constant(14, c_int)
 
     @property
     def DEFAULT_TIME_FORMAT(self) -> str:
         """Default textual format for timestamps."""
-        return get_constant(14, c_char_p)
+        return get_constant(15, c_char_p)
 
     @property
     def DEFAULT_INF_DURATION_STRING(self) -> str:
         """Default string to denote an infinite duration."""
-        return get_constant(15, c_char_p)
+        return get_constant(16, c_char_p)
 
     @property
     def DEFAULT_DURATION_FORMAT(self) -> str:
         """Default textual format for duration strings."""
-        return get_constant(16, c_char_p)
+        return get_constant(17, c_char_p)
 
     @property
     def DEFAULT_INVALID_HANDLE_STRING(self) -> str:
         """Default string to denote an invalid object handle."""
-        return get_constant(17, c_char_p)
+        return get_constant(18, c_char_p)
 
     @property
     def DEFAULT_OBJECT_FORMAT(self) -> str:
         """Default textual format for strings describing an object."""
-        return get_constant(18, c_char_p)
+        return get_constant(19, c_char_p)
 
     @property
     def MIN_TX_QUEUE_SIZE(self) -> int:
         """Minimum size of a send queue for a remote branch."""
-        return get_constant(19, c_int)
+        return get_constant(20, c_int)
 
     @property
     def MAX_TX_QUEUE_SIZE(self) -> int:
         """Maximum size of a send queue for a remote branch."""
-        return get_constant(20, c_int)
+        return get_constant(21, c_int)
 
     @property
     def DEFAULT_TX_QUEUE_SIZE(self) -> int:
         """Default size of a send queue for a remote branch."""
-        return get_constant(21, c_int)
+        return get_constant(22, c_int)
 
     @property
     def MIN_RX_QUEUE_SIZE(self) -> int:
         """Minimum size of a receive queue for a remote branch."""
-        return get_constant(22, c_int)
+        return get_constant(23, c_int)
 
     @property
     def MAX_RX_QUEUE_SIZE(self) -> int:
         """Maximum size of a receive queue for a remote branch."""
-        return get_constant(23, c_int)
+        return get_constant(24, c_int)
 
     @property
     def DEFAULT_RX_QUEUE_SIZE(self) -> int:
         """Default size of a receive queue for a remote branch."""
-        return get_constant(24, c_int)
+        return get_constant(25, c_int)
 
 
 class Constants(metaclass=MetaConstants):

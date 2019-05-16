@@ -15,35 +15,23 @@
  * along with this library. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef YOGI_VERSION_H
-#define YOGI_VERSION_H
+#ifndef YOGI_INTERNAL_MACROS_H
+#define YOGI_INTERNAL_MACROS_H
 
 //! \file
 //!
-//! Version information.
+//! Internally used macros.
 
-#include "internal/library.h"
+#ifdef _WIN32
+#define _YOGI_WEAK_SYMBOL __declspec(selectany)
+#else
+#define _YOGI_WEAK_SYMBOL __attribute__((weak))
+#endif
 
-namespace yogi {
+#define _YOGI_DEFINE_API_FN(ret_type, name, arg_types)           \
+  namespace internal {                                           \
+  _YOGI_WEAK_SYMBOL ret_type(*name) arg_types =                  \
+      Library::GetFunctionAddress<ret_type(*) arg_types>(#name); \
+  }
 
-_YOGI_DEFINE_API_FN(const char*, YOGI_GetVersion, ())
-
-_YOGI_DEFINE_API_FN(int, YOGI_CheckBindingsCompatibility,
-                    (const char* bindver, char* err, int errsize))
-
-/// \addtogroup freefn
-/// @{
-
-/// Returns the version string of the loaded Yogi Core library.
-///
-/// \returns Version string of the loaded Yogi Core library.
-inline const std::string& GetVersion() {
-  static std::string s = internal::YOGI_GetVersion();
-  return s;
-}
-
-/// @} freefn
-
-}  // namespace yogi
-
-#endif  // YOGI_VERSION_H
+#endif  // YOGI_INTERNAL_MACROS_H

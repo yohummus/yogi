@@ -1,14 +1,14 @@
 # Build library and test assemblies
 add_custom_target (yogi-dotnet
   ALL
-  COMMAND dotnet build --configuration ${BUILD_TYPE}
+  COMMAND dotnet build --configuration ${BUILD_TYPE} /p:Version=${YOGI_VERSION}
   WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
 )
 
 # Tests
 add_test (
   NAME yogi-dotnet-test
-  COMMAND "${DOTNET_EXECUTABLE}" test --no-restore --configuration ${BUILD_TYPE}
+  COMMAND "${DOTNET_EXECUTABLE}" test --no-restore --configuration ${BUILD_TYPE} /p:Version=${YOGI_VERSION}
   WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/test
 )
 

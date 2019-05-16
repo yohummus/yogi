@@ -16,33 +16,41 @@
  */
 
 using System;
-using System.Reflection;
 using Xunit;
 
 namespace test
 {
-    public class VersionTest : TestCase
+    public class BindingsInfoTest : TestCase
     {
         [Fact]
         public void Version()
         {
-            Assert.True(Yogi.Version.Length > 4);
+            Assert.Equal(GetCoreMacroString("YOGI_HDR_VERSION"), Yogi.BindingsInfo.Version);
         }
 
         [Fact]
-        public void AssemblyVersion()
+        public void VersionMajor()
         {
-            var v = Assembly.GetAssembly(typeof(Yogi)).GetName().Version;
-            var s = string.Format("{0}.{1}.{2}", v.Major, v.Minor, v.Build);
-            Assert.Equal(Yogi.Version, s + Yogi.Constants.VersionSuffix);
+            Assert.Equal(GetCoreMacroInt("YOGI_HDR_VERSION_MAJOR"), Yogi.BindingsInfo.VersionMajor);
         }
 
         [Fact]
-        public void InformationalVersion()
+        public void VersionMinor()
         {
-            var assembly = Assembly.GetAssembly(typeof(Yogi));
-            var attr = assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>();
-            Assert.Equal(Yogi.Version, attr.InformationalVersion);
+            Assert.Equal(GetCoreMacroInt("YOGI_HDR_VERSION_MINOR"), Yogi.BindingsInfo.VersionMinor);
+        }
+
+        [Fact]
+        public void VersionPatch()
+        {
+            Assert.Equal(GetCoreMacroInt("YOGI_HDR_VERSION_PATCH"), Yogi.BindingsInfo.VersionPatch);
+        }
+
+        [Fact]
+        public void VersionSuffix()
+        {
+            Assert.Equal(GetCoreMacroString("YOGI_HDR_VERSION_SUFFIX"),
+                         Yogi.BindingsInfo.VersionSuffix);
         }
     }
 }

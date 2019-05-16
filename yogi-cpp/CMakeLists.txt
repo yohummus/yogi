@@ -38,6 +38,7 @@ find_package (Boost 1.66
   REQUIRED)
 
 add_executable (yogi-cpp-test
+  test/compile_tests/bindings_info_compile_test.cc
   test/compile_tests/branch_compile_test.cc
   test/compile_tests/buffer_compile_test.cc
   test/compile_tests/configuration_compile_test.cc
@@ -64,6 +65,7 @@ add_executable (yogi-cpp-test
   test/compile_tests/uuid_compile_test.cc
   test/compile_tests/version_compile_test.cc
   test/internal_tests/duration_conversion_test.cc
+  test/public_api_tests/bindings_info_test.cc
   test/public_api_tests/branch_test.cc
   test/public_api_tests/configuration_test.cc
   test/public_api_tests/constants_test.cc

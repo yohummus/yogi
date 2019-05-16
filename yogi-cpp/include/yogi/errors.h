@@ -107,7 +107,7 @@ enum class ErrorCode {
   /// The magic prefix sent when establishing a connection is wrong
   kInvalidMagicPrefix = -20,
 
-  /// The local and remote branches use incompatible Yogi versions
+  /// The Yogi versions are not compatible
   kIncompatibleVersion = -21,
 
   /// Could not deserialize a message

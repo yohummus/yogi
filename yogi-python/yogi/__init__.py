@@ -13,6 +13,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this library. If not, see <http://www.gnu.org/licenses/>.
 
+from .private.bindings_info import BindingsInfo
 from .private.branch import BranchEvents, Branch, BranchInfo, \
     LocalBranchInfo, RemoteBranchInfo, BranchEventInfo, \
     BranchDiscoveredEventInfo, BranchQueriedEventInfo, \

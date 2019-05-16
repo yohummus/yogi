@@ -22,8 +22,8 @@ namespace api {
 
 void GetConstant(void* dest, int constant) {
   switch (constant) {
-    case YOGI_CONST_VERSION_NUMBER:
-      *static_cast<const char**>(dest) = kVersionNumber;
+    case YOGI_CONST_VERSION:
+      *static_cast<const char**>(dest) = kVersion;
       break;
 
     case YOGI_CONST_VERSION_MAJOR:
@@ -36,6 +36,10 @@ void GetConstant(void* dest, int constant) {
 
     case YOGI_CONST_VERSION_PATCH:
       *static_cast<int*>(dest) = kVersionPatch;
+      break;
+
+    case YOGI_CONST_VERSION_SUFFIX:
+      *static_cast<const char**>(dest) = kVersionSuffix;
       break;
 
     case YOGI_CONST_DEFAULT_ADV_INTERFACES:

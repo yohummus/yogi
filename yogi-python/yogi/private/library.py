@@ -15,7 +15,9 @@
 
 import os
 import platform
-import ctypes
+from ctypes import cdll, c_int, c_char_p, create_string_buffer, sizeof
+
+from .bindings_info import BindingsInfo
 
 
 # Determine shared library path and filename
@@ -32,7 +34,17 @@ if lib_filename is None:
 
 # Load the shared library
 try:
-    yogi = ctypes.cdll.LoadLibrary(lib_filename)
+    yogi = cdll.LoadLibrary(lib_filename)
 except Exception as e:
     raise Exception('ERROR: Could not load {}: {}. Make sure the library is'
                     ' in your library search path.'.format(lib_filename, e))
+
+# Check if the bindings version is compatible with the core version
+yogi.YOGI_CheckBindingsCompatibility.restype = int
+yogi.YOGI_CheckBindingsCompatibility.argtypes = [c_char_p, c_char_p, c_int]
+
+version = BindingsInfo.VERSION.encode()
+
+err = create_string_buffer(256)
+if yogi.YOGI_CheckBindingsCompatibility(version, err, sizeof(err)) != 0:
+    raise Exception('FATAL: ' + err.value.decode())

@@ -22,6 +22,9 @@
 //!
 //! Helpers for handling the Yogi Core library.
 
+#include "../bindings_info.h"
+#include "macros.h"
+
 #include <cstdlib>
 #include <string>
 #include <iostream>
@@ -29,18 +32,6 @@
 #ifdef _WIN32
 #include <Windows.h>
 #endif
-
-#ifdef _WIN32
-#define _YOGI_WEAK_SYMBOL __declspec(selectany)
-#else
-#define _YOGI_WEAK_SYMBOL __attribute__((weak))
-#endif
-
-#define _YOGI_DEFINE_API_FN(ret_type, name, arg_types)           \
-  namespace internal {                                           \
-  _YOGI_WEAK_SYMBOL ret_type(*name) arg_types =                  \
-      Library::GetFunctionAddress<ret_type(*) arg_types>(#name); \
-  }
 
 namespace yogi {
 namespace internal {
@@ -53,6 +44,7 @@ class Library final {
 
     if (!lib_handle_) {
       lib_handle_ = LoadYogiCore();
+      CheckVersionCompatibility();
     }
 
     auto addr = GetProcAddress(lib_handle_, name);
@@ -85,6 +77,18 @@ class Library final {
     }
 
     return handle;
+  }
+
+  static void CheckVersionCompatibility() {
+    int (*fn)(const char* bindver, char* err, int errsize);
+    fn = Library::GetFunctionAddress<decltype(fn)>(
+        "YOGI_CheckBindingsCompatibility");
+
+    char err[256] = {0};
+    if (fn(YOGI_BINDINGS_VERSION, err, sizeof(err)) != 0) {
+      std::cerr << "FATAL: " << err << std::endl;
+      std::exit(1);
+    }
   }
 
   static void DieWithErrorMessage(std::string prefix) {
