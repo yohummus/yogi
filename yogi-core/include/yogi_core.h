@@ -710,9 +710,9 @@
 //!
 //! @{
 
-#define YOGI_WPA_START     ///< Client requests to start a process
-#define YOGI_WPA_INPUT     ///< Client sent some input to the process
-#define YOGI_WPA_CANCELED  ///< Client canceled the process
+#define YOGI_WPA_START 0     ///< Client requests to start a process
+#define YOGI_WPA_INPUT 1     ///< Client sent some input to the process
+#define YOGI_WPA_CANCELED 2  ///< Client canceled the process
 
 //! @}
 //!
@@ -2217,24 +2217,134 @@ YOGI_API int YOGI_DestroyAll();
  *   {
  *     "port":            8443,
  *     "interfaces":      ["localhost"],
- *     "ssl_cert_chain":  "cert.pem",
- *     "ssl_private_key": "key.pem",
  *     "compression":     true,
  *     "timeout":         30.0,
  *     "test_mode":       false,
  *     "worker_threads"   -1,
- *     ... continued below ...
+ *     "routes": {
+ *       "/": {
+ *         "type":        "content",
+ *         "mime":        "text/html",
+ *         "permissions": { "*": ["GET"] },
+ *         "enabled":     true,
+ *         "content": [
+ *           "<!DOCTYPE html>",
+ *           "<html>",
+ *           "<body>",
+ *           "  <h1>Welcome to the Yogi web server!</h1>",
+ *           "</body>",
+ *           "</html>"
+ *         ]
+ *       }
+ *     },
+ *     "api_permissions": {
+ *       "/auth/session":       { "*": ["POST", "DELETE"] },
+ *       "/auth/groups":        { "*": ["GET"] },
+ *       "/auth/groups/ *":"    { "*": ["GET"] },
+ *       "/auth/users":         { "*": ["GET"] },
+ *       "/auth/users/ *":      { "users": ["GET"], "owner": ["PATCH"] },
+ *       "/branch/info":        { "users": ["GET"] },
+ *       "/branch/connections": { "users": ["GET"] },
+ *       "/branch/broadcasts":  { "users": ["GET", "POST"] }
+ *     },
+ *     "authentication": {
+ *       "provider": "config",
+ *       "readonly": false,
+ *       "users": {
+ *         "admin": {
+ *           "first_name": "Administrator",
+ *           "last_name":  "",
+ *           "email":      "",
+ *           "phone":      "",
+ *           "password":
+ * "8C6976E5B5410415BDE908BD4DEE15DFB167A9C873FC4BB8A81F6F2AB448A918",
+ *           "groups":     ["admins", "users"],
+ *           "enabled":    true
+ *         }
+ *       },
+ *       "groups": {
+ *         "admins": {
+ *           "name":         "Administrators",
+ *           "description":  "Users with unrestricted access to everything",
+ *           "unrestricted": true
+ *         },
+ *         "users": {
+ *           "name":         "Users",
+ *           "description":  "All registered users"
+ *         }
+ *       }
+ *     },
+ *     "ssl": {
+ *       "private_key": [
+ *         "-----BEGIN PRIVATE KEY-----",
+ *         "MIIEvwIBADANBgkqhkiG9w0BAQEFAASCBKkwggSlAgEAAoIBAQDccyREZEfU28sW",
+ *         "kdtTxK8XA5pMdAlulFTizhgh9KTs62uKgHWq2zx2ISlZ+4cQfhLTATZBVhwQVLuD",
+ *         "RiatrDqPL/cN2m5XER/vFUJw3vJm2u7qKmJGWQ0i4j3O7Yle+uYJHn+35TIUfEX5",
+ *         "CgYnpt65lAjfbN1tl2ACbESa4E2nymZMSyOzTFd8xlL+nID2eG3CvKEKsg/bzXIV",
+ *         "kf6IlNfpu1tCyeGlwKYaNMymP4Rgp/8Y+Gdp2NZh1JOjqZ9Cavn2divMdEb856hx",
+ *         "nnqmoR/IiRyXJU8BdY1x2+NjbBmdcMNHTGioqhmzny+L1Pdfq6KgN4sIj0dQqe2j",
+ *         "OfpMvJR1AgMBAAECggEBAJTmSLbRLRt/IduqxQP9s23OByhgsAY6tmNDZVV6EvPb",
+ *         "x5WTUucGkf4QRAf9NqtTHI/dH7Jd4TK+qLDwbyubSypv8WUwBptUe8dXCruGOyBx",
+ *         "/DG6UwrFF3Rab/kWxFSdD0dVjFq/umXP0st1k9awhXu/m4ad16owNq8sReJ+YrVT",
+ *         "ZTIgowAklZ9QKnOCjZ3gbDWS8nn6dgonwU0INJD7iKJ3Mw4rv7Q18/7G7T+YmwHO",
+ *         "QdTy8M7MBLKu+ifQjgh9khFZZ8G0/jdV9ZkLbTNR/OfyO7XsPhWMQehRWryN9x2a",
+ *         "TekT8K0xJRu6NytDvvdeb139JlQjH6DnVrtMj8I4R/kCgYEA+ADkhZnI3ceHS2Kf",
+ *         "+kUbbOJI6/ncm9eHOZ/dEVyIK+iYJO9Eba2XqjIMXl6scZpxRAakHG/zRA23fc+c",
+ *         "R0mKEIRxJz9kLxpocW8ib+0LIeb0XdK8xt6JabW4EOtLExu3lIXpa+hkH7xr30Bb",
+ *         "+OQZdUpDkk6gBtKbk433w9WfQPcCgYEA447Pn2zgE+Oj8sHEp1qdYbj7CMo0JcQj",
+ *         "u4mmb5+BT2FiAlmuetoFGo2/0uGm4ha4cFtj1u58y00Ai8c+dKOrv9LzDHe09jaD",
+ *         "uGu4vbwCC0l8wiTKrz5m/Wl3oGAi2tWYUEpDyFBYj9yUEsOtZnhY8S0e2LbrPV6L",
+ *         "IftsXcZs5vMCgYEAh3JtXK417zJ3KOvvdY9iwCACNaccHp0ixI0T/tRrppd86Mco",
+ *         "t0IU0CZPbQcF5XG1JLL/1GwsD2Hycir+Lkzys7yx0/6iJ7ujiThqNXjgGJ77nXZo",
+ *         "FbEamXpe0ha/xOrhY6OTbZTZgh+1RpPu50skwFNT/kckzTUfNQJXbERymtcCgYBn",
+ *         "XTJwP1tVjXymQ2AZiK6eehEFgBvJ39s/T5pbb7+kGB8V5Di+MxRIaITuvHM6lYl3",
+ *         "9/tU4QWsrzCFTZ7QCpx0SNUAH8wCXubcOYo0HRdsmxfhdCbhDV5o06R0I9cRQh6q",
+ *         "seEyN1TTHCXilCHKvvXfr1gopoYaXTyj1fn2arCDAwKBgQDHc9V+9IpZ2F+ZwSYn",
+ *         "didwWQfsAZx5EiXtnXnyx0hkNjgebFQAgDJY4vvRphaD0bumywfNMOz/59jjjVZg",
+ *         "cWXs9H91XtA7cT7wJi+xiGe6R8zRcVPfImwQchSsCoMGuyLCygJTJPMzGT+YbpBA",
+ *         "Umrn/FzslGZsXxwMCR0E8654Kw==",
+ *         "-----END PRIVATE KEY-----"
+ *       ],
+ *       "certificate_chain": [
+ *         "-----BEGIN CERTIFICATE-----",
+ *         "MIICvjCCAaYCCQCL4CgivAdrbzANBgkqhkiG9w0BAQsFADAhMQswCQYDVQQGEwJV",
+ *         "UzESMBAGA1UEAwwJbG9jYWxob3N0MB4XDTE5MDUxODA3MDQyOFoXDTI5MDUxNTA3",
+ *         "MDQyOFowITELMAkGA1UEBhMCVVMxEjAQBgNVBAMMCWxvY2FsaG9zdDCCASIwDQYJ",
+ *         "KoZIhvcNAQEBBQADggEPADCCAQoCggEBANxzJERkR9TbyxaR21PErxcDmkx0CW6U",
+ *         "VOLOGCH0pOzra4qAdarbPHYhKVn7hxB+EtMBNkFWHBBUu4NGJq2sOo8v9w3ablcR",
+ *         "H+8VQnDe8mba7uoqYkZZDSLiPc7tiV765gkef7flMhR8RfkKBiem3rmUCN9s3W2X",
+ *         "YAJsRJrgTafKZkxLI7NMV3zGUv6cgPZ4bcK8oQqyD9vNchWR/oiU1+m7W0LJ4aXA",
+ *         "pho0zKY/hGCn/xj4Z2nY1mHUk6Opn0Jq+fZ2K8x0RvznqHGeeqahH8iJHJclTwF1",
+ *         "jXHb42NsGZ1ww0dMaKiqGbOfL4vU91+roqA3iwiPR1Cp7aM5+ky8lHUCAwEAATAN",
+ *         "BgkqhkiG9w0BAQsFAAOCAQEAQQezEoFlVkRjB7x1QljRUAVqUSPpk4bERkynB3Nb",
+ *         "hajLKKwZMeO8F4GDkAnY2F7ZD6KPQkOlKMVJJVmtVi3OTvutDJnc8jDXZUyejWe+",
+ *         "tSwLU2Uo7scPjYynyyPHcNkut+V7XjvhLJr267X0O6iymYnyJBGweVppwwgfxAmH",
+ *         "Rzv2uFLf+U7odtQmSC1g/VdImDoJsfASqnycXcqkmiDfv6Pjqp1dvUm9aDCIFdkf",
+ *         "DXShGXE+SVXQ61FVMhV62OsNY36mM5lR2kMXwgybRNMWla8Cmu8OhCkftOvVLdW2",
+ *         "tAVd+K6fpZe/mdCCuN3pXCCqu/0vPlFoLNMGZrKbLU8W6Q==",
+ *         "-----END CERTIFICATE-----"
+ *       ],
+ *       "dh_params": [
+ *         "-----BEGIN DH PARAMETERS-----",
+ *         "MIIBCAKCAQEA4iRXTwOzm97m19J21Pg67Vda5Ocw1PS6/CS+0ks//CpvNaYz0hJA",
+ *         "YbvCPzQLmxYyUH8NwYutfNrESWtBFs3qEKiZ9zx09cpacXf/gw4VBfclIl2HAlNo",
+ *         "5jWzh9VQBc3CxSNJqCRiJUvgnVCx1ec47cH3vkEucw0ewzxdwkpXgOGbja5BxCuO",
+ *         "Mtwb+qTXm4XozdAPPWlwryFvwJL60pvtsF7f9S8xZHIe309yeCNnUajmqyKwdJ18",
+ *         "P8RNYFHDe8vvaJ7/cnNCMqWFl16hVmBoIYy11H+R8WAphniJKV6fdGTs+7OLSc7Q",
+ *         "4/QFcIxwOY+wIaH2OEuOxTrKjAivFrGz8wIBAg==",
+ *         "-----END DH PARAMETERS-----"
+ *       ]
+ *     }
+ *   }
  * \endcode
  *
- * The parameters above have the following meaning:
+ * The properties above have the following meaning:
  *  - __port__: HTTPS port to use.
  *  - __interfaces__: Network interfaces to use. Valid strings are Unix devices
  *    names ("eth5", "en5", "wlan0"), adapter names on Windows ("Ethernet",
  *    "WMware Network Adapter WMnet1") or MAC addresses ("11:22:33:44:55:66").
  *    Furthermore, the special strings "localhost" and "all" can be used to
  *    denote loopback and all available interfaces respectively.
- *  - __ssl_cert_chain__: File containing the SSL certificate chain.
- *  - __ssl_private_key__: File containing the SSL private key.
  *  - __compression__: Enable compression.
  *  - __timeout__: Time of inactivity before terminating a client connection.
  *  - __test_mode__: Set to true to enable functionality for testing both server
@@ -2243,173 +2353,152 @@ YOGI_API int YOGI_DestroyAll();
  *    value to -1 to automatically determine a suitable value based on the
  *    number of available CPU cores.
  *
- * The next part of the configuration contains the routing information. If the
- * _routes_ section is unspecified, the server will send a welcome page to the
- * client for every requested URI.
+ * The sub-sections following the properties above are described in more detail
+ * in the next paragraphs:
  *
- * To customize the server routes, the _routes_ section can be specified as
- * follows:
+ * The __routes__ section describes both the content for static routes and the
+ * level of access that users have to static and dynamic routes. The excerpt
+ * below shows how to configure the three different types of routes, namely
+ * static routes mapping to the file system (_filesystem_), static routes with
+ * their content in the configuration (_content_) and dynamic routes which are
+ * created via the YOGI_WebDynamicRouteCreate() function (_dynamic_):
  *
  * \code
- *     ... continued from above ...
- *     "routes": {
- *       "/": {
- *         "type":        "filesystem",
- *         "path":        "www"
- *       },
- *       "/secret": {
- *         "type":     "content",
- *         "mime":     "text/plain",
- *         "content":  "I am your father!",
- *         "acl": {
- *           "vip":    "g"
- *         },
- *         "enabled":  true
- *       }
+ *   "routes": {
+ *     "/": {
+ *       "type":        "filesystem",
+ *       "path":        "www",
+ *       "permissions": { "*": ["GET"] },
+ *       "enabled":     true
  *     },
- *     ... continued below ...
- * \endcode
- *
- * The section above defines two routes. The first route maps the folder _www_
- * of the server's current working directory to the root URI of the server, i.e.
- * when a client performs a GET request for https://localhost/my-app.html the
- * server will deliver the file www/my-app.html. The second route makes the
- * server respond with some static content to GET requests to the /secret URI,
- * and only for an authorized subset of users. The _enabled_ property is
- * optional and is _true_ by default.
- *
- * Note: If the client issues a  GET request on a URI leading to a directory in
- *       the filesystem then the corresponding index.html in that directory will
- *       be delivered if that file exists.
- *
- * Note: More specific routes override less specific routes, i.e. if route A
- *       handles /app and route B handle /app/data then only route B will be
- *       used to handle URIs to /app/data and below.
- *
- * Each route has an associated access control list (ACL) in the form of the
- * _acl_ dictionary, mapping _groups_ (see below) to _permissions_ for that
- * group. The permissions string is a combination of the five letters in _gouda_
- * (the Danish cheese) whereby the letters stand for the different HTTP request
- * types GET/HEAD (g), POST (o), PUT (u), DELETE (d) and PATCH (a). In the
- * example above, the _vip_ group would be granted only GET/HEAD permissions.
- * Groups that are not listed in the ACL have no access to the route.
- *
- * Only if no ACL has been specified, the route implicitly grants GET/HEAD
- * permissions to the _everybody_ group which every user, logged in or not, is
- * part of.
- *
- * A separate configuration is dedicated to the configuration of methods for
- * accessing branch-related functionality, a.k.a. the Branch API:
- *
- * \code
- *     ... continued from above ...
- *     "branch_api": {
- *       "/broadcast/send": {
- *         "enabled": false,
- *         "acl":     { "vip": "p" }
- *       },
- *       "/broadcast/receive": {
- *         "acl":     { "everybody": "g" }
- *       }
+ *     "/secret": {
+ *       "type":        "content",
+ *       "mime":        "text/plain",
+ *       "owner":       "luke",
+ *       "permissions": { "users": ["GET"], "owner": ["PUT"] },
+ *       "content":     "I am your father",
+ *       "enabled":     true
  *     },
- *     ... continued below ...
- * \endcode
- *
- * Branch API endpoints are enabled only if they appear in the _branch_api_
- * section and their _enabled_ property is either not present or set to _true_.
- * The ACLs work identically to the ACLs for routes (see above) with the
- * exception that they must be specified, i.e. even if the ACL is empty, no
- * implicit permissions are granted.
- *
- * For access control the web server supports users, groups and permissions as
- * described earlier. The implicit _everybody_ group is always present and
- * contains every registered user as well as anonymous users, i.e. users that
- * have not logged in (yet).
- *
- * Access to the Authentication API endpoints can be configured in the
- * _auth_api_ section:
- *
- * \code
- *     ... continued from above ...
- *     "auth_api": {
- *       "/login":            { "acl": { "everybody": "p" } },
- *       "/logout":           { "acl": { "everybody": "p" } },
- *       "/account":          { "acl": { "everybody": "gua", "vip": "od" } },
- *       "/password":         { "acl": { "everybody": "u" } },
- *       "/password-anybody": { "acl": { "vip": "u" } },
- *       "/users":            { "acl": { "vip": "g" } }
+ *     "/messages": {
+ *       "type":        "dynamic",
+ *       "permissions": { "*": ["GET"], "users": ["POST"] }
  *     },
- *     ... continued below ...
- * \endcode
- *
- * ACLs work identically to the Branch API, i.e. they must be specified and
- * therefore, no implicit permissions are granted. The _enabled_ property is
- * optional and _true_ by default. Any authentication endpoints not listed in
- * _auth_api_ are disabled.
- *
- * The following section shows the simplest authentication provider type. The
- * users and groups are specified as part of the server's configuration:
- *
- * \code
- *     ... continued from above ...
- *     "authentication": {
- *       "provider":        "config",
- *       "readonly":        true,
- *       "groups": {
- *         "vip": {
- *           "name":        "VIPs",
- *           "description": "Very important people"
- *         }
- *       },
- *       "users": {
- *         "luke": {
- *           "first_name":  "Luke",
- *           "last_name":   "Skywalker",
- *           "email":       "",
- *           "phone":       "0123456789",
- *           "password":     "8C6976E5B5410415BDE908BD4DEE15DFB...",
- *           "groups":      [ "vip" ],
- *           "enabled":     true
- *         }
- *       }
- *     }
- *   }
- * /endcode
- *
- * Important things of note in the excerpt above are that passwords are stored
- * as SHA-256 hashes, a user can belong to multiple groups and individual user
- * accounts can be enabled/disabled. Furthermore, the authentication data can be
- * write-protected via the _readonly_ property. In case of the authentication
- * provider above, any changes to users and groups will be lost when the server
- * is restarted.
- *
- * An alternative method of providing the user and group information is through
- * external JSON files containing the _groups_ and _users_ sections directly
- * under the root JSON object, i.e.:
- *
- * \code
- *   {
- *     "groups": {
- *         ... as above ...
+ *     "/messages/ *": {
+ *       "type":        "dynamic",
+ *       "permissions": { "*": ["GET"], "owner": ["DELETE"] },
+ *       "enabled":     true
  *     }
  *   }
  * \endcode
  *
- * The server configuration for using files as authentication providers looks
- * as follows:
+ * The _filesystem_ route above maps URIs to the server's root URI and below to
+ * the files found in the file system under the (here relative to the current
+ * working directory of the process) "www" directory. The optional _owner_
+ * property assigns a user to _own_ that resource which can be used in the
+ * _permissions_ section to grant specific permissions to that user. The
+ * _permissions_ section describes the level of access that users belonging to
+ * certain groups have. The _enabled_ property is also optional and can be used
+ * to disable a route without removing it from the configuration. If this
+ * property is not specified it is implicitly set to _true_.
+ *
+ * \note
+ *   If a client issues a _GET_ request on a _filesystem_ route leading to a
+ *   directory then the corresponding _index.html_ file in that directory will
+ *   be delivered if it exists.
+ *
+ * A single "*" in the URI of a route is a whilecard for every immediate
+ * sub-path while "**" applies to every path below, no matter how deep. Routes
+ * that have more specific URIs override the properties inherited by routes
+ * with less specific URIs, i.e. in the example above, the "/messages/ *" route
+ * overrides the properties inherited from the "/messages" route for all paths
+ * below "/messages".
+ *
+ * \attention
+ *   There should not be a space in any of the ".../ *" strings in the
+ *   configuration. The space has only been added to a avoid C compiler warnings
+ *   about the start of a comment block inside a comment.
+ *
+ * The access control lists (ACLs) in the _permissions_ section consist of a
+ * dictionary mapping groups to allowed request methods. There are two groups
+ * that have a special meaning: "*" and "owner". The "*" group means every user,
+ * logged in or not. The "owner" group means the user who _owns_ the resource
+ * which can have a different meaning depending on the resource. For example, in
+ * the "/secret" section the owner is explicitly set to the user "luke" which
+ * while in the "/messages/ *" section the dynamic route could assign the owner
+ * of a message to the user who created that message using a _POST_ request on
+ * the "/messages" route.
+ *
+ * \note
+ *   Users are granted the combination of all permissions that apply for them.
+ *   For example, in the "/secret" route above, the _owner_ is set to the user
+ *   _luke_. The permissions grant _GET_ access to everyone and _PUT_ access
+ *   to the owner, i.e. _luke_. The end result is that _luke_ has both _GET_ and
+ *   _PUT_ access to the route.
+ *
+ * The __api_permissions__ section sets the permissions for each built-in API
+ * endpoints. Any API endpoints not listed here are inaccessible for all but
+ * unrestricted users.
+ *
+ * The __authentication__ section configures the authentication service. The
+ * default configuration (see above) uses the configuration itself to retrieve
+ * user and group information. By default, only the _admin_ user and the two
+ * groups _admins_ and _users_ are created. The _admin_ user's default password
+ * is "admin", stored in the configuration as a hashed value using SHA-256. The
+ * _unrestricted_ property in the _admins_ group section is optional and _false_
+ * by default; setting it to _true_ grants the members of the group every
+ * possible permission for every route and API endpoint without having to grant
+ * those permissions explicitly in the relevant sections.
+ *
+ * The _readonly_ property can be used to write-protect the users and groups
+ * database. Note that for the _config_ provider, setting _readonly_ to false
+ * will save changes in memory only. Any changes will be lost once the server
+ * gets destroyed.
+ *
+ * In order to use external files to store users and groups, the following
+ * configuration can be used:
  *
  * \code
- *     "authentication": {
- *       "provider":    "files",
- *       "users_file":  "users.json",
- *       "groups_file": "groups.json",
- *       "readonly":    false,
- *     }
- * /endcode
+ *   "authentication": {
+ *     "provider":    "files",
+ *     "readonly":    false,
+ *     "users_file":  "users.json",
+ *     "groups_file": "groups.json"
+ *   }
+ * \endcode
  *
- * The users and groups files can be write-protected via the _readonly_
- * property; however, this will prevent users to change their information
- * through the web API.
+ * The external users and groups files have to be in JSON format and contain the
+ * _users_ and _groups_ sections respectively directly under the root object,
+ * with the same structure as the default configuration above.
+ *
+ * \note
+ *   The _users_file_ and _groups_file_ can be set to the same file if having
+ *   both users and groups in a single file is desired.
+ *
+ * The __ssl__ section configures the encryption of the HTTPS and WSS
+ * connections. The private key, certificate chain and DH parameters can be put
+ * directly into the server configuration as shown in the default configuration
+ * above. However, in order to use external files, the following can be used:
+ *
+ * \code
+ *   "ssl": {
+ *     "private_key_file":       "key.pem",
+ *     "private_key_password":   "password",
+ *     "certificate_chain_file": "cert.pem",
+ *     "dh_params_file":         "dh_params.pem"
+ *   }
+ * \endcode
+ *
+ * The external files have to use the PEM file format. If the private key file
+ * is encrypted, its password has to be supplied in _private_key_password_.
+ *
+ * \attention
+ *   Use the default private key only for testing since the key is publicly
+ *   available! You can create your own key and a self-signed certificate using
+ *   OpenSSL or services like letsencrypt.org.
+ *
+ * \note
+ *   The DH parameters can be left at their default values since this does not
+ *   pose a security issue.
  *
  * \param[out] server   Pointer to the server handle
  * \param[in]  context  The context to use (set to NULL to use the branch's
@@ -2440,6 +2529,7 @@ YOGI_API int YOGI_WebServerCreate(void** server, void* context, void* branch,
  *  -# __res__: #YOGI_OK or error code in case of a failure (see \ref EC)
  *  -# __rid__: Request ID to identify a new or running request
  *  -# __user__: User issuing the request or NULL if the client hasn't logged in
+ *  -# __owner__: Owner as set in the configuration or NULL otherwise
  *  -# __method__: HTTP request method (see \ref MET)
  *  -# __uri__: The URI requested by the client without query parameters
  *  -# __params__: Query parameters; terminated by NULL as the last string
@@ -2462,8 +2552,9 @@ YOGI_API int YOGI_WebServerCreate(void** server, void* context, void* branch,
  */
 YOGI_API int YOGI_WebDynamicRouteCreate(
     void** route, void* server, const char* baseuri,
-    void (*fn)(int res, int rid, const char* user, int method, const char* uri,
-               const char* const* params, void* userarg),
+    void (*fn)(int res, int rid, const char* user, const char* owner,
+               int method, const char* uri, const char* const* params,
+               void* userarg),
     void* userarg);
 
 /*!
