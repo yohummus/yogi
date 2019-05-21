@@ -275,6 +275,9 @@
 //! Enumerating network interfaces failed
 #define YOGI_ERR_ENUMERATE_NETWORK_INTERFACES_FAILED -46
 
+//! The section could not be found in the configuration
+#define YOGI_ERR_CONFIGURATION_SECTION_NOT_FOUND -47
+
 //! @}
 //!
 //! @defgroup VB Log verbosity/severity
@@ -1717,8 +1720,10 @@ YOGI_API int YOGI_TimerCancel(void* timer);
  * Once authentication succeeds and there is no other known branch with the same
  * path then the branches can actively communicate as part of the Yogi network.
  *
- * The branch is configured via the \p props parameter. The supplied JSON must
- * have the following structure:
+ * The branch is configured via the \p config parameter. The configuration
+ * object will only be used while constructing the branch, i.e. the branch will
+ * not keep any references to it. The supplied configuration must have the
+ * following structure:
  *
  * \code
  *   {
@@ -1787,8 +1792,8 @@ YOGI_API int YOGI_TimerCancel(void* timer);
  *
  * \param[out] branch   Pointer to the branch handle
  * \param[in]  context  The context to use
- * \param[in]  props    Branch properties as JSON (set to NULL to use defaults)
- * \param[in]  section  Section in \p props to use (set to NULL for root);
+ * \param[in]  config   Branch properties (set to NULL to use defaults)
+ * \param[in]  section  Section in \p config to use (set to NULL for root);
  *                      syntax is JSON pointer (RFC 6901)
  * \param[out] err      Pointer to a char array for storing an error description
  *                      (can be set to NULL)
@@ -1797,7 +1802,7 @@ YOGI_API int YOGI_TimerCancel(void* timer);
  * \returns [=0] #YOGI_OK if successful
  * \returns [<0] An error code in case of a failure (see \ref EC)
  */
-YOGI_API int YOGI_BranchCreate(void** branch, void* context, const char* props,
+YOGI_API int YOGI_BranchCreate(void** branch, void* context, void* config,
                                const char* section, char* err, int errsize);
 
 /*!

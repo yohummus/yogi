@@ -17,7 +17,7 @@
 
 #include "../common.h"
 
-static constexpr int kLastError = YOGI_ERR_ENUMERATE_NETWORK_INTERFACES_FAILED;
+static constexpr int kLastError = YOGI_ERR_CONFIGURATION_SECTION_NOT_FOUND;
 
 TEST(ErrorsTest, DefaultResultConstructor) {
   api::Result res;

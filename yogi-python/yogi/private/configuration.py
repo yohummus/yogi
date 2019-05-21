@@ -17,9 +17,10 @@ from .object import Object
 from .errors import DescriptiveFailure, FailureException, ErrorCode, \
     api_result_handler, run_with_discriptive_failure_awareness
 from .library import yogi
+from .json_view import JsonView
 
 from enum import IntEnum
-import json
+import json as json_module
 from typing import List, Union, Optional, Dict
 from ctypes import c_int, c_char_p, c_char, c_void_p, POINTER, byref, \
     create_string_buffer, sizeof
@@ -124,16 +125,21 @@ class Configuration(Object):
     also intended to store user-defined parameters.
     """
 
-    def __init__(self, flags: ConfigurationFlags = ConfigurationFlags.NONE):
+    def __init__(self, flags: ConfigurationFlags = ConfigurationFlags.NONE, *,
+                 json: Union[JsonView, str, object] = None):
         """Create a configuration.
 
         Args:
             flags: Flags for changing the configuration's behaviour.
+            json:  Initial JSON to use.
         """
         handle = c_void_p()
         yogi.YOGI_ConfigurationCreate(byref(handle), flags)
         Object.__init__(self, handle)
         self._flags = flags
+
+        if json is not None:
+            self.update_from_json(json)
 
     @property
     def flags(self) -> ConfigurationFlags:
@@ -162,7 +168,7 @@ class Configuration(Object):
             lambda err: yogi.YOGI_ConfigurationUpdateFromCommandLine(
                 self._handle, len(args), args, options, err, sizeof(err)))
 
-    def update_from_json(self, jsn: Union[str, object]) -> None:
+    def update_from_json(self, json: Union[JsonView, str, object]) -> None:
         """Updates the configuration from a JSON object or a JSON object
         serialized to a string.
 
@@ -170,14 +176,14 @@ class Configuration(Object):
         containing detailed information about the error.
 
         Args:
-            jsn: Serializable object or already serialized JSON object.
+            json: JsonView, serializable object or already serialized object.
         """
-        if not isinstance(jsn, str):
-            jsn = json.dumps(jsn)
+        if not isinstance(json, JsonView):
+            json = JsonView(json)
 
         run_with_discriptive_failure_awareness(
             lambda err: yogi.YOGI_ConfigurationUpdateFromJson(
-                self._handle, jsn.encode(), err, sizeof(err)))
+                self._handle, json.data.obj, err, sizeof(err)))
 
     def update_from_file(self, filename: str) -> None:
         """Updates the configuration from a JSON file.
@@ -242,7 +248,7 @@ class Configuration(Object):
         Returns:
             Dictionary representing the configuration.
         """
-        return json.loads(self.dump(resolve_variables))
+        return json_module.loads(self.dump(resolve_variables))
 
     def write_to_file(self, filename: str,
                       resolve_variables: Optional[bool] = None,

@@ -69,6 +69,7 @@ class ErrorCode(IntEnum):
     INVALID_USER_MSGPACK = -44
     JOIN_MULTICAST_GROUP_FAILED = -45
     ENUMERATE_NETWORK_INTERFACES_FAILED = -46
+    CONFIGURATION_SECTION_NOT_FOUND = -47
 
 
 yogi.YOGI_GetErrorString.restype = c_char_p

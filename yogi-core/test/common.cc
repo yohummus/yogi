@@ -378,8 +378,8 @@ void* CreateBranch(void* context, const char* name, const char* net_name,
   }
 
   void* branch = nullptr;
-  int res = YOGI_BranchCreate(&branch, context, props.dump().c_str(), nullptr,
-                              nullptr, 0);
+  int res = YOGI_BranchCreate(&branch, context, MakeConfigFromJson(props),
+                              nullptr, nullptr, 0);
   EXPECT_OK(res);
   return branch;
 }
@@ -442,6 +442,18 @@ std::string ReadFile(const std::string& filename) {
   std::string content((std::istreambuf_iterator<char>(f)),
                       (std::istreambuf_iterator<char>()));
   return content;
+}
+
+void* MakeConfigFromJson(const nlohmann::json& json) {
+  void* config;
+  int res = YOGI_ConfigurationCreate(&config, YOGI_CFG_NONE);
+  EXPECT_OK(res);
+
+  res =
+      YOGI_ConfigurationUpdateFromJson(config, json.dump().c_str(), nullptr, 0);
+  EXPECT_OK(res);
+
+  return config;
 }
 
 std::ostream& operator<<(std::ostream& os,

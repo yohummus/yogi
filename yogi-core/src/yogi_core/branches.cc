@@ -19,6 +19,7 @@
 #include "helpers.h"
 #include "../api/constants.h"
 #include "../objects/branch.h"
+#include "../objects/configuration.h"
 #include "../utils/system.h"
 
 #include <nlohmann/json.hpp>
@@ -52,15 +53,15 @@ boost::asio::ip::udp::endpoint ExtractAdvEndpoint(
 
 }  // anonymous namespace
 
-YOGI_API int YOGI_BranchCreate(void** branch, void* context, const char* props,
+YOGI_API int YOGI_BranchCreate(void** branch, void* context, void* config,
                                const char* section, char* err, int errsize) {
   CHECK_PARAM(branch != nullptr);
   CHECK_PARAM(context != nullptr);
 
   try {
     auto ctx = api::ObjectRegister::Get<objects::Context>(context);
-    auto properties = ParseBranchProps(props, section);
 
+    auto properties = UserSuppliedConfigToJson(config, section);
     auto name = properties.value("name", std::to_string(utils::GetProcessId()) +
                                              '@' + utils::GetHostname());
     auto adv_if_strings = ExtractArrayOfStrings(

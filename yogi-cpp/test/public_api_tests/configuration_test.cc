@@ -19,6 +19,12 @@
 
 #include <yogi_core.h>
 
+TEST(ConfigurationTest, CreateFromJson) {
+  auto cfg = yogi::Configuration::Create("{\"age\": 42}");
+  auto json = yogi::Json::parse(cfg->Dump());
+  EXPECT_EQ(json.value("age", -1), 42);
+}
+
 TEST(ConfigurationTest, ConfigurationFlags) {
   // clang-format off
   CHECK_ENUM_ELEMENT(ConfigurationFlags, kNone,             YOGI_CFG_NONE);

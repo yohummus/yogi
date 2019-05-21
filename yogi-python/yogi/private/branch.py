@@ -22,6 +22,7 @@ from .handler import Handler
 from .context import Context
 from .timestamp import Timestamp
 from .json_view import JsonView
+from .configuration import Configuration
 from .msgpack_view import MsgpackView
 from .payload_view import PayloadView, EncodingType
 from .operation_id import OperationId
@@ -234,7 +235,7 @@ class ConnectionLostEventInfo(BranchEventInfo):
 
 yogi.YOGI_BranchCreate.restype = int
 yogi.YOGI_BranchCreate.argtypes = [
-    POINTER(c_void_p), c_void_p, c_char_p, c_char_p, c_char_p, c_int]
+    POINTER(c_void_p), c_void_p, c_void_p, c_char_p, c_char_p, c_int]
 
 yogi.YOGI_BranchGetInfo.restype = api_result_handler
 yogi.YOGI_BranchGetInfo.argtypes = [c_void_p, c_void_p, c_char_p, c_int]
@@ -291,12 +292,12 @@ class Branch(Object):
     """
 
     def __init__(self, context: Context,
-                 props: Union[JsonView, str, object] = None,
+                 config: Union[Configuration, JsonView, str, object] = None,
                  section: str = None):
         """Creates the branch.
 
-        The branch is configured via the props parameter. The supplied JSON
-        must have the following structure:
+        The branch is configured via the config parameter. The supplied
+        configuration must have the following structure:
 
             {
               "name":                   "Fan Controller",
@@ -363,12 +364,15 @@ class Branch(Object):
 
         Args:
             context: The context to use.
-            props:   Branch properties as JSON.
-            section: Section in props to use instead of the root section.
+            config:  Branch properties as configuration or JSON.
+            section: Section in config to use instead of the root section.
                      Syntax is JSON pointer (RFC 6901).
         """
-        if not isinstance(props, JsonView):
-            props = JsonView(props)
+        if not isinstance(config, Configuration):
+            if not isinstance(config, JsonView):
+                config = JsonView(config)
+
+            config = Configuration(json=config)
 
         if section:
             section = section.encode()
@@ -377,7 +381,7 @@ class Branch(Object):
         run_with_discriptive_failure_awareness(
             lambda err: yogi.YOGI_BranchCreate(byref(handle),
                                                context._handle,
-                                               props.data.obj,
+                                               config._handle,
                                                section,
                                                err, sizeof(err)))
 

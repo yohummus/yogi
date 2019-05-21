@@ -346,8 +346,8 @@ TEST_F(ConnectionManagerTest, GhostMode) {
   props["ghost_mode"] = true;
 
   void* ghost_branch;
-  int res = YOGI_BranchCreate(&ghost_branch, context_, props.dump().c_str(),
-                              nullptr, nullptr, 0);
+  int res = YOGI_BranchCreate(&ghost_branch, context_,
+                              MakeConfigFromJson(props), nullptr, nullptr, 0);
   EXPECT_OK(res);
 
   BranchEventRecorder rec(context_, ghost_branch);

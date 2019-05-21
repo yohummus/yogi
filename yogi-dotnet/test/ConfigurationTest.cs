@@ -78,6 +78,13 @@ namespace test
         }
 
         [Fact]
+        public void CreateFromJson()
+        {
+            var cfg = new Yogi.Configuration("{\"age\": 42}");
+            Assert.Equal(42, (int)cfg.ToJson()["age"]);
+        }
+
+        [Fact]
         public void FlagsProperty()
         {
             var cfg = new Yogi.Configuration(Yogi.ConfigurationFlags.MutableCmdLine);

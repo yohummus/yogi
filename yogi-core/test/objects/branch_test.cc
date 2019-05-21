@@ -49,13 +49,13 @@ TEST_F(BranchTest, CreateWithJsonPointer) {
   char err[100];
 
   void* branch;
-  int res = YOGI_BranchCreate(&branch, context_, props.dump().c_str(),
+  int res = YOGI_BranchCreate(&branch, context_, MakeConfigFromJson(props),
                               "/blabla", err, sizeof(err));
-  EXPECT_EQ(YOGI_ERR_PARSING_JSON_FAILED, res);
+  EXPECT_ERR(res, YOGI_ERR_CONFIGURATION_SECTION_NOT_FOUND);
   EXPECT_STRNE(err, "");
 
-  res = YOGI_BranchCreate(&branch, context_, props.dump().c_str(), "/arr/1",
-                          err, sizeof(err));
+  res = YOGI_BranchCreate(&branch, context_, MakeConfigFromJson(props),
+                          "/arr/1", err, sizeof(err));
   EXPECT_OK(res);
   EXPECT_STREQ(err, "");
   auto info = GetBranchInfo(branch);
@@ -77,8 +77,8 @@ TEST_F(BranchTest, CustomQueueSizes) {
   props["rx_queue_size"] = api::kMaxRxQueueSize;
 
   void* branch;
-  int res = YOGI_BranchCreate(&branch, context_, props.dump().c_str(), nullptr,
-                              nullptr, 0);
+  int res = YOGI_BranchCreate(&branch, context_, MakeConfigFromJson(props),
+                              nullptr, nullptr, 0);
   ASSERT_OK(res);
   auto info = GetBranchInfo(branch);
   EXPECT_EQ(info.value("tx_queue_size", -1), api::kMaxTxQueueSize);
@@ -100,7 +100,7 @@ TEST_F(BranchTest, InvalidQueueSizes) {
     char err[100];
 
     void* branch;
-    int res = YOGI_BranchCreate(&branch, context_, props.dump().c_str(),
+    int res = YOGI_BranchCreate(&branch, context_, MakeConfigFromJson(props),
                                 nullptr, err, sizeof(err));
     EXPECT_ERR(res, YOGI_ERR_INVALID_PARAM);
     EXPECT_NE(std::string(err).find(entry.first), std::string::npos);

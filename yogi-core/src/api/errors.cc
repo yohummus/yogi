@@ -167,6 +167,9 @@ const char* Result::GetDescription() const {
 
     case YOGI_ERR_ENUMERATE_NETWORK_INTERFACES_FAILED:
       return "Enumerating network interfaces failed";
+
+    case YOGI_ERR_CONFIGURATION_SECTION_NOT_FOUND:
+      return "The section could not be found in the configuration";
   }
 
   return "Invalid error code";

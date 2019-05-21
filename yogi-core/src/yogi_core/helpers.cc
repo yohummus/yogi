@@ -17,6 +17,8 @@
 
 #include "helpers.h"
 #include "../api/errors.h"
+#include "../api/object.h"
+#include "../objects/configuration.h"
 
 #include <string.h>
 #include <boost/algorithm/string.hpp>
@@ -136,34 +138,27 @@ bool CopyStringToUserBuffer(const std::string& str, char* buffer,
   return true;
 }
 
-nlohmann::json ParseBranchProps(const char* props, const char* section) {
-  auto properties = nlohmann::json::object();
-  if (props) {
-    try {
-      properties = nlohmann::json::parse(props);
-    } catch (const nlohmann::json::exception& e) {
-      throw api::DescriptiveError(YOGI_ERR_PARSING_JSON_FAILED)
-          << "Could not parse JSON string: " << e.what();
-    }
-
+nlohmann::json UserSuppliedConfigToJson(void* config, const char* section) {
+  auto json = nlohmann::json::object();
+  if (config) {
+    auto cfg = api::ObjectRegister::Get<objects::Configuration>(config);
+    nlohmann::json::json_pointer jp;
     if (section) {
-      nlohmann::json::json_pointer jp;
-
       try {
         jp = nlohmann::json::json_pointer(section);
       } catch (const nlohmann::json::exception& e) {
         throw api::DescriptiveError(YOGI_ERR_INVALID_PARAM)
             << "Could not parse JSON pointer: " << e.what();
       }
+    }
 
-      properties = properties[jp];
-      if (!properties.is_object()) {
-        throw api::DescriptiveError(YOGI_ERR_PARSING_JSON_FAILED)
-            << "Could not find section \"" << section
-            << "\" in branch properties.";
-      }
+    json = cfg->GetJson(jp);
+    if (!json.is_object()) {
+      throw api::DescriptiveError(YOGI_ERR_CONFIGURATION_SECTION_NOT_FOUND)
+          << "Could not find section \"" << section
+          << "\" in the configuration.";
     }
   }
 
-  return properties;
+  return json;
 }

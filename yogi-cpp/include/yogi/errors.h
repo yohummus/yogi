@@ -184,7 +184,10 @@ enum class ErrorCode {
   kJoinMulticastGroupFailed = -45,
 
   /// Enumerating network interfaces failed
-  kEnumerateNetworkInterfacesFailed = -46
+  kEnumerateNetworkInterfacesFailed = -46,
+
+  /// The section could not be found in the configuration
+  kConfigurationSectionNotFound = -47,
 };
 
 template <>
@@ -237,6 +240,7 @@ inline std::string ToString<ErrorCode>(const ErrorCode& ec) {
     _YOGI_TO_STRING_ENUM_CASE(ErrorCode, kInvalidUserMsgPack)
     _YOGI_TO_STRING_ENUM_CASE(ErrorCode, kJoinMulticastGroupFailed)
     _YOGI_TO_STRING_ENUM_CASE(ErrorCode, kEnumerateNetworkInterfacesFailed)
+    _YOGI_TO_STRING_ENUM_CASE(ErrorCode, kConfigurationSectionNotFound)
   }
 
   bool should_never_get_here = false;

@@ -75,17 +75,31 @@ void Configuration::UpdateFromFile(const std::string& filename) {
   VerifyAndMerge(json, immutable_json_);
 }
 
-std::string Configuration::Dump(bool resolve_variables,
-                                int indentation_width) const {
+nlohmann::json Configuration::GetJson(
+    const nlohmann::json::json_pointer& target) const {
+  return GetJson(variables_supported_, target);
+}
+
+nlohmann::json Configuration::GetJson(
+    bool resolve_variables, const nlohmann::json::json_pointer& target) const {
+  nlohmann::json json;
+
   if (resolve_variables) {
     if (!variables_supported_) {
       throw api::Error(YOGI_ERR_NO_VARIABLE_SUPPORT);
     }
 
-    return ResolveVariables(json_).dump(indentation_width);
+    json = ResolveVariables(json_)[target];
   } else {
-    return json_.dump(indentation_width);
+    json = json_[target];
   }
+
+  return json;
+}
+
+std::string Configuration::Dump(bool resolve_variables,
+                                int indentation_width) const {
+  return GetJson(resolve_variables).dump(indentation_width);
 }
 
 void Configuration::WriteToFile(const std::string& filename,
@@ -187,7 +201,12 @@ void Configuration::WalkAllElements(nlohmann::json* json, Fn fn) {
       WalkAllElements(&it.value(), fn);
     }
 
-    fn(it.key(), &it.value());
+    if (json->is_object()) {
+      fn(it.key(), &it.value());
+    } else {
+      static const std::string dummy;
+      fn(dummy, &it.value());
+    }
   }
 }
 

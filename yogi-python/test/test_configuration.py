@@ -46,6 +46,11 @@ class TestConfigurations(TestCase):
             else:
                 self.assertFlagMatches("YOGI_CLO_", opt)
 
+    def test_create_from_json(self):
+        cfg = yogi.Configuration(json={"age": 42})
+        jsn = json.loads(cfg.dump())
+        self.assertEqual(jsn["age"], 42)
+
     def test_flags_property(self):
         cfg = yogi.Configuration(yogi.ConfigurationFlags.MUTABLE_CMD_LINE)
         self.assertEqual(cfg.flags, yogi.ConfigurationFlags.MUTABLE_CMD_LINE)
@@ -60,10 +65,14 @@ class TestConfigurations(TestCase):
 
     def test_update_from_json(self):
         cfg = yogi.Configuration()
-        cfg.update_from_json({"age": 42})
 
+        cfg.update_from_json({"age": 42})
         jsn = json.loads(cfg.dump())
         self.assertEqual(jsn["age"], 42)
+
+        cfg.update_from_json(yogi.JsonView({"age": 33}))
+        jsn = json.loads(cfg.dump())
+        self.assertEqual(jsn["age"], 33)
 
     def test_update_from_file(self):
         filename = os.path.join(self.temp_dir, "cfg.json")

@@ -178,6 +178,9 @@ public static partial class Yogi
 
         /// <summary>Enumerating network interfaces failed.</summary>
         EnumerateNetworkInterfacesFailed = -46,
+
+        /// <summary>The section could not be found in the configuration.</summary>
+        ConfigurationSectionNotFound = -47,
     }
 
     /// <summary>

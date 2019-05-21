@@ -23,6 +23,7 @@
 //! Branches (entry points into the Yogi network).
 
 #include "object.h"
+#include "configuration.h"
 #include "context.h"
 #include "io.h"
 #include "uuid.h"
@@ -43,7 +44,7 @@
 namespace yogi {
 
 _YOGI_DEFINE_API_FN(int, YOGI_BranchCreate,
-                    (void** branch, void* context, const char* props,
+                    (void** branch, void* context, void* config,
                      const char* section, char* err, int errsize))
 
 _YOGI_DEFINE_API_FN(int, YOGI_BranchGetInfo,
@@ -519,8 +520,10 @@ class Branch : public ObjectT<Branch> {
 
   /// Creates a branch.
   ///
-  /// The branch is configured via the \p props parameter. The supplied JSON
-  /// must have the following structure:
+  /// The branch is configured via the \p config parameter. The configuration
+  /// object will only be used while constructing the branch, i.e. the branch
+  /// will not keep any references to it. The supplied configuration must have
+  /// the following structure:
   ///
   /// \code
   ///   {
@@ -588,14 +591,98 @@ class Branch : public ObjectT<Branch> {
   ///   the number of branches squared.
   ///
   /// \param context %Context to use
-  /// \param props   %Branch properties as serialized JSON
-  /// \param section Section in \p props to use instead of the root section;
+  /// \param config  %Branch properties
+  /// \param section Section in \p config to use instead of the root section;
   ///                syntax is JSON pointer (RFC 6901)
   ///
   /// \returns The created branch.
-  static BranchPtr Create(ContextPtr context, const JsonView& props = {},
+  static BranchPtr Create(ContextPtr context,
+                          const ConfigurationPtr& config = {},
                           const StringView& section = {}) {
-    return BranchPtr(new Branch(context, props, section));
+    return BranchPtr(new Branch(context, config, section));
+  }
+
+  /// Creates a branch.
+  ///
+  /// The branch is configured via the \p json parameter. The supplied JSON must
+  /// have the following structure:
+  ///
+  /// \code
+  ///   {
+  ///     "name":                 "Fan Controller",
+  ///     "description":          "Controls a fan via PWM",
+  ///     "path":                 "/Cooling System/Fan Controller",
+  ///     "network_name":         "Hardware Control",
+  ///     "network_password":     "secret",
+  ///     "advertising_interfaces": ["localhost"],
+  ///     "advertising_address":  "ff02::8000:2439",
+  ///     "advertising_port":     13531,
+  ///     "advertising_interval": 1.0,
+  ///     "timeout":              3.0,
+  ///     "ghost_mode":           false,
+  ///     "tx_queue_size":        1000000,
+  ///     "rx_queue_size":        100000
+  ///   }
+  /// \endcode
+  ///
+  /// All of the properties are optional and if unspecified (or set to _null_),
+  /// their respective default values will be used (see \ref constants). The
+  /// properties have the following meaning:
+  ///  - __name__: Name of the branch (default: PID\@hostname without the
+  ///    backslash).
+  ///  - __description__: Description of the branch.
+  ///  - __path__: Path of the branch in the network (default: /name where name
+  ///    is the name of the branch). Must start with a slash.
+  ///  - __network_name__: Name of the network to join (default: the machine's
+  ///    hostname).
+  ///  - __network_password__: Password for the network (default: no password).
+  ///  - __advertising_interfaces__: Network interfaces to use for advertising
+  ///    and for branch connections. Valid strings are Unix device names
+  ///    ("eth0", "en5", "wlan0"), adapter names on Windows ("Ethernet",
+  ///     "VMware Network Adapter WMnet1") or MAC addresses
+  ///     ("11:22:33:44:55:66"). Furthermore, the special strings "localhost"
+  ///     and "all" can be used to denote loopback and all available interfaces
+  ///     respectively.
+  ///  - __advertising_address__: Multicast address to use for advertising, e.g.
+  ///    239.255.0.1 for IPv4 or ff02::8000:1234 for IPv6.
+  ///  - __advertising_port__: Port to use for advertising.
+  ///  - __advertising_interval__: Time between advertising messages. Must be at
+  ///    least 1 ms.
+  ///  - __ghost_mode__: Set to true to activate ghost mode (default: false).
+  ///  - __tx_queue_size__: Size of the send queues for remote branches.
+  ///  - __rx_queue_size__: Size of the receive queues for remote branches.
+  ///
+  /// Advertising and establishing connections can be limited to certain network
+  /// interfaces via the _interface_ property. The default is to use all
+  /// available interfaces.
+  ///
+  /// Setting the _ghost_mode_ property to _true_ prevents the branch from
+  /// actively participating in the Yogi network, i.e. the branch will not
+  /// advertise itself and it will not authenticate in order to join a network.
+  /// However, the branch will temporarily connect to other branches in order to
+  /// obtain more detailed information such as name, description, network name
+  /// and so on. This is useful for obtaining information about active branches
+  /// without actually becoming part of the Yogi network.
+  ///
+  /// \attention
+  ///   The _tx_queue_size_ and _rx_queue_size_ properties affect every branch
+  ///   connection and can therefore consume a large amount of memory. For
+  ///   example, in a network of 10 branches where these properties are set to
+  ///   1 MB, the resulting memory used for the queues would be
+  ///   10 x 2 x 1 MB = 20 MB for each of the 10 branches. This value grows with
+  ///   the number of branches squared.
+  ///
+  /// \param context %Context to use
+  /// \param json    %Branch properties
+  /// \param section Section in \p json to use instead of the root section;
+  ///                syntax is JSON pointer (RFC 6901)
+  ///
+  /// \returns The created branch.
+  static BranchPtr Create(ContextPtr context, const JsonView& json,
+                          const StringView& section = {}) {
+    auto config = Configuration::Create(
+        json, yogi::ConfigurationFlags::kDisableVariables);
+    return Create(context, config, section);
   }
 
   /// Returns information about the local branch.
@@ -1274,10 +1361,11 @@ class Branch : public ObjectT<Branch> {
   }
 
  private:
-  Branch(ContextPtr context, const JsonView& props, const StringView& section)
+  Branch(ContextPtr context, const ConfigurationPtr& config,
+         const StringView& section)
       : ObjectT(internal::CallApiCreateWithDescriptiveErrorCode(
                     internal::YOGI_BranchCreate, GetForeignHandle(context),
-                    props, section),
+                    GetForeignHandle(config), section),
                 {context}),
         info_(QueryInfo()) {}
 

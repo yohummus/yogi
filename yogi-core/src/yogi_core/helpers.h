@@ -62,5 +62,4 @@ bool IsLogFormatValid(std::string fmt);
 void CopyUuidToUserBuffer(const boost::uuids::uuid& uuid, void* buffer);
 bool CopyStringToUserBuffer(const std::string& str, char* buffer,
                             int buffer_size);
-
-nlohmann::json ParseBranchProps(const char* props, const char* section);
+nlohmann::json UserSuppliedConfigToJson(void* config, const char* section);

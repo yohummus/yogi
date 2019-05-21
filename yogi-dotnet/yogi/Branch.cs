@@ -32,7 +32,7 @@ public static partial class Yogi
         // === YOGI_BranchCreate ===
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         public delegate int BranchCreateDelegate(ref IntPtr branch, SafeObjectHandle context,
-            byte[] props, [MarshalAs(UnmanagedType.LPStr)] string section,
+            SafeObjectHandle config, [MarshalAs(UnmanagedType.LPStr)] string section,
             [MarshalAs(UnmanagedType.LPStr)] StringBuilder err, int errsize);
 
         public static BranchCreateDelegate YOGI_BranchCreate
@@ -455,6 +455,82 @@ public static partial class Yogi
         /// <summary>
         /// Creates the branch.
         ///
+        /// The branch is configured via the props parameter. The configuration
+        /// object will only be used while constructing the branch, i.e. the branch
+        /// will not keep any references to it. The supplied configuration must have
+        /// the following structure:
+        ///
+        ///    {
+        ///      "name":                 "Fan Controller",
+        ///      "description":          "Controls a fan via PWM",
+        ///      "path":                 "/Cooling System/Fan Controller",
+        ///      "network_name":         "Hardware Control",
+        ///      "network_password":     "secret",
+        ///      "advertising_interfaces": ["localhost"],
+        ///      "advertising_address":  "ff02::8000:2439",
+        ///      "advertising_port":     13531,
+        ///      "advertising_interval": 1.0,
+        ///      "timeout":              3.0,
+        ///      "ghost_mode":           false
+        ///    }
+        ///
+        /// All of the properties are optional and if unspecified (or set to null),
+        /// their respective default values will be used. The properties have the
+        /// following meaning:
+        ///  - name: Name of the branch (default: PID@hostname).
+        ///  - description: Description of the branch.
+        ///  - path: Path of the branch in the network (default: /name where name is
+        ///    the name of the branch). Must start with a slash.
+        ///  - network_name: Name of the network to join (default: the machine's
+        ///    hostname).
+        ///  - network_password: Password for the network (default: no password).
+        ///  - advertising_interfaces: Network interfaces to use for advertising and
+        ///    for branch connections. Valid strings are Unix device names ("eth0",
+        ///    "en5", "wlan0"), adapter names on Windows ("Ethernet",
+        ///    "VMware Network Adapter WMnet1") or MAC addresses ("11:22:33:44:55:66").
+        ///    Furthermore, the special strings "localhost" and "all" can be used to
+        ///    denote loopback and all available interfaces respectively.
+        ///  - advertising_address: Multicast address to use for advertising, e.g.
+        ///    239.255.0.1 for IPv4 or ff02::8000:1234 for IPv6.
+        ///  - advertising_port: Port to use for advertising.
+        ///  - advertising_interval: Time between advertising messages. Must be at
+        ///    least 1 ms.
+        ///  - ghost_mode: Set to true to activate ghost mode (default: false).
+        ///  - tx_queue_size: Size of the send queues for remote branches.
+        ///  - rx_queue_size: Size of the receive queues for remote branches.
+        ///
+        /// Advertising and establishing connections can be limited to certain network
+        /// interfaces via the _interface_ property. The default is to use all
+        /// available interfaces.
+        ///
+        /// Setting the ghost_mode property to true prevents the branch from actively
+        /// participating in the Yogi network, i.e. the branch will not advertise itself
+        /// and it will not authenticate in order to join a network. However, the branch
+        /// will temporarily connect to other branches in order to obtain more detailed
+        /// information such as name, description, network name and so on. This is useful
+        /// for obtaining information about active branches without actually becoming
+        /// part of the Yogi network.
+        ///
+        /// Attention:
+        ///   The tx_queue_size and rx_queue_size properties affect every branch
+        ///   connection and can therefore consume a large amount of memory. For
+        ///   example, in a network of 10 branches where these properties are set to 1 MB,
+        ///   the resulting memory used for the queues would be 10 x 2 x 1 MB = 20 MB
+        ///   for each of the 10 branches. This value grows with the number of branches squared.
+        /// </summary>
+        /// <param name="context">The context to use.</param>
+        /// <param name="config">Branch properties.</param>
+        /// <param name="section">Section in config to use instead of the root section.
+        /// Syntax is JSON pointer (RFC 6901).</param>
+        public Branch(Context context, [Optional] Configuration config, [Optional] string section)
+        : base(Create(context, config, section), new Object[] { context })
+        {
+            Info = GetInfo();
+        }
+
+        /// <summary>
+        /// Creates the branch.
+        ///
         /// The branch is configured via the props parameter. The supplied JSON must
         /// have the following structure:
         ///
@@ -517,13 +593,12 @@ public static partial class Yogi
         ///   for each of the 10 branches. This value grows with the number of branches squared.
         /// </summary>
         /// <param name="context">The context to use.</param>
-        /// <param name="props">Branch properties as serialized JSON.</param>
+        /// <param name="json">Branch properties.</param>
         /// <param name="section">Section in props to use instead of the root section.
         /// Syntax is JSON pointer (RFC 6901).</param>
-        public Branch(Context context, [Optional] JsonView props, [Optional] string section)
-        : base(Create(context, props, section), new Object[] { context })
+        public Branch(Context context, JsonView json, [Optional] string section)
+        : this(context, new Configuration(json), section)
         {
-            Info = GetInfo();
         }
 
         /// <summary>Information about the local branch.</summary>
@@ -1170,12 +1245,14 @@ public static partial class Yogi
             return true;
         }
 
-        static IntPtr Create(Context context, [Optional] JsonView props, [Optional] string section)
+        static IntPtr Create(Context context, [Optional] Configuration config,
+                             [Optional] string section)
         {
             var handle = new IntPtr();
             CheckDescriptiveErrorCode((err) =>
             {
-                return Api.YOGI_BranchCreate(ref handle, context.Handle, props.Data, section, err,
+                return Api.YOGI_BranchCreate(ref handle, context.Handle,
+                                             config == null ? null : config.Handle, section, err,
                                              err.Capacity);
             });
             return handle;

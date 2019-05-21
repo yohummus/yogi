@@ -39,6 +39,11 @@ class Configuration
                              api::CommandLineOptions options);
   void UpdateFromString(const std::string& json_str);
   void UpdateFromFile(const std::string& filename);
+  nlohmann::json GetJson(bool resolve_variables,
+                         const nlohmann::json::json_pointer& target =
+                             nlohmann::json::json_pointer()) const;
+  nlohmann::json GetJson(const nlohmann::json::json_pointer& target =
+                             nlohmann::json::json_pointer()) const;
   std::string Dump(bool resolve_variables, int indentation_width) const;
   void WriteToFile(const std::string& filename, bool resolve_variables,
                    int indentation_width) const;

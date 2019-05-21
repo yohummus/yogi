@@ -121,7 +121,7 @@ class Object : public std::enable_shared_from_this<Object> {
   void* GetHandle() const { return handle_; }
 
   static void* GetForeignHandle(const ObjectPtr& other) {
-    return other->GetHandle();
+    return other ? other->GetHandle() : nullptr;
   }
 
  private:

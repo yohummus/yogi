@@ -218,6 +218,7 @@ T GetBranchProperty(void* branch, const char* property) {
 }
 
 std::string ReadFile(const std::string& filename);
+void* MakeConfigFromJson(const nlohmann::json& json);
 
 std::ostream& operator<<(std::ostream& os, const std::chrono::nanoseconds& dur);
 std::ostream& operator<<(std::ostream& os,

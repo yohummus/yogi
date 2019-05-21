@@ -188,6 +188,17 @@ public static partial class Yogi
         }
 
         /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="json">Initial JSON to use.</param>
+        /// <param name="flags">Flags for behaviour adjustments.</param>
+        public Configuration(JsonView json, ConfigurationFlags flags = ConfigurationFlags.None)
+        : this(flags)
+        {
+            UpdateFromJson(json);
+        }
+
+        /// <summary>
         /// Updates the configuration from command line options.
         ///
         /// If parsing the command line, files or any given JSON string fails, or
