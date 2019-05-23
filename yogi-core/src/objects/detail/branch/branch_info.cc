@@ -19,10 +19,14 @@
 #include "../../../api/constants.h"
 #include "../../../network/ip.h"
 #include "../../../network/serialize.h"
+#include "../../../utils/json_helpers.h"
 #include "../../../utils/system.h"
 
 #include <boost/uuid/uuid_io.hpp>
 #include <boost/uuid/uuid_generators.hpp>
+
+#include <string>
+using namespace std::string_literals;
 
 namespace objects {
 namespace detail {
@@ -67,31 +71,36 @@ void BranchInfo::PopulateJson() {
 }
 
 LocalBranchInfo::LocalBranchInfo(
-    std::string name, std::string description, std::string net_name,
-    std::string path, const std::vector<utils::NetworkInterfaceInfo>& adv_ifs,
-    const boost::asio::ip::udp::endpoint& adv_ep,
-    const boost::asio::ip::tcp::endpoint& tcp_ep,
-    const std::chrono::nanoseconds& timeout,
-    const std::chrono::nanoseconds& adv_interval, bool ghost_mode,
-    std::size_t tx_queue_size, std::size_t rx_queue_size,
-    std::size_t transceive_byte_limit) {
+    const nlohmann::json& cfg,
+    const std::vector<utils::NetworkInterfaceInfo>& adv_ifs,
+    const boost::asio::ip::tcp::endpoint& tcp_ep) {
   uuid_ = boost::uuids::random_generator()();
-  name_ = name;
-  description_ = description;
-  net_name_ = net_name;
-  path_ = path;
+  name_ = cfg.value("name", std::to_string(utils::GetProcessId()) + '@' +
+                                utils::GetHostname());
+  description_ = cfg.value("description", std::string{});
+  net_name_ = cfg.value("network_name", utils::GetHostname());
+  path_ = cfg.value("path", "/"s + name_);
   hostname_ = utils::GetHostname();
   pid_ = utils::GetProcessId();
   adv_ifs_ = adv_ifs;
   tcp_ep_ = tcp_ep;
   start_time_ = utils::Timestamp::Now();
-  timeout_ = timeout;
-  adv_interval_ = adv_interval;
-  ghost_mode_ = ghost_mode;
-  adv_ep_ = adv_ep;
-  tx_queue_size_ = tx_queue_size;
-  rx_queue_size_ = rx_queue_size;
-  transceive_byte_limit_ = transceive_byte_limit;
+  timeout_ =
+      utils::ExtractDuration(cfg, "timeout", api::kDefaultConnectionTimeout);
+  adv_interval_ = utils::ExtractDuration(cfg, "advertising_interval",
+                                         api::kDefaultAdvInterval);
+  ghost_mode_ = cfg.value("ghost_mode", false);
+  adv_ep_ = utils::ExtractUdpEndpoint(cfg, "advertising_address",
+                                      api::kDefaultAdvAddress,
+                                      "advertising_port", api::kDefaultAdvPort);
+  tx_queue_size_ = utils::ExtractLimitedNumber<std::size_t>(
+      cfg, "tx_queue_size", api::kDefaultTxQueueSize, api::kMinTxQueueSize,
+      api::kMaxTxQueueSize);
+  rx_queue_size_ = utils::ExtractLimitedNumber<std::size_t>(
+      cfg, "rx_queue_size", api::kDefaultRxQueueSize, api::kMinRxQueueSize,
+      api::kMaxRxQueueSize);
+  transceive_byte_limit_ =
+      utils::ExtractSizeWithInfSupport(cfg, "_transceive_byte_limit", -1, 0);
 
   PopulateMessages();
   PopulateJson();

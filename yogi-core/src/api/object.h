@@ -36,6 +36,7 @@ enum class ObjectType {
   kBranch,
   kConfiguration,
   kSignalSet,
+  kWebServer,
 };
 
 typedef void* ObjectHandle;

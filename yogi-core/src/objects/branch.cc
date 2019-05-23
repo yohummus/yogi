@@ -17,40 +17,36 @@
 
 #include "branch.h"
 #include "../network/ip.h"
+#include "../api/constants.h"
+#include "../utils/system.h"
 
 #include <chrono>
 using namespace std::chrono_literals;
+using namespace std::string_literals;
 
 namespace objects {
 
-Branch::Branch(ContextPtr context, std::string name, std::string description,
-               std::string net_name, std::string password, std::string path,
-               const std::vector<std::string>& adv_if_strings,
-               const boost::asio::ip::udp::endpoint& adv_ep,
-               std::chrono::nanoseconds adv_interval,
-               std::chrono::nanoseconds timeout, bool ghost_mode,
-               std::size_t tx_queue_size, std::size_t rx_queue_size,
-               std::size_t transceive_byte_limit)
+Branch::Branch(ContextPtr context, const nlohmann::json& cfg)
     : context_(context),
       connection_manager_(std::make_shared<detail::ConnectionManager>(
-          context, password, adv_if_strings, adv_ep,
+          context, cfg,
           [&](auto& res, auto conn) { this->OnConnectionChanged(res, conn); },
           [&](auto& msg, auto& conn) { this->OnMessageReceived(msg, conn); })),
       info_(std::make_shared<detail::LocalBranchInfo>(
-          name, description, net_name, path,
-          connection_manager_->GetAdvertisingInterfaces(),
-          connection_manager_->GetAdvertisingEndpoint(),
-          connection_manager_->GetTcpServerEndpoint(), timeout, adv_interval,
-          ghost_mode, tx_queue_size, rx_queue_size, transceive_byte_limit)),
+          cfg, connection_manager_->GetAdvertisingInterfaces(),
+          connection_manager_->GetTcpServerEndpoint())),
       broadcast_manager_(std::make_shared<detail::BroadcastManager>(
           context, *connection_manager_)) {
-  if (name.empty() || net_name.empty() || path.empty() || path.front() != '/' ||
-      adv_interval < 1ms || timeout < 1ms) {
+  if (info_->GetName().empty() || info_->GetNetworkName().empty() ||
+      info_->GetPath().empty() || info_->GetPath().front() != '/' ||
+      info_->GetAdvertisingInterval() < 1ms || info_->GetTimeout() < 1ms) {
     throw api::Error(YOGI_ERR_INVALID_PARAM);
   }
 }
 
 void Branch::Start() { connection_manager_->Start(info_); }
+
+ContextPtr Branch::GetContext() const { return context_; }
 
 const boost::uuids::uuid& Branch::GetUuid() const { return info_->GetUuid(); }
 

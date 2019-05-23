@@ -62,7 +62,7 @@ namespace test
         public void DefaultAdvInterfaces()
         {
             Assert.IsType<string>(Yogi.Constants.DefaultAdvInterfaces);
-            Assert.True(Yogi.Constants.DefaultAdvInterfaces.Length > 1);
+            Assert.Contains("localhost", Yogi.Constants.DefaultAdvInterfaces);
         }
 
         [Fact]
@@ -195,6 +195,80 @@ namespace test
         {
             Assert.IsType<int>(Yogi.Constants.DefaultRxQueueSize);
             Assert.True(Yogi.Constants.DefaultRxQueueSize < Yogi.Constants.MaxRxQueueSize);
+        }
+
+        [Fact]
+        public void DefaultWebPort()
+        {
+            Assert.IsType<int>(Yogi.Constants.DefaultWebPort);
+            Assert.True(Yogi.Constants.DefaultWebPort > 1024);
+            Assert.True(Yogi.Constants.DefaultWebPort < 65535);
+        }
+
+        [Fact]
+        public void DefaultWebInterfaces()
+        {
+            Assert.IsType<string>(Yogi.Constants.DefaultWebInterfaces);
+            Assert.Contains("localhost", Yogi.Constants.DefaultWebInterfaces);
+        }
+
+        [Fact]
+        public void DefaultWebTimeout()
+        {
+            Assert.IsType<Yogi.Duration>(Yogi.Constants.DefaultWebTimeout);
+            Assert.True(Yogi.Constants.DefaultWebTimeout.TotalSeconds > 0.5);
+        }
+
+        [Fact]
+        public void DefaultWebCacheSize()
+        {
+            Assert.IsType<int>(Yogi.Constants.DefaultWebCacheSize);
+            Assert.True(Yogi.Constants.DefaultWebCacheSize >= 1000000);
+            Assert.True(Yogi.Constants.DefaultWebCacheSize < Yogi.Constants.MaxWebCacheSize);
+        }
+
+        [Fact]
+        public void MaxWebCacheSize()
+        {
+            Assert.IsType<int>(Yogi.Constants.MaxWebCacheSize);
+            Assert.True(Yogi.Constants.MaxWebCacheSize >= 100000000);
+            Assert.True(Yogi.Constants.MaxWebCacheSize <= 1000000000);
+        }
+
+        [Fact]
+        public void DefaultAdminUser()
+        {
+            Assert.IsType<string>(Yogi.Constants.DefaultAdminUser);
+            Assert.True(Yogi.Constants.DefaultAdminUser.Length >= 3);
+        }
+
+        [Fact]
+        public void DefaultAdminPassword()
+        {
+            Assert.IsType<string>(Yogi.Constants.DefaultAdminPassword);
+            Assert.True(Yogi.Constants.DefaultAdminPassword.Length >= 3);
+        }
+
+        [Fact]
+        public void DefaultSslPrivateKey()
+        {
+            Assert.IsType<string>(Yogi.Constants.DefaultSslPrivateKey);
+            Assert.Contains("-----BEGIN PRIVATE KEY-----", Yogi.Constants.DefaultSslPrivateKey);
+        }
+
+        [Fact]
+        public void DefaultSslCertificateChain()
+        {
+            Assert.IsType<string>(Yogi.Constants.DefaultSslCertificateChain);
+            Assert.Contains("-----BEGIN CERTIFICATE-----",
+                            Yogi.Constants.DefaultSslCertificateChain);
+        }
+
+        [Fact]
+        public void DefaultSslDhParams()
+        {
+            Assert.IsType<string>(Yogi.Constants.DefaultSslDhParams);
+            Assert.Contains("-----BEGIN DH PARAMETERS-----", Yogi.Constants.DefaultSslDhParams);
         }
     }
 }

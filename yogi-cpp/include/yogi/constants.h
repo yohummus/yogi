@@ -107,23 +107,53 @@ struct constants {
   /// Default textual format for strings describing an object.
   static const std::string kDefaultObjectFormat;
 
-  /// Minimum size of a send queue for a remote branch (int).
+  /// Minimum size of a send queue for a remote branch.
   static const int kMinTxQueueSize;
 
-  /// Maximum size of a send queue for a remote branch (int).
+  /// Maximum size of a send queue for a remote branch.
   static const int kMaxTxQueueSize;
 
-  /// Default size of a send queue for a remote branch (int).
+  /// Default size of a send queue for a remote branch.
   static const int kDefaultTxQueueSize;
 
-  /// Minimum size of a receive queue for a remote branch (int).
+  /// Minimum size of a receive queue for a remote branch.
   static const int kMinRxQueueSize;
 
-  /// Maximum size of a receive queue for a remote branch (int).
+  /// Maximum size of a receive queue for a remote branch.
   static const int kMaxRxQueueSize;
 
-  /// Default size of a receive queue for a remote branch (int).
+  /// Default size of a receive queue for a remote branch.
   static const int kDefaultRxQueueSize;
+
+  /// Default port for the web server to listen on for client connections.
+  static const int kDefaultWebPort;
+
+  /// Default network interfaces to use for the web server.
+  static const std::string kDefaultWebInterfaces;
+
+  /// Default timeout for web server connections in nanoseconds.
+  static const Duration kDefaultWebTimeout;
+
+  /// Default size of the web server cache in bytes.
+  static const int kDefaultWebCacheSize;
+
+  /// Maximum size of the web server cache in bytes.
+  static const int kMaxWebCacheSize;
+
+  /// Default user name for the administrator account.
+  static const std::string kDefaultAdminUser;
+
+  /// Default password for the administrator account.
+  static const std::string kDefaultAdminPassword;
+
+  /// Default private key to use for SSL connections.
+  static const std::string kDefaultSslPrivateKey;
+
+  /// Default certificate chain to use for SSL connections.
+  static const std::string kDefaultSslCertificateChain;
+
+  /// Default DH parameters to use for SSL connections.
+  static const std::string kDefaultSslDhParams;
 };
 
 _YOGI_WEAK_SYMBOL const std::string constants::kVersion =
@@ -200,6 +230,36 @@ _YOGI_WEAK_SYMBOL const int constants::kMaxRxQueueSize =
 
 _YOGI_WEAK_SYMBOL const int constants::kDefaultRxQueueSize =
     internal::GetConstant<int>(25);
+
+_YOGI_WEAK_SYMBOL const int constants::kDefaultWebPort =
+    internal::GetConstant<int>(26);
+
+_YOGI_WEAK_SYMBOL const std::string constants::kDefaultWebInterfaces =
+    internal::GetConstant<char*>(27);
+
+_YOGI_WEAK_SYMBOL const Duration constants::kDefaultWebTimeout =
+    Duration::FromNanoseconds(internal::GetConstant<long long>(28));
+
+_YOGI_WEAK_SYMBOL const int constants::kDefaultWebCacheSize =
+    internal::GetConstant<int>(29);
+
+_YOGI_WEAK_SYMBOL const int constants::kMaxWebCacheSize =
+    internal::GetConstant<int>(30);
+
+_YOGI_WEAK_SYMBOL const std::string constants::kDefaultAdminUser =
+    internal::GetConstant<char*>(31);
+
+_YOGI_WEAK_SYMBOL const std::string constants::kDefaultAdminPassword =
+    internal::GetConstant<char*>(32);
+
+_YOGI_WEAK_SYMBOL const std::string constants::kDefaultSslPrivateKey =
+    internal::GetConstant<char*>(33);
+
+_YOGI_WEAK_SYMBOL const std::string constants::kDefaultSslCertificateChain =
+    internal::GetConstant<char*>(34);
+
+_YOGI_WEAK_SYMBOL const std::string constants::kDefaultSslDhParams =
+    internal::GetConstant<char*>(35);
 
 }  // namespace yogi
 

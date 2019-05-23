@@ -18,6 +18,8 @@
 #include "connection_manager.h"
 #include "../../../utils/crypto.h"
 #include "../../../network/ip.h"
+#include "../../../api/constants.h"
+#include "../../../utils/json_helpers.h"
 
 #include <boost/uuid/uuid_io.hpp>
 
@@ -25,33 +27,33 @@ namespace objects {
 namespace detail {
 
 ConnectionManager::ConnectionManager(
-    ContextPtr context, const std::string& password,
-    const std::vector<std::string>& adv_if_strings,
-    const boost::asio::ip::udp::endpoint& adv_ep,
+    ContextPtr context, const nlohmann::json& cfg,
     ConnectionChangedHandler connection_changed_handler,
     MessageReceiveHandler message_handler)
     : context_(context),
-      adv_ifs_(utils::GetFilteredNetworkInterfaces(adv_if_strings,
-                                                   adv_ep.protocol())),
+      adv_ep_(utils::ExtractUdpEndpoint(
+          cfg, "advertising_address", api::kDefaultAdvAddress,
+          "advertising_port", api::kDefaultAdvPort)),
+      adv_ifs_(utils::GetFilteredNetworkInterfaces(
+          utils::ExtractArrayOfStrings(cfg, "advertising_interfaces",
+                                       api::kDefaultAdvInterfaces),
+          adv_ep_.protocol())),
       password_hash_(utils::MakeSharedByteVector(
-          utils::MakeSha256({password.cbegin(), password.cend()}))),
+          utils::MakeSha256(cfg.value("network_password", std::string{})))),
       connection_changed_handler_(connection_changed_handler),
       message_handler_(message_handler),
-      adv_sender_(std::make_shared<AdvertisingSender>(context, adv_ep)),
+      adv_sender_(std::make_shared<AdvertisingSender>(context, adv_ep_)),
       adv_receiver_(std::make_shared<AdvertisingReceiver>(
-          context, adv_ep,
+          context, adv_ep_,
           [&](auto& uuid, auto& ep) {
             this->OnAdvertisementReceived(uuid, ep);
           })),
       acceptor_(context->IoContext()),
       last_op_tag_(0),
       observed_events_(api::kNoEvent) {
-  if (adv_ep.port() == 0) {
-    throw api::Error(YOGI_ERR_INVALID_PARAM);
-  }
-
+  YOGI_ASSERT(adv_ep_.port() != 0);
   using namespace boost::asio::ip;
-  SetupAcceptor(adv_ep.protocol() == udp::v4() ? tcp::v4() : tcp::v6());
+  SetupAcceptor(adv_ep_.protocol() == udp::v4() ? tcp::v4() : tcp::v6());
 }
 
 ConnectionManager::~ConnectionManager() { CancelAwaitEvent(); }

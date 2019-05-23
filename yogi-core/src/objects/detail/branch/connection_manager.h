@@ -25,6 +25,7 @@
 #include "advertising_sender.h"
 #include "branch_connection.h"
 
+#include <nlohmann/json.hpp>
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/functional/hash.hpp>
 #include <set>
@@ -57,9 +58,7 @@ class ConnectionManager
       BranchInfoStringsList;
   using OperationTag = network::MessageTransport::OperationTag;
 
-  ConnectionManager(ContextPtr context, const std::string& password,
-                    const std::vector<std::string>& adv_if_strings,
-                    const boost::asio::ip::udp::endpoint& adv_ep,
+  ConnectionManager(ContextPtr context, const nlohmann::json& cfg,
                     ConnectionChangedHandler connection_changed_handler,
                     MessageReceiveHandler message_handler);
   virtual ~ConnectionManager();
@@ -160,6 +159,7 @@ class ConnectionManager
   static const LoggerPtr logger_;
 
   const ContextPtr context_;
+  const boost::asio::ip::udp::endpoint adv_ep_;
   const std::vector<utils::NetworkInterfaceInfo> adv_ifs_;
   const utils::SharedByteVector password_hash_;
   const ConnectionChangedHandler connection_changed_handler_;

@@ -42,7 +42,8 @@ TEST(ConstantsTest, kVersionSuffix) {
 }
 
 TEST(ConstantsTest, kDefaultAdvInterfaces) {
-  EXPECT_FALSE(yogi::constants::kDefaultAdvInterfaces.empty());
+  EXPECT_NE(yogi::constants::kDefaultAdvInterfaces.find("localhost"),
+            std::string::npos);
 }
 
 TEST(ConstantsTest, kDefaultAdvAddress) {
@@ -127,4 +128,55 @@ TEST(ConstantsTest, kMaxRxQueueSize) {
 TEST(ConstantsTest, kDefaultRxQueueSize) {
   EXPECT_LT(yogi::constants::kDefaultRxQueueSize,
             yogi::constants::kMaxRxQueueSize);
+}
+
+TEST(ConstantsTest, kDefaultWebPort) {
+  EXPECT_GT(yogi::constants::kDefaultWebPort, 1024);
+  EXPECT_LT(yogi::constants::kDefaultWebPort, 65535);
+}
+
+TEST(ConstantsTest, kDefaultWebInterfaces) {
+  EXPECT_NE(yogi::constants::kDefaultWebInterfaces.find("localhost"),
+            std::string::npos);
+}
+
+TEST(ConstantsTest, kDefaultWebTimeout) {
+  EXPECT_GT(yogi::constants::kDefaultWebTimeout, 500ms);
+}
+
+TEST(ConstantsTest, kDefaultWebCacheSize) {
+  EXPECT_GE(yogi::constants::kDefaultWebCacheSize, 1'000'000);
+  EXPECT_LT(yogi::constants::kDefaultWebCacheSize,
+            yogi::constants::kMaxWebCacheSize);
+}
+
+TEST(ConstantsTest, kMaxWebCacheSize) {
+  EXPECT_GE(yogi::constants::kMaxWebCacheSize, 100'000'000);
+  EXPECT_LE(yogi::constants::kMaxWebCacheSize, 1'000'000'000);
+}
+
+TEST(ConstantsTest, kDefaultAdminUser) {
+  EXPECT_GE(yogi::constants::kDefaultAdminUser.size(), 3);
+}
+
+TEST(ConstantsTest, kDefaultAdminPassword) {
+  EXPECT_GE(yogi::constants::kDefaultAdminPassword.size(), 3);
+}
+
+TEST(ConstantsTest, kDefaultSslPrivateKey) {
+  EXPECT_NE(yogi::constants::kDefaultSslPrivateKey.find(
+                "-----BEGIN PRIVATE KEY-----"),
+            std::string::npos);
+}
+
+TEST(ConstantsTest, kDefaultSslCertificateChain) {
+  EXPECT_NE(yogi::constants::kDefaultSslCertificateChain.find(
+                "-----BEGIN CERTIFICATE-----"),
+            std::string::npos);
+}
+
+TEST(ConstantsTest, kDefaultSslDhParams) {
+  EXPECT_NE(yogi::constants::kDefaultSslDhParams.find(
+                "-----BEGIN DH PARAMETERS-----"),
+            std::string::npos);
 }

@@ -92,15 +92,9 @@ typedef std::shared_ptr<LocalBranchInfo> LocalBranchInfoPtr;
 
 class LocalBranchInfo : public BranchInfo {
  public:
-  LocalBranchInfo(std::string name, std::string description,
-                  std::string net_name, std::string path,
+  LocalBranchInfo(const nlohmann::json& cfg,
                   const std::vector<utils::NetworkInterfaceInfo>& adv_ifs,
-                  const boost::asio::ip::udp::endpoint& adv_ep,
-                  const boost::asio::ip::tcp::endpoint& tcp_ep,
-                  const std::chrono::nanoseconds& timeout,
-                  const std::chrono::nanoseconds& adv_interval, bool ghost_mode,
-                  std::size_t tx_queue_size, std::size_t rx_queue_size,
-                  std::size_t transceive_byte_limit);
+                  const boost::asio::ip::tcp::endpoint& tcp_ep);
 
   const std::vector<utils::NetworkInterfaceInfo>& GetAdvertisingInterfaces()
       const {

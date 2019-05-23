@@ -19,39 +19,10 @@
 #include "helpers.h"
 #include "../api/constants.h"
 #include "../objects/branch.h"
-#include "../objects/configuration.h"
-#include "../utils/system.h"
 
 #include <nlohmann/json.hpp>
 #include <string>
 using namespace std::string_literals;
-
-namespace {
-
-boost::asio::ip::udp::endpoint ExtractAdvEndpoint(
-    const nlohmann::json& properties) {
-  auto adv_addr = properties.value<std::string>("advertising_address",
-                                                api::kDefaultAdvAddress);
-  auto adv_port = ExtractLimitedNumber<unsigned short>(
-      properties, "advertising_port", api::kDefaultAdvPort, 1, 65535);
-
-  if (adv_addr.empty()) {
-    throw api::DescriptiveError(YOGI_ERR_INVALID_PARAM)
-        << "Property \"advertising_addr\" must not be empty.";
-  }
-
-  boost::system::error_code ec;
-  auto adv_ep = boost::asio::ip::udp::endpoint(
-      boost::asio::ip::make_address(adv_addr, ec), adv_port);
-  if (ec) {
-    throw api::DescriptiveError(YOGI_ERR_INVALID_PARAM)
-        << "Could not parse address in property \"advertising_address\".";
-  }
-
-  return adv_ep;
-}
-
-}  // anonymous namespace
 
 YOGI_API int YOGI_BranchCreate(void** branch, void* context, void* config,
                                const char* section, char* err, int errsize) {
@@ -60,35 +31,9 @@ YOGI_API int YOGI_BranchCreate(void** branch, void* context, void* config,
 
   try {
     auto ctx = api::ObjectRegister::Get<objects::Context>(context);
+    auto cfg = UserSuppliedConfigToJson(config, section);
 
-    auto properties = UserSuppliedConfigToJson(config, section);
-    auto name = properties.value("name", std::to_string(utils::GetProcessId()) +
-                                             '@' + utils::GetHostname());
-    auto adv_if_strings = ExtractArrayOfStrings(
-        properties, "advertising_interfaces", api::kDefaultAdvInterfaces);
-    auto adv_ep = ExtractAdvEndpoint(properties);
-    auto adv_int = ExtractDuration(properties, "advertising_interval",
-                                   api::kDefaultAdvInterval);
-    auto description = properties.value("description", std::string{});
-    auto network = properties.value("network_name", utils::GetHostname());
-    auto password = properties.value("network_password", std::string{});
-    auto path = properties.value("path", "/"s + name);
-    auto timeout =
-        ExtractDuration(properties, "timeout", api::kDefaultConnectionTimeout);
-    auto ghost = properties.value("ghost_mode", false);
-    auto tx_queue_size = ExtractLimitedNumber<std::size_t>(
-        properties, "tx_queue_size", api::kDefaultTxQueueSize,
-        api::kMinTxQueueSize, api::kMaxTxQueueSize);
-    auto rx_queue_size = ExtractLimitedNumber<std::size_t>(
-        properties, "rx_queue_size", api::kDefaultRxQueueSize,
-        api::kMinRxQueueSize, api::kMaxRxQueueSize);
-    auto transceive_byte_limit =
-        ExtractSizeWithInfSupport(properties, "_transceive_byte_limit", -1, 0);
-
-    auto brn = objects::Branch::Create(ctx, name, description, network,
-                                       password, path, adv_if_strings, adv_ep,
-                                       adv_int, timeout, ghost, tx_queue_size,
-                                       rx_queue_size, transceive_byte_limit);
+    auto brn = objects::Branch::Create(ctx, cfg);
     brn->Start();
 
     *branch = api::ObjectRegister::Register(brn);

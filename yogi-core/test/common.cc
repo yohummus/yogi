@@ -180,13 +180,17 @@ FakeBranch::FakeBranch()
   acceptor_.bind(boost::asio::ip::tcp::endpoint(kTcpProtocol, 0));
   acceptor_.listen();
 
-  auto ifs =
+  auto adv_ifs =
       utils::GetFilteredNetworkInterfaces({"localhost"}, adv_ep_.protocol());
 
+  nlohmann::json cfg = {
+      {"name", "Fake Branch"},
+      {"advertising_address", kAdvAddress},
+      {"advertising_port", kAdvPort},
+  };
+
   info_ = std::make_shared<objects::detail::LocalBranchInfo>(
-      "Fake Branch", "", utils::GetHostname(), "/Fake Branch", ifs, adv_ep_,
-      acceptor_.local_endpoint(), 1s, 1s, false, api::kMinTxQueueSize,
-      api::kMinRxQueueSize, std::numeric_limits<std::size_t>::max());
+      cfg, adv_ifs, acceptor_.local_endpoint());
 }
 
 void FakeBranch::Connect(void* branch,
@@ -264,7 +268,7 @@ void FakeBranch::Authenticate(
   boost::asio::read(tcp_socket_, boost::asio::buffer(remote_challenge));
 
   // Send solution
-  auto password_hash = utils::MakeSha256({});
+  auto password_hash = utils::MakeSha256(utils::ByteVector{});
   buffer = remote_challenge;
   buffer.insert(buffer.end(), password_hash.begin(), password_hash.end());
   auto remote_solution = utils::MakeSha256(buffer);

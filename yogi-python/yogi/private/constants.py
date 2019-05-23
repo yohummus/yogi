@@ -157,6 +157,57 @@ class MetaConstants(type):
         """Default size of a receive queue for a remote branch."""
         return get_constant(25, c_int)
 
+    @property
+    def DEFAULT_WEB_PORT(self) -> int:
+        """Default port for the web server to listen on for client connections.
+        """
+        return get_constant(26, c_int)
+
+    @property
+    def DEFAULT_WEB_INTERFACES(self) -> str:
+        """Default network interfaces to use for the web server."""
+        return get_constant(27, c_char_p)
+
+    @property
+    def DEFAULT_WEB_TIMEOUT(self) -> Duration:
+        """Default timeout for web server connections."""
+        return Duration.from_nanoseconds(get_constant(28, c_longlong))
+
+    @property
+    def DEFAULT_WEB_CACHE_SIZE(self) -> int:
+        """Default size of the web server cache in bytes."""
+        return get_constant(29, c_int)
+
+    @property
+    def MAX_WEB_CACHE_SIZE(self) -> int:
+        """Maximum size of the web server cache in bytes."""
+        return get_constant(30, c_int)
+
+    @property
+    def DEFAULT_ADMIN_USER(self) -> str:
+        """Default user name for the administrator account."""
+        return get_constant(31, c_char_p)
+
+    @property
+    def DEFAULT_ADMIN_PASSWORD(self) -> str:
+        """Default password for the administrator account."""
+        return get_constant(32, c_char_p)
+
+    @property
+    def DEFAULT_SSL_PRIVATE_KEY(self) -> str:
+        """Default private key to use for SSL connections."""
+        return get_constant(33, c_char_p)
+
+    @property
+    def DEFAULT_SSL_CERTIFICATE_CHAIN(self) -> str:
+        """Default certificate chain to use for SSL connections."""
+        return get_constant(34, c_char_p)
+
+    @property
+    def DEFAULT_SSL_DH_PARAMS(self) -> str:
+        """Default DH parameters to use for SSL connections."""
+        return get_constant(35, c_char_p)
+
 
 class Constants(metaclass=MetaConstants):
     """Constants built into the Yogi Core library."""

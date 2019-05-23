@@ -1,6 +1,6 @@
 /*
  * This file is part of the Yogi distribution https://github.com/yohummus/yogi.
- * Copyright (c) 2018 Johannes Bergmann.
+ * Copyright (c) 2019 Johannes Bergmann.
  *
  * This library is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,18 +15,18 @@
  * along with this library. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#pragma once
+#include "web_server.h"
 
-#include "../config.h"
-#include "types.h"
+namespace objects {
 
-#include <vector>
-#include <string>
+WebServer::WebServer(ContextPtr context, BranchPtr branch,
+                     const nlohmann::json& cfg) {
+  YOGI_ASSERT(context);
+}
 
-namespace utils {
+void WebServer::Start() {}
 
-ByteVector MakeSha256(const ByteVector& data);
-ByteVector MakeSha256(const std::string& data);
-ByteVector GenerateRandomBytes(std::size_t n);
+const LoggerPtr WebServer::logger_ =
+    Logger::CreateStaticInternalLogger("WebServer");
 
-}  // namespace utils
+}  // namespace objects

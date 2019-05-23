@@ -15,18 +15,8 @@
  * along with this library. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#pragma once
+#include "../common.h"
 
-#include "../config.h"
-#include "types.h"
+class WebServerTest : public TestFixture {};
 
-#include <vector>
-#include <string>
-
-namespace utils {
-
-ByteVector MakeSha256(const ByteVector& data);
-ByteVector MakeSha256(const std::string& data);
-ByteVector GenerateRandomBytes(std::size_t n);
-
-}  // namespace utils
+TEST_F(WebServerTest, DISABLED_ImplementMe) {}

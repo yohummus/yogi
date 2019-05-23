@@ -30,27 +30,6 @@ inline std::chrono::nanoseconds ConvertDuration(long long duration) {
                         : std::chrono::nanoseconds(duration);
 }
 
-std::chrono::nanoseconds ExtractDuration(const nlohmann::json& json,
-                                         const char* key,
-                                         long long defaultValue);
-std::vector<std::string> ExtractArrayOfStrings(const nlohmann::json& json,
-                                               const char* key,
-                                               const char* default_val);
-
-int ExtractLimitedInt(const nlohmann::json& json, const char* key,
-                      int default_val, int min_val, int max_val);
-
-std::size_t ExtractSizeWithInfSupport(const nlohmann::json& json,
-                                      const char* key, int default_val,
-                                      int min_val);
-
-template <typename T>
-T ExtractLimitedNumber(const nlohmann::json& json, const char* key,
-                       int default_val, int min_val, int max_val) {
-  return static_cast<T>(
-      ExtractLimitedInt(json, key, default_val, min_val, max_val));
-}
-
 template <typename Enum>
 inline Enum ConvertFlags(int flags, Enum default_flags) {
   return flags ? static_cast<Enum>(flags) : default_flags;

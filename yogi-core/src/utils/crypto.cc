@@ -40,6 +40,10 @@ ByteVector MakeSha256(const ByteVector& data) {
   return hash;
 }
 
+ByteVector MakeSha256(const std::string& data) {
+  return MakeSha256(ByteVector{data.begin(), data.end()});
+}
+
 ByteVector GenerateRandomBytes(std::size_t n) {
   ByteVector bytes(n);
 

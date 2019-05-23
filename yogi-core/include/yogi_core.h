@@ -116,14 +116,44 @@
 //! Default size of a send queue for a remote branch (int)
 #define YOGI_CONST_DEFAULT_TX_QUEUE_SIZE 22
 
-// Minimum size of a receive queue for a remote branch (int)
+//! Minimum size of a receive queue for a remote branch (int)
 #define YOGI_CONST_MIN_RX_QUEUE_SIZE 23
 
-// Maximum size of a receive queue for a remote branch (int)
+//! Maximum size of a receive queue for a remote branch (int)
 #define YOGI_CONST_MAX_RX_QUEUE_SIZE 24
 
-// Default size of a receive queue for a remote branch (int)
+//! Default size of a receive queue for a remote branch (int)
 #define YOGI_CONST_DEFAULT_RX_QUEUE_SIZE 25
+
+//! Default port for the web server to listen on for client connections (int)
+#define YOGI_CONST_DEFAULT_WEB_PORT 26
+
+//! Default network interfaces to use for the web server (const char*)
+#define YOGI_CONST_DEFAULT_WEB_INTERFACES 27
+
+//! Default timeout for web server connections in nanoseconds (long long)
+#define YOGI_CONST_DEFAULT_WEB_TIMEOUT 28
+
+//! Default size of the web server cache in bytes (int)
+#define YOGI_CONST_DEFAULT_WEB_CACHE_SIZE 29
+
+//! Maximum size of the web server cache in bytes (int)
+#define YOGI_CONST_MAX_WEB_CACHE_SIZE 30
+
+//! Default user name for the administrator account (const char*)
+#define YOGI_CONST_DEFAULT_ADMIN_USER 31
+
+//! Default password for the administrator account (const char*)
+#define YOGI_CONST_DEFAULT_ADMIN_PASSWORD 32
+
+//! Default private key to use for SSL connections (const char*)
+#define YOGI_CONST_DEFAULT_SSL_PRIVATE_KEY 33
+
+//! Default certificate chain to use for SSL connections (const char*)
+#define YOGI_CONST_DEFAULT_SSL_CERTIFICATE_CHAIN 34
+
+//! Default DH parameters to use for SSL connections (const char*)
+#define YOGI_CONST_DEFAULT_SSL_DH_PARAMS 35
 
 //! @}
 //!
@@ -2214,18 +2244,19 @@ YOGI_API int YOGI_DestroyAll();
  * - User authentication and access control for routes and resources
  * - Per-user persistant storage
  *
- * The web server is configured via the \p props parameter in JSON. While none
- * of the properties are mandatory the following excerpt shows the default
- * values of the core parameters:
+ * The web server is configured via the \p config parameter. The configuration
+ * object will only be used while constructing the server, i.e. the server will
+ * not keep any references to it. While none of the properties are mandatory the
+ * following excerpt shows the default values of the core parameters:
  *
  * \code
  *   {
  *     "port":            8443,
  *     "interfaces":      ["localhost"],
- *     "compression":     true,
  *     "timeout":         30.0,
  *     "test_mode":       false,
- *     "worker_threads"   -1,
+ *     "compress_assets": true,
+ *     "cache_size":      100000000,
  *     "routes": {
  *       "/": {
  *         "type":        "content",
@@ -2350,13 +2381,14 @@ YOGI_API int YOGI_DestroyAll();
  *    "WMware Network Adapter WMnet1") or MAC addresses ("11:22:33:44:55:66").
  *    Furthermore, the special strings "localhost" and "all" can be used to
  *    denote loopback and all available interfaces respectively.
- *  - __compression__: Enable compression.
+ *  - __compress_assets__: Enable compression when transferring compressable,
+ *    static assets such as HTML or JavaScript files.
+ *  - __cache_size__: Size of the file cache in bytes. Used to keep assets in
+ *    memory instead of reading them from disk to improve performance. A value
+ *    of 0 disables the cache entirely.
  *  - __timeout__: Time of inactivity before terminating a client connection.
  *  - __test_mode__: Set to true to enable functionality for testing both server
  *    and client code. Should only be enabled during development.
- *  - __worker_threads__: Number of threads handling client requests. Set this
- *    value to -1 to automatically determine a suitable value based on the
- *    number of available CPU cores.
  *
  * The sub-sections following the properties above are described in more detail
  * in the next paragraphs:
@@ -2505,13 +2537,18 @@ YOGI_API int YOGI_DestroyAll();
  *   The DH parameters can be left at their default values since this does not
  *   pose a security issue.
  *
+ * The supplied \p context will be used for housekeeping and for accepting
+ * incoming connection requests. As long as no workers have been added using
+ * YOGI_WebServerAddWorker(), \p context will also be used to handle client
+ * requests.
+ *
  * \param[out] server   Pointer to the server handle
  * \param[in]  context  The context to use (set to NULL to use the branch's
  *                      context)
  * \param[in]  branch   Branch to use (set to NULL to disable all
  *                      branch-specific features)
- * \param[in]  props    Server properties as JSON (set to NULL to use defaults)
- * \param[in]  section  Section in \p props to use (set to NULL for root);
+ * \param[in]  config   Server properties (set to NULL to use defaults)
+ * \param[in]  section  Section in \p config to use (set to NULL for root);
  *                      syntax is JSON pointer (RFC 6901)
  * \param[out] err      Pointer to a char array for storing an error description
  *                      (can be set to NULL)
@@ -2521,8 +2558,37 @@ YOGI_API int YOGI_DestroyAll();
  * \returns [<0] An error code in case of a failure (see \ref EC)
  */
 YOGI_API int YOGI_WebServerCreate(void** server, void* context, void* branch,
-                                  const char* props, const char* section,
-                                  char* err, int errsize);
+                                  void* config, const char* section, char* err,
+                                  int errsize);
+
+/*!
+ * Adds a worker thread to a web server.
+ *
+ * A worker represents a thread handling client requests. Multiple workers can
+ * be added to a server in order to improve performance.
+ *
+ * \attention
+ *   The user has to provide the thread running the provided context or call
+ *   YOGI_ContextRunInBackground() in order to perform the actual work.
+ *
+ * \param[in] server  The server to add the worker to
+ * \param[in] context The context to add as a worker
+ *
+ * \returns [=0] #YOGI_OK if successful
+ * \returns [<0] An error code in case of a failure (see \ref EC)
+ */
+YOGI_API int YOGI_WebServerAddWorker(void* server, void* context);
+
+/*!
+ * Removes a worker thread from a web server.
+ *
+ * \param[in] server  The server that uses the context
+ * \param[in] context The context to remove
+ *
+ * \returns [=0] #YOGI_OK if successful
+ * \returns [<0] An error code in case of a failure (see \ref EC)
+ */
+YOGI_API int YOGI_WebServerRemoveWorker(void* server, void* context);
 
 /*!
  * Creates a dynamic route.

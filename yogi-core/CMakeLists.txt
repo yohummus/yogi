@@ -69,9 +69,11 @@ add_library (yogi-core-static STATIC
   src/objects/logger.cc
   src/objects/signal_set.cc
   src/objects/timer.cc
+  src/objects/web_server.cc
   src/utils/console.cc
   src/utils/crypto.cc
   src/utils/glob.cc
+  src/utils/json_helpers.cc
   src/utils/ringbuffer.cc
   src/utils/system.cc
   src/utils/timestamp.cc
@@ -100,6 +102,7 @@ add_library (yogi-core SHARED
   src/yogi_core/signals.cc
   src/yogi_core/time.cc
   src/yogi_core/timers.cc
+  src/yogi_core/web.cc
 )
 
 target_link_libraries (yogi-core
@@ -169,7 +172,9 @@ add_executable (yogi-core-test
   test/objects/logger_test.cc
   test/objects/signal_set_test.cc
   test/objects/timer_test.cc
+  test/objects/web_server_test.cc
   test/utils/algorithm_test.cc
+  test/utils/crypto_test.cc
   test/utils/glob_test.cc
   test/utils/ringbuffer_test.cc
   test/utils/system_test.cc

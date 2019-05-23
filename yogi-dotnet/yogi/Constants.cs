@@ -125,6 +125,36 @@ public static partial class Yogi
         /// <summary>Default size of a receive queue for a remote branch.</summary>
         public static readonly int DefaultRxQueueSize;
 
+        /// <summary>Default port for the web server to listen on for client connections.</summary>
+        public static readonly int DefaultWebPort;
+
+        /// <summary>Default network interfaces to use for the web server.</summary>
+        public static readonly string DefaultWebInterfaces;
+
+        /// <summary>Default timeout for web server connections in nanoseconds.</summary>
+        public static readonly Duration DefaultWebTimeout;
+
+        /// <summary>Default size of the web server cache in bytes.</summary>
+        public static readonly int DefaultWebCacheSize;
+
+        /// <summary>Maximum size of the web server cache in bytes.</summary>
+        public static readonly int MaxWebCacheSize;
+
+        /// <summary>Default user name for the administrator account.</summary>
+        public static readonly string DefaultAdminUser;
+
+        /// <summary>Default password for the administrator account.</summary>
+        public static readonly string DefaultAdminPassword;
+
+        /// <summary>Default private key to use for SSL connections.</summary>
+        public static readonly string DefaultSslPrivateKey;
+
+        /// <summary>Default certificate chain to use for SSL connections.</summary>
+        public static readonly string DefaultSslCertificateChain;
+
+        /// <summary>Default DH parameters to use for SSL connections.</summary>
+        public static readonly string DefaultSslDhParams;
+
         static Constants()
         {
             IntPtr str = new IntPtr();
@@ -187,6 +217,32 @@ public static partial class Yogi
             CheckErrorCode(Api.YOGI_GetIntConstant(ref MinRxQueueSize, 23));
             CheckErrorCode(Api.YOGI_GetIntConstant(ref MaxRxQueueSize, 24));
             CheckErrorCode(Api.YOGI_GetIntConstant(ref DefaultRxQueueSize, 25));
+
+            CheckErrorCode(Api.YOGI_GetIntConstant(ref DefaultWebPort, 26));
+
+            CheckErrorCode(Api.YOGI_GetStringConstant(ref str, 27));
+            DefaultWebInterfaces = Marshal.PtrToStringAnsi(str);
+
+            CheckErrorCode(Api.YOGI_GetLongLongConstant(ref t, 28));
+            DefaultWebTimeout = Duration.FromNanoseconds(t);
+
+            CheckErrorCode(Api.YOGI_GetIntConstant(ref DefaultWebCacheSize, 29));
+            CheckErrorCode(Api.YOGI_GetIntConstant(ref MaxWebCacheSize, 30));
+
+            CheckErrorCode(Api.YOGI_GetStringConstant(ref str, 31));
+            DefaultAdminUser = Marshal.PtrToStringAnsi(str);
+
+            CheckErrorCode(Api.YOGI_GetStringConstant(ref str, 32));
+            DefaultAdminPassword = Marshal.PtrToStringAnsi(str);
+
+            CheckErrorCode(Api.YOGI_GetStringConstant(ref str, 33));
+            DefaultSslPrivateKey = Marshal.PtrToStringAnsi(str);
+
+            CheckErrorCode(Api.YOGI_GetStringConstant(ref str, 34));
+            DefaultSslCertificateChain = Marshal.PtrToStringAnsi(str);
+
+            CheckErrorCode(Api.YOGI_GetStringConstant(ref str, 35));
+            DefaultSslDhParams = Marshal.PtrToStringAnsi(str);
         }
     }
 }

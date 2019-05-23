@@ -1,6 +1,6 @@
 /*
  * This file is part of the Yogi distribution https://github.com/yohummus/yogi.
- * Copyright (c) 2018 Johannes Bergmann.
+ * Copyright (c) 2019 Johannes Bergmann.
  *
  * This library is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,15 +18,28 @@
 #pragma once
 
 #include "../config.h"
-#include "types.h"
+#include "context.h"
+#include "branch.h"
+#include "logger.h"
 
-#include <vector>
-#include <string>
+#include <nlohmann/json.hpp>
 
-namespace utils {
+namespace objects {
 
-ByteVector MakeSha256(const ByteVector& data);
-ByteVector MakeSha256(const std::string& data);
-ByteVector GenerateRandomBytes(std::size_t n);
+class WebServer
+    : public api::ExposedObjectT<WebServer, api::ObjectType::kWebServer> {
+ public:
+  WebServer(ContextPtr context, BranchPtr branch, const nlohmann::json& cfg);
 
-}  // namespace utils
+  void Start();
+
+ private:
+  static const LoggerPtr logger_;
+
+  const ContextPtr context_;
+  const BranchPtr branch_;
+};
+
+typedef std::shared_ptr<WebServer> WebServerPtr;
+
+}  // namespace objects

@@ -22,6 +22,8 @@
 #include "detail/branch/broadcast_manager.h"
 #include "detail/branch/connection_manager.h"
 
+#include <nlohmann/json.hpp>
+
 namespace objects {
 
 class Branch : public api::ExposedObjectT<Branch, api::ObjectType::kBranch> {
@@ -35,17 +37,11 @@ class Branch : public api::ExposedObjectT<Branch, api::ObjectType::kBranch> {
   using SendBroadcastOperationId =
       detail::BroadcastManager::SendBroadcastOperationId;
 
-  Branch(ContextPtr context, std::string name, std::string description,
-         std::string net_name, std::string password, std::string path,
-         const std::vector<std::string>& adv_if_strings,
-         const boost::asio::ip::udp::endpoint& adv_ep,
-         std::chrono::nanoseconds adv_interval,
-         std::chrono::nanoseconds timeout, bool ghost_mode,
-         std::size_t tx_queue_size, std::size_t rx_queue_size,
-         std::size_t transceive_byte_limit);
+  Branch(ContextPtr context, const nlohmann::json& cfg);
 
   void Start();
 
+  ContextPtr GetContext() const;
   const boost::uuids::uuid& GetUuid() const;
   std::string MakeInfoString() const;
   BranchInfoStringsList MakeConnectedBranchesInfoStrings() const;

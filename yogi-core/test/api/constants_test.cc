@@ -21,19 +21,19 @@
 void check(int constant, int value) {
   int x;
   YOGI_GetConstant(&x, constant);
-  EXPECT_EQ(x, value) << "Constant (int): ";
+  EXPECT_EQ(x, value) << "Constant (int): " << constant;
 }
 
 void check(int constant, long long value) {
   long long x;
   YOGI_GetConstant(&x, constant);
-  EXPECT_EQ(x, value) << "Constant (long long): ";
+  EXPECT_EQ(x, value) << "Constant (long long): " << constant;
 }
 
 void check(int constant, const char* value) {
   const char* x;
   YOGI_GetConstant(&x, constant);
-  EXPECT_STREQ(x, value) << "Constant (const char*): ";
+  EXPECT_STREQ(x, value) << "Constant (const char*): " << constant;
 }
 
 TEST(ConstantsTest, GetConstant) {
@@ -75,6 +75,15 @@ TEST(ConstantsTest, GetEachConstant) {
   check(YOGI_CONST_DEFAULT_TX_QUEUE_SIZE,         kDefaultTxQueueSize);
   check(YOGI_CONST_MIN_RX_QUEUE_SIZE,             kMinRxQueueSize);
   check(YOGI_CONST_MAX_RX_QUEUE_SIZE,             kMaxRxQueueSize);
-  check(YOGI_CONST_DEFAULT_RX_QUEUE_SIZE,         kDefaultRxQueueSize);
+  check(YOGI_CONST_DEFAULT_WEB_PORT,              kDefaultWebPort);
+  check(YOGI_CONST_DEFAULT_WEB_INTERFACES,        kDefaultWebInterfaces);
+  check(YOGI_CONST_DEFAULT_WEB_TIMEOUT,           kDefaultWebTimeout);
+  check(YOGI_CONST_DEFAULT_WEB_CACHE_SIZE,        kDefaultWebCacheSize);
+  check(YOGI_CONST_MAX_WEB_CACHE_SIZE,            kMaxWebCacheSize);
+  check(YOGI_CONST_DEFAULT_ADMIN_USER,            kDefaultAdminUser);
+  check(YOGI_CONST_DEFAULT_ADMIN_PASSWORD,        kDefaultAdminPassword);
+  check(YOGI_CONST_DEFAULT_SSL_PRIVATE_KEY,       kDefaultSslPrivateKey);
+  check(YOGI_CONST_DEFAULT_SSL_CERTIFICATE_CHAIN, kDefaultSslCertificateChain);
+  check(YOGI_CONST_DEFAULT_SSL_DH_PARAMS,         kDefaultSslDhParams);
   // clang-format on
 }

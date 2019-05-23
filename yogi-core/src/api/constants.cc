@@ -124,6 +124,47 @@ void GetConstant(void* dest, int constant) {
       *static_cast<int*>(dest) = kDefaultRxQueueSize;
       break;
 
+    case YOGI_CONST_DEFAULT_WEB_PORT:
+      *static_cast<int*>(dest) = kDefaultWebPort;
+      break;
+
+    case YOGI_CONST_DEFAULT_WEB_INTERFACES:
+      *static_cast<const char**>(dest) = kDefaultWebInterfaces;
+      break;
+
+    case YOGI_CONST_DEFAULT_WEB_TIMEOUT:
+      // NOLINTNEXTLINE(google-runtime-int)
+      *static_cast<long long*>(dest) = kDefaultWebTimeout;
+      break;
+
+    case YOGI_CONST_DEFAULT_WEB_CACHE_SIZE:
+      *static_cast<int*>(dest) = kDefaultWebCacheSize;
+      break;
+
+    case YOGI_CONST_MAX_WEB_CACHE_SIZE:
+      *static_cast<int*>(dest) = kMaxWebCacheSize;
+      break;
+
+    case YOGI_CONST_DEFAULT_ADMIN_USER:
+      *static_cast<const char**>(dest) = kDefaultAdminUser;
+      break;
+
+    case YOGI_CONST_DEFAULT_ADMIN_PASSWORD:
+      *static_cast<const char**>(dest) = kDefaultAdminPassword;
+      break;
+
+    case YOGI_CONST_DEFAULT_SSL_PRIVATE_KEY:
+      *static_cast<const char**>(dest) = kDefaultSslPrivateKey;
+      break;
+
+    case YOGI_CONST_DEFAULT_SSL_CERTIFICATE_CHAIN:
+      *static_cast<const char**>(dest) = kDefaultSslCertificateChain;
+      break;
+
+    case YOGI_CONST_DEFAULT_SSL_DH_PARAMS:
+      *static_cast<const char**>(dest) = kDefaultSslDhParams;
+      break;
+
     default:
       throw Error(YOGI_ERR_INVALID_PARAM);
   }

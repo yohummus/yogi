@@ -148,6 +148,59 @@ class TestConstants(TestCase):
         self.assertIsInstance(c, int)
         self.assertLess(c, yogi.Constants.MAX_RX_QUEUE_SIZE)
 
+    def test_default_web_port(self):
+        c = yogi.Constants.DEFAULT_WEB_PORT
+        self.assertIsInstance(c, int)
+        self.assertGreater(c, 1024)
+        self.assertLess(c, 65535)
+
+    def test_default_web_interfaces(self):
+        c = yogi.Constants.DEFAULT_WEB_INTERFACES
+        self.assertIsInstance(c, str)
+        self.assertTrue("localhost" in c)
+
+    def test_default_web_timeout(self):
+        c = yogi.Constants.DEFAULT_WEB_TIMEOUT
+        self.assertIsInstance(c, yogi.Duration)
+        self.assertAlmostEqual(c.total_seconds, 30.0, delta=100.0)
+
+    def test_default_web_cache_size(self):
+        c = yogi.Constants.DEFAULT_WEB_CACHE_SIZE
+        self.assertIsInstance(c, int)
+        self.assertGreaterEqual(c, 1000000)
+        self.assertLess(c, yogi.Constants.MAX_WEB_CACHE_SIZE)
+
+    def test_max_web_cache_size(self):
+        c = yogi.Constants.MAX_WEB_CACHE_SIZE
+        self.assertIsInstance(c, int)
+        self.assertGreaterEqual(c, 100000000)
+        self.assertLessEqual(c, 1000000000)
+
+    def test_default_admin_user(self):
+        c = yogi.Constants.DEFAULT_ADMIN_USER
+        self.assertIsInstance(c, str)
+        self.assertGreaterEqual(len(c), 3)
+
+    def test_default_admin_password(self):
+        c = yogi.Constants.DEFAULT_ADMIN_PASSWORD
+        self.assertIsInstance(c, str)
+        self.assertGreaterEqual(len(c), 3)
+
+    def test_default_ssl_private_key(self):
+        c = yogi.Constants.DEFAULT_SSL_PRIVATE_KEY
+        self.assertIsInstance(c, str)
+        self.assertTrue("-----BEGIN PRIVATE KEY-----" in c)
+
+    def test_default_ssl_certificate_chain(self):
+        c = yogi.Constants.DEFAULT_SSL_CERTIFICATE_CHAIN
+        self.assertIsInstance(c, str)
+        self.assertTrue("-----BEGIN CERTIFICATE-----" in c)
+
+    def test_default_ssl_dh_params(self):
+        c = yogi.Constants.DEFAULT_SSL_DH_PARAMS
+        self.assertIsInstance(c, str)
+        self.assertTrue("-----BEGIN DH PARAMETERS-----" in c)
+
 
 if __name__ == '__main__':
     unittest.main()
