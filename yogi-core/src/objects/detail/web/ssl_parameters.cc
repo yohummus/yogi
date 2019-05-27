@@ -19,6 +19,7 @@
 #include "../../../api/errors.h"
 #include "../../../api/constants.h"
 
+#include <boost/filesystem.hpp>
 #include <sstream>
 
 YOGI_DEFINE_INTERNAL_LOGGER("WebServer");
@@ -84,9 +85,15 @@ std::string SslParameters::LoadFromFile(
         << "The property \"" << prop_file.key() << "\" must be a string.";
   }
 
-  auto filename = prop_file->get<std::string>();
+  auto filename =
+      boost::filesystem::absolute(prop_file->get<std::string>()).string();
 
   std::ifstream ifs(filename);
+  if (ifs.fail()) {
+    throw api::DescriptiveError(YOGI_ERR_READ_FILE_FAILED)
+        << "The " << desc << " file " << filename
+        << " does not exist or is not readable.";
+  }
   auto content = std::string((std::istreambuf_iterator<char>(ifs)),
                              (std::istreambuf_iterator<char>()));
 

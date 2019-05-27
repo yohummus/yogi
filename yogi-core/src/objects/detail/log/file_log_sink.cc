@@ -27,7 +27,7 @@ FileLogSink::FileLogSink(api::Verbosity verbosity, std::string filename,
       filename_(utils::Timestamp::Now().ToFormattedString(filename)) {
   file_.open(filename_, std::ios::out | std::ios::trunc);
   if (!file_.is_open()) {
-    throw api::Error(YOGI_ERR_OPEN_FILE_FAILED);
+    throw api::Error(YOGI_ERR_READ_FILE_FAILED);
   }
 }
 

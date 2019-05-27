@@ -77,8 +77,8 @@ const char* Result::GetDescription() const {
     case YOGI_ERR_INVALID_REGEX:
       return "Invalid regular expression";
 
-    case YOGI_ERR_OPEN_FILE_FAILED:
-      return "Could not open file";
+    case YOGI_ERR_READ_FILE_FAILED:
+      return "Could not read from file";
 
     case YOGI_ERR_RW_SOCKET_FAILED:
       return "Could not read from or write to socket";
@@ -131,7 +131,7 @@ const char* Result::GetDescription() const {
     case YOGI_ERR_HELP_REQUESTED:
       return "Help/usage text requested";
 
-    case YOGI_ERR_WRITE_TO_FILE_FAILED:
+    case YOGI_ERR_WRITE_FILE_FAILED:
       return "Could not write to file";
 
     case YOGI_ERR_UNDEFINED_VARIABLES:

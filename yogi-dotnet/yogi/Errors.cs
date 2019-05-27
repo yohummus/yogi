@@ -89,7 +89,7 @@ public static partial class Yogi
         /// <summary>Invalid regular expression.</summary>
         InvalidRegex = -16,
 
-        /// <summary>Could not open file.</summary>
+        /// <summary>Could not read from file.</summary>
         OpenFileFailed = -17,
 
         /// <summary>Could not read from or write to socket.</summary>

@@ -115,7 +115,7 @@ void Configuration::WriteToFile(const std::string& filename,
 
   std::ofstream f(filename);
   if (!f.is_open()) {
-    throw api::Error(YOGI_ERR_OPEN_FILE_FAILED);
+    throw api::Error(YOGI_ERR_READ_FILE_FAILED);
   }
 
   try {
@@ -131,7 +131,7 @@ void Configuration::WriteToFile(const std::string& filename,
   } catch (const std::exception& e) {
     LOG_ERR("Could not write configuration to " << filename << ": "
                                                 << e.what());
-    throw api::Error(YOGI_ERR_WRITE_TO_FILE_FAILED);
+    throw api::Error(YOGI_ERR_WRITE_FILE_FAILED);
   }
 }
 

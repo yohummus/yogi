@@ -81,6 +81,13 @@ TEST_F(SslParametersTest, LoadParametersFromFiles) {
   EXPECT_EQ(params.GetDhParams(), ReadFile(dh_file));
 }
 
+TEST_F(SslParametersTest, LoadParametersFromNonExistingFile) {
+  nlohmann::json ssl_cfg = {{"private_key_file", "does_not_exist.pem"}};
+
+  EXPECT_THROW_DESCRIPTIVE_ERROR(SslParameters(ssl_cfg, ""),
+                                 YOGI_ERR_READ_FILE_FAILED);
+}
+
 TEST_F(SslParametersTest, PasswordRequired) {
   auto ssl_cfg = nlohmann::json::parse(R"(
         {

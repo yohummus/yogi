@@ -95,8 +95,8 @@ enum class ErrorCode {
   /// Invalid regular expression
   kInvalidRegex = -16,
 
-  /// Could not open file
-  kOpenFileFailed = -17,
+  /// Could not read from file
+  kReadFileFailed = -17,
 
   /// Could not read from or write to socket
   kRwSocketFailed = -18,
@@ -150,7 +150,7 @@ enum class ErrorCode {
   kHelpRequested = -34,
 
   /// Could not write to file
-  kWriteToFileFailed = -35,
+  kWriteFileFailed = -35,
 
   /// One or more configuration variables are undefined or could not be
   /// resolved
@@ -210,7 +210,7 @@ inline std::string ToString<ErrorCode>(const ErrorCode& ec) {
     _YOGI_TO_STRING_ENUM_CASE(ErrorCode, kListenSocketFailed)
     _YOGI_TO_STRING_ENUM_CASE(ErrorCode, kSetSocketOptionFailed)
     _YOGI_TO_STRING_ENUM_CASE(ErrorCode, kInvalidRegex)
-    _YOGI_TO_STRING_ENUM_CASE(ErrorCode, kOpenFileFailed)
+    _YOGI_TO_STRING_ENUM_CASE(ErrorCode, kReadFileFailed)
     _YOGI_TO_STRING_ENUM_CASE(ErrorCode, kRwSocketFailed)
     _YOGI_TO_STRING_ENUM_CASE(ErrorCode, kConnectSocketFailed)
     _YOGI_TO_STRING_ENUM_CASE(ErrorCode, kInvalidMagicPrefix)
@@ -228,7 +228,7 @@ inline std::string ToString<ErrorCode>(const ErrorCode& ec) {
     _YOGI_TO_STRING_ENUM_CASE(ErrorCode, kParsingFileFailed)
     _YOGI_TO_STRING_ENUM_CASE(ErrorCode, kConfigNotValid)
     _YOGI_TO_STRING_ENUM_CASE(ErrorCode, kHelpRequested)
-    _YOGI_TO_STRING_ENUM_CASE(ErrorCode, kWriteToFileFailed)
+    _YOGI_TO_STRING_ENUM_CASE(ErrorCode, kWriteFileFailed)
     _YOGI_TO_STRING_ENUM_CASE(ErrorCode, kUndefinedVariables)
     _YOGI_TO_STRING_ENUM_CASE(ErrorCode, kNoVariableSupport)
     _YOGI_TO_STRING_ENUM_CASE(ErrorCode, kVariableUsedInKey)

@@ -39,7 +39,7 @@ TEST(ErrorsTest, ErrorCodeEnum) {
   CHECK_ENUM_ELEMENT(ErrorCode, kListenSocketFailed,               YOGI_ERR_LISTEN_SOCKET_FAILED);
   CHECK_ENUM_ELEMENT(ErrorCode, kSetSocketOptionFailed,            YOGI_ERR_SET_SOCKET_OPTION_FAILED);
   CHECK_ENUM_ELEMENT(ErrorCode, kInvalidRegex,                     YOGI_ERR_INVALID_REGEX);
-  CHECK_ENUM_ELEMENT(ErrorCode, kOpenFileFailed,                   YOGI_ERR_OPEN_FILE_FAILED);
+  CHECK_ENUM_ELEMENT(ErrorCode, kReadFileFailed,                   YOGI_ERR_READ_FILE_FAILED);
   CHECK_ENUM_ELEMENT(ErrorCode, kRwSocketFailed,                   YOGI_ERR_RW_SOCKET_FAILED);
   CHECK_ENUM_ELEMENT(ErrorCode, kConnectSocketFailed,              YOGI_ERR_CONNECT_SOCKET_FAILED);
   CHECK_ENUM_ELEMENT(ErrorCode, kInvalidMagicPrefix,               YOGI_ERR_INVALID_MAGIC_PREFIX);
@@ -57,7 +57,7 @@ TEST(ErrorsTest, ErrorCodeEnum) {
   CHECK_ENUM_ELEMENT(ErrorCode, kParsingFileFailed,                YOGI_ERR_PARSING_FILE_FAILED);
   CHECK_ENUM_ELEMENT(ErrorCode, kConfigNotValid,                   YOGI_ERR_CONFIG_NOT_VALID);
   CHECK_ENUM_ELEMENT(ErrorCode, kHelpRequested,                    YOGI_ERR_HELP_REQUESTED);
-  CHECK_ENUM_ELEMENT(ErrorCode, kWriteToFileFailed,                YOGI_ERR_WRITE_TO_FILE_FAILED);
+  CHECK_ENUM_ELEMENT(ErrorCode, kWriteFileFailed,                  YOGI_ERR_WRITE_FILE_FAILED);
   CHECK_ENUM_ELEMENT(ErrorCode, kUndefinedVariables,               YOGI_ERR_UNDEFINED_VARIABLES);
   CHECK_ENUM_ELEMENT(ErrorCode, kNoVariableSupport,                YOGI_ERR_NO_VARIABLE_SUPPORT);
   CHECK_ENUM_ELEMENT(ErrorCode, kVariableUsedInKey,                YOGI_ERR_VARIABLE_USED_IN_KEY);

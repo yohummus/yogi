@@ -215,8 +215,8 @@
 //! Invalid regular expression
 #define YOGI_ERR_INVALID_REGEX -16
 
-//! Could not open file
-#define YOGI_ERR_OPEN_FILE_FAILED -17
+//! Could not read from file
+#define YOGI_ERR_READ_FILE_FAILED -17
 
 //! Could not read from or write to socket
 #define YOGI_ERR_RW_SOCKET_FAILED -18
@@ -270,7 +270,7 @@
 #define YOGI_ERR_HELP_REQUESTED -34
 
 //! Could not write to file
-#define YOGI_ERR_WRITE_TO_FILE_FAILED -35
+#define YOGI_ERR_WRITE_FILE_FAILED -35
 
 //! One or more configuration variables are undefined or could not be resolved
 #define YOGI_ERR_UNDEFINED_VARIABLES -36
