@@ -20,7 +20,7 @@
 #include "../../../api/constants.h"
 
 #include <boost/filesystem.hpp>
-#include <sstream>
+#include <fstream>
 
 YOGI_DEFINE_INTERNAL_LOGGER("WebServer");
 
@@ -30,26 +30,29 @@ namespace web {
 
 SslParameters::SslParameters(const nlohmann::json& ssl_cfg,
                              const std::string& logging_prefix) {
-  if (!ssl_cfg.is_object()) {
+  static const nlohmann::json dummy = nlohmann::json::object_t{};
+
+  auto& cfg = ssl_cfg.is_null() ? dummy : ssl_cfg;
+  if (!cfg.is_object()) {
     throw api::DescriptiveError(YOGI_ERR_CONFIG_NOT_VALID)
-        << "Missing or invalid SSL section.";
+        << "Invalid SSL section.";
   }
 
   SetLoggingPrefix(logging_prefix);
 
   private_key_ = ExtractFromConfigOrFile(
-      ssl_cfg, "private_key", api::kDefaultSslPrivateKey, "private key");
+      cfg, "private_key", api::kDefaultSslPrivateKey, "private key");
   WarnIfUsingDefaultPrivateKey();
 
-  private_key_pw_ = ssl_cfg.value("private_key_password", "");
+  private_key_pw_ = cfg.value("private_key_password", "");
   CheckPrivateKeyPasswordGiven();
 
-  certificate_chain_ = ExtractFromConfigOrFile(ssl_cfg, "certificate_chain",
+  certificate_chain_ = ExtractFromConfigOrFile(cfg, "certificate_chain",
                                                api::kDefaultSslCertificateChain,
                                                "certificate chain");
 
   dh_params_ = ExtractFromConfigOrFile(
-      ssl_cfg, "dh_params", api::kDefaultSslDhParams, "DH parameters");
+      cfg, "dh_params", api::kDefaultSslDhParams, "DH parameters");
 }
 
 std::string SslParameters::ExtractFromConfigOrFile(
@@ -89,11 +92,12 @@ std::string SslParameters::LoadFromFile(
       boost::filesystem::absolute(prop_file->get<std::string>()).string();
 
   std::ifstream ifs(filename);
-  if (ifs.fail()) {
+  if (!ifs.is_open() || ifs.fail()) {
     throw api::DescriptiveError(YOGI_ERR_READ_FILE_FAILED)
         << "The " << desc << " file " << filename
         << " does not exist or is not readable.";
   }
+
   auto content = std::string((std::istreambuf_iterator<char>(ifs)),
                              (std::istreambuf_iterator<char>()));
 

@@ -25,7 +25,7 @@ using objects::detail::web::SslParameters;
 class SslParametersTest : public TestFixture {};
 
 TEST_F(SslParametersTest, DefaultParameters) {
-  SslParameters params(nlohmann::json::object_t{}, "");
+  SslParameters params({}, "");
   EXPECT_EQ(params.GetPrivateKey(), api::kDefaultSslPrivateKey);
   EXPECT_TRUE(params.GetPrivateKeyPassword().empty());
   EXPECT_EQ(params.GetCertificateChain(), api::kDefaultSslCertificateChain);

@@ -1,0 +1,9 @@
+{
+  "groups": {
+    "staff": {
+      "name": "Staff",
+      "description": "Employees",
+      "unrestricted": true
+    }
+  }
+}

@@ -15,41 +15,27 @@
  * along with this library. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#pragma once
-
-#include "../../../config.h"
 #include "group.h"
-
-#include <nlohmann/json.hpp>
-
-#include <memory>
-#include <unordered_map>
+#include "../../../api/errors.h"
+#include "../../../utils/json_helpers.h"
 
 namespace objects {
 namespace detail {
 namespace web {
 
-class User;
+GroupsMap Group::CreateAllFromJson(const nlohmann::json& json) {
+  GroupsMap groups;
+  for (auto it : json.items()) {
+    auto group = std::make_shared<Group>();
+    utils::CopyJsonProperty(it.value(), "name", "", &group->props_);
+    utils::CopyJsonProperty(it.value(), "description", "", &group->props_);
+    utils::CopyJsonProperty(it.value(), "unrestricted", false, &group->props_);
 
-typedef std::shared_ptr<User> UserPtr;
-typedef std::unordered_map<std::string, UserPtr> UsersMap;
+    groups[it.key()] = group;
+  }
 
-class User {
- public:
-  static UsersMap CreateAllFromJson(const nlohmann::json& json,
-                                    const GroupsMap& groups);
-
-  const nlohmann::json& ToJson() const { return props_; }
-  bool IsEnabled() const { return enabled_; }
-  const std::string& GetPassword() const { return password_; }
-  const GroupsSet& GetGroups() const { return groups_; }
-
- private:
-  nlohmann::json props_;
-  bool enabled_;
-  std::string password_;
-  GroupsSet groups_;
-};
+  return groups;
+}
 
 }  // namespace web
 }  // namespace detail

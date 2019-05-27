@@ -18,6 +18,7 @@
 #include "crypto.h"
 #include "../objects/logger.h"
 
+#include <boost/algorithm/hex.hpp>
 #include <openssl/sha.h>
 #include <openssl/rand.h>
 #include <openssl/err.h>
@@ -42,6 +43,13 @@ ByteVector MakeSha256(const ByteVector& data) {
 
 ByteVector MakeSha256(const std::string& data) {
   return MakeSha256(ByteVector{data.begin(), data.end()});
+}
+
+std::string MakeSha256String(const std::string& data) {
+  auto bytes = MakeSha256(data);
+  std::string s;
+  boost::algorithm::hex(bytes.begin(), bytes.end(), std::back_inserter(s));
+  return s;
 }
 
 ByteVector GenerateRandomBytes(std::size_t n) {

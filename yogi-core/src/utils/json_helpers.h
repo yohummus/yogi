@@ -49,4 +49,10 @@ boost::asio::ip::udp::endpoint ExtractUdpEndpoint(
     const nlohmann::json& json, const char* addr_key,
     const std::string& default_addr, const char* port_key, int default_port);
 
+template <typename T>
+void CopyJsonProperty(const nlohmann::json& from_section, const char* key,
+                      T&& default_value, nlohmann::json* to_section) {
+  (*to_section)[key] = from_section.value(key, std::forward<T>(default_value));
+}
+
 }  // namespace utils

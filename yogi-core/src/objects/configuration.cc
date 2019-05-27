@@ -63,7 +63,7 @@ void Configuration::UpdateFromString(const std::string& json_str) {
 
 void Configuration::UpdateFromFile(const std::string& filename) {
   std::ifstream f(filename);
-  if (!f.is_open()) {
+  if (!f.is_open() || f.fail()) {
     throw api::DescriptiveError(YOGI_ERR_PARSING_FILE_FAILED)
         << "Could not open " << filename;
   }
@@ -114,7 +114,7 @@ void Configuration::WriteToFile(const std::string& filename,
   }
 
   std::ofstream f(filename);
-  if (!f.is_open()) {
+  if (!f.is_open() || f.fail()) {
     throw api::Error(YOGI_ERR_READ_FILE_FAILED);
   }
 

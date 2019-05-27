@@ -19,7 +19,11 @@
 
 #include "../../../config.h"
 
+#include <nlohmann/json.hpp>
+
 #include <memory>
+#include <unordered_map>
+#include <unordered_set>
 
 namespace objects {
 namespace detail {
@@ -28,8 +32,18 @@ namespace web {
 class Group;
 
 typedef std::shared_ptr<Group> GroupPtr;
+typedef std::unordered_map<std::string, GroupPtr> GroupsMap;
+typedef std::unordered_set<GroupPtr> GroupsSet;
 
-class Group {};
+class Group {
+ public:
+  static GroupsMap CreateAllFromJson(const nlohmann::json& json);
+
+  const nlohmann::json& ToJson() const { return props_; }
+
+ private:
+  nlohmann::json props_;
+};
 
 }  // namespace web
 }  // namespace detail

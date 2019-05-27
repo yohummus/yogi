@@ -17,6 +17,11 @@
 
 #include "auth_provider.h"
 #include "../../../api/errors.h"
+#include "../../../api/constants.h"
+#include "../../../utils/crypto.h"
+
+#include <boost/filesystem.hpp>
+#include <fstream>
 
 YOGI_DEFINE_INTERNAL_LOGGER("WebServer");
 
@@ -26,40 +31,155 @@ namespace web {
 
 AuthProviderPtr AuthProvider::Create(const nlohmann::json& auth_cfg,
                                      const std::string& logging_prefix) {
-  if (!auth_cfg.is_object()) {
+  static const nlohmann::json dummy = nlohmann::json::object_t{};
+
+  auto& cfg = auth_cfg.is_null() ? dummy : auth_cfg;
+  if (!cfg.is_object()) {
     throw api::DescriptiveError(YOGI_ERR_CONFIG_NOT_VALID)
         << "Missing or invalid authentication section.";
   }
 
   AuthProviderPtr auth;
 
-  auto provider = auth_cfg.value("provider", std::string{});
-  if (provider == "config") {
-    auth = std::make_unique<ConfigAuthProvider>(auth_cfg);
+  auto provider = cfg.value("provider", std::string{});
+  if (!cfg.contains("provider") || provider == "config") {
+    auth = std::make_unique<ConfigAuthProvider>(cfg, logging_prefix);
   } else if (provider == "files") {
-    auth = std::make_unique<FilesAuthProvider>(auth_cfg);
+    auth = std::make_unique<FilesAuthProvider>(cfg, logging_prefix);
   } else {
     throw api::DescriptiveError(YOGI_ERR_CONFIG_NOT_VALID)
-        << "Missing or invalid authentication provider. Valid types are "
-           "\"config\" or \"files\".";
+        << "Invalid authentication provider. Valid types are \"config\" or "
+           "\"files\".";
   }
 
-  auth->SetLoggingPrefix(logging_prefix);
   return auth;
 }
 
-UserPtr AuthProvider::GetUserOptional(const std::string& username) const {
-  return {};
+UserPtr AuthProvider::GetUserOptional(const std::string& user_name) const {
+  auto it = users_.find(user_name);
+  if (it == users_.end()) return {};
+  return it->second;
 }
 
-AuthProvider::AuthProvider(const nlohmann::json& auth_cfg)
-    : readonly_(auth_cfg.value("readonly", false)) {}
+GroupPtr AuthProvider::GetGroupOptional(const std::string& group_name) const {
+  auto it = groups_.find(group_name);
+  if (it == groups_.end()) return {};
+  return it->second;
+}
 
-ConfigAuthProvider::ConfigAuthProvider(const nlohmann::json& auth_cfg)
-    : AuthProvider(auth_cfg) {}
+AuthProvider::AuthProvider(const nlohmann::json& auth_cfg,
+                           const std::string& logging_prefix)
+    : readonly_(auth_cfg.value("readonly", false)) {
+  SetLoggingPrefix(logging_prefix);
+}
 
-FilesAuthProvider::FilesAuthProvider(const nlohmann::json& auth_cfg)
-    : AuthProvider(auth_cfg) {}
+nlohmann::json AuthProvider::GetSection(const nlohmann::json& json,
+                                        const char* key,
+                                        const std::string& source) {
+  auto it = json.find(key);
+  if (it == json.end() || !it.value().is_object()) {
+    throw api::DescriptiveError(YOGI_ERR_CONFIG_NOT_VALID)
+        << "Missing or invalid \"" << key << "\" section in " << source << ".";
+  }
+
+  return it.value();
+}
+
+nlohmann::json AuthProvider::GetSectionFromFile(const std::string& file,
+                                                const char* key) {
+  std::ifstream ifs(file);
+  if (!ifs.is_open() || ifs.fail()) {
+    throw api::DescriptiveError(YOGI_ERR_READ_FILE_FAILED)
+        << "The file " << file << " does not exist or is not readable.";
+  }
+
+  nlohmann::json json;
+  try {
+    ifs >> json;
+  } catch (const std::exception& e) {
+    throw api::DescriptiveError(YOGI_ERR_PARSING_FILE_FAILED)
+        << "Could not parse " << file << ": " << e.what();
+  }
+
+  return GetSection(json, key, file);
+}
+
+void AuthProvider::SetUsersAndGroups(UsersMap users, GroupsMap groups) {
+  users_ = users;
+  groups_ = groups;
+}
+
+ConfigAuthProvider::ConfigAuthProvider(const nlohmann::json& auth_cfg,
+                                       const std::string& logging_prefix)
+    : AuthProvider(auth_cfg, logging_prefix) {
+  nlohmann::json groups_cfg;
+  if (auth_cfg.contains("groups")) {
+    groups_cfg = GetSection(auth_cfg, "groups", "authentication settings");
+  } else {
+    groups_cfg = {
+        {"admins",
+         {{"name", "Administrators"},
+          {"description", "Users with unrestricted access to everything"},
+          {"unrestricted", true}}},
+        {"users",
+         {
+             {"name", "Users"},
+             {"description", "All registered users"},
+         }},
+    };
+    LOG_IFO("Using default groups in configuration");
+  }
+
+  auto groups = Group::CreateAllFromJson(groups_cfg);
+  LOG_IFO("Loaded " << groups.size() << " groups from configuration");
+
+  nlohmann::json users_cfg;
+  if (auth_cfg.contains("users")) {
+    users_cfg = GetSection(auth_cfg, "users", "authentication settings");
+  } else {
+    users_cfg = {
+        {api::kDefaultAdminUser,
+         {
+             {"first_name", "Administrator"},
+             {"password", utils::MakeSha256String(api::kDefaultAdminPassword)},
+             {"groups", nlohmann::json::array({"admins", "users"})},
+         }}};
+    LOG_IFO("Using default users in configuration");
+  }
+
+  auto users = User::CreateAllFromJson(users_cfg, groups);
+  LOG_IFO("Loaded " << users.size() << " users from configuration");
+
+  SetUsersAndGroups(users, groups);
+}
+
+FilesAuthProvider::FilesAuthProvider(const nlohmann::json& auth_cfg,
+                                     const std::string& logging_prefix)
+    : AuthProvider(auth_cfg, logging_prefix) {
+  auto groups_file = auth_cfg.value("groups_file", "");
+  if (groups_file.empty()) {
+    throw api::DescriptiveError(YOGI_ERR_CONFIG_NOT_VALID)
+        << "Missing or invalid groups_file in authentication section.";
+  }
+
+  groups_file = boost::filesystem::absolute(groups_file).string();
+  auto groups_section = GetSectionFromFile(groups_file, "groups");
+  auto groups = Group::CreateAllFromJson(groups_section);
+  LOG_IFO("Loaded " << groups.size() << " groups from " << groups_file);
+
+  auto users_file = auth_cfg.value("users_file", "");
+  if (users_file.empty()) {
+    throw api::DescriptiveError(YOGI_ERR_CONFIG_NOT_VALID)
+        << "Missing or invalid users_file in authentication section.";
+  }
+
+  users_file = boost::filesystem::absolute(users_file).string();
+  auto users_section = GetSectionFromFile(users_file, "users");
+  auto users = User::CreateAllFromJson(users_section, groups);
+  LOG_IFO("Loaded " << users.size() << " users from " << users_file);
+
+  SetUsersAndGroups(users, groups);
+}
 
 }  // namespace web
 }  // namespace detail

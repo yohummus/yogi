@@ -27,6 +27,7 @@ namespace utils {
 
 ByteVector MakeSha256(const ByteVector& data);
 ByteVector MakeSha256(const std::string& data);
+std::string MakeSha256String(const std::string& data);
 ByteVector GenerateRandomBytes(std::size_t n);
 
 }  // namespace utils

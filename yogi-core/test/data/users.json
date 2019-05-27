@@ -1,0 +1,13 @@
+{
+  "users": {
+    "katy": {
+      "first_name": "Katy",
+      "last_name": "Hill",
+      "email": "katy@hill.com",
+      "phone": "555-222",
+      "password": "gum",
+      "groups": ["staff"],
+      "enabled": true
+    }
+  }
+}

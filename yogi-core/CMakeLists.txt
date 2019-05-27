@@ -64,9 +64,11 @@ add_library (yogi-core-static STATIC
   src/objects/detail/log/log_sink.cc
   src/objects/detail/log/text_based_log_sink.cc
   src/objects/detail/web/auth_provider.cc
+  src/objects/detail/web/group.cc
   src/objects/detail/web/permissions.cc
   src/objects/detail/web/route.cc
   src/objects/detail/web/ssl_parameters.cc
+  src/objects/detail/web/user.cc
   src/objects/branch.cc
   src/objects/configuration.cc
   src/objects/context.cc
@@ -168,6 +170,7 @@ add_executable (yogi-core-test
   test/network/serialize_test.cc
   test/network/tcp_transport_test.cc
   test/network/transport_test.cc
+  test/objects/auth_provider_test.cc
   test/objects/branch_test.cc
   test/objects/broadcast_manager_test.cc
   test/objects/command_line_parser_test.cc

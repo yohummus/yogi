@@ -33,6 +33,11 @@ TEST(CryptoTest, MakeSha256) {
   EXPECT_EQ(utils::MakeSha256("hello"s), bytes);
 }
 
+TEST(CryptoTest, MakeSha256String) {
+  EXPECT_EQ(utils::MakeSha256String("admin"),
+            "8C6976E5B5410415BDE908BD4DEE15DFB167A9C873FC4BB8A81F6F2AB448A918");
+}
+
 TEST(CryptoTest, GenerateRandomBytes) {
   auto bytes = utils::GenerateRandomBytes(5);
   EXPECT_EQ(bytes.size(), 5);

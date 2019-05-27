@@ -43,23 +43,34 @@ class AuthProvider : public objects::LoggerUser {
   virtual ~AuthProvider() {}
 
   bool IsReadonly() const { return readonly_; }
-  UserPtr GetUserOptional(const std::string& username) const;
+  UserPtr GetUserOptional(const std::string& user_name) const;
+  GroupPtr GetGroupOptional(const std::string& group_name) const;
 
  protected:
-  AuthProvider(const nlohmann::json& auth_cfg);
+  AuthProvider(const nlohmann::json& auth_cfg,
+               const std::string& logging_prefix);
+
+  nlohmann::json GetSection(const nlohmann::json& json, const char* key,
+                            const std::string& source);
+  nlohmann::json GetSectionFromFile(const std::string& file, const char* key);
+  void SetUsersAndGroups(UsersMap users, GroupsMap groups);
 
  private:
   const bool readonly_;
+  UsersMap users_;
+  GroupsMap groups_;
 };
 
 class ConfigAuthProvider : public AuthProvider {
  public:
-  ConfigAuthProvider(const nlohmann::json& auth_cfg);
+  ConfigAuthProvider(const nlohmann::json& auth_cfg,
+                     const std::string& logging_prefix);
 };
 
 class FilesAuthProvider : public AuthProvider {
  public:
-  FilesAuthProvider(const nlohmann::json& auth_cfg);
+  FilesAuthProvider(const nlohmann::json& auth_cfg,
+                    const std::string& logging_prefix);
 };
 
 }  // namespace web
