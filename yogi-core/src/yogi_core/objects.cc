@@ -21,8 +21,6 @@
 #include "../api/object.h"
 #include "../objects/context.h"
 
-#include <boost/algorithm/string.hpp>
-
 YOGI_API int YOGI_FormatObject(void* obj, char* str, int strsize,
                                const char* objfmt, const char* nullstr) {
   CHECK_PARAM(str != nullptr);
@@ -33,16 +31,8 @@ YOGI_API int YOGI_FormatObject(void* obj, char* str, int strsize,
     if (obj == nullptr) {
       s = nullstr ? nullstr : api::kDefaultInvalidHandleString;
     } else {
-      s = objfmt ? objfmt : api::kDefaultObjectFormat;
-
       auto object = api::ObjectRegister::Get(obj);
-      boost::replace_all(s, "$T", object->TypeName());
-
-      char buf[24];
-      sprintf(buf, "%llx", reinterpret_cast<unsigned long long>(obj));
-      boost::replace_all(s, "$x", buf);
-      sprintf(buf, "%llX", reinterpret_cast<unsigned long long>(obj));
-      boost::replace_all(s, "$X", buf);
+      s = object->Format(objfmt ? objfmt : api::kDefaultObjectFormat);
     }
 
     if (!CopyStringToUserBuffer(s, str, strsize)) {

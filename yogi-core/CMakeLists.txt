@@ -63,12 +63,18 @@ add_library (yogi-core-static STATIC
   src/objects/detail/log/hook_log_sink.cc
   src/objects/detail/log/log_sink.cc
   src/objects/detail/log/text_based_log_sink.cc
+  src/objects/detail/web/auth_provider.cc
+  src/objects/detail/web/permissions.cc
+  src/objects/detail/web/route.cc
+  src/objects/detail/web/ssl_parameters.cc
   src/objects/branch.cc
   src/objects/configuration.cc
   src/objects/context.cc
   src/objects/logger.cc
   src/objects/signal_set.cc
   src/objects/timer.cc
+  src/objects/web_process.cc
+  src/objects/web_route.cc
   src/objects/web_server.cc
   src/utils/console.cc
   src/utils/crypto.cc
@@ -171,6 +177,7 @@ add_executable (yogi-core-test
   test/objects/format_test.cc
   test/objects/logger_test.cc
   test/objects/signal_set_test.cc
+  test/objects/ssl_parameters_test.cc
   test/objects/timer_test.cc
   test/objects/web_server_test.cc
   test/utils/algorithm_test.cc
@@ -181,6 +188,11 @@ add_executable (yogi-core-test
   test/common.cc
   test/time_test.cc
   test/version_test.cc
+)
+
+get_filename_component (test-data-dir "test/data" REALPATH)
+target_compile_definitions (yogi-core-test
+  PRIVATE YOGI_TEST_DATA_DIR="${test-data-dir}"
 )
 
 target_link_libraries (yogi-core-test

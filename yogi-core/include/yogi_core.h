@@ -2227,19 +2227,19 @@ YOGI_API int YOGI_DestroyAll();
 /*!
  * Creates a web server.
  *
- * Apart from serving static content from files and dynamic content from
- * user-defined routes, this web server controls a single branch that can be
- * accessed via JavaScript on a web page. The web server is sufficient for
- * simple web applications. However, more complex applications can utilize a
- * more sophisticated web server and use this built-in web server only as a
- * means to access the Yogi network.
+ * Apart from serving static content from files and content from user-defined
+ * routes, this web server controls a single branch that can be accessed via
+ * JavaScript on a web page. The web server is sufficient for simple web
+ * applications. However, more complex applications can utilize a more
+ * sophisticated web server and use this built-in web server only as a means to
+ * access the Yogi network.
  *
  * For security reasons and browser security restrictions, connections are
  * served over HTTPS/WSS only.
  *
  * The web server supports the following core features:
  * - Serving static content from files with configurable routes
- * - Serving user-defined, dynamic content over HTTPS
+ * - Serving user-generated content over HTTPS
  * - Long-running server-side processes controlled by the client
  * - User authentication and access control for routes and resources
  * - Per-user persistant storage
@@ -2394,11 +2394,11 @@ YOGI_API int YOGI_DestroyAll();
  * in the next paragraphs:
  *
  * The __routes__ section describes both the content for static routes and the
- * level of access that users have to static and dynamic routes. The excerpt
+ * level of access that users have to static and custom routes. The excerpt
  * below shows how to configure the three different types of routes, namely
  * static routes mapping to the file system (_filesystem_), static routes with
- * their content in the configuration (_content_) and dynamic routes which are
- * created via the YOGI_WebDynamicRouteCreate() function (_dynamic_):
+ * their content in the configuration (_content_) and custom routes which are
+ * created via the YOGI_WebRouteCreate() function (_custom_):
  *
  * \code
  *   "routes": {
@@ -2417,11 +2417,11 @@ YOGI_API int YOGI_DestroyAll();
  *       "enabled":     true
  *     },
  *     "/messages": {
- *       "type":        "dynamic",
+ *       "type":        "custom",
  *       "permissions": { "*": ["GET"], "users": ["POST"] }
  *     },
  *     "/messages/ *": {
- *       "type":        "dynamic",
+ *       "type":        "custom",
  *       "permissions": { "*": ["GET"], "owner": ["DELETE"] },
  *       "enabled":     true
  *     }
@@ -2461,7 +2461,7 @@ YOGI_API int YOGI_DestroyAll();
  * logged in or not. The "owner" group means the user who _owns_ the resource
  * which can have a different meaning depending on the resource. For example, in
  * the "/secret" section the owner is explicitly set to the user "luke" which
- * while in the "/messages/ *" section the dynamic route could assign the owner
+ * while in the "/messages/ *" section the custom route could assign the owner
  * of a message to the user who created that message using a _POST_ request on
  * the "/messages" route.
  *
@@ -2591,7 +2591,7 @@ YOGI_API int YOGI_WebServerAddWorker(void* server, void* context);
 YOGI_API int YOGI_WebServerRemoveWorker(void* server, void* context);
 
 /*!
- * Creates a dynamic route.
+ * Creates a custom route.
  *
  * Registers a custom callback for handling requests on a custom URI.
  *
@@ -2607,10 +2607,10 @@ YOGI_API int YOGI_WebServerRemoveWorker(void* server, void* context);
  *  -# __userarg__: Value of \p userarg
  *
  * Once a request has been received and \p fn has been called, one or more calls
- * to YOGI_WebDynamicRouteRespond() have to be made in order to respond to the
- * client's request. In case of connection errors such as a disconnected client
- * or a timeout \p will be called with a corresponding error and the _rid_ of
- * the request.
+ * to YOGI_WebRouteRespond() have to be made in order to respond to the client's
+ * request. In case of connection errors such as a disconnected client or a
+ * timeout \p will be called with a corresponding error and the _rid_ of the
+ * request.
  *
  * \param[out] route    Pointer to the route handle
  * \param[in]  server   The server to use
@@ -2621,7 +2621,7 @@ YOGI_API int YOGI_WebServerRemoveWorker(void* server, void* context);
  * \returns [=0] #YOGI_OK if successful
  * \returns [<0] An error code in case of a failure (see \ref EC)
  */
-YOGI_API int YOGI_WebDynamicRouteCreate(
+YOGI_API int YOGI_WebRouteCreate(
     void** route, void* server, const char* baseuri,
     void (*fn)(int res, int rid, const char* user, const char* owner,
                int method, const char* uri, const char* const* params,
@@ -2629,11 +2629,11 @@ YOGI_API int YOGI_WebDynamicRouteCreate(
     void* userarg);
 
 /*!
- * Responds to a dynamic route request.
+ * Responds to a custom route request.
  *
  * This function must be called after the handler function registered via
- * YOGI_WebDynamicRouteCreate() has been invoked in order to respond to the
- * client's request.
+ * YOGI_WebRouteCreate() has been invoked in order to respond to the client's
+ * request.
  *
  * Calling this function multiple times will use chunked transfer encoding to
  * deliver the data to the client. The response is considered complete once
@@ -2649,9 +2649,9 @@ YOGI_API int YOGI_WebDynamicRouteCreate(
  * \returns [=0] #YOGI_OK if successful
  * \returns [<0] An error code in case of a failure (see \ref EC)
  */
-YOGI_API int YOGI_WebDynamicRouteRespond(void* route, int rid, int finished,
-                                         int status, const char* contype,
-                                         const char* content);
+YOGI_API int YOGI_WebRouteRespond(void* route, int rid, int finished,
+                                  int status, const char* contype,
+                                  const char* content);
 
 /*!
  * Creates a client-controllable web process.

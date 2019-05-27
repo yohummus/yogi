@@ -23,6 +23,8 @@
 
 #include <boost/uuid/uuid_io.hpp>
 
+YOGI_DEFINE_INTERNAL_LOGGER("Branch.ConnectionManager")
+
 namespace objects {
 namespace detail {
 
@@ -60,14 +62,15 @@ ConnectionManager::~ConnectionManager() { CancelAwaitEvent(); }
 
 void ConnectionManager::Start(LocalBranchInfoPtr info) {
   info_ = info;
+  SetLoggingPrefix(info->GetLoggingPrefix());
+
   StartAccept();
   adv_sender_->Start(info);
   adv_receiver_->Start(info);
 
-  YOGI_LOG_DEBUG(logger_,
-                 info_ << " Started ConnectionManager with TCP server port "
-                       << info_->GetTcpServerEndpoint().port()
-                       << (info_->GetGhostMode() ? " in ghost mode" : ""));
+  LOG_DBG("Started ConnectionManager with TCP server port "
+          << info_->GetTcpServerEndpoint().port()
+          << (info_->GetGhostMode() ? " in ghost mode" : ""));
 }
 
 ConnectionManager::BranchInfoStringsList
@@ -149,15 +152,13 @@ void ConnectionManager::StartAccept() {
 void ConnectionManager::OnAcceptFinished(const api::Result& res,
                                          network::TcpTransportPtr transport) {
   if (res.IsError()) {
-    YOGI_LOG_ERROR(logger_,
-                   info_ << " Accepting incoming TCP connection failed: " << res
-                         << ". No more connections will be accepted.");
+    LOG_ERR("Accepting incoming TCP connection failed: "
+            << res << ". No more connections will be accepted.");
     return;
   }
 
-  YOGI_LOG_DEBUG(logger_, info_ << " Accepted incoming TCP connection from "
-                                << network::MakeIpAddressString(
-                                       transport->GetPeerEndpoint()));
+  LOG_DBG("Accepted incoming TCP connection from "
+          << network::MakeIpAddressString(transport->GetPeerEndpoint()));
 
   StartExchangeBranchInfo(transport, transport->GetPeerEndpoint().address(),
                           {});
@@ -172,9 +173,9 @@ void ConnectionManager::OnAdvertisementReceived(
   if (blacklisted_uuids_.count(adv_uuid)) return;
   if (pending_connects_.count(adv_uuid)) return;
 
-  YOGI_LOG_DEBUG(logger_, info_ << " Attempting to connect to [" << adv_uuid
-                                << "] on " << network::MakeIpAddressString(ep)
-                                << ":" << ep.port());
+  LOG_DBG("Attempting to connect to ["
+          << adv_uuid << "] on " << network::MakeIpAddressString(ep) << ":"
+          << ep.port());
 
   auto weak_self = MakeWeakPtr();
   auto guard = network::TcpTransport::ConnectAsync(
@@ -207,8 +208,7 @@ void ConnectionManager::OnConnectFinished(const api::Result& res,
     return;
   }
 
-  YOGI_LOG_DEBUG(logger_, info_ << " TCP connection to " << *transport
-                                << " established successfully");
+  LOG_DBG("TCP connection to " << *transport << " established successfully");
 
   StartExchangeBranchInfo(transport, transport->GetPeerEndpoint().address(),
                           adv_uuid);
@@ -247,12 +247,11 @@ void ConnectionManager::OnExchangeBranchInfoFinished(
     return;
   }
 
-  YOGI_LOG_DEBUG(logger_, info_ << " Successfully exchanged branch info with "
-                                << remote_info << " (source: "
-                                << (conn->CreatedFromIncomingConnectionRequest()
-                                        ? "server"
-                                        : "client")
-                                << ")");
+  LOG_DBG(
+      "Successfully exchanged branch info with "
+      << remote_info << " (source: "
+      << (conn->CreatedFromIncomingConnectionRequest() ? "server" : "client")
+      << ")");
 
   std::lock_guard<std::mutex> lock(connections_mutex_);
   auto con_res = connections_.insert(std::make_pair(remote_uuid, conn));
@@ -291,13 +290,11 @@ bool ConnectionManager::CheckExchangeBranchInfoError(
   }
 
   if (conn->CreatedFromIncomingConnectionRequest()) {
-    YOGI_LOG_ERROR(
-        logger_, info_ << " Exchanging branch info with server connection from "
-                       << conn->GetPeerDescription() << " failed: " << res);
+    LOG_ERR("Exchanging branch info with server connection from "
+            << conn->GetPeerDescription() << " failed: " << res);
   } else {
-    YOGI_LOG_ERROR(logger_,
-                   info_ << " Exchanging branch info with client connection to "
-                         << conn->GetPeerDescription() << " failed: " << res);
+    LOG_ERR("Exchanging branch info with client connection to "
+            << conn->GetPeerDescription() << " failed: " << res);
   }
 
   return false;
@@ -309,12 +306,9 @@ bool ConnectionManager::VerifyUuidsMatch(const boost::uuids::uuid& remote_uuid,
     return true;
   }
 
-  YOGI_LOG_WARNING(logger_,
-                   info_ << " Dropping connection since branch info UUID ["
-                         << remote_uuid << "] does not match advertised UUID ["
-                         << adv_uuid
-                         << "]. This will likely be fixed with the next "
-                            "connection attempt.");
+  LOG_WRN("Dropping connection since branch info UUID ["
+          << remote_uuid << "] does not match advertised UUID [" << adv_uuid
+          << "]. This will likely be fixed with the next  connection attempt.");
   return false;
 }
 
@@ -324,8 +318,8 @@ bool ConnectionManager::VerifyUuidNotBlacklisted(
     return true;
   }
 
-  YOGI_LOG_DEBUG(logger_, info_ << " Dropping connection to [" << uuid
-                                << "] since it is blacklisted");
+  LOG_DBG("Dropping connection to [" << uuid << "] since it is blacklisted");
+
   return false;
 }
 
@@ -343,13 +337,11 @@ bool ConnectionManager::VerifyConnectionHasHigherPriority(
     return true;
   }
 
-  YOGI_LOG_DEBUG(
-      logger_,
-      info_ << " Dropping TCP "
-            << (conn->CreatedFromIncomingConnectionRequest() ? "server"
-                                                             : "client")
-            << " connection to " << conn
-            << " since a connection with a higher priority already exists")
+  LOG_DBG(
+      "Dropping TCP "
+      << (conn->CreatedFromIncomingConnectionRequest() ? "server" : "client")
+      << " connection to " << conn
+      << " since a connection with a higher priority already exists")
 
   return false;
 }
@@ -411,8 +403,7 @@ void ConnectionManager::OnAuthenticateFinished(const api::Result& res,
 
     EmitBranchEvent(api::kConnectFinishedEvent, res, uuid);
   } else {
-    YOGI_LOG_DEBUG(logger_, info_ << " Successfully authenticated with "
-                                  << conn->GetRemoteBranchInfo());
+    LOG_DBG("Successfully authenticated with " << conn->GetRemoteBranchInfo());
     StartSession(conn);
   }
 }
@@ -432,17 +423,15 @@ void ConnectionManager::StartSession(BranchConnectionPtr conn) {
   EmitBranchEvent(api::kConnectFinishedEvent, api::kSuccess,
                   conn->GetRemoteBranchInfo()->GetUuid());
 
-  YOGI_LOG_DEBUG(logger_, info_ << " Successfully started session for "
-                                << conn->GetRemoteBranchInfo());
+  LOG_DBG("Successfully started session for " << conn->GetRemoteBranchInfo());
 
   connection_changed_handler_(api::kSuccess, conn);
 }
 
 void ConnectionManager::OnSessionTerminated(const api::Error& err,
                                             BranchConnectionPtr conn) {
-  YOGI_LOG_DEBUG(logger_, info_ << " Session for "
-                                << conn->GetRemoteBranchInfo()
-                                << " terminated: " << err);
+  LOG_DBG("Session for " << conn->GetRemoteBranchInfo()
+                         << " terminated: " << err);
 
   EmitBranchEvent(api::kConnectionLostEvent, err,
                   conn->GetRemoteBranchInfo()->GetUuid());
@@ -505,33 +494,26 @@ void ConnectionManager::LogBranchEvent(api::BranchEvents event,
       break;
 
     case api::kBranchDiscoveredEvent:
-      YOGI_LOG_DEBUG(logger_,
-                     info_ << " Event: YOGI_BEV_BRANCH_DISCOVERED; ev_res=\""
-                           << ev_res << "; json=\"" << make_json_fn() << "\"");
+      LOG_DBG("Event: YOGI_BEV_BRANCH_DISCOVERED; ev_res=\""
+              << ev_res << "; json=\"" << make_json_fn() << "\"");
       break;
 
     case api::kBranchQueriedEvent:
-      YOGI_LOG_INFO(logger_,
-                    info_ << " Event: YOGI_BEV_BRANCH_QUERIED; ev_res=\""
-                          << ev_res << "; json=\"" << make_json_fn() << "\"");
+      LOG_IFO("Event: YOGI_BEV_BRANCH_QUERIED; ev_res=\""
+              << ev_res << "; json=\"" << make_json_fn() << "\"");
       break;
 
     case api::kConnectFinishedEvent:
-      YOGI_LOG_INFO(logger_,
-                    info_ << " Event: YOGI_BEV_CONNECT_FINISHED; ev_res=\""
-                          << ev_res << "; json=\"" << make_json_fn() << "\"");
+      LOG_IFO("Event: YOGI_BEV_CONNECT_FINISHED; ev_res=\""
+              << ev_res << "; json=\"" << make_json_fn() << "\"");
       break;
 
     case api::kConnectionLostEvent:
-      YOGI_LOG_WARNING(
-          logger_, info_ << " Event: YOGI_BEV_CONNECTION_LOST; ev_res=\""
-                         << ev_res << "; json=\"" << make_json_fn() << "\"");
+      LOG_WRN("Event: YOGI_BEV_CONNECTION_LOST; ev_res=\""
+              << ev_res << "; json=\"" << make_json_fn() << "\"");
       break;
   }
 }
-
-const LoggerPtr ConnectionManager::logger_ =
-    Logger::CreateStaticInternalLogger("Branch.ConnectionManager");
 
 }  // namespace detail
 }  // namespace objects

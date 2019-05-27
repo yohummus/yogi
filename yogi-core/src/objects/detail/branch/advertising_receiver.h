@@ -32,7 +32,8 @@ namespace objects {
 namespace detail {
 
 class AdvertisingReceiver
-    : public std::enable_shared_from_this<AdvertisingReceiver> {
+    : public std::enable_shared_from_this<AdvertisingReceiver>,
+      public LoggerUser {
  public:
   typedef std::function<void(const boost::uuids::uuid& uuid,
                              const boost::asio::ip::tcp::endpoint& ep)>
@@ -50,8 +51,6 @@ class AdvertisingReceiver
   void StartReceiveAdvertisement();
   void OnReceivedAdvertisementFinished(const boost::system::error_code& ec,
                                        std::size_t bytes_received);
-
-  static const LoggerPtr logger_;
 
   const ContextPtr context_;
   const boost::asio::ip::udp::endpoint adv_ep_;

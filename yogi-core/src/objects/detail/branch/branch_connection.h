@@ -20,7 +20,6 @@
 #include "../../../config.h"
 #include "../../../network/msg_transport.h"
 #include "../../context.h"
-#include "../../logger.h"
 #include "branch_info.h"
 
 #include <boost/asio.hpp>
@@ -39,7 +38,7 @@ typedef std::weak_ptr<BranchConnection> BranchConnectionWeakPtr;
 class BranchConnection : public std::enable_shared_from_this<BranchConnection> {
  public:
   typedef std::function<void(const api::Result&)> CompletionHandler;
-  using MessageReceiveHandler =  network::IncomingMessage::MessageHandler;
+  using MessageReceiveHandler = network::IncomingMessage::MessageHandler;
   using OperationTag = network::MessageTransport::OperationTag;
   using SendHandler = network::MessageTransport::SendHandler;
 
@@ -118,8 +117,6 @@ class BranchConnection : public std::enable_shared_from_this<BranchConnection> {
                                 const utils::ByteVector& ack_msg);
   bool CheckNextResult(CompletionHandler handler);
   void OnMessageReceived(const utils::SharedByteVector& msg);
-
-  static const LoggerPtr logger_;
 
   const network::TransportPtr transport_;
   const objects::ContextPtr context_;

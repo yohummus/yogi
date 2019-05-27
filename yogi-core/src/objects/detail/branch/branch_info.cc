@@ -53,8 +53,11 @@ void BranchInfo::PopulateJson() {
     adv_interval = static_cast<float>(adv_interval_.count()) / 1e9f;
   }
 
+  auto uuid_str = boost::uuids::to_string(uuid_);
+  SetLoggingPrefix("["s + uuid_str + ']');
+
   json_ = {
-      {"uuid", boost::uuids::to_string(uuid_)},
+      {"uuid", uuid_str},
       {"name", name_},
       {"description", description_},
       {"network_name", net_name_},

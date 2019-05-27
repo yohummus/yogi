@@ -31,7 +31,8 @@ namespace objects {
 
 class Configuration
     : public api::ExposedObjectT<Configuration,
-                                 api::ObjectType::kConfiguration> {
+                                 api::ObjectType::kConfiguration>,
+      public LoggerUser {
  public:
   Configuration(api::ConfigurationFlags flags);
 
@@ -64,8 +65,6 @@ class Configuration
 
   void VerifyAndMerge(const nlohmann::json& json_to_merge,
                       const nlohmann::json& immutable_json);
-
-  static const LoggerPtr logger_;
 
   const bool variables_supported_;
   const bool mutable_cmdline_;

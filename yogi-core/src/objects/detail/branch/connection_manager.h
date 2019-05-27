@@ -42,7 +42,8 @@ typedef std::shared_ptr<ConnectionManager> ConnectionManagerPtr;
 typedef std::weak_ptr<ConnectionManager> ConnectionManagerWeakPtr;
 
 class ConnectionManager
-    : public std::enable_shared_from_this<ConnectionManager> {
+    : public std::enable_shared_from_this<ConnectionManager>,
+      public LoggerUser {
  public:
   using ByteVector = utils::ByteVector;
   typedef std::function<void(const api::Result&, api::BranchEvents,
@@ -155,8 +156,6 @@ class ConnectionManager
   template <typename Fn>
   void LogBranchEvent(api::BranchEvents event, const api::Result& ev_res,
                       Fn make_json_fn);
-
-  static const LoggerPtr logger_;
 
   const ContextPtr context_;
   const boost::asio::ip::udp::endpoint adv_ep_;

@@ -27,22 +27,33 @@
 #include <mutex>
 #include <vector>
 #include <sstream>
+#include <regex>
 
-#define YOGI_LOG_FATAL(logger, ...) YOGI_LOG(kFatal, logger, __VA_ARGS__)
-#define YOGI_LOG_ERROR(logger, ...) YOGI_LOG(kError, logger, __VA_ARGS__)
-#define YOGI_LOG_WARNING(logger, ...) YOGI_LOG(kWarning, logger, __VA_ARGS__)
-#define YOGI_LOG_INFO(logger, ...) YOGI_LOG(kInfo, logger, __VA_ARGS__)
-#define YOGI_LOG_DEBUG(logger, ...) YOGI_LOG(kDebug, logger, __VA_ARGS__)
-#define YOGI_LOG_TRACE(logger, ...) YOGI_LOG(kTrace, logger, __VA_ARGS__)
+// To be used only within class that inherit LoggerUser and in files that have
+// defined a global internall logger using YOGI_DEFINE_INTERNAL_LOGGER().
+#define LOG_FAT(...) YOGI_INTERNAL_LOG(kFatal, __VA_ARGS__)
+#define LOG_ERR(...) YOGI_INTERNAL_LOG(kError, __VA_ARGS__)
+#define LOG_WRN(...) YOGI_INTERNAL_LOG(kWarning, __VA_ARGS__)
+#define LOG_IFO(...) YOGI_INTERNAL_LOG(kInfo, __VA_ARGS__)
+#define LOG_DBG(...) YOGI_INTERNAL_LOG(kDebug, __VA_ARGS__)
+#define LOG_TRC(...) YOGI_INTERNAL_LOG(kTrace, __VA_ARGS__)
 
-#define YOGI_LOG(severity, logger, stream)                          \
+#define YOGI_INTERNAL_LOG(severity, stream)                         \
   {                                                                 \
+    auto& logger = file_global_internal_logger;                     \
     if (::api::Verbosity::severity <= (logger)->GetVerbosity()) {   \
       std::stringstream ss;                                         \
+      if (HasLoggingPrefix()) ss << GetLoggingPrefix() << ": ";     \
       ss << stream;                                                 \
       (logger)->Log(::api::Verbosity::severity, __FILE__, __LINE__, \
                     ss.str().c_str());                              \
     }                                                               \
+  }
+
+#define YOGI_DEFINE_INTERNAL_LOGGER(component)                \
+  namespace {                                                 \
+  const objects::LoggerPtr file_global_internal_logger =      \
+      objects::Logger::CreateStaticInternalLogger(component); \
   }
 
 namespace objects {
@@ -55,10 +66,12 @@ class Logger : public api::ExposedObjectT<Logger, api::ObjectType::kLogger> {
   static void SetSink(detail::FileLogSinkPtr&& sink);
   static std::shared_ptr<Logger> GetAppLogger() { return app_logger_; }
   static std::shared_ptr<Logger> CreateStaticInternalLogger(
-      const std::string& component);  // internal loggers must be static!
+      const std::string& component);  // Internal loggers must be static!
   static const std::vector<std::weak_ptr<Logger>>& GetInternalLoggers() {
     return InternalLoggers();
   }
+  static int SetComponentsVerbosity(const std::regex& components,
+                                    api::Verbosity verbosity);
 
   Logger(std::string component);
 
@@ -82,5 +95,20 @@ class Logger : public api::ExposedObjectT<Logger, api::ObjectType::kLogger> {
 };
 
 typedef std::shared_ptr<Logger> LoggerPtr;
+
+class LoggerUser {
+ public:
+  virtual ~LoggerUser() {}
+
+  bool HasLoggingPrefix() const { return !prefix_.empty(); }
+  const std::string& GetLoggingPrefix() const { return prefix_; }
+
+ protected:
+  void SetLoggingPrefix(const api::ExposedObject& obj);
+  void SetLoggingPrefix(std::string prefix);
+
+ private:
+  std::string prefix_;
+};
 
 }  // namespace objects

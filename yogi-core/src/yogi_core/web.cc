@@ -60,7 +60,7 @@ YOGI_API int YOGI_WebServerRemoveWorker(void* server, void* context) {
   return YOGI_ERR_UNKNOWN;
 }
 
-YOGI_API int YOGI_WebDynamicRouteCreate(
+YOGI_API int YOGI_WebRouteCreate(
     void** route, void* server, const char* baseuri,
     void (*fn)(int res, int rid, const char* user, const char* owner,
                int method, const char* uri, const char* const* params,
@@ -69,9 +69,9 @@ YOGI_API int YOGI_WebDynamicRouteCreate(
   return YOGI_ERR_UNKNOWN;
 }
 
-YOGI_API int YOGI_WebDynamicRouteRespond(void* route, int rid, int finished,
-                                         int status, const char* contype,
-                                         const char* content) {
+YOGI_API int YOGI_WebRouteRespond(void* route, int rid, int finished,
+                                  int status, const char* contype,
+                                  const char* content) {
   return YOGI_ERR_UNKNOWN;
 }
 

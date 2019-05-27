@@ -85,7 +85,8 @@ seEyN1TTHCXilCHKvvXfr1gopoYaXTyj1fn2arCDAwKBgQDHc9V+9IpZ2F+ZwSYn
 didwWQfsAZx5EiXtnXnyx0hkNjgebFQAgDJY4vvRphaD0bumywfNMOz/59jjjVZg
 cWXs9H91XtA7cT7wJi+xiGe6R8zRcVPfImwQchSsCoMGuyLCygJTJPMzGT+YbpBA
 Umrn/FzslGZsXxwMCR0E8654Kw==
------END PRIVATE KEY-----)";
+-----END PRIVATE KEY-----
+)";
 
 SCC char* kDefaultSslCertificateChain =
     R"(-----BEGIN CERTIFICATE-----
@@ -104,7 +105,8 @@ tSwLU2Uo7scPjYynyyPHcNkut+V7XjvhLJr267X0O6iymYnyJBGweVppwwgfxAmH
 Rzv2uFLf+U7odtQmSC1g/VdImDoJsfASqnycXcqkmiDfv6Pjqp1dvUm9aDCIFdkf
 DXShGXE+SVXQ61FVMhV62OsNY36mM5lR2kMXwgybRNMWla8Cmu8OhCkftOvVLdW2
 tAVd+K6fpZe/mdCCuN3pXCCqu/0vPlFoLNMGZrKbLU8W6Q==
------END CERTIFICATE-----)";
+-----END CERTIFICATE-----
+)";
 
 SCC char* kDefaultSslDhParams =
     R"(-----BEGIN DH PARAMETERS-----
@@ -114,7 +116,8 @@ YbvCPzQLmxYyUH8NwYutfNrESWtBFs3qEKiZ9zx09cpacXf/gw4VBfclIl2HAlNo
 Mtwb+qTXm4XozdAPPWlwryFvwJL60pvtsF7f9S8xZHIe309yeCNnUajmqyKwdJ18
 P8RNYFHDe8vvaJ7/cnNCMqWFl16hVmBoIYy11H+R8WAphniJKV6fdGTs+7OLSc7Q
 4/QFcIxwOY+wIaH2OEuOxTrKjAivFrGz8wIBAg==
------END DH PARAMETERS-----)";
+-----END DH PARAMETERS-----
+)";
 
 #undef SCC
 

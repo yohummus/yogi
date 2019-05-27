@@ -19,6 +19,7 @@
 
 #include "../config.h"
 #include "../objects/context.h"
+#include "../objects/logger.h"
 #include "../utils/types.h"
 
 #include <boost/asio.hpp>
@@ -34,7 +35,8 @@ class Transport;
 typedef std::shared_ptr<Transport> TransportPtr;
 typedef std::weak_ptr<Transport> TransportWeakPtr;
 
-class Transport : public std::enable_shared_from_this<Transport> {
+class Transport : public std::enable_shared_from_this<Transport>,
+                  public objects::LoggerUser {
  public:
   typedef std::function<void(const api::Result&,
                              const std::size_t bytes_transferred)>

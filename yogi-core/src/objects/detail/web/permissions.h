@@ -17,39 +17,20 @@
 
 #pragma once
 
-#include "../config.h"
-#include "context.h"
-#include "branch.h"
-#include "logger.h"
-#include "detail/web/auth_provider.h"
-#include "detail/web/ssl_parameters.h"
-#include "detail/web/route.h"
+#include "../../../config.h"
+#include "group.h"
 
 #include <nlohmann/json.hpp>
-#include <vector>
 
 namespace objects {
+namespace detail {
+namespace web {
 
-class WebServer
-    : public api::ExposedObjectT<WebServer, api::ObjectType::kWebServer>,
-      public LoggerUser {
+class Permissions {
  public:
-  WebServer(ContextPtr context, BranchPtr branch, const nlohmann::json& cfg);
-
-  void Start();
-
- private:
-  detail::web::RoutesVector CreateAllRoutes(const nlohmann::json& cfg) const;
-
-  const ContextPtr context_;
-  const BranchPtr branch_;
-  const unsigned short port_;
-  const std::string logging_prefix_;
-  const detail::web::AuthProviderPtr auth_;
-  const detail::web::RoutesVector routes_;
-  const detail::web::SslParameters ssl_;
+  Permissions(const nlohmann::json& cfg);
 };
 
-typedef std::shared_ptr<WebServer> WebServerPtr;
-
+}  // namespace web
+}  // namespace detail
 }  // namespace objects

@@ -20,6 +20,8 @@
 
 #include <boost/asio/ip/multicast.hpp>
 
+YOGI_DEFINE_INTERNAL_LOGGER("Branch.AdvertisingSender")
+
 namespace objects {
 namespace detail {
 
@@ -34,9 +36,11 @@ void AdvertisingSender::Start(LocalBranchInfoPtr info) {
   YOGI_ASSERT(!info_);
 
   info_ = info;
+  SetLoggingPrefix(info->GetLoggingPrefix());
+
   for (auto& socket : sockets_) {
-    YOGI_LOG_INFO(logger_, info_ << " Using interface " << socket->address
-                                 << " for sending advertising messages.");
+    LOG_IFO("Using interface " << socket->address
+                               << " for sending advertising messages.");
   }
 
   SetupSockets();
@@ -72,11 +76,9 @@ bool AdvertisingSender::ConfigureSocket(std::shared_ptr<SocketEntry> entry) {
   entry->socket.set_option(opt, ec);
 
   if (ec) {
-    YOGI_LOG_ERROR(
-        logger_,
-        info_ << " Could not set outbound interface for socket using address "
-              << entry->address << ": " << ec.message()
-              << ". This interface will be ignored.");
+    LOG_ERR("Could not set outbound interface for socket using address "
+            << entry->address << ": " << ec.message()
+            << ". This interface will be ignored.");
     return false;
   }
 
@@ -87,8 +89,8 @@ void AdvertisingSender::SendAdvertisements() {
   YOGI_ASSERT(active_send_ops_ == 0);
 
   if (sockets_.empty()) {
-    YOGI_LOG_ERROR(logger_, info_ << " No network interfaces available for "
-                                     "sending advertising messages.");
+    LOG_ERR(
+        "No network interfaces available for sending advertising messages.");
     return;
   }
 
@@ -96,29 +98,32 @@ void AdvertisingSender::SendAdvertisements() {
   auto msg = info_->MakeAdvertisingMessage();
 
   for (const auto& socket : sockets_) {
-    socket->socket.async_send_to(
-        boost::asio::buffer(*msg), adv_ep_,
-        [weak_self, msg, socket](auto ec, auto) {
-          auto self = weak_self.lock();
-          if (!self) return;
+    socket->socket.async_send_to(boost::asio::buffer(*msg), adv_ep_,
+                                 [weak_self, msg, socket](auto ec, auto) {
+                                   auto self = weak_self.lock();
+                                   if (!self) return;
 
-          if (ec) {
-            YOGI_LOG_ERROR(logger_, self->info_
-                                        << " Sending advertisement over "
-                                        << socket->address
-                                        << " failed: " << ec.message()
-                                        << ". No more advertising messages "
-                                           "will be sent over this interface.");
-
-            self->sockets_.erase(utils::find(self->sockets_, socket));
-          }
-
-          --self->active_send_ops_;
-          if (self->active_send_ops_ == 0) {
-            self->StartTimer();
-          }
-        });
+                                   self->OnAdvertisementSent(ec, socket);
+                                 });
     ++active_send_ops_;
+  }
+}
+
+void AdvertisingSender::OnAdvertisementSent(
+    const boost::system::error_code& ec,
+    const std::shared_ptr<SocketEntry>& socket) {
+  if (ec) {
+    LOG_ERR(
+        "Sending advertisement over "
+        << socket->address << " failed: " << ec.message()
+        << ". No more advertising messages will be sent over this interface.");
+
+    sockets_.erase(utils::find(sockets_, socket));
+  }
+
+  --active_send_ops_;
+  if (active_send_ops_ == 0) {
+    StartTimer();
   }
 }
 
@@ -130,20 +135,18 @@ void AdvertisingSender::StartTimer() {
     auto self = weak_self.lock();
     if (!self) return;
 
-    if (!ec) {
-      self->SendAdvertisements();
-    } else {
-      YOGI_LOG_ERROR(logger_,
-                     self->info_
-                         << " Awaiting advertising timer expiry failed: "
-                         << ec.message()
-                         << ". No more advertising messages will be sent.");
-    }
+    self->OnTimerExpired(ec);
   });
 }
 
-const LoggerPtr AdvertisingSender::logger_ =
-    Logger::CreateStaticInternalLogger("Branch.AdvertisingSender");
+void AdvertisingSender::OnTimerExpired(const boost::system::error_code& ec) {
+  if (!ec) {
+    SendAdvertisements();
+  } else {
+    LOG_ERR("Awaiting advertising timer expiry failed: "
+            << ec.message() << ". No more advertising messages will be sent.");
+  }
+}
 
 }  // namespace detail
 }  // namespace objects

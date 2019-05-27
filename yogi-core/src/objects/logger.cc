@@ -53,6 +53,37 @@ void Logger::SetSink(detail::FileLogSinkPtr&& sink) {
   file_sink_ = std::move(sink);
 }
 
+int Logger::SetComponentsVerbosity(const std::regex& components,
+                                   api::Verbosity verbosity) {
+  int count = 0;
+  std::smatch m;
+
+  auto fn = [&](const LoggerPtr& log) {
+    if (std::regex_match(log->GetComponent(), m, components)) {
+      log->SetVerbosity(verbosity);
+      ++count;
+    }
+  };
+
+  // App logger
+  fn(GetAppLogger());
+
+  // Loggers created by the user
+  for (auto& log : api::ObjectRegister::GetAll<Logger>()) {
+    fn(log);
+  }
+
+  // Internal loggers
+  for (auto& weak_log : GetInternalLoggers()) {
+    auto log = weak_log.lock();
+    if (log) {
+      fn(log);
+    }
+  }
+
+  return count;
+}
+
 LoggerPtr Logger::CreateStaticInternalLogger(const std::string& component) {
   auto logger = std::make_shared<Logger>(std::string("Yogi.") + component);
   InternalLoggers().push_back(logger);
@@ -91,5 +122,15 @@ detail::LogSinkPtr Logger::console_sink_;
 detail::LogSinkPtr Logger::hook_sink_;
 detail::LogSinkPtr Logger::file_sink_;
 LoggerPtr Logger::app_logger_ = Logger::Create("App");
+
+void LoggerUser::SetLoggingPrefix(const api::ExposedObject& obj) {
+  YOGI_ASSERT(!HasLoggingPrefix());
+  prefix_ = obj.Format("[$x]");
+}
+
+void LoggerUser::SetLoggingPrefix(std::string prefix) {
+  YOGI_ASSERT(!HasLoggingPrefix());
+  prefix_ = prefix;
+}
 
 }  // namespace objects

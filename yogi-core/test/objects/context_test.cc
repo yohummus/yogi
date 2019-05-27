@@ -208,6 +208,19 @@ TEST_F(ContextTest, WaitForStopped) {
   EXPECT_OK(res);
 }
 
+TEST_F(ContextTest, ExceptionInBackgroundThread) {
+  int res = YOGI_ContextRunInBackground(context_);
+  EXPECT_OK(res);
+
+  YOGI_ContextPost(context_,
+                   [](void*) { throw std::runtime_error("My exception"); },
+                   nullptr);
+
+  // Background thread should stop and print an error message
+  res = YOGI_ContextWaitForStopped(context_, 1000000);
+  EXPECT_OK(res);
+}
+
 TEST_F(ContextTest, Post) {
   int res = YOGI_ContextPost(context_, [](void*) {}, nullptr);
   EXPECT_OK(res);

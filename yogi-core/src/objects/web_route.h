@@ -18,38 +18,25 @@
 #pragma once
 
 #include "../config.h"
-#include "context.h"
-#include "branch.h"
-#include "logger.h"
-#include "detail/web/auth_provider.h"
-#include "detail/web/ssl_parameters.h"
-#include "detail/web/route.h"
+#include "../api/errors.h"
+#include "web_server.h"
 
-#include <nlohmann/json.hpp>
-#include <vector>
+#include <string>
+#include <functional>
 
 namespace objects {
 
-class WebServer
-    : public api::ExposedObjectT<WebServer, api::ObjectType::kWebServer>,
-      public LoggerUser {
+class WebRoute
+    : public api::ExposedObjectT<WebRoute, api::ObjectType::kWebRoute> {
  public:
-  WebServer(ContextPtr context, BranchPtr branch, const nlohmann::json& cfg);
+  typedef std::function<void(/* TODO */)> RequestHandler;
 
-  void Start();
+  WebRoute(WebServerPtr server, std::string base_uri, RequestHandler fn);
 
  private:
-  detail::web::RoutesVector CreateAllRoutes(const nlohmann::json& cfg) const;
-
-  const ContextPtr context_;
-  const BranchPtr branch_;
-  const unsigned short port_;
-  const std::string logging_prefix_;
-  const detail::web::AuthProviderPtr auth_;
-  const detail::web::RoutesVector routes_;
-  const detail::web::SslParameters ssl_;
+  const WebServerPtr server_;
 };
 
-typedef std::shared_ptr<WebServer> WebServerPtr;
+typedef std::shared_ptr<WebRoute> WebRoutePtr;
 
 }  // namespace objects

@@ -18,6 +18,7 @@
 #pragma once
 
 #include "../config.h"
+#include "../objects/logger.h"
 #include "transport.h"
 
 #include <boost/asio.hpp>
@@ -95,7 +96,6 @@ class TcpTransport : public Transport {
                std::size_t transceive_byte_limit, bool created_via_accept);
   void SetNoDelayOption();
 
-  static const objects::LoggerPtr logger_;
   boost::asio::ip::tcp::socket socket_;
   std::mutex socket_mutex_;
 };

@@ -147,32 +147,8 @@ YOGI_API int YOGI_LoggerSetComponentsVerbosity(const char* components,
   CHECK_PARAM(YOGI_VB_NONE <= verbosity && verbosity <= YOGI_VB_TRACE);
 
   try {
-    std::regex re(components);
-    std::smatch m;
-    int n = 0;
-
-    auto fn = [&](const objects::LoggerPtr& log) {
-      if (std::regex_match(log->GetComponent(), m, re)) {
-        log->SetVerbosity(static_cast<api::Verbosity>(verbosity));
-        ++n;
-      }
-    };
-
-    // App logger
-    fn(objects::Logger::GetAppLogger());
-
-    // Loggers created by the user
-    for (auto& log : api::ObjectRegister::GetAll<objects::Logger>()) {
-      fn(log);
-    }
-
-    // Internal loggers
-    for (auto& weak_log : objects::Logger::GetInternalLoggers()) {
-      auto log = weak_log.lock();
-      if (log) {
-        fn(log);
-      }
-    }
+    auto n = objects::Logger::SetComponentsVerbosity(
+        std::regex(components), static_cast<api::Verbosity>(verbosity));
 
     if (count) {
       *count = n;
@@ -191,8 +167,7 @@ YOGI_API int YOGI_LoggerLog(void* logger, int severity, const char* file,
   try {
     auto log = logger ? api::ObjectRegister::Get<objects::Logger>(logger)
                       : objects::Logger::GetAppLogger();
-    log->Log(static_cast<api::Verbosity>(severity), file, line,
-             msg);
+    log->Log(static_cast<api::Verbosity>(severity), file, line, msg);
   }
   CATCH_AND_RETURN;
 }

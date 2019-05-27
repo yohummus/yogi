@@ -22,6 +22,7 @@
 #include "../../../utils/timestamp.h"
 #include "../../../utils/types.h"
 #include "../../../utils/system.h"
+#include "../../logger.h"
 
 #include <nlohmann/json.hpp>
 #include <boost/uuid/uuid.hpp>
@@ -34,7 +35,7 @@
 namespace objects {
 namespace detail {
 
-class BranchInfo {
+class BranchInfo : public LoggerUser {
  public:
   enum {
     kAdvertisingMessageSize = 25,
@@ -64,7 +65,6 @@ class BranchInfo {
   }
 
   bool GetGhostMode() const { return ghost_mode_; }
-
   const nlohmann::json& ToJson() const { return json_; }
 
  protected:

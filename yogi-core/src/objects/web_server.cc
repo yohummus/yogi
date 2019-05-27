@@ -16,17 +16,59 @@
  */
 
 #include "web_server.h"
+#include "../api/errors.h"
+#include "../api/constants.h"
+#include "../utils/json_helpers.h"
+
+using namespace std::string_literals;
+
+YOGI_DEFINE_INTERNAL_LOGGER("WebServer");
 
 namespace objects {
 
 WebServer::WebServer(ContextPtr context, BranchPtr branch,
-                     const nlohmann::json& cfg) {
+                     const nlohmann::json& cfg)
+    : context_(context),
+      branch_(branch),
+      port_(utils::ExtractLimitedNumber<unsigned short>(
+          cfg, "port", api::kDefaultWebPort, 1, 65535)),
+      logging_prefix_("["s + std::to_string(port_) + ']'),
+      auth_(detail::web::AuthProvider::Create(cfg["authentication"],
+                                              logging_prefix_)),
+      routes_(CreateAllRoutes(cfg)),
+      ssl_(cfg["ssl"], logging_prefix_) {
   YOGI_ASSERT(context);
+  SetLoggingPrefix(logging_prefix_);
 }
 
 void WebServer::Start() {}
 
-const LoggerPtr WebServer::logger_ =
-    Logger::CreateStaticInternalLogger("WebServer");
+detail::web::RoutesVector WebServer::CreateAllRoutes(
+    const nlohmann::json& cfg) const {
+  detail::web::RoutesVector routes;
+
+  auto& api_perm_cfg = cfg["api_permissions"];
+  if (!api_perm_cfg.is_object()) {
+    throw api::DescriptiveError(YOGI_ERR_CONFIG_NOT_VALID)
+        << "Missing or invalid API permissions section.";
+  }
+
+  for (auto it = api_perm_cfg.begin(); it != api_perm_cfg.end(); ++it) {
+    routes.push_back(
+        std::make_unique<detail::web::ApiRoute>(it.key(), it.value()));
+  }
+
+  auto& routes_cfg = cfg["routes"];
+  if (!routes_cfg.is_object()) {
+    throw api::DescriptiveError(YOGI_ERR_CONFIG_NOT_VALID)
+        << "Missing or invalid routes section.";
+  }
+
+  for (auto it = routes_cfg.begin(); it != routes_cfg.end(); ++it) {
+    routes.push_back(detail::web::Route::Create(*auth_, it, logging_prefix_));
+  }
+
+  return routes;
+}
 
 }  // namespace objects

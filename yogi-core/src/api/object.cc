@@ -17,6 +17,7 @@
 
 #include "object.h"
 
+#include <boost/algorithm/string.hpp>
 #include <limits>
 
 namespace api {
@@ -58,12 +59,39 @@ const std::string& ExposedObject::TypeName() const {
       return s;
     }
 
+    case ObjectType::kWebServer: {
+      static const std::string s = "WebServer";
+      return s;
+    }
+
+    case ObjectType::kWebRoute: {
+      static const std::string s = "WebRoute";
+      return s;
+    }
+
+    case ObjectType::kWebProcess: {
+      static const std::string s = "WebProcess";
+      return s;
+    }
+
     default: {
       YOGI_NEVER_REACHED;
       static const std::string s;
       return s;
     }
   }
+}
+
+std::string ExposedObject::Format(std::string fmt) const {
+  boost::replace_all(fmt, "$T", TypeName());
+
+  char buf[24];
+  sprintf(buf, "%llx", reinterpret_cast<unsigned long long>(this));
+  boost::replace_all(fmt, "$x", buf);
+  sprintf(buf, "%llX", reinterpret_cast<unsigned long long>(this));
+  boost::replace_all(fmt, "$X", buf);
+
+  return fmt;
 }
 
 std::mutex ObjectRegister::mutex_;

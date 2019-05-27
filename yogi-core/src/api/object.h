@@ -37,6 +37,8 @@ enum class ObjectType {
   kConfiguration,
   kSignalSet,
   kWebServer,
+  kWebRoute,
+  kWebProcess,
 };
 
 typedef void* ObjectHandle;
@@ -49,7 +51,7 @@ class ExposedObject : public std::enable_shared_from_this<ExposedObject> {
   virtual ObjectType Type() const = 0;
 
   const std::string& TypeName() const;
-
+  std::string Format(std::string fmt) const;
   ObjectHandle Handle() { return static_cast<ObjectHandle>(this); }
 
   template <typename TO>

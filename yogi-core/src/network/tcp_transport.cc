@@ -18,6 +18,8 @@
 #include "tcp_transport.h"
 #include "ip.h"
 
+YOGI_DEFINE_INTERNAL_LOGGER("Transport.Tcp");
+
 namespace network {
 
 TcpTransport::AcceptGuardPtr TcpTransport::AcceptAsync(
@@ -168,12 +170,8 @@ void TcpTransport::SetNoDelayOption() {
   std::lock_guard<std::mutex> lock(socket_mutex_);
   socket_.set_option(boost::asio::ip::tcp::no_delay(true), ec);
   if (ec) {
-    YOGI_LOG_WARNING(logger_, "Could not set TCP_NODELAY option on socket: "
-                                  << ec.message());
+    LOG_WRN("Could not set TCP_NODELAY option on socket: " << ec.message());
   }
 }
-
-const objects::LoggerPtr TcpTransport::logger_ =
-    objects::Logger::CreateStaticInternalLogger("Transport.Tcp");
 
 }  // namespace network

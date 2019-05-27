@@ -43,7 +43,8 @@ class MessageTransport;
 typedef std::shared_ptr<MessageTransport> MessageTransportPtr;
 typedef std::weak_ptr<MessageTransport> MessageTransportWeakPtr;
 
-class MessageTransport : public std::enable_shared_from_this<MessageTransport> {
+class MessageTransport : public std::enable_shared_from_this<MessageTransport>,
+                         public objects::LoggerUser {
  public:
   typedef int OperationTag;
   typedef std::function<void(const api::Result&)> SendHandler;
@@ -90,8 +91,6 @@ class MessageTransport : public std::enable_shared_from_this<MessageTransport> {
   void HandleSendError(const api::Error& err);
   void HandleReceiveError(const api::Error& err);
   void CheckOperationTagIsNotUsed(OperationTag tag);
-
-  static const objects::LoggerPtr logger_;
 
   const objects::ContextPtr context_;
   const TransportPtr transport_;

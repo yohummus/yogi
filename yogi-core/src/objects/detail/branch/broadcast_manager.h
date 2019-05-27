@@ -31,7 +31,8 @@ namespace objects {
 namespace detail {
 
 class BroadcastManager final
-    : public std::enable_shared_from_this<BroadcastManager> {
+    : public std::enable_shared_from_this<BroadcastManager>,
+      public LoggerUser {
  public:
   typedef network::MessageTransport::OperationTag SendBroadcastOperationId;
   typedef std::function<void(const api::Result& res,
@@ -44,6 +45,8 @@ class BroadcastManager final
 
   BroadcastManager(ContextPtr context, ConnectionManager& conn_manager);
   virtual ~BroadcastManager();
+
+  void Start(LocalBranchInfoPtr info);
 
   api::Result SendBroadcast(const network::Payload& payload, bool retry);
 
@@ -75,8 +78,6 @@ class BroadcastManager final
 
   void CreateAndIncrementCounter(SharedCounter* counter);
   bool RemoveActiveOid(SendBroadcastOperationId oid);
-
-  static const LoggerPtr logger_;
 
   const ContextPtr context_;
   ConnectionManager& conn_manager_;

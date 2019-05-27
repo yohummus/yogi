@@ -18,6 +18,10 @@
 #include "msg_transport.h"
 #include "../utils/algorithm.h"
 
+using namespace std::string_literals;
+
+YOGI_DEFINE_INTERNAL_LOGGER("MessageTransport")
+
 namespace network {
 namespace internal {
 
@@ -77,7 +81,10 @@ MessageTransport::MessageTransport(TransportPtr transport,
   ResetReceivedSizeField();
 }
 
-void MessageTransport::Start() { ReceiveSomeBytesFromTransport(); }
+void MessageTransport::Start() {
+  SetLoggingPrefix("[peer " + transport_->GetPeerDescription() + ']');
+  ReceiveSomeBytesFromTransport();
+}
 
 bool MessageTransport::TrySend(const OutgoingMessage& msg) {
   std::lock_guard<std::mutex> lock(tx_mutex_);
@@ -323,7 +330,7 @@ void MessageTransport::TryDeliveringPendingReceive() {
 }
 
 void MessageTransport::HandleSendError(const api::Error& err) {
-  YOGI_LOG_ERROR(logger_, "Sending message failed: " << err);
+  LOG_ERR("Sending message failed: " << err);
 
   Close();
 
@@ -338,7 +345,7 @@ void MessageTransport::HandleSendError(const api::Error& err) {
 }
 
 void MessageTransport::HandleReceiveError(const api::Error& err) {
-  YOGI_LOG_ERROR(logger_, "Receiving message failed: " << err);
+  LOG_ERR("Receiving message failed: " << err);
 
   Close();
 
@@ -356,8 +363,5 @@ void MessageTransport::CheckOperationTagIsNotUsed(OperationTag tag) {
   YOGI_ASSERT(!utils::contains_if(pending_sends_,
                                   [&](auto& ps) { return ps.tag == tag; }));
 }
-
-const objects::LoggerPtr MessageTransport::logger_ =
-    objects::Logger::CreateStaticInternalLogger("MessageTransport");
 
 }  // namespace network

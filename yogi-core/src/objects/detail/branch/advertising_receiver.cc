@@ -19,6 +19,9 @@
 #include "../../../api/errors.h"
 
 #include <boost/asio/ip/multicast.hpp>
+using namespace std::string_literals;
+
+YOGI_DEFINE_INTERNAL_LOGGER("Branch.AdvertisingReceiver")
 
 namespace objects {
 namespace detail {
@@ -39,6 +42,8 @@ void AdvertisingReceiver::Start(LocalBranchInfoPtr info) {
   YOGI_ASSERT(!info_);
 
   info_ = info;
+  SetLoggingPrefix(info->GetLoggingPrefix());
+
   if (JoinMulticastGroups()) {
     StartReceiveAdvertisement();
   }
@@ -72,22 +77,21 @@ bool AdvertisingReceiver::JoinMulticastGroups() {
       socket_.set_option(opt, ec);
 
       if (ec) {
-        YOGI_LOG_ERROR(logger_,
-                       info_ << " Could not join advertising multicast group "
-                             << adv_ep_ << " for interface " << addr << ": "
-                             << ec.message()
-                             << ". This interface will be ignored.");
+        LOG_ERR("Could not join advertising multicast group "
+                << adv_ep_ << " for interface " << addr << ": " << ec.message()
+                << ". This interface will be ignored.");
         continue;
       }
 
-      YOGI_LOG_INFO(logger_, info_ << " Using interface " << addr
-                                   << " for receiving advertising messages.");
+      LOG_IFO("Using interface " << addr
+                                 << " for receiving advertising messages.");
       joined_at_least_once = true;
     }
 
     if (!joined_at_least_once) {
-      YOGI_LOG_ERROR(logger_, info_ << " No network interfaces available for "
-                                       "receiving advertising messages.");
+      LOG_ERR(
+          "No network interfaces available for receiving advertising "
+          "messages.");
     }
   }
 
@@ -110,16 +114,14 @@ void AdvertisingReceiver::StartReceiveAdvertisement() {
 void AdvertisingReceiver::OnReceivedAdvertisementFinished(
     const boost::system::error_code& ec, std::size_t bytes_received) {
   if (ec) {
-    YOGI_LOG_ERROR(
-        logger_,
-        info_ << "Failed to receive advertising message: " << ec.message()
-              << ". No more advertising messages will be received.");
+    LOG_ERR("Failed to receive advertising message: "
+            << ec.message()
+            << ". No more advertising messages will be received.");
     return;
   }
 
   if (bytes_received != BranchInfo::kAdvertisingMessageSize) {
-    YOGI_LOG_WARNING(logger_,
-                     info_ << "Unexpected advertising message size received");
+    LOG_WRN("Unexpected advertising message size received");
     StartReceiveAdvertisement();
     return;
   }
@@ -129,9 +131,8 @@ void AdvertisingReceiver::OnReceivedAdvertisementFinished(
   auto res = RemoteBranchInfo::DeserializeAdvertisingMessage(&uuid, &tcp_port,
                                                              *buffer_);
   if (res.IsError()) {
-    YOGI_LOG_WARNING(logger_,
-                     info_ << " Invalid advertising message received from "
-                           << sender_ep_.address() << ": " << res);
+    LOG_WRN("Invalid advertising message received from " << sender_ep_.address()
+                                                         << ": " << res);
     StartReceiveAdvertisement();
     return;
   }
@@ -145,9 +146,6 @@ void AdvertisingReceiver::OnReceivedAdvertisementFinished(
 
   StartReceiveAdvertisement();
 }
-
-const LoggerPtr AdvertisingReceiver::logger_ =
-    Logger::CreateStaticInternalLogger("Branch.AdvertisingReceiver");
 
 }  // namespace detail
 }  // namespace objects

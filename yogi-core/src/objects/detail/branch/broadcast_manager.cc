@@ -18,6 +18,8 @@
 #include "broadcast_manager.h"
 #include "../../../utils/algorithm.h"
 
+YOGI_DEFINE_INTERNAL_LOGGER("Branch.BroadcastManager")
+
 namespace objects {
 namespace detail {
 
@@ -26,6 +28,10 @@ BroadcastManager::BroadcastManager(ContextPtr context,
     : context_(context), conn_manager_(conn_manager) {}
 
 BroadcastManager::~BroadcastManager() {}
+
+void BroadcastManager::Start(LocalBranchInfoPtr info) {
+  SetLoggingPrefix(info->GetLoggingPrefix());
+}
 
 api::Result BroadcastManager::SendBroadcast(const network::Payload& payload,
                                             bool block) {
@@ -173,8 +179,7 @@ void BroadcastManager::SendNowOrLater(SharedCounter* pending_handlers,
       }
     }
   } catch (const api::Error& err) {
-    YOGI_LOG_ERROR(logger_,
-                   "Could not send broadcast to " << conn << ": " << err);
+    LOG_ERR("Could not send broadcast to " << conn << ": " << err);
   }
 }
 
@@ -205,9 +210,6 @@ bool BroadcastManager::RemoveActiveOid(SendBroadcastOperationId oid) {
 
   return false;
 }
-
-const LoggerPtr BroadcastManager::logger_ =
-    Logger::CreateStaticInternalLogger("Branch.BroadcastManager");
 
 }  // namespace detail
 }  // namespace objects

@@ -52,13 +52,7 @@ ByteVector GenerateRandomBytes(std::size_t n) {
   auto res = RAND_bytes(bytes.data(), static_cast<int>(bytes.size()));
   if (res != 1) {
     char str[128];
-    ERR_error_string_n(ERR_get_error(), str, sizeof(str));
-    YOGI_LOG_WARNING(
-        logger,
-        "Could not generate "
-            << n
-            << " random bytes using OpenSSL. Generated from C++ STL instead.");
-
+    // ERR_error_string_n(ERR_get_error(), str, sizeof(str));
     std::random_device rd;
     std::default_random_engine gen(rd());
     std::uniform_int_distribution<> dist;

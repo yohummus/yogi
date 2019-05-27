@@ -217,6 +217,7 @@ T GetBranchProperty(void* branch, const char* property) {
   return GetBranchInfo(branch)[property].get<T>();
 }
 
+std::string MakeTestDataPath(const std::string& data_path);
 std::string ReadFile(const std::string& filename);
 void* MakeConfigFromJson(const nlohmann::json& json);
 

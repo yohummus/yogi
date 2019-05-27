@@ -32,7 +32,8 @@
 
 namespace objects {
 
-class Context : public api::ExposedObjectT<Context, api::ObjectType::kContext> {
+class Context : public api::ExposedObjectT<Context, api::ObjectType::kContext>,
+                public LoggerUser {
  public:
   typedef std::function<void(const api::Result&, api::Signals)> SignalHandler;
 
@@ -59,8 +60,6 @@ class Context : public api::ExposedObjectT<Context, api::ObjectType::kContext> {
 
   template <typename Fn>
   int RunImpl(Fn fn);
-
-  static const LoggerPtr logger_;
 
   boost::asio::io_context ioc_;
   boost::asio::io_context::work work_;

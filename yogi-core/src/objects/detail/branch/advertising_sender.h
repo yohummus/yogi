@@ -30,7 +30,8 @@ namespace objects {
 namespace detail {
 
 class AdvertisingSender
-    : public std::enable_shared_from_this<AdvertisingSender> {
+    : public std::enable_shared_from_this<AdvertisingSender>,
+      public LoggerUser {
  public:
   AdvertisingSender(ContextPtr context,
                     const boost::asio::ip::udp::endpoint& adv_ep);
@@ -50,9 +51,10 @@ class AdvertisingSender
   void SetupSockets();
   bool ConfigureSocket(std::shared_ptr<SocketEntry> entry);
   void SendAdvertisements();
+  void OnAdvertisementSent(const boost::system::error_code& ec,
+                           const std::shared_ptr<SocketEntry>& socket);
   void StartTimer();
-
-  static const LoggerPtr logger_;
+  void OnTimerExpired(const boost::system::error_code& ec);
 
   const ContextPtr context_;
   const boost::asio::ip::udp::endpoint adv_ep_;

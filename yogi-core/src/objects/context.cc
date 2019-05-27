@@ -21,9 +21,13 @@
 #include <boost/asio/post.hpp>
 #include <signal.h>
 
+YOGI_DEFINE_INTERNAL_LOGGER("Context")
+
 namespace objects {
 
-Context::Context() : ioc_(1), work_(ioc_), signals_(ioc_), running_(false) {}
+Context::Context() : ioc_(1), work_(ioc_), signals_(ioc_), running_(false) {
+  SetLoggingPrefix(*this);
+}
 
 Context::~Context() {
   Stop();
@@ -64,11 +68,9 @@ void Context::RunInBackground() {
     try {
       ioc_.run();
     } catch (const std::exception& e) {
-      YOGI_LOG_FATAL(logger_, "Exception caught in context background thread: "
-                                  << e.what());
+      LOG_FAT("Exception caught in context background thread: " << e.what());
     } catch (...) {
-      YOGI_LOG_FATAL(logger_,
-                     "Unknown Exception caught in context background thread");
+      LOG_FAT("Unknown Exception caught in context background thread");
     }
 
     ClearRunningFlag();
@@ -116,14 +118,13 @@ void Context::AwaitSignal(api::Signals sigs, SignalHandler signal_handler) {
   boost::system::error_code ec;
   signals_.cancel(ec);
   if (ec) {
-    YOGI_LOG_ERROR(logger_, "Could not cancel wait for signal operation: "
-                                << ec.message());
+    LOG_ERR("Could not cancel wait for signal operation: " << ec.message());
     throw api::Error(YOGI_ERR_UNKNOWN);
   }
 
   signals_.clear(ec);
   if (ec) {
-    YOGI_LOG_ERROR(logger_, "Could not clear signal set: " << ec.message());
+    LOG_ERR("Could not clear signal set: " << ec.message());
     throw api::Error(YOGI_ERR_UNKNOWN);
   }
 
@@ -136,8 +137,7 @@ void Context::AwaitSignal(api::Signals sigs, SignalHandler signal_handler) {
   }
 
   if (ec) {
-    YOGI_LOG_ERROR(logger_,
-                   "Could not add SIGINT to signal set: " << ec.message());
+    LOG_ERR("Could not add SIGINT to signal set: " << ec.message());
     throw api::Error(YOGI_ERR_UNKNOWN);
   }
 
@@ -161,8 +161,7 @@ void Context::AwaitSignal(api::Signals sigs, SignalHandler signal_handler) {
     } else if (ec == boost::asio::error::operation_aborted) {
       res = api::Error(YOGI_ERR_CANCELED);
     } else {
-      YOGI_LOG_ERROR(logger_,
-                     "Could not wait for signal set: " << ec.message());
+      LOG_ERR("Could not wait for signal set: " << ec.message());
       res = api::Error(YOGI_ERR_UNKNOWN);
     }
 
@@ -197,8 +196,5 @@ int Context::RunImpl(Fn fn) {
   ClearRunningFlag();
   return cnt;
 }
-
-const LoggerPtr Context::logger_ =
-    Logger::CreateStaticInternalLogger("Context");
 
 }  // namespace objects

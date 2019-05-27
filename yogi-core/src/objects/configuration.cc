@@ -23,13 +23,17 @@
 #include <fstream>
 using namespace std::string_literals;
 
+YOGI_DEFINE_INTERNAL_LOGGER("Configuration")
+
 namespace objects {
 
 Configuration::Configuration(api::ConfigurationFlags flags)
     : variables_supported_(!(flags & api::kDisableVariables)),
       mutable_cmdline_(flags & api::kMutableCmdLine),
       json_({}),
-      immutable_json_({}) {}
+      immutable_json_({}) {
+  SetLoggingPrefix(*this);
+}
 
 void Configuration::UpdateFromCommandLine(int argc, const char* const* argv,
                                           api::CommandLineOptions options) {
@@ -125,8 +129,8 @@ void Configuration::WriteToFile(const std::string& filename,
       f << std::endl;
     }
   } catch (const std::exception& e) {
-    YOGI_LOG_ERROR(logger_, "Could not write configuration to "
-                                << filename << ": " << e.what());
+    LOG_ERR("Could not write configuration to " << filename << ": "
+                                                << e.what());
     throw api::Error(YOGI_ERR_WRITE_TO_FILE_FAILED);
   }
 }
@@ -247,8 +251,5 @@ void Configuration::VerifyAndMerge(const nlohmann::json& json_to_merge,
 
   json_ = new_json;
 }
-
-const LoggerPtr Configuration::logger_ =
-    Logger::CreateStaticInternalLogger("Configuration");
 
 }  // namespace objects

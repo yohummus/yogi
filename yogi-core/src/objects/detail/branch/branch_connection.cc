@@ -358,9 +358,6 @@ void BranchConnection::OnMessageReceived(const utils::SharedByteVector& msg) {
   network::IncomingMessage::Deserialize(*msg, rcv_handler_);
 }
 
-const LoggerPtr BranchConnection::logger_ =
-    Logger::CreateStaticInternalLogger("Branch.Connection");
-
 }  // namespace detail
 }  // namespace objects
 

@@ -19,6 +19,7 @@
 
 #include "../config.h"
 #include "context.h"
+#include "logger.h"
 #include "detail/branch/broadcast_manager.h"
 #include "detail/branch/connection_manager.h"
 
@@ -26,7 +27,8 @@
 
 namespace objects {
 
-class Branch : public api::ExposedObjectT<Branch, api::ObjectType::kBranch> {
+class Branch : public api::ExposedObjectT<Branch, api::ObjectType::kBranch>,
+               public LoggerUser {
  public:
   using BranchEventHandler = detail::ConnectionManager::BranchEventHandler;
   using SendBroadcastHandler = detail::BroadcastManager::SendBroadcastHandler;
@@ -61,8 +63,6 @@ class Branch : public api::ExposedObjectT<Branch, api::ObjectType::kBranch> {
                            const detail::BranchConnectionPtr& conn);
   void OnMessageReceived(const network::IncomingMessage& msg,
                          const detail::BranchConnectionPtr& conn);
-
-  static const LoggerPtr logger_;
 
   const ContextPtr context_;
   const detail::ConnectionManagerPtr connection_manager_;

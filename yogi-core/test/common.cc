@@ -29,6 +29,7 @@ using namespace std::string_literals;
 namespace fs = boost::filesystem;
 
 TestFixture::TestFixture() {
+  // Logging for all tests
   // SetupLogging(YOGI_VB_TRACE);
 }
 
@@ -336,9 +337,22 @@ std::string MakeVersionString(int major, int minor, int patch,
 }
 
 void SetupLogging(int verbosity) {
-  YOGI_ConfigureConsoleLogging(YOGI_VB_TRACE, YOGI_ST_STDERR, YOGI_TRUE,
-                               nullptr, nullptr);
-  YOGI_LoggerSetComponentsVerbosity("Yogi\\..*", verbosity, nullptr);
+  // For calls through the public API
+  int res = YOGI_ConfigureConsoleLogging(YOGI_VB_TRACE, YOGI_ST_STDERR,
+                                         YOGI_TRUE, nullptr, nullptr);
+  EXPECT_OK(res);
+
+  res = YOGI_LoggerSetComponentsVerbosity("Yogi\\..*", verbosity, nullptr);
+  EXPECT_OK(res);
+
+  // For direct calls, circumventing the public API (needed because the shared
+  // library and test memory space are separate)
+  objects::Logger::SetSink(std::make_unique<objects::detail::ConsoleLogSink>(
+      static_cast<api::Verbosity>(verbosity), stderr, true,
+      api::kDefaultLogTimeFormat, api::kDefaultLogFormat));
+
+  objects::Logger::SetComponentsVerbosity(
+      std::regex("Yogi\\..*"), static_cast<api::Verbosity>(verbosity));
 }
 
 void* CreateContext() {
@@ -438,6 +452,11 @@ std::map<boost::uuids::uuid, nlohmann::json> GetConnectedBranches(
   EXPECT_OK(res);
 
   return data.branches;
+}
+
+std::string MakeTestDataPath(const std::string& data_path) {
+  // YOGI_TEST_DATA_DIR is set in CMakeLists.txt
+  return std::string(YOGI_TEST_DATA_DIR) + "/" + data_path;
 }
 
 std::string ReadFile(const std::string& filename) {

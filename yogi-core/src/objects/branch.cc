@@ -24,6 +24,8 @@
 using namespace std::chrono_literals;
 using namespace std::string_literals;
 
+YOGI_DEFINE_INTERNAL_LOGGER("Branch")
+
 namespace objects {
 
 Branch::Branch(ContextPtr context, const nlohmann::json& cfg)
@@ -44,7 +46,11 @@ Branch::Branch(ContextPtr context, const nlohmann::json& cfg)
   }
 }
 
-void Branch::Start() { connection_manager_->Start(info_); }
+void Branch::Start() {
+  SetLoggingPrefix(info_->GetLoggingPrefix());
+  connection_manager_->Start(info_);
+  broadcast_manager_->Start(info_);
+}
 
 ContextPtr Branch::GetContext() const { return context_; }
 
@@ -90,9 +96,8 @@ bool Branch::CancelReceiveBroadcast() {
 
 void Branch::OnConnectionChanged(const api::Result& res,
                                  const detail::BranchConnectionPtr& conn) {
-  YOGI_LOG_INFO(logger_, info_ << ": Connection to "
-                               << conn->GetRemoteBranchInfo()
-                               << " changed: " << res);
+  LOG_IFO("Connection to " << conn->GetRemoteBranchInfo()
+                           << " changed: " << res);
   // TODO
 }
 
@@ -100,7 +105,7 @@ void Branch::OnMessageReceived(const network::IncomingMessage& msg,
                                const detail::BranchConnectionPtr& conn) {
   using namespace network;
 
-  YOGI_LOG_TRACE(logger_, info_ << ": Message received: " << msg);
+  LOG_TRC("Message received: " << msg);
 
   switch (msg.GetType()) {
     case MessageType::kHeartbeat:
@@ -112,13 +117,10 @@ void Branch::OnMessageReceived(const network::IncomingMessage& msg,
       break;
 
     default:
-      YOGI_LOG_ERROR(logger_,
-                     info_ << ": Message of unexpected type received: " << msg);
+      LOG_ERR("Message of unexpected type received: " << msg);
       YOGI_NEVER_REACHED;
       break;
   }
 }
-
-const LoggerPtr Branch::logger_ = Logger::CreateStaticInternalLogger("Branch");
 
 }  // namespace objects
