@@ -90,7 +90,7 @@ public static partial class Yogi
         InvalidRegex = -16,
 
         /// <summary>Could not read from file.</summary>
-        OpenFileFailed = -17,
+        ReadFileFailed = -17,
 
         /// <summary>Could not read from or write to socket.</summary>
         RwSocketFailed = -18,
@@ -144,7 +144,7 @@ public static partial class Yogi
         HelpRequested = -34,
 
         /// <summary>Could not write to file.</summary>
-        WriteToFileFailed = -35,
+        WriteFileFailed = -35,
 
         /// <summary>One or more configuration variables are undefined or could not be resolved.</summary>
         UndefinedVariables = -36,
