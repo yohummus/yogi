@@ -77,33 +77,25 @@ LocalBranchInfo::LocalBranchInfo(
     const nlohmann::json& cfg,
     const std::vector<utils::NetworkInterfaceInfo>& adv_ifs,
     const boost::asio::ip::tcp::endpoint& tcp_ep) {
-  uuid_ = boost::uuids::random_generator()();
-  name_ = cfg.value("name", std::to_string(utils::GetProcessId()) + '@' +
-                                utils::GetHostname());
-  description_ = cfg.value("description", std::string{});
-  net_name_ = cfg.value("network_name", utils::GetHostname());
-  path_ = cfg.value("path", "/"s + name_);
-  hostname_ = utils::GetHostname();
-  pid_ = utils::GetProcessId();
-  adv_ifs_ = adv_ifs;
-  tcp_ep_ = tcp_ep;
-  start_time_ = utils::Timestamp::Now();
-  timeout_ =
-      utils::ExtractDuration(cfg, "timeout", api::kDefaultConnectionTimeout);
-  adv_interval_ = utils::ExtractDuration(cfg, "advertising_interval",
-                                         api::kDefaultAdvInterval);
-  ghost_mode_ = cfg.value("ghost_mode", false);
-  adv_ep_ = utils::ExtractUdpEndpoint(cfg, "advertising_address",
-                                      api::kDefaultAdvAddress,
-                                      "advertising_port", api::kDefaultAdvPort);
-  tx_queue_size_ = utils::ExtractLimitedNumber<std::size_t>(
-      cfg, "tx_queue_size", api::kDefaultTxQueueSize, api::kMinTxQueueSize,
-      api::kMaxTxQueueSize);
-  rx_queue_size_ = utils::ExtractLimitedNumber<std::size_t>(
-      cfg, "rx_queue_size", api::kDefaultRxQueueSize, api::kMinRxQueueSize,
-      api::kMaxRxQueueSize);
-  transceive_byte_limit_ =
-      utils::ExtractSizeWithInfSupport(cfg, "_transceive_byte_limit", -1, 0);
+  // clang-format off
+  uuid_            = boost::uuids::random_generator()();
+  name_            = cfg.value("name", std::to_string(utils::GetProcessId()) + '@' + utils::GetHostname());
+  description_     = cfg.value("description", std::string{});
+  net_name_        = cfg.value("network_name", utils::GetHostname());
+  path_            = cfg.value("path", "/"s + name_);
+  hostname_        = utils::GetHostname();
+  pid_             = utils::GetProcessId();
+  adv_ifs_         = adv_ifs;
+  tcp_ep_          = tcp_ep;
+  start_time_      = utils::Timestamp::Now();
+  timeout_         = utils::ExtractDuration(cfg, "timeout", api::kDefaultConnectionTimeout);
+  adv_interval_    = utils::ExtractDuration(cfg, "advertising_interval", api::kDefaultAdvInterval);
+  ghost_mode_      = cfg.value("ghost_mode", false);
+  adv_ep_          = utils::ExtractUdpEndpoint(cfg, "advertising_address", api::kDefaultAdvAddress, "advertising_port", api::kDefaultAdvPort);
+  tx_queue_size_   = utils::ExtractLimitedNumber<std::size_t>(cfg, "tx_queue_size", api::kDefaultTxQueueSize, api::kMinTxQueueSize, api::kMaxTxQueueSize);
+  rx_queue_size_   = utils::ExtractLimitedNumber<std::size_t>(cfg, "rx_queue_size", api::kDefaultRxQueueSize, api::kMinRxQueueSize, api::kMaxRxQueueSize);
+  txrx_byte_limit_ = utils::ExtractSizeWithInfSupport(cfg, "_transceive_byte_limit", -1, 0);
+  // clang-format on
 
   PopulateMessages();
   PopulateJson();
