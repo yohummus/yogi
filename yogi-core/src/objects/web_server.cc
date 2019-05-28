@@ -32,6 +32,14 @@ WebServer::WebServer(ContextPtr context, BranchPtr branch,
       branch_(branch),
       port_(utils::ExtractLimitedNumber<unsigned short>(
           cfg, "port", api::kDefaultWebPort, 1, 65535)),
+      ifs_(utils::GetFilteredNetworkInterfaces(utils::ExtractArrayOfStrings(
+          cfg, "interfaces", api::kDefaultWebInterfaces))),
+      timeout_(utils::ExtractDuration(cfg, "timeout", api::kDefaultWebTimeout)),
+      test_mode_(cfg.value("test_mode", false)),
+      compress_assets_(cfg.value("compress_assets", true)),
+      cache_size_(utils::ExtractLimitedNumber<std::size_t>(
+          cfg, "cache_size", api::kDefaultWebCacheSize, 0,
+          api::kMaxWebCacheSize)),
       logging_prefix_("["s + std::to_string(port_) + ']'),
       auth_(detail::web::AuthProvider::Create(cfg["authentication"],
                                               logging_prefix_)),
@@ -54,8 +62,8 @@ detail::web::RoutesVector WebServer::CreateAllRoutes(
   }
 
   for (auto it = api_perm_cfg.begin(); it != api_perm_cfg.end(); ++it) {
-    routes.push_back(
-        std::make_unique<detail::web::ApiRoute>(it.key(), it.value()));
+    routes.push_back(std::make_unique<detail::web::ApiEndpoint>(
+        it.key(), it.value(), logging_prefix_));
   }
 
   auto& routes_cfg = cfg["routes"];

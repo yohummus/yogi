@@ -52,8 +52,10 @@ class Route : public objects::LoggerUser {
   const UserPtr& GetOwner() const { return owner_; }
 
  protected:
-  Route(const std::string& base_uri, const nlohmann::json& permissions_cfg);
-  Route(const AuthProvider& auth, const nlohmann::json::const_iterator& cfg_it);
+  Route(const std::string& base_uri, const nlohmann::json& permissions_cfg,
+        const std::string& logging_prefix);
+  Route(const AuthProvider& auth, const nlohmann::json::const_iterator& cfg_it,
+        const std::string& logging_prefix);
 
  private:
   const std::string base_uri_;
@@ -65,24 +67,35 @@ class Route : public objects::LoggerUser {
 class ContentRoute : public Route {
  public:
   ContentRoute(const AuthProvider& auth,
-               const nlohmann::json::const_iterator& cfg_it);
+               const nlohmann::json::const_iterator& cfg_it,
+               const std::string& logging_prefix);
+
+ private:
+  const std::string mime_type_;
 };
 
 class FileSystemRoute : public Route {
  public:
   FileSystemRoute(const AuthProvider& auth,
-                  const nlohmann::json::const_iterator& cfg_it);
+                  const nlohmann::json::const_iterator& cfg_it,
+                  const std::string& logging_prefix);
+
+ private:
+  const std::string path_;
 };
 
 class CustomRoute : public Route {
  public:
   CustomRoute(const AuthProvider& auth,
-              const nlohmann::json::const_iterator& cfg_it);
+              const nlohmann::json::const_iterator& cfg_it,
+              const std::string& logging_prefix);
 };
 
-class ApiRoute : public Route {
+class ApiEndpoint : public Route {
  public:
-  ApiRoute(const std::string& base_uri, const nlohmann::json& permissions_cfg);
+  ApiEndpoint(const std::string& base_uri,
+              const nlohmann::json& permissions_cfg,
+              const std::string& logging_prefix);
 };
 
 }  // namespace web

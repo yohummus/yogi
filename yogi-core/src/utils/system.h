@@ -26,6 +26,8 @@
 
 namespace utils {
 
+enum class IpVersion { kAny, k4, k6 };
+
 struct NetworkInterfaceInfo {
   std::string name;
   std::string identifier;  // The part after the % sign (e.g. ::1%en5 => "en5")
@@ -38,6 +40,9 @@ std::string GetHostname();
 int GetProcessId();
 int GetCurrentThreadId();
 std::vector<NetworkInterfaceInfo> GetNetworkInterfaces();
+std::vector<NetworkInterfaceInfo> GetFilteredNetworkInterfaces(
+    const std::vector<std::string>& adv_if_strings,
+    IpVersion ip_version = IpVersion::kAny);
 std::vector<NetworkInterfaceInfo> GetFilteredNetworkInterfaces(
     const std::vector<std::string>& adv_if_strings,
     const boost::asio::ip::udp& protocol);

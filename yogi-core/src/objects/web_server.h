@@ -18,6 +18,7 @@
 #pragma once
 
 #include "../config.h"
+#include "../utils/system.h"
 #include "context.h"
 #include "branch.h"
 #include "logger.h"
@@ -44,6 +45,11 @@ class WebServer
   const ContextPtr context_;
   const BranchPtr branch_;
   const unsigned short port_;
+  const std::vector<utils::NetworkInterfaceInfo> ifs_;
+  const std::chrono::nanoseconds timeout_;
+  const bool test_mode_;
+  const bool compress_assets_;
+  const std::size_t cache_size_;
   const std::string logging_prefix_;
   const detail::web::AuthProviderPtr auth_;
   const detail::web::RoutesVector routes_;

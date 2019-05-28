@@ -51,48 +51,80 @@ RoutePtr Route::Create(const AuthProvider& auth,
                        const std::string& logging_prefix) {
   RoutePtr route;
 
-  auto type = cfg_it.value().value("type", std::string{});
+  auto type = cfg_it->value("type", std::string{});
   if (type == "content") {
-    route = std::make_unique<ContentRoute>(auth, cfg_it);
+    route = std::make_unique<ContentRoute>(auth, cfg_it, logging_prefix);
   } else if (type == "filesystem") {
-    route = std::make_unique<FileSystemRoute>(auth, cfg_it);
+    route = std::make_unique<FileSystemRoute>(auth, cfg_it, logging_prefix);
   } else if (type == "custom") {
-    route = std::make_unique<CustomRoute>(auth, cfg_it);
+    route = std::make_unique<CustomRoute>(auth, cfg_it, logging_prefix);
   } else {
     throw api::DescriptiveError(YOGI_ERR_CONFIG_NOT_VALID)
         << "Missing or invalid route type in route " << cfg_it.key()
         << ". Valid types are \"content\", \"filesystem\" or \"custom\".";
   }
 
-  route->SetLoggingPrefix(logging_prefix);
   return route;
 }
 
-Route::Route(const std::string& base_uri, const nlohmann::json& permissions_cfg)
-    : base_uri_(base_uri), enabled_(true), permissions_(permissions_cfg) {}
+Route::Route(const std::string& base_uri, const nlohmann::json& permissions_cfg,
+             const std::string& logging_prefix)
+    : base_uri_(base_uri), enabled_(true), permissions_(permissions_cfg) {
+  SetLoggingPrefix(logging_prefix);
+}
 
 Route::Route(const AuthProvider& auth,
-             const nlohmann::json::const_iterator& cfg_it)
+             const nlohmann::json::const_iterator& cfg_it,
+             const std::string& logging_prefix)
     : base_uri_(cfg_it.key()),
-      enabled_(cfg_it.value().value("enabled", true)),
+      enabled_(cfg_it->value("enabled", true)),
       permissions_(cfg_it.value()["permissions"]),
-      owner_(ExtractOwner(auth, cfg_it)) {}
+      owner_(ExtractOwner(auth, cfg_it)) {
+  SetLoggingPrefix(logging_prefix);
+}
 
 ContentRoute::ContentRoute(const AuthProvider& auth,
-                           const nlohmann::json::const_iterator& cfg_it)
-    : Route(auth, cfg_it) {}
+                           const nlohmann::json::const_iterator& cfg_it,
+                           const std::string& logging_prefix)
+    : Route(auth, cfg_it, logging_prefix),
+      mime_type_(cfg_it->value("mime", "")) {
+  if (mime_type_.empty()) {
+    throw api::DescriptiveError(YOGI_ERR_CONFIG_NOT_VALID)
+        << "Missing mime property for route " << cfg_it.key() << ".";
+  }
+
+  LOG_DBG("Added content route " << cfg_it.key() << " serving " << mime_type_
+                                 << (IsEnabled() ? "" : " (disabled)"));
+}
 
 FileSystemRoute::FileSystemRoute(const AuthProvider& auth,
-                                 const nlohmann::json::const_iterator& cfg_it)
-    : Route(auth, cfg_it) {}
+                                 const nlohmann::json::const_iterator& cfg_it,
+                                 const std::string& logging_prefix)
+    : Route(auth, cfg_it, logging_prefix), path_(cfg_it->value("path", "")) {
+  if (path_.empty()) {
+    throw api::DescriptiveError(YOGI_ERR_CONFIG_NOT_VALID)
+        << "Missing path property for route " << cfg_it.key() << ".";
+  }
+
+  LOG_DBG("Added filesystem route " << cfg_it.key() << " serving " << path_
+                                    << (IsEnabled() ? "" : " (disabled)"));
+}
 
 CustomRoute::CustomRoute(const AuthProvider& auth,
-                         const nlohmann::json::const_iterator& cfg_it)
-    : Route(auth, cfg_it) {}
+                         const nlohmann::json::const_iterator& cfg_it,
+                         const std::string& logging_prefix)
+    : Route(auth, cfg_it, logging_prefix) {
+  LOG_DBG("Configured custom route " << cfg_it.key()
+                                     << (IsEnabled() ? "" : " (disabled)"));
+}
 
-ApiRoute::ApiRoute(const std::string& base_uri,
-                   const nlohmann::json& permissions_cfg)
-    : Route(base_uri, permissions_cfg) {}
+ApiEndpoint::ApiEndpoint(const std::string& base_uri,
+                         const nlohmann::json& permissions_cfg,
+                         const std::string& logging_prefix)
+    : Route(base_uri, permissions_cfg, logging_prefix) {
+  LOG_DBG("Configured API endpoint " << base_uri
+                                     << (IsEnabled() ? "" : " (disabled)"));
+}
 
 }  // namespace web
 }  // namespace detail

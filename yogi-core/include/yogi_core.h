@@ -2238,6 +2238,7 @@ YOGI_API int YOGI_DestroyAll();
  * served over HTTPS/WSS only.
  *
  * The web server supports the following core features:
+ * - Support for both IPv4 and IPv6 clients on the same socket
  * - Serving static content from files with configurable routes
  * - Serving user-generated content over HTTPS
  * - Long-running server-side processes controlled by the client

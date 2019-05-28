@@ -56,18 +56,27 @@ TEST(SystemTest, GetNetworkInterfaces) {
 }
 
 TEST(SystemTest, GetFilteredNetworkInterfaces) {
-  std::vector<boost::asio::ip::udp> protocols = {boost::asio::ip::udp::v4(),
-                                                 boost::asio::ip::udp::v6()};
-  for (auto protocol : protocols) {
-    auto ifs = utils::GetFilteredNetworkInterfaces({"localhost"}, protocol);
+  using utils::IpVersion;
+  std::vector<IpVersion> ip_versions = {IpVersion::kAny, IpVersion::k4,
+                                        IpVersion::k6};
+  for (auto ip_version : ip_versions) {
+    auto ifs = utils::GetFilteredNetworkInterfaces({"localhost"}, ip_version);
     ASSERT_EQ(ifs.size(), 1);
     EXPECT_TRUE(ifs[0].is_loopback);
 
-    ifs = utils::GetFilteredNetworkInterfaces({"all"}, protocol);
+    ifs = utils::GetFilteredNetworkInterfaces({"all"}, ip_version);
     ASSERT_GT(ifs.size(), 1)
         << "Make sure you have an active LAN or Wi-Fi connection, otherwise "
            "the test fails because it cannot find any network interfaces other "
            "than the loopback interface.";
+
+    if (ip_version != IpVersion::kAny) {
+      for (auto& info : ifs) {
+        for (auto& addr : info.addresses) {
+          EXPECT_TRUE(addr.is_v4() == (ip_version == IpVersion::k4));
+        }
+      }
+    }
 
     auto if_it = utils::find_if(
         ifs, [](auto& info) { return !info.is_loopback && !info.mac.empty(); });
@@ -75,11 +84,11 @@ TEST(SystemTest, GetFilteredNetworkInterfaces) {
                                    "and that is not a loopback interface.";
     auto ifc = *if_it;
 
-    ifs = utils::GetFilteredNetworkInterfaces({ifc.name}, protocol);
+    ifs = utils::GetFilteredNetworkInterfaces({ifc.name}, ip_version);
     ASSERT_EQ(ifs.size(), 1);
     EXPECT_EQ(ifs[0].name, ifc.name);
 
-    ifs = utils::GetFilteredNetworkInterfaces({ifc.mac}, protocol);
+    ifs = utils::GetFilteredNetworkInterfaces({ifc.mac}, ip_version);
     ASSERT_EQ(ifs.size(), 1);
     EXPECT_EQ(ifs[0].mac, ifc.mac);
   }
