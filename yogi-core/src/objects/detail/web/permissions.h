@@ -18,9 +18,13 @@
 #pragma once
 
 #include "../../../config.h"
+#include "../../../api/enums.h"
 #include "group.h"
+#include "user.h"
 
 #include <nlohmann/json.hpp>
+
+#include <unordered_map>
 
 namespace objects {
 namespace detail {
@@ -28,7 +32,24 @@ namespace web {
 
 class Permissions {
  public:
-  Permissions(const nlohmann::json& cfg);
+  Permissions(const std::string& base_uri, const nlohmann::json& cfg,
+              const GroupsMap& groups);
+
+  bool MayUserAccess(const UserPtr& user, api::RequestMethods method,
+                     const UserPtr& route_owner) const;
+
+ private:
+  typedef std::unordered_map<GroupPtr, api::RequestMethods> AllowedMethodsMap;
+
+  static api::RequestMethods ExtractMethods(
+      const std::string& base_uri, const nlohmann::json::const_iterator& it);
+  static GroupPtr GetGroup(const std::string& base_uri,
+                           const nlohmann::json::const_iterator& it,
+                           const GroupsMap& groups);
+
+  api::RequestMethods allowed_for_everyone_;
+  api::RequestMethods allowed_for_owner_;
+  AllowedMethodsMap allowed_for_group_;
 };
 
 }  // namespace web

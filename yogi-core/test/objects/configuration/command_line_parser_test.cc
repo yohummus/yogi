@@ -15,8 +15,8 @@
  * along with this library. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "../common.h"
-#include "../../src/objects/detail/command_line_parser.h"
+#include "../../common.h"
+#include "../../../src/objects/detail/command_line_parser.h"
 
 using objects::detail::CommandLineParser;
 namespace fs = boost::filesystem;

@@ -43,6 +43,8 @@ class AuthProvider : public objects::LoggerUser {
   virtual ~AuthProvider() {}
 
   bool IsReadonly() const { return readonly_; }
+  const UsersMap& GetUsers() const { return users_; }
+  const GroupsMap& GetGroups() const { return groups_; }
   UserPtr GetUserOptional(const std::string& user_name) const;
   GroupPtr GetGroupOptional(const std::string& group_name) const;
 

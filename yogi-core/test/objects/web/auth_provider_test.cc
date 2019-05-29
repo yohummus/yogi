@@ -15,10 +15,10 @@
  * along with this library. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "../common.h"
-#include "../../src/api/constants.h"
-#include "../../src/utils/crypto.h"
-#include "../../src/objects/detail/web/auth_provider.h"
+#include "../../common.h"
+#include "../../../src/api/constants.h"
+#include "../../../src/utils/crypto.h"
+#include "../../../src/objects/detail/web/auth_provider.h"
 using objects::detail::web::AuthProvider;
 
 class AuthProviderTest : public TestFixture {};

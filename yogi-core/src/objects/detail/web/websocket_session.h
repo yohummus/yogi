@@ -1,6 +1,6 @@
 /*
  * This file is part of the Yogi distribution https://github.com/yohummus/yogi.
- * Copyright (c) 2018 Johannes Bergmann.
+ * Copyright (c) 2019 Johannes Bergmann.
  *
  * This library is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,8 +15,24 @@
  * along with this library. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "../common.h"
+#pragma once
 
-class WebServerTest : public TestFixture {};
+#include "../../../config.h"
 
-TEST_F(WebServerTest, DISABLED_ImplementMe) {}
+#include <memory>
+
+namespace objects {
+namespace detail {
+namespace web {
+
+class WebsocketSession;
+
+typedef std::shared_ptr<WebsocketSession> WebsocketSessionPtr;
+
+class WebsocketSession {
+ public:
+};
+
+}  // namespace web
+}  // namespace detail
+}  // namespace objects

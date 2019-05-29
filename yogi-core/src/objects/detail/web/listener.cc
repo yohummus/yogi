@@ -15,37 +15,13 @@
  * along with this library. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#pragma once
-
-#include "../../../config.h"
-
-#include <nlohmann/json.hpp>
-
-#include <memory>
-#include <unordered_map>
-#include <unordered_set>
+#include "listener.h"
 
 namespace objects {
 namespace detail {
 namespace web {
 
-class Group;
-
-typedef std::shared_ptr<Group> GroupPtr;
-typedef std::unordered_map<std::string, GroupPtr> GroupsMap;
-typedef std::unordered_set<GroupPtr> GroupsSet;
-
-class Group {
- public:
-  static GroupsMap CreateAllFromJson(const nlohmann::json& json);
-
-  const nlohmann::json& ToJson() const { return props_; }
-  bool IsUnrestricted() const { return unrestricted_; }
-
- private:
-  nlohmann::json props_;
-  bool unrestricted_;
-};
+// TODO
 
 }  // namespace web
 }  // namespace detail

@@ -16,7 +16,6 @@
  */
 
 #include "../common.h"
-
 #include "../../src/utils/system.h"
 
 #include <boost/algorithm/string.hpp>

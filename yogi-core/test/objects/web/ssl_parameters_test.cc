@@ -15,9 +15,9 @@
  * along with this library. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "../common.h"
-#include "../../src/api/constants.h"
-#include "../../src/objects/detail/web/ssl_parameters.h"
+#include "../../common.h"
+#include "../../../src/api/constants.h"
+#include "../../../src/objects/detail/web/ssl_parameters.h"
 using objects::detail::web::SslParameters;
 
 #include <boost/algorithm/string.hpp>

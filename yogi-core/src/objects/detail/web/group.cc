@@ -29,7 +29,9 @@ GroupsMap Group::CreateAllFromJson(const nlohmann::json& json) {
     auto group = std::make_shared<Group>();
     utils::CopyJsonProperty(it.value(), "name", "", &group->props_);
     utils::CopyJsonProperty(it.value(), "description", "", &group->props_);
-    utils::CopyJsonProperty(it.value(), "unrestricted", false, &group->props_);
+
+    group->unrestricted_ = it.value().value("unrestricted", false);
+    group->props_["unrestricted"] = group->unrestricted_;
 
     groups[it.key()] = group;
   }

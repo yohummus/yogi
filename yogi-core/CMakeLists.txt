@@ -65,10 +65,14 @@ add_library (yogi-core-static STATIC
   src/objects/detail/log/text_based_log_sink.cc
   src/objects/detail/web/auth_provider.cc
   src/objects/detail/web/group.cc
+  src/objects/detail/web/http_session.cc
+  src/objects/detail/web/listener.cc
+  src/objects/detail/web/mime.cc
   src/objects/detail/web/permissions.cc
   src/objects/detail/web/route.cc
   src/objects/detail/web/ssl_parameters.cc
   src/objects/detail/web/user.cc
+  src/objects/detail/web/websocket_session.cc
   src/objects/branch.cc
   src/objects/configuration.cc
   src/objects/context.cc
@@ -170,19 +174,21 @@ add_executable (yogi-core-test
   test/network/serialize_test.cc
   test/network/tcp_transport_test.cc
   test/network/transport_test.cc
-  test/objects/auth_provider_test.cc
-  test/objects/branch_test.cc
-  test/objects/broadcast_manager_test.cc
-  test/objects/command_line_parser_test.cc
-  test/objects/configuration_test.cc
-  test/objects/connection_manager_test.cc
+  test/objects/branch/branch_test.cc
+  test/objects/branch/broadcast_manager_test.cc
+  test/objects/branch/connection_manager_test.cc
+  test/objects/configuration/command_line_parser_test.cc
+  test/objects/configuration/configuration_test.cc
+  test/objects/web/mime_test.cc
+  test/objects/web/auth_provider_test.cc
+  test/objects/web/web_server_test.cc
+  test/objects/web/ssl_parameters_test.cc
+  test/objects/web/permissions_test.cc
   test/objects/context_test.cc
   test/objects/format_test.cc
   test/objects/logger_test.cc
   test/objects/signal_set_test.cc
-  test/objects/ssl_parameters_test.cc
   test/objects/timer_test.cc
-  test/objects/web_server_test.cc
   test/utils/algorithm_test.cc
   test/utils/crypto_test.cc
   test/utils/glob_test.cc

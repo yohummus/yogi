@@ -42,7 +42,8 @@ class Route : public objects::LoggerUser {
  public:
   static RoutePtr Create(const AuthProvider& auth,
                          const nlohmann::json::const_iterator& cfg_it,
-                         const std::string& logging_prefix);
+                         const std::string& logging_prefix,
+                         const GroupsMap& groups);
 
   virtual ~Route() {}
 
@@ -53,9 +54,10 @@ class Route : public objects::LoggerUser {
 
  protected:
   Route(const std::string& base_uri, const nlohmann::json& permissions_cfg,
-        const std::string& logging_prefix);
+        const std::string& logging_prefix, const GroupsMap& groups,
+        UserPtr owner = {});
   Route(const AuthProvider& auth, const nlohmann::json::const_iterator& cfg_it,
-        const std::string& logging_prefix);
+        const std::string& logging_prefix, const GroupsMap& groups);
 
  private:
   const std::string base_uri_;
@@ -68,7 +70,7 @@ class ContentRoute : public Route {
  public:
   ContentRoute(const AuthProvider& auth,
                const nlohmann::json::const_iterator& cfg_it,
-               const std::string& logging_prefix);
+               const std::string& logging_prefix, const GroupsMap& groups);
 
  private:
   const std::string mime_type_;
@@ -78,7 +80,7 @@ class FileSystemRoute : public Route {
  public:
   FileSystemRoute(const AuthProvider& auth,
                   const nlohmann::json::const_iterator& cfg_it,
-                  const std::string& logging_prefix);
+                  const std::string& logging_prefix, const GroupsMap& groups);
 
  private:
   const std::string path_;
@@ -88,14 +90,14 @@ class CustomRoute : public Route {
  public:
   CustomRoute(const AuthProvider& auth,
               const nlohmann::json::const_iterator& cfg_it,
-              const std::string& logging_prefix);
+              const std::string& logging_prefix, const GroupsMap& groups);
 };
 
 class ApiEndpoint : public Route {
  public:
   ApiEndpoint(const std::string& base_uri,
               const nlohmann::json& permissions_cfg,
-              const std::string& logging_prefix);
+              const std::string& logging_prefix, const GroupsMap& groups);
 };
 
 }  // namespace web

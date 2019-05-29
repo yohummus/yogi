@@ -15,8 +15,8 @@
  * along with this library. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "../common.h"
-#include "../../src/api/constants.h"
+#include "../../common.h"
+#include "../../../src/api/constants.h"
 
 #include <boost/asio.hpp>
 

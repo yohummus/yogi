@@ -19,32 +19,18 @@
 
 #include "../../../config.h"
 
-#include <nlohmann/json.hpp>
-
 #include <memory>
-#include <unordered_map>
-#include <unordered_set>
 
 namespace objects {
 namespace detail {
 namespace web {
 
-class Group;
+class HttpSession;
 
-typedef std::shared_ptr<Group> GroupPtr;
-typedef std::unordered_map<std::string, GroupPtr> GroupsMap;
-typedef std::unordered_set<GroupPtr> GroupsSet;
+typedef std::shared_ptr<HttpSession> HttpSessionPtr;
 
-class Group {
+class HttpSession {
  public:
-  static GroupsMap CreateAllFromJson(const nlohmann::json& json);
-
-  const nlohmann::json& ToJson() const { return props_; }
-  bool IsUnrestricted() const { return unrestricted_; }
-
- private:
-  nlohmann::json props_;
-  bool unrestricted_;
 };
 
 }  // namespace web

@@ -97,4 +97,16 @@ enum Encoding {
   kMsgPack = YOGI_ENC_MSGPACK,
 };
 
+enum RequestMethods {
+  kNoMethod = YOGI_MET_NONE,
+  kGet = YOGI_MET_GET,
+  kHead = YOGI_MET_HEAD,
+  kPost = YOGI_MET_POST,
+  kPut = YOGI_MET_PUT,
+  kDelete = YOGI_MET_DELETE,
+  kPatch = YOGI_MET_PATCH,
+};
+
+YOGI_DEFINE_FLAG_OPERATORS(RequestMethods)
+
 }  // namespace api
