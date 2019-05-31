@@ -62,8 +62,8 @@ detail::web::RoutesVector WebServer::CreateAllRoutes(
   }
 
   for (auto it = api_perm_cfg.begin(); it != api_perm_cfg.end(); ++it) {
-    routes.push_back(std::make_unique<detail::web::ApiEndpoint>(
-        it.key(), it.value(), logging_prefix_, auth_->GetGroups()));
+    // routes.push_back(std::make_unique<detail::web::ApiEndpoint>(
+    //     it.key(), it.value(), logging_prefix_, auth_->GetGroups()));
   }
 
   auto& routes_cfg = cfg["routes"];

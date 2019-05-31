@@ -30,6 +30,15 @@ class PermissionsTest : public TestFixture {
           "admins": { "unrestricted": true }
         }
     )"));
+
+  UsersMap users_ = User::CreateAllFromJson(nlohmann::json::parse(R"(
+        {
+          "bob": { "groups": ["people"] },
+          "larry": { "groups": ["staff"] },
+          "admin": { "groups": ["admins"] }
+        }
+  )"),
+                                            groups_);
 };
 
 TEST_F(PermissionsTest, Construct) {
@@ -75,4 +84,59 @@ TEST_F(PermissionsTest, InvalidRequestMethod) {
                                  YOGI_ERR_CONFIG_NOT_VALID);
 }
 
-TEST_F(PermissionsTest, DISABLED_MayUserAccess) {}
+TEST_F(PermissionsTest, MayUserAccess) {
+  auto cfg = nlohmann::json::parse(R"(
+        {
+          "*": ["PUT"],
+          "people": ["POST"],
+          "owner": ["DELETE"]
+        }
+    )");
+
+  Permissions perms("", cfg, groups_);
+
+  // Everyone ("*")
+  EXPECT_FALSE(perms.MayUserAccess({}, api::kGet, {}));
+  EXPECT_TRUE(perms.MayUserAccess({}, api::kPut, {}));
+  EXPECT_FALSE(perms.MayUserAccess({}, api::kPost, {}));
+
+  // Restricted users
+  auto bob = users_["bob"];
+  EXPECT_FALSE(perms.MayUserAccess(bob, api::kGet, {}));
+  EXPECT_TRUE(perms.MayUserAccess(bob, api::kPut, {}));
+  EXPECT_TRUE(perms.MayUserAccess(bob, api::kPost, {}));
+  EXPECT_FALSE(perms.MayUserAccess(bob, api::kDelete, {}));
+
+  auto larry = users_["larry"];
+  EXPECT_TRUE(perms.MayUserAccess(larry, api::kPut, {}));
+  EXPECT_FALSE(perms.MayUserAccess(larry, api::kPost, {}));
+  EXPECT_FALSE(perms.MayUserAccess(larry, api::kDelete, {}));
+
+  // Unrestricted users
+  auto admin = users_["admin"];
+  EXPECT_TRUE(perms.MayUserAccess(admin, api::kGet, {}));
+  EXPECT_TRUE(perms.MayUserAccess(admin, api::kHead, {}));
+  EXPECT_TRUE(perms.MayUserAccess(admin, api::kPut, {}));
+  EXPECT_TRUE(perms.MayUserAccess(admin, api::kPost, {}));
+  EXPECT_TRUE(perms.MayUserAccess(admin, api::kDelete, {}));
+  EXPECT_TRUE(perms.MayUserAccess(admin, api::kPatch, {}));
+
+  // Owners
+  EXPECT_FALSE(perms.MayUserAccess(bob, api::kDelete, {}));
+  EXPECT_TRUE(perms.MayUserAccess(bob, api::kDelete, bob));
+  EXPECT_FALSE(perms.MayUserAccess(larry, api::kDelete, bob));
+}
+
+TEST_F(PermissionsTest, GetImpliesHead) {
+  // GET permissions imply HEAD permissions
+  auto cfg = nlohmann::json::parse(R"({ "*": ["GET"] })");
+  auto perms = Permissions("", cfg, groups_);
+  EXPECT_TRUE(perms.MayUserAccess({}, api::kGet, {}));
+  EXPECT_TRUE(perms.MayUserAccess({}, api::kHead, {}));
+
+  // But not the other way around!
+  cfg = nlohmann::json::parse(R"({ "*": ["HEAD"] })");
+  perms = Permissions("", cfg, groups_);
+  EXPECT_FALSE(perms.MayUserAccess({}, api::kGet, {}));
+  EXPECT_TRUE(perms.MayUserAccess({}, api::kHead, {}));
+}

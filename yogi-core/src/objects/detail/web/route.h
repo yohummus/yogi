@@ -41,7 +41,7 @@ typedef std::vector<RoutePtr> RoutesVector;
 class Route : public objects::LoggerUser {
  public:
   static RoutePtr Create(const AuthProvider& auth,
-                         const nlohmann::json::const_iterator& cfg_it,
+                         const nlohmann::json::const_iterator& route_it,
                          const std::string& logging_prefix,
                          const GroupsMap& groups);
 
@@ -49,55 +49,48 @@ class Route : public objects::LoggerUser {
 
   const std::string& GetBaseUri() const { return base_uri_; }
   bool IsEnabled() const { return enabled_; }
-  const Permissions& GetPermissions() const { return permissions_; }
+  // const Permissions& GetPermissions() const { return permissions_; }
   const UserPtr& GetOwner() const { return owner_; }
 
  protected:
-  Route(const std::string& base_uri, const nlohmann::json& permissions_cfg,
-        const std::string& logging_prefix, const GroupsMap& groups,
-        UserPtr owner = {});
-  Route(const AuthProvider& auth, const nlohmann::json::const_iterator& cfg_it,
-        const std::string& logging_prefix, const GroupsMap& groups);
+  virtual void ReadConfiguration(
+      const nlohmann::json::const_iterator& route_it) = 0;
 
  private:
-  const std::string base_uri_;
-  const bool enabled_;
-  const Permissions permissions_;
-  const UserPtr owner_;
+  std::string base_uri_;
+  bool enabled_;
+  UserPtr owner_;
+  // Permissions permissions_;
 };
 
 class ContentRoute : public Route {
- public:
-  ContentRoute(const AuthProvider& auth,
-               const nlohmann::json::const_iterator& cfg_it,
-               const std::string& logging_prefix, const GroupsMap& groups);
+ protected:
+  void ReadConfiguration(
+      const nlohmann::json::const_iterator& route_it) override;
 
  private:
-  const std::string mime_type_;
+  std::string mime_type_;
 };
 
 class FileSystemRoute : public Route {
- public:
-  FileSystemRoute(const AuthProvider& auth,
-                  const nlohmann::json::const_iterator& cfg_it,
-                  const std::string& logging_prefix, const GroupsMap& groups);
+ protected:
+  void ReadConfiguration(
+      const nlohmann::json::const_iterator& route_it) override;
 
  private:
-  const std::string path_;
+  std::string path_;
 };
 
 class CustomRoute : public Route {
- public:
-  CustomRoute(const AuthProvider& auth,
-              const nlohmann::json::const_iterator& cfg_it,
-              const std::string& logging_prefix, const GroupsMap& groups);
+ protected:
+  void ReadConfiguration(
+      const nlohmann::json::const_iterator& route_it) override;
 };
 
 class ApiEndpoint : public Route {
- public:
-  ApiEndpoint(const std::string& base_uri,
-              const nlohmann::json& permissions_cfg,
-              const std::string& logging_prefix, const GroupsMap& groups);
+ protected:
+  void ReadConfiguration(
+      const nlohmann::json::const_iterator& route_it) override;
 };
 
 }  // namespace web

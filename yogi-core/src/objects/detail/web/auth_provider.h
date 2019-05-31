@@ -43,9 +43,6 @@ class AuthProvider : public objects::LoggerUser {
 
   virtual ~AuthProvider() {}
 
-  virtual std::tuple<UsersMap, GroupsMap> ReadConfiguration(
-      const nlohmann::json& auth_cfg) = 0;
-
   bool IsReadonly() const { return readonly_; }
   const UsersMap& GetUsers() const { return users_; }
   const GroupsMap& GetGroups() const { return groups_; }
@@ -53,6 +50,9 @@ class AuthProvider : public objects::LoggerUser {
   GroupPtr GetGroupOptional(const std::string& group_name) const;
 
  protected:
+  virtual std::tuple<UsersMap, GroupsMap> ReadConfiguration(
+      const nlohmann::json& auth_cfg) = 0;
+
   nlohmann::json GetSection(const nlohmann::json& json, const char* key,
                             const std::string& source);
   nlohmann::json GetSectionFromFile(const std::string& file, const char* key);
@@ -64,7 +64,7 @@ class AuthProvider : public objects::LoggerUser {
 };
 
 class ConfigAuthProvider : public AuthProvider {
- public:
+ protected:
   virtual std::tuple<UsersMap, GroupsMap> ReadConfiguration(
       const nlohmann::json& auth_cfg) override;
 
@@ -74,7 +74,7 @@ class ConfigAuthProvider : public AuthProvider {
 };
 
 class FilesAuthProvider : public AuthProvider {
- public:
+ protected:
   virtual std::tuple<UsersMap, GroupsMap> ReadConfiguration(
       const nlohmann::json& auth_cfg) override;
 };
