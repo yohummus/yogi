@@ -24,6 +24,7 @@
 
 #include <nlohmann/json.hpp>
 #include <memory>
+#include <tuple>
 
 namespace objects {
 namespace detail {
@@ -42,6 +43,9 @@ class AuthProvider : public objects::LoggerUser {
 
   virtual ~AuthProvider() {}
 
+  virtual std::tuple<UsersMap, GroupsMap> ReadConfiguration(
+      const nlohmann::json& auth_cfg) = 0;
+
   bool IsReadonly() const { return readonly_; }
   const UsersMap& GetUsers() const { return users_; }
   const GroupsMap& GetGroups() const { return groups_; }
@@ -49,30 +53,30 @@ class AuthProvider : public objects::LoggerUser {
   GroupPtr GetGroupOptional(const std::string& group_name) const;
 
  protected:
-  AuthProvider(const nlohmann::json& auth_cfg,
-               const std::string& logging_prefix);
-
   nlohmann::json GetSection(const nlohmann::json& json, const char* key,
                             const std::string& source);
   nlohmann::json GetSectionFromFile(const std::string& file, const char* key);
-  void SetUsersAndGroups(UsersMap users, GroupsMap groups);
 
  private:
-  const bool readonly_;
+  bool readonly_;
   UsersMap users_;
   GroupsMap groups_;
 };
 
 class ConfigAuthProvider : public AuthProvider {
  public:
-  ConfigAuthProvider(const nlohmann::json& auth_cfg,
-                     const std::string& logging_prefix);
+  virtual std::tuple<UsersMap, GroupsMap> ReadConfiguration(
+      const nlohmann::json& auth_cfg) override;
+
+ private:
+  static nlohmann::json MakeDefaultGroupsSection();
+  static nlohmann::json MakeDefaultUsersSection();
 };
 
 class FilesAuthProvider : public AuthProvider {
  public:
-  FilesAuthProvider(const nlohmann::json& auth_cfg,
-                    const std::string& logging_prefix);
+  virtual std::tuple<UsersMap, GroupsMap> ReadConfiguration(
+      const nlohmann::json& auth_cfg) override;
 };
 
 }  // namespace web

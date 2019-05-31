@@ -36,21 +36,28 @@ AuthProviderPtr AuthProvider::Create(const nlohmann::json& auth_cfg,
   auto& cfg = auth_cfg.is_null() ? dummy : auth_cfg;
   if (!cfg.is_object()) {
     throw api::DescriptiveError(YOGI_ERR_CONFIG_NOT_VALID)
-        << "Missing or invalid authentication section.";
+        << "Invalid authentication section.";
   }
 
   AuthProviderPtr auth;
 
   auto provider = cfg.value("provider", std::string{});
   if (!cfg.contains("provider") || provider == "config") {
-    auth = std::make_unique<ConfigAuthProvider>(cfg, logging_prefix);
+    auth = std::make_unique<ConfigAuthProvider>();
   } else if (provider == "files") {
-    auth = std::make_unique<FilesAuthProvider>(cfg, logging_prefix);
+    auth = std::make_unique<FilesAuthProvider>();
   } else {
     throw api::DescriptiveError(YOGI_ERR_CONFIG_NOT_VALID)
         << "Invalid authentication provider. Valid types are \"config\" or "
            "\"files\".";
   }
+
+  auth->SetLoggingPrefix(logging_prefix);
+  auth->readonly_ = cfg.value("readonly", false);
+
+  auto users_and_groups = auth->ReadConfiguration(cfg);
+  auth->users_ = std::get<UsersMap>(users_and_groups);
+  auth->groups_ = std::get<GroupsMap>(users_and_groups);
 
   return auth;
 }
@@ -65,12 +72,6 @@ GroupPtr AuthProvider::GetGroupOptional(const std::string& group_name) const {
   auto it = groups_.find(group_name);
   if (it == groups_.end()) return {};
   return it->second;
-}
-
-AuthProvider::AuthProvider(const nlohmann::json& auth_cfg,
-                           const std::string& logging_prefix)
-    : readonly_(auth_cfg.value("readonly", false)) {
-  SetLoggingPrefix(logging_prefix);
 }
 
 nlohmann::json AuthProvider::GetSection(const nlohmann::json& json,
@@ -104,29 +105,13 @@ nlohmann::json AuthProvider::GetSectionFromFile(const std::string& file,
   return GetSection(json, key, file);
 }
 
-void AuthProvider::SetUsersAndGroups(UsersMap users, GroupsMap groups) {
-  users_ = users;
-  groups_ = groups;
-}
-
-ConfigAuthProvider::ConfigAuthProvider(const nlohmann::json& auth_cfg,
-                                       const std::string& logging_prefix)
-    : AuthProvider(auth_cfg, logging_prefix) {
+std::tuple<UsersMap, GroupsMap> ConfigAuthProvider::ReadConfiguration(
+    const nlohmann::json& auth_cfg) {
   nlohmann::json groups_cfg;
   if (auth_cfg.contains("groups")) {
     groups_cfg = GetSection(auth_cfg, "groups", "authentication settings");
   } else {
-    groups_cfg = {
-        {"admins",
-         {{"name", "Administrators"},
-          {"description", "Users with unrestricted access to everything"},
-          {"unrestricted", true}}},
-        {"users",
-         {
-             {"name", "Users"},
-             {"description", "All registered users"},
-         }},
-    };
+    groups_cfg = MakeDefaultGroupsSection();
     LOG_IFO("Using default groups in configuration");
   }
 
@@ -137,25 +122,46 @@ ConfigAuthProvider::ConfigAuthProvider(const nlohmann::json& auth_cfg,
   if (auth_cfg.contains("users")) {
     users_cfg = GetSection(auth_cfg, "users", "authentication settings");
   } else {
-    users_cfg = {
-        {api::kDefaultAdminUser,
-         {
-             {"first_name", "Administrator"},
-             {"password", utils::MakeSha256String(api::kDefaultAdminPassword)},
-             {"groups", nlohmann::json::array({"admins", "users"})},
-         }}};
+    users_cfg = MakeDefaultUsersSection();
     LOG_IFO("Using default users in configuration");
   }
 
   auto users = User::CreateAllFromJson(users_cfg, groups);
   LOG_IFO("Loaded " << users.size() << " users from configuration");
 
-  SetUsersAndGroups(users, groups);
+  return std::make_tuple(users, groups);
 }
 
-FilesAuthProvider::FilesAuthProvider(const nlohmann::json& auth_cfg,
-                                     const std::string& logging_prefix)
-    : AuthProvider(auth_cfg, logging_prefix) {
+nlohmann::json ConfigAuthProvider::MakeDefaultGroupsSection() {
+  static nlohmann::json section = {
+      {"admins",
+       {{"name", "Administrators"},
+        {"description", "Users with unrestricted access to everything"},
+        {"unrestricted", true}}},
+      {"users",
+       {
+           {"name", "Users"},
+           {"description", "All registered users"},
+       }},
+  };
+
+  return section;
+}
+
+nlohmann::json ConfigAuthProvider::MakeDefaultUsersSection() {
+  static nlohmann::json section = {
+      {api::kDefaultAdminUser,
+       {
+           {"first_name", "Administrator"},
+           {"password", utils::MakeSha256String(api::kDefaultAdminPassword)},
+           {"groups", nlohmann::json::array({"admins", "users"})},
+       }}};
+
+  return section;
+}
+
+std::tuple<UsersMap, GroupsMap> FilesAuthProvider::ReadConfiguration(
+    const nlohmann::json& auth_cfg) {
   auto groups_file = auth_cfg.value("groups_file", "");
   if (groups_file.empty()) {
     throw api::DescriptiveError(YOGI_ERR_CONFIG_NOT_VALID)
@@ -178,7 +184,7 @@ FilesAuthProvider::FilesAuthProvider(const nlohmann::json& auth_cfg,
   auto users = User::CreateAllFromJson(users_section, groups);
   LOG_IFO("Loaded " << users.size() << " users from " << users_file);
 
-  SetUsersAndGroups(users, groups);
+  return std::make_tuple(users, groups);
 }
 
 }  // namespace web
