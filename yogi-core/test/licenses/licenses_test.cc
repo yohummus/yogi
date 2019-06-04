@@ -73,12 +73,23 @@ TEST_F(LicensesTest, JsonLicense) {
     "JSON for Modern C++",
     "https://github.com/nlohmann/json",
     "Licensed under the MIT License",
+    "2013-2019 Niels Lohmann",
     ss.str()
   });
   // clang-format on
 }
 
-TEST_F(LicensesTest, JsoOpenSslLicense) {
+TEST_F(LicensesTest, JsonSchemaValidatorLicense) {
+  // clang-format off
+  Check3rdPartyLicense({
+    "Modern C++ JSON schema validator",
+    "licensed under the MIT License",
+    "2016 Patrick Boettcher"
+  });
+  // clang-format on
+}
+
+TEST_F(LicensesTest, OpenSslLicense) {
   // clang-format off
   Check3rdPartyLicense({
     "OpenSSL License",

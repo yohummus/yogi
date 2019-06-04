@@ -22,6 +22,12 @@ else ()
   set (CMAKE_CXX_FLAGS_RELEASE   "-O2 -DNDEBUG -fwhole-program -flto")
 endif ()
 
+# 3rd party libraries
+add_subdirectory (3rd_party)
+
+# nlohmann-json
+find_package (nlohmann_json REQUIRED)
+
 # OpenSSL
 set (OPENSSL_USE_STATIC_LIBS ON)
 find_package (OpenSSL REQUIRED)
@@ -92,8 +98,8 @@ add_library (yogi-core-static STATIC
   src/utils/types.cc
 )
 
-target_include_directories (yogi-core-static SYSTEM
-  PUBLIC ${Boost_INCLUDE_DIRS}
+target_include_directories (yogi-core-static SYSTEM PUBLIC
+  ${Boost_INCLUDE_DIRS}
 )
 
 cotire (yogi-core-static)
@@ -117,10 +123,12 @@ add_library (yogi-core SHARED
   src/yogi_core/web.cc
 )
 
-target_link_libraries (yogi-core
+target_link_libraries (yogi-core PRIVATE
   yogi-core-static
   ${Boost_LIBRARIES}
   OpenSSL::Crypto
+  nlohmann_json::nlohmann_json
+  json-schema-validator
 )
 
 if (WIN32)
@@ -209,7 +217,9 @@ target_link_libraries (yogi-core-test
   yogi-core
   ${GMOCK_BOTH_LIBRARIES}
   ${GTEST_LIBRARIES}
+  ${Boost_LIBRARIES}
   Threads::Threads
+  nlohmann_json::nlohmann_json
 )
 
 cotire (yogi-core-test)
