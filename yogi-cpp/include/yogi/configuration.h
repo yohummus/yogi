@@ -56,6 +56,10 @@ _YOGI_DEFINE_API_FN(int, YOGI_ConfigurationWriteToFile,
                     (void* config, const char* filename, int resvars,
                      int indent))
 
+_YOGI_DEFINE_API_FN(int, YOGI_ConfigurationValidate,
+                    (void* config, const char* section, void* schema, char* err,
+                     int errsize))
+
 /// \addtogroup enums
 /// @{
 
@@ -421,6 +425,38 @@ class Configuration : public ObjectT<Configuration> {
                         ConfigurationFlags::kNone,
                     -1);
   }
+
+  /// Validates a section of the configuration against a JSON Schema.
+  ///
+  /// The validation is based on JSON Schema draft-07, see
+  /// http://json-schema.org/. The schema to validate against has to be
+  /// supplied in \p schema which needs to be a configuration object itself.
+  ///
+  /// If the validation fails, the kConfigurationValidationFailed error will be
+  /// thrown, containing a human-readable description about the failure.
+  ///
+  /// \param section Section in the configuration to validate; syntax is
+  ///                JSON pointer (RFC 6901)
+  /// \param schema  The schema to use
+  void Validate(const StringView& section, const Configuration& schema) {
+    internal::CheckDescriptiveErrorCode([&](auto err, auto size) {
+      return internal::YOGI_ConfigurationValidate(
+          this->GetHandle(), section, this->GetForeignHandle(schema), err,
+          size);
+    });
+  }
+
+  /// Validates the configuration against a JSON Schema.
+  ///
+  /// The validation is based on JSON Schema draft-07, see
+  /// http://json-schema.org/. The schema to validate against has to be
+  /// supplied in \p schema which needs to be a configuration object itself.
+  ///
+  /// If the validation fails, the kConfigurationValidationFailed error will be
+  /// thrown, containing a human-readable description about the failure.
+  ///
+  /// \param schema  The schema to use
+  void Validate(const Configuration& schema) { Validate({}, schema); }
 
  private:
   Configuration(ConfigurationFlags flags)

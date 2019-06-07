@@ -82,6 +82,16 @@ public static partial class Yogi
         public static ConfigurationWriteToFileDelegate YOGI_ConfigurationWriteToFile
             = Library.GetDelegateForFunction<ConfigurationWriteToFileDelegate>(
                 "YOGI_ConfigurationWriteToFile");
+
+        // === YOGI_ConfigurationUpdateFromFile ===
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        public delegate int ConfigurationValidateDelegate(SafeObjectHandle config, string section,
+            SafeObjectHandle schema, [MarshalAs(UnmanagedType.LPStr)] StringBuilder err,
+            int errsize);
+
+        public static ConfigurationValidateDelegate YOGI_ConfigurationValidate
+            = Library.GetDelegateForFunction<ConfigurationValidateDelegate>(
+                "YOGI_ConfigurationValidate");
     }
 
     /// <summary>
@@ -224,8 +234,9 @@ public static partial class Yogi
         /// <summary>
         /// Updates the configuration from a JSON object serialized to a string.
         ///
-        /// If parsing fails then a DescriptiveFailure exception will be raised
-        /// containing detailed information about the error.
+        /// If parsing fails then a DescriptiveFailure exception with the
+        /// ConfigurationValidationFailed error will be raised containing detailed
+        /// information about the failure.
         /// </summary>
         /// <param name="json">JSON object.</param>
         public void UpdateFromJson(JsonView json)
@@ -239,8 +250,9 @@ public static partial class Yogi
         /// <summary>
         /// Updates the configuration from a JSON file.
         ///
-        /// If parsing the file fails then a DescriptiveFailure exception will be raised
-        /// containing detailed information about the error.
+        /// If parsing fails then a DescriptiveFailure exception with the
+        /// ConfigurationValidationFailed error will be raised containing detailed
+        /// information about the failure.
         /// </summary>
         /// <param name="filename">Path to the JSON file.</param>
         public void UpdateFromFile(string filename)
@@ -324,6 +336,46 @@ public static partial class Yogi
             int res = Api.YOGI_ConfigurationWriteToFile(Handle, filename,
                 resolveVariables == true ? 1 : 0, (int)indentation);
             CheckErrorCode(res);
+        }
+
+        /// <summary>
+        /// Validates a section of the configuration against a JSON Schema.
+        ///
+        /// The validation is based on JSON Schema draft-07, see
+        /// http://json-schema.org/. The schema to validate against has to be
+        /// supplied in \p schema which needs to be a configuration object itself.
+        ///
+        /// If the validation fails, the kConfigurationValidationFailed error will be
+        /// thrown, containing a human-readable description about the failure.
+        /// </summary>
+        /// <param name="section">Section in the configuration to validate; syntax is
+        /// JSON pointer (RFC 6901).</param>
+        /// <param name="schema">The schema to use.</param>
+        public void Validate(string section, Configuration schema)
+        {
+            CheckDescriptiveErrorCode((err) =>
+            {
+                return Api.YOGI_ConfigurationValidate(Handle, section, schema.Handle, err,
+                                                      err.Capacity);
+            });
+        }
+
+        /// <summary>
+        /// Validates the configuration against a JSON Schema.
+        ///
+        /// The validation is based on JSON Schema draft-07, see
+        /// http://json-schema.org/. The schema to validate against has to be
+        /// supplied in \p schema which needs to be a configuration object itself.
+        ///
+        /// If the validation fails, the kConfigurationValidationFailed error will be
+        /// thrown, containing a human-readable description about the failure.
+        /// </summary>
+        /// <param name="section">Section in the configuration to validate; syntax is
+        /// JSON pointer (RFC 6901).</param>
+        /// <param name="schema">The schema to use.</param>
+        public void Validate(Configuration schema)
+        {
+            Validate(null, schema);
         }
 
         /// <summary>

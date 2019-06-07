@@ -18,12 +18,14 @@ cmake .. -DCMAKE_BUILD_TYPE=Debug -DCMAKE_TOOLCHAIN_FILE=~/Projects/vcpkg/script
 cd "/c/Documents and Settings/commu_000/Documents/Projects/yogi/yogi-python"
 YOGI_CORE_LIBRARY=../build-x64/yogi-core/yogi-core-x64.dll python3 -m unittest
 
+YOGI_CORE_LIBRARY="/Users/yohummus/Projects/yogi/build/yogi-core/libyogi-core.dylib" python3 -m unittest
+
 # Run .NET tests manually
 
 cd ../yogi-dotnet
 YOGI_CORE_LIBRARY="/c/Documents and Settings/commu_000/Documents/Projects/yogi/build-x64/yogi-core/yogi-core-x64.dll" dotnet test --no-restore --configuration DEBUG /p:Version=0.0.3-alpha
 
-YOGI_CORE_LIBRARY="/Users/yohummus/Projects/yogi/build/yogi-core/libyogi-core.dylib" dotnet test
+YOGI_CORE_LIBRARY="/Users/yohummus/Projects/yogi/build/yogi-core/libyogi-core.dylib" dotnet test --no-restore --configuration DEBUG /p:Version=0.0.3-alpha
 
 ## TODO:
 

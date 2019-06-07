@@ -17,7 +17,7 @@
 
 #include "../common.h"
 
-static constexpr int kLastError = YOGI_ERR_CONFIGURATION_SECTION_NOT_FOUND;
+static constexpr int kLastError = YOGI_ERR_CONFIGURATION_VALIDATION_FAILED;
 
 TEST(ErrorsTest, DefaultResultConstructor) {
   api::Result res;

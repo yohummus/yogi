@@ -25,6 +25,8 @@
 using namespace std::chrono_literals;
 using namespace std::string_literals;
 
+namespace fs = boost::filesystem;
+
 void CheckStringMatches(std::string s, std::string pattern) {
   std::regex re(pattern);
   std::smatch m;
@@ -87,17 +89,23 @@ std::ostream& operator<<(std::ostream& os, const std::chrono::nanoseconds& ns) {
 }
 
 TemporaryWorkdirGuard::TemporaryWorkdirGuard() {
-  namespace fs = boost::filesystem;
   temp_path_ = fs::temp_directory_path() / fs::unique_path();
   fs::create_directory(temp_path_);
   old_working_dir_ = fs::current_path();
   fs::current_path(temp_path_);
 }
 
+TemporaryWorkdirGuard::TemporaryWorkdirGuard(TemporaryWorkdirGuard&& other) {
+  old_working_dir_ = other.old_working_dir_;
+  temp_path_ = other.temp_path_;
+  other.temp_path_.clear();
+}
+
 TemporaryWorkdirGuard::~TemporaryWorkdirGuard() {
-  namespace fs = boost::filesystem;
-  fs::current_path(old_working_dir_);
-  fs::remove_all(temp_path_);
+  if (!temp_path_.empty()) {
+    fs::current_path(old_working_dir_);
+    fs::remove_all(temp_path_);
+  }
 }
 
 CommandLine::CommandLine(std::initializer_list<std::string> args) {

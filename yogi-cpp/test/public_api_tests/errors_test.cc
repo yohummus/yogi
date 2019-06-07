@@ -70,6 +70,7 @@ TEST(ErrorsTest, ErrorCodeEnum) {
   CHECK_ENUM_ELEMENT(ErrorCode, kJoinMulticastGroupFailed,         YOGI_ERR_JOIN_MULTICAST_GROUP_FAILED);
   CHECK_ENUM_ELEMENT(ErrorCode, kEnumerateNetworkInterfacesFailed, YOGI_ERR_ENUMERATE_NETWORK_INTERFACES_FAILED);
   CHECK_ENUM_ELEMENT(ErrorCode, kConfigurationSectionNotFound,     YOGI_ERR_CONFIGURATION_SECTION_NOT_FOUND);
+  CHECK_ENUM_ELEMENT(ErrorCode, kConfigurationValidationFailed,    YOGI_ERR_CONFIGURATION_VALIDATION_FAILED);
   // clang-format on
 }
 

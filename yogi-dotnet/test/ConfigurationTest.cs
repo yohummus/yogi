@@ -182,5 +182,53 @@ namespace test
             Assert.Contains("\n", content);
             Assert.Equal(11, (int)JObject.Parse(content)["age"]);
         }
+
+        [Fact]
+        public void Validate()
+        {
+            var cfg = new Yogi.Configuration(@"
+                {
+                  'person': {
+                    'name': 'Joe',
+                    'age': 42
+                  }
+                }
+                ".Replace('\'', '"'));
+
+
+            var scm = new Yogi.Configuration(@"
+                {
+                  '$schema': 'http://json-schema.org/draft-07/schema#',
+                  'title': 'Test schema',
+                  'properties': {
+                    'name': {
+                      'description': 'Name',
+                      'type': 'string'
+                    },
+                    'age': {
+                      'description': 'Age of the person',
+                      'type': 'number',
+                      'minimum': 2,
+                      'maximum': 200
+                    }
+                  },
+                  'required': ['name', 'age'],
+                  'type': 'object'
+                }
+            ".Replace('\'', '"'));
+
+            cfg.Validate("/person", scm);
+
+            try
+            {
+                cfg.Validate(scm);
+                Assert.True(false);  // Should not get here since Validate() should throw
+            }
+            catch (Yogi.DescriptiveFailureException e)
+            {
+                Assert.Equal(Yogi.ErrorCode.ConfigurationValidationFailed, e.Failure.ErrorCode);
+                Assert.Contains("not found", e.ToString());
+            }
+        }
     }
 }

@@ -124,6 +124,10 @@ class Object : public std::enable_shared_from_this<Object> {
     return other ? other->GetHandle() : nullptr;
   }
 
+  static void* GetForeignHandle(const Object& other) {
+    return other.GetHandle();
+  }
+
  private:
   Object(const Object&) = delete;
   Object& operator=(const Object&) = delete;

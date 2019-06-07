@@ -132,6 +132,47 @@ class TestConfigurations(TestCase):
             jsn = json.loads(content)
             self.assertEqual(jsn["age"], 11)
 
+    def test_validate(self):
+        cfg = yogi.Configuration(json='''
+            {
+              "person": {
+              "name": "Joe",
+              "age": 42
+              }
+            }
+            ''')
+
+        scm = yogi.Configuration(json='''
+            {
+              "$schema": "http://json-schema.org/draft-07/schema#",
+              "title": "Test schema",
+              "properties": {
+                "name": {
+                  "description": "Name",
+                  "type": "string"
+                },
+                "age": {
+                  "description": "Age of the person",
+                  "type": "number",
+                  "minimum": 2,
+                  "maximum": 200
+                }
+              },
+              "required": ["name", "age"],
+              "type": "object"
+            }
+            ''')
+
+        cfg.validate(scm, section="/person")
+
+        try:
+            cfg.validate(scm)
+            self.fail('No exception thrown')
+        except yogi.DescriptiveFailureException as e:
+            self.assertEqual(e.failure.error_code,
+                             yogi.ErrorCode.CONFIGURATION_VALIDATION_FAILED)
+            self.assertTrue("not found" in str(e))
+
 
 if __name__ == '__main__':
     unittest.main()

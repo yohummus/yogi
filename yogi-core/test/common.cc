@@ -297,9 +297,17 @@ TemporaryWorkdirGuard::TemporaryWorkdirGuard() {
   fs::current_path(temp_path_);
 }
 
+TemporaryWorkdirGuard::TemporaryWorkdirGuard(TemporaryWorkdirGuard&& other) {
+  old_working_dir_ = other.old_working_dir_;
+  temp_path_ = other.temp_path_;
+  other.temp_path_.clear();
+}
+
 TemporaryWorkdirGuard::~TemporaryWorkdirGuard() {
-  fs::current_path(old_working_dir_);
-  fs::remove_all(temp_path_);
+  if (!temp_path_.empty()) {
+    fs::current_path(old_working_dir_);
+    fs::remove_all(temp_path_);
+  }
 }
 
 CommandLine::CommandLine(std::initializer_list<std::string> args) {

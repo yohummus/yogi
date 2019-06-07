@@ -308,6 +308,9 @@
 //! The section could not be found in the configuration
 #define YOGI_ERR_CONFIGURATION_SECTION_NOT_FOUND -47
 
+//! Validating the configuration failed
+#define YOGI_ERR_CONFIGURATION_VALIDATION_FAILED -48
+
 //! @}
 //!
 //! @defgroup VB Log verbosity/severity
@@ -1412,6 +1415,31 @@ YOGI_API int YOGI_ConfigurationDump(void* config, char* json, int jsonsize,
  */
 YOGI_API int YOGI_ConfigurationWriteToFile(void* config, const char* filename,
                                            int resvars, int indent);
+
+/*!
+ * Validates the configuration against a JSON Schema.
+ *
+ * The validation is based on JSON Schema draft-07, see http://json-schema.org/.
+ * The schema to validate \p config against has to be supplied in \p schema
+ * which needs to be a configuration object itself.
+ *
+ * If the validation fails, #YOGI_ERR_CONFIGURATION_VALIDATION_FAILED will be
+ * returned and \p err will be populated with a human-readable description
+ * about the failure.
+ *
+ * \param[in]  config   The configuration to validate
+ * \param[in]  section  Section in \p config to validate (set to NULL for root);
+ *                      syntax is JSON pointer (RFC 6901)
+ * \param[in]  schema   The configuration containing the schema
+ * \param[out] err      Pointer to a char array for storing an error description
+ *                      (can be set to NULL)
+ * \param[in]  errsize  Maximum number of bytes to write to \p err
+ *
+ * \returns [=0] #YOGI_OK if successful
+ * \returns [<0] An error code in case of a failure (see \ref EC)
+ */
+YOGI_API int YOGI_ConfigurationValidate(void* config, const char* section,
+                                        void* schema, char* err, int errsize);
 
 /*!
  * Creates a context for the execution of asynchronous operations.

@@ -172,7 +172,11 @@ class FakeBranch final {
 class TemporaryWorkdirGuard final {
  public:
   TemporaryWorkdirGuard();
+  TemporaryWorkdirGuard(TemporaryWorkdirGuard&& other);
   ~TemporaryWorkdirGuard();
+
+  TemporaryWorkdirGuard(const TemporaryWorkdirGuard&) = delete;
+  TemporaryWorkdirGuard& operator=(const TemporaryWorkdirGuard&) = delete;
 
  private:
   boost::filesystem::path old_working_dir_;

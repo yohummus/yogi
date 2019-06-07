@@ -231,3 +231,40 @@ TEST(ConfigurationTest, WriteToFile) {
   json = yogi::Json::parse(content);
   EXPECT_EQ(json.value("age", -1), 11);
 }
+
+TEST(ConfigurationTest, Validate) {
+  auto cfg =
+      yogi::Configuration::Create(R"({"person": {"name": "Joe", "age": 42}})");
+  auto scm = yogi::Configuration::Create(R"(
+    {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Test schema",
+      "properties": {
+        "name": {
+          "description": "Name",
+          "type": "string"
+        },
+        "age": {
+          "description": "Age of the person",
+          "type": "number",
+          "minimum": 2,
+          "maximum": 200
+        }
+      },
+      "required": ["name", "age"],
+      "type": "object"
+    }
+  )");
+
+  EXPECT_NO_THROW(cfg->Validate("/person", *scm));
+
+  try {
+    cfg->Validate(*scm);
+    FAIL() << "No exception thrown";
+  } catch (const yogi::DescriptiveFailureException& e) {
+    EXPECT_EQ(e.GetFailure().GetErrorCode(),
+              yogi::ErrorCode::kConfigurationValidationFailed);
+    EXPECT_NE(std::string(e.what()).find("not found"), std::string::npos)
+        << e.what();
+  }
+}

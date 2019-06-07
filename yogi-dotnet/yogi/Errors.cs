@@ -181,6 +181,9 @@ public static partial class Yogi
 
         /// <summary>The section could not be found in the configuration.</summary>
         ConfigurationSectionNotFound = -47,
+
+        /// <summary>Validating the configuration failed.</summary>
+        ConfigurationValidationFailed = -48,
     }
 
     /// <summary>

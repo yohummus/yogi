@@ -18,6 +18,7 @@
 #include "macros.h"
 #include "helpers.h"
 #include "../objects/configuration.h"
+#include "../../3rd_party/json-schema-validator/src/json-schema.hpp"
 
 #include <iostream>
 
@@ -112,4 +113,26 @@ YOGI_API int YOGI_ConfigurationWriteToFile(void* config, const char* filename,
     cfg->WriteToFile(filename, resvars == YOGI_TRUE, indent);
   }
   CATCH_AND_RETURN;
+}
+
+YOGI_API int YOGI_ConfigurationValidate(void* config, const char* section,
+                                        void* schema, char* err, int errsize) {
+  CHECK_PARAM(config != nullptr);
+  CHECK_PARAM(schema != nullptr);
+  CHECK_PARAM(err == nullptr || errsize > 0);
+
+  try {
+    auto jsn = UserSuppliedConfigToJson(config, section);
+    auto sma = api::ObjectRegister::Get<objects::Configuration>(schema);
+
+    try {
+      nlohmann::json_schema::json_validator validator;
+      validator.set_root_schema(sma->GetJson());
+      validator.validate(jsn);
+    } catch (const std::exception& e) {
+      throw api::DescriptiveError(YOGI_ERR_CONFIGURATION_VALIDATION_FAILED)
+          << e.what();
+    }
+  }
+  CATCH_DESCRIPTIVE_AND_RETURN(err, errsize);
 }

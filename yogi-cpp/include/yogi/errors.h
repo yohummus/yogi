@@ -188,6 +188,9 @@ enum class ErrorCode {
 
   /// The section could not be found in the configuration
   kConfigurationSectionNotFound = -47,
+
+  /// Validating the configuration failed
+  kConfigurationValidationFailed = -48,
 };
 
 template <>
@@ -241,6 +244,7 @@ inline std::string ToString<ErrorCode>(const ErrorCode& ec) {
     _YOGI_TO_STRING_ENUM_CASE(ErrorCode, kJoinMulticastGroupFailed)
     _YOGI_TO_STRING_ENUM_CASE(ErrorCode, kEnumerateNetworkInterfacesFailed)
     _YOGI_TO_STRING_ENUM_CASE(ErrorCode, kConfigurationSectionNotFound)
+    _YOGI_TO_STRING_ENUM_CASE(ErrorCode, kConfigurationValidationFailed)
   }
 
   bool should_never_get_here = false;

@@ -23,17 +23,29 @@ class ConfigurationTest : public TestFixture {
  protected:
   virtual void SetUp() override { cfg_ = MakeConfiguration(YOGI_CFG_NONE); }
 
-  void* MakeConfiguration(int flags) {
+  void* MakeConfiguration(
+      int flags,
+      const char* json = R"({"person": {"name": "Joe", "age": 42}})") {
     void* cfg = nullptr;
     int res = YOGI_ConfigurationCreate(&cfg, flags);
     EXPECT_OK(res);
     EXPECT_NE(cfg, nullptr);
 
-    res = YOGI_ConfigurationUpdateFromJson(
-        cfg, "{\"person\": {\"name\": \"Joe\", \"age\": 42}}", nullptr, 0);
+    res = YOGI_ConfigurationUpdateFromJson(cfg, json, nullptr, 0);
     EXPECT_OK(res);
 
     return cfg;
+  }
+
+  TemporaryWorkdirGuard WriteTempFile(
+      const char* filename,
+      const char* content = R"({"person": {"age": 10}})") {
+    TemporaryWorkdirGuard workdir;
+
+    fs::ofstream file(filename);
+    file << content;
+
+    return workdir;
   }
 
   nlohmann::json DumpConfiguration(void* cfg) {
@@ -49,7 +61,7 @@ class ConfigurationTest : public TestFixture {
 
   void CheckConfigurationIsOriginal() {
     auto expected =
-        nlohmann::json::parse("{\"person\": {\"name\": \"Joe\", \"age\": 42}}");
+        nlohmann::json::parse(R"({"person": {"name": "Joe", "age": 42}})");
     auto actual = DumpConfiguration(cfg_);
     EXPECT_TRUE(actual == expected) << "Expected:" << std::endl
                                     << expected.dump(2) << std::endl
@@ -62,8 +74,8 @@ class ConfigurationTest : public TestFixture {
 
 TEST_F(ConfigurationTest, UpdateFromJson) {
   char err_desc[1000];
-  int res = YOGI_ConfigurationUpdateFromJson(
-      cfg_, "{\"person\": {\"age\": 10}}", err_desc, sizeof(err_desc));
+  int res = YOGI_ConfigurationUpdateFromJson(cfg_, R"({"person": {"age": 10}})",
+                                             err_desc, sizeof(err_desc));
   EXPECT_OK(res) << err_desc;
   EXPECT_STREQ(err_desc, "");
 
@@ -75,7 +87,7 @@ TEST_F(ConfigurationTest, UpdateFromJson) {
 
 TEST_F(ConfigurationTest, UpdateFromCorruptJson) {
   char err_desc[1000];
-  int res = YOGI_ConfigurationUpdateFromJson(cfg_, "{\"person\": {\"age\": 10}",
+  int res = YOGI_ConfigurationUpdateFromJson(cfg_, R"({"person": {"age": 10})",
                                              err_desc, sizeof(err_desc));
   EXPECT_ERR(res, YOGI_ERR_PARSING_JSON_FAILED);
   EXPECT_STRNE(err_desc, "");
@@ -84,11 +96,7 @@ TEST_F(ConfigurationTest, UpdateFromCorruptJson) {
 }
 
 TEST_F(ConfigurationTest, UpdateFromCommandLine) {
-  TemporaryWorkdirGuard workdir;
-  {
-    fs::ofstream file("a.json");
-    file << "{\"person\": {\"age\": 10}}";
-  }
+  auto workdir = WriteTempFile("a.json");
 
   // clang-format off
   CommandLine cmdline{
@@ -113,11 +121,7 @@ TEST_F(ConfigurationTest, UpdateFromCommandLine) {
 }
 
 TEST_F(ConfigurationTest, UpdateFromCommandLineCorruptFile) {
-  TemporaryWorkdirGuard workdir;
-  {
-    fs::ofstream file("a.json");
-    file << "{\"person\": {\"age\": 10}";
-  }
+  auto workdir = WriteTempFile("a.json", R"({"person": {"age": 10})");
 
   // clang-format off
   CommandLine cmdline{
@@ -137,11 +141,7 @@ TEST_F(ConfigurationTest, UpdateFromCommandLineCorruptFile) {
 }
 
 TEST_F(ConfigurationTest, UpdateFromFile) {
-  TemporaryWorkdirGuard workdir;
-  {
-    fs::ofstream file("a.json");
-    file << "{\"person\": {\"age\": 10}}";
-  }
+  auto workdir = WriteTempFile("a.json");
 
   char err_desc[1000];
   int res = YOGI_ConfigurationUpdateFromFile(cfg_, "a.json", err_desc,
@@ -156,11 +156,7 @@ TEST_F(ConfigurationTest, UpdateFromFile) {
 }
 
 TEST_F(ConfigurationTest, UpdateFromCorruptFile) {
-  TemporaryWorkdirGuard workdir;
-  {
-    fs::ofstream file("a.json");
-    file << "{\"person\": {\"age\": 10}";
-  }
+  auto workdir = WriteTempFile("a.json", R"({"person": {"age": 10})");
 
   char err_desc[1000];
   int res = YOGI_ConfigurationUpdateFromFile(cfg_, "a.json", err_desc,
@@ -236,11 +232,7 @@ TEST_F(ConfigurationTest, WriteToFile) {
 }
 
 TEST_F(ConfigurationTest, ImmutableCommandLine) {
-  TemporaryWorkdirGuard workdir;
-  {
-    fs::ofstream file("a.json");
-    file << "{\"person\": {\"age\": 10}}";
-  }
+  auto workdir = WriteTempFile("a.json");
 
   // clang-format off
   CommandLine cmdline{
@@ -383,4 +375,49 @@ TEST_F(ConfigurationTest, BadVariables) {
                                          sizeof(err_desc));
   ASSERT_ERR(res, YOGI_ERR_UNDEFINED_VARIABLES) << err_desc;
   EXPECT_NE(std::string(err_desc).find("AB"), std::string::npos);
+}
+
+TEST_F(ConfigurationTest, Validate) {
+  void* scm = MakeConfiguration(YOGI_CFG_NONE, R"(
+    {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Test schema",
+      "properties": {
+        "name": {
+          "description": "Name",
+          "type": "string"
+        },
+        "age": {
+          "description": "Age of the person",
+          "type": "number",
+          "minimum": 2,
+          "maximum": 200
+        }
+      },
+      "required": ["name", "age"],
+      "type": "object"
+    }
+  )");
+
+  char err[256] = {0};
+  int res = YOGI_ConfigurationValidate(cfg_, nullptr, scm, err, sizeof(err));
+  EXPECT_ERR(res, YOGI_ERR_CONFIGURATION_VALIDATION_FAILED) << err;
+  EXPECT_NE(std::string(err).find("not found"), std::string::npos) << err;
+
+  res = YOGI_ConfigurationValidate(cfg_, "/person", scm, err, sizeof(err));
+  EXPECT_OK(res) << err;
+  EXPECT_STREQ(err, "") << err;
+
+  res = YOGI_ConfigurationValidate(cfg_, "/someone", scm, err, sizeof(err));
+  EXPECT_ERR(res, YOGI_ERR_CONFIGURATION_SECTION_NOT_FOUND) << err;
+  EXPECT_NE(std::string(err).find("someone"), std::string::npos) << err;
+
+  res = YOGI_ConfigurationUpdateFromJson(cfg_, R"({"person": {"age": 500}})",
+                                         err, sizeof(err));
+  EXPECT_OK(res) << err;
+
+  res = YOGI_ConfigurationValidate(cfg_, "/person", scm, err, sizeof(err));
+  EXPECT_ERR(res, YOGI_ERR_CONFIGURATION_VALIDATION_FAILED) << err;
+  EXPECT_NE(std::string(err).find("/age"), std::string::npos) << err;
+  EXPECT_NE(std::string(err).find("200"), std::string::npos) << err;
 }

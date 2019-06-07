@@ -278,3 +278,31 @@ class Configuration(Object):
         yogi.YOGI_ConfigurationWriteToFile(
             self._handle, filename.encode(), resolve_variables,
             indentation)
+
+    def validate(self, schema: 'Configuration', *, section: str = None
+                 ) -> None:
+        """Validates the configuration against a JSON Schema.
+
+        The validation is based on JSON Schema draft-07, see
+        http://json-schema.org/. The schema to validate against has to be
+        supplied in the schema parameter which needs to be a configuration
+        object itself.
+
+        If the validation fails, a DescriptiveFailureException with the
+        CONFIGURATION_VALIDATION_FAILED error will be raised, containing a
+        human-readable description about the failure.
+
+        The section parameter can be used to specify a section of the
+        configuration to validate instead of the whole configuration.
+
+        Args:
+            schema:  The schema to use.
+            section: Section in the configuration to validate; syntax is
+                     JSON pointer (RFC 6901).
+        """
+        if section:
+            section = section.encode()
+
+        run_with_discriptive_failure_awareness(
+            lambda err: yogi.YOGI_ConfigurationValidate(
+                self._handle, section, schema._handle, err, sizeof(err)))

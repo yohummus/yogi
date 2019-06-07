@@ -170,6 +170,9 @@ const char* Result::GetDescription() const {
 
     case YOGI_ERR_CONFIGURATION_SECTION_NOT_FOUND:
       return "The section could not be found in the configuration";
+
+    case YOGI_ERR_CONFIGURATION_VALIDATION_FAILED:
+      return "Validating the configuration failed";
   }
 
   return "Invalid error code";
