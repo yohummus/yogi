@@ -32,9 +32,10 @@ AdvertisingReceiver::AdvertisingReceiver(
     : context_(context),
       adv_ep_(adv_ep),
       observer_fn_(observer_fn),
-      buffer_(
-          utils::MakeSharedByteVector(BranchInfo::kAdvertisingMessageSize + 1)),
       socket_(context->IoContext()) {
+  buffer_ =
+      utils::MakeSharedByteVector(BranchInfo::kAdvertisingMessageSize + 1);
+
   SetupSocket();
 }
 

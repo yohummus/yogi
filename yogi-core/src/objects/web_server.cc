@@ -30,16 +30,15 @@ WebServer::WebServer(ContextPtr context, BranchPtr branch,
                      const nlohmann::json& cfg)
     : context_(context),
       branch_(branch),
-      port_(utils::ExtractLimitedNumber<unsigned short>(
-          cfg, "port", api::kDefaultWebPort, 1, 65535)),
+      port_(
+          cfg.value("port", static_cast<unsigned short>(api::kDefaultWebPort))),
       ifs_(utils::GetFilteredNetworkInterfaces(utils::ExtractArrayOfStrings(
           cfg, "interfaces", api::kDefaultWebInterfaces))),
       timeout_(utils::ExtractDuration(cfg, "timeout", api::kDefaultWebTimeout)),
       test_mode_(cfg.value("test_mode", false)),
       compress_assets_(cfg.value("compress_assets", true)),
-      cache_size_(utils::ExtractLimitedNumber<std::size_t>(
-          cfg, "cache_size", api::kDefaultWebCacheSize, 0,
-          api::kMaxWebCacheSize)),
+      cache_size_(
+          utils::ExtractSize(cfg, "cache_size", api::kDefaultWebCacheSize)),
       logging_prefix_("["s + std::to_string(port_) + ']'),
       auth_(detail::web::AuthProvider::Create(cfg["authentication"],
                                               logging_prefix_)),

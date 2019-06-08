@@ -18,6 +18,7 @@
 #include "branch.h"
 #include "../network/ip.h"
 #include "../api/constants.h"
+#include "../utils/schema.h"
 #include "../utils/system.h"
 
 #include <chrono>
@@ -29,27 +30,25 @@ YOGI_DEFINE_INTERNAL_LOGGER("Branch")
 namespace objects {
 
 Branch::Branch(ContextPtr context, const nlohmann::json& cfg)
-    : context_(context),
-      connection_manager_(std::make_shared<detail::ConnectionManager>(
-          context, cfg,
-          [&](auto& res, auto conn) { this->OnConnectionChanged(res, conn); },
-          [&](auto& msg, auto& conn) { this->OnMessageReceived(msg, conn); })),
-      info_(std::make_shared<detail::LocalBranchInfo>(
-          cfg, connection_manager_->GetAdvertisingInterfaces(),
-          connection_manager_->GetTcpServerEndpoint())),
-      broadcast_manager_(std::make_shared<detail::BroadcastManager>(
-          context, *connection_manager_)) {
-  if (info_->GetName().empty() || info_->GetNetworkName().empty() ||
-      info_->GetPath().empty() || info_->GetPath().front() != '/' ||
-      info_->GetAdvertisingInterval() < 1ms || info_->GetTimeout() < 1ms) {
-    throw api::Error(YOGI_ERR_INVALID_PARAM);
-  }
+    : context_(context) {
+  utils::ValidateJson(cfg, "branch_create.schema.json");
+
+  con_man_ = std::make_shared<detail::ConnectionManager>(
+      context, cfg,
+      [&](auto& res, auto conn) { this->OnConnectionChanged(res, conn); },
+      [&](auto& msg, auto& conn) { this->OnMessageReceived(msg, conn); });
+
+  info_ = std::make_shared<detail::LocalBranchInfo>(
+      cfg, con_man_->GetAdvertisingInterfaces(),
+      con_man_->GetTcpServerEndpoint());
+
+  bc_man_ = std::make_shared<detail::BroadcastManager>(context, *con_man_);
 }
 
 void Branch::Start() {
   SetLoggingPrefix(info_->GetLoggingPrefix());
-  connection_manager_->Start(info_);
-  broadcast_manager_->Start(info_);
+  con_man_->Start(info_);
+  bc_man_->Start(info_);
 }
 
 ContextPtr Branch::GetContext() const { return context_; }
@@ -59,39 +58,37 @@ const boost::uuids::uuid& Branch::GetUuid() const { return info_->GetUuid(); }
 std::string Branch::MakeInfoString() const { return info_->ToJson().dump(); }
 
 Branch::BranchInfoStringsList Branch::MakeConnectedBranchesInfoStrings() const {
-  return connection_manager_->MakeConnectedBranchesInfoStrings();
+  return con_man_->MakeConnectedBranchesInfoStrings();
 }
 
 void Branch::AwaitEventAsync(api::BranchEvents events,
                              BranchEventHandler handler) {
-  connection_manager_->AwaitEventAsync(events, handler);
+  con_man_->AwaitEventAsync(events, handler);
 }
 
-bool Branch::CancelAwaitEvent() {
-  return connection_manager_->CancelAwaitEvent();
-}
+bool Branch::CancelAwaitEvent() { return con_man_->CancelAwaitEvent(); }
 
 Branch::SendBroadcastOperationId Branch::SendBroadcastAsync(
     const network::Payload& payload, bool retry, SendBroadcastHandler handler) {
-  return broadcast_manager_->SendBroadcastAsync(payload, retry, handler);
+  return bc_man_->SendBroadcastAsync(payload, retry, handler);
 }
 
 api::Result Branch::SendBroadcast(const network::Payload& payload, bool block) {
-  return broadcast_manager_->SendBroadcast(payload, block);
+  return bc_man_->SendBroadcast(payload, block);
 }
 
 bool Branch::CancelSendBroadcast(SendBroadcastOperationId oid) {
-  return broadcast_manager_->CancelSendBroadcast(oid);
+  return bc_man_->CancelSendBroadcast(oid);
 }
 
 void Branch::ReceiveBroadcast(api::Encoding enc,
                               boost::asio::mutable_buffer data,
                               ReceiveBroadcastHandler handler) {
-  broadcast_manager_->ReceiveBroadcast(enc, data, handler);
+  bc_man_->ReceiveBroadcast(enc, data, handler);
 }
 
 bool Branch::CancelReceiveBroadcast() {
-  return broadcast_manager_->CancelReceiveBroadcast();
+  return bc_man_->CancelReceiveBroadcast();
 }
 
 void Branch::OnConnectionChanged(const api::Result& res,
@@ -112,7 +109,7 @@ void Branch::OnMessageReceived(const network::IncomingMessage& msg,
       break;
 
     case MessageType::kBroadcast:
-      broadcast_manager_->OnBroadcastReceived(
+      bc_man_->OnBroadcastReceived(
           static_cast<const messages::BroadcastIncoming&>(msg), conn);
       break;
 

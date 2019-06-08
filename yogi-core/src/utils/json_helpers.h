@@ -31,19 +31,11 @@ std::vector<std::string> ExtractArrayOfStrings(const nlohmann::json& json,
                                                const char* key,
                                                const char* default_val);
 
-int ExtractLimitedInt(const nlohmann::json& json, const char* key,
-                      int default_val, int min_val, int max_val);
+std::size_t ExtractSize(const nlohmann::json& json, const char* key,
+                        int default_val);
 
 std::size_t ExtractSizeWithInfSupport(const nlohmann::json& json,
-                                      const char* key, int default_val,
-                                      int min_val);
-
-template <typename T>
-T ExtractLimitedNumber(const nlohmann::json& json, const char* key,
-                       int default_val, int min_val, int max_val) {
-  return static_cast<T>(
-      ExtractLimitedInt(json, key, default_val, min_val, max_val));
-}
+                                      const char* key, int default_val);
 
 boost::asio::ip::udp::endpoint ExtractUdpEndpoint(
     const nlohmann::json& json, const char* addr_key,

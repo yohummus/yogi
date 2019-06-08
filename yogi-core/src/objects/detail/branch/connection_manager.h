@@ -158,13 +158,13 @@ class ConnectionManager
                       Fn make_json_fn);
 
   const ContextPtr context_;
-  const boost::asio::ip::udp::endpoint adv_ep_;
-  const std::vector<utils::NetworkInterfaceInfo> adv_ifs_;
-  const utils::SharedByteVector password_hash_;
-  const ConnectionChangedHandler connection_changed_handler_;
-  const MessageReceiveHandler message_handler_;
-  const detail::AdvertisingSenderPtr adv_sender_;
-  const detail::AdvertisingReceiverPtr adv_receiver_;
+  boost::asio::ip::udp::endpoint adv_ep_;
+  std::vector<utils::NetworkInterfaceInfo> adv_ifs_;
+  utils::SharedByteVector password_hash_;
+  ConnectionChangedHandler connection_changed_handler_;
+  MessageReceiveHandler message_handler_;
+  detail::AdvertisingSenderPtr adv_sender_;
+  detail::AdvertisingReceiverPtr adv_receiver_;
   boost::asio::ip::tcp::acceptor acceptor_;
   network::TcpTransport::AcceptGuardPtr accept_guard_;
   ConnectGuardsSet connect_guards_;

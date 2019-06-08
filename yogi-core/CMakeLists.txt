@@ -46,7 +46,25 @@ set_property (TARGET boost
 find_package (Threads REQUIRED)
 
 # Static library
+set (schema_files
+  src/schemas/branch_create.schema.json
+)
+
+set (gen_schemas_file generated_schema_files_content.cc)
+
+add_custom_command(
+    OUTPUT  ${gen_schemas_file}
+    COMMAND ${CMAKE_COMMAND}
+    -DOUT_FILE=${CMAKE_CURRENT_BINARY_DIR}/${gen_schemas_file}
+    -DSCHEMA_FILES="${schema_files}"
+    -DFN_NAME="Generated_GetSchemaFiles"
+    -P ${CMAKE_SOURCE_DIR}/cmake/generate_files_loader.cmake
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    DEPENDS ${schema_files}
+)
+
 add_library (yogi-core-static STATIC
+  ${CMAKE_CURRENT_BINARY_DIR}/${gen_schemas_file}
   src/api/constants.cc
   src/api/errors.cc
   src/api/object.cc
@@ -93,6 +111,7 @@ add_library (yogi-core-static STATIC
   src/utils/glob.cc
   src/utils/json_helpers.cc
   src/utils/ringbuffer.cc
+  src/utils/schema.cc
   src/utils/system.cc
   src/utils/timestamp.cc
   src/utils/types.cc
@@ -220,6 +239,7 @@ target_link_libraries (yogi-core-test
   ${Boost_LIBRARIES}
   Threads::Threads
   nlohmann_json::nlohmann_json
+  json-schema-validator
 )
 
 cotire (yogi-core-test)

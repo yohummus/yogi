@@ -495,6 +495,8 @@ public static partial class Yogi
         ///  - advertising_port: Port to use for advertising.
         ///  - advertising_interval: Time between advertising messages. Must be at
         ///    least 1 ms.
+        ///  __timeout__: Amount of time of inactivity before a connection is
+        ///    considered to be broken. Must be at least 1 ms.
         ///  - ghost_mode: Set to true to activate ghost mode (default: false).
         ///  - tx_queue_size: Size of the send queues for remote branches.
         ///  - rx_queue_size: Size of the receive queues for remote branches.
@@ -569,6 +571,8 @@ public static partial class Yogi
         ///  - advertising_port: Port to use for advertising.
         ///  - advertising_interval: Time between advertising messages. Must be at
         ///    least 1 ms.
+        ///  __timeout__: Amount of time of inactivity before a connection is
+        ///    considered to be broken. Must be at least 1 ms.
         ///  - ghost_mode: Set to true to activate ghost mode (default: false).
         ///  - tx_queue_size: Size of the send queues for remote branches.
         ///  - rx_queue_size: Size of the receive queues for remote branches.

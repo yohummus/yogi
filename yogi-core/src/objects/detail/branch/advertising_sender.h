@@ -57,7 +57,7 @@ class AdvertisingSender
   void OnTimerExpired(const boost::system::error_code& ec);
 
   const ContextPtr context_;
-  const boost::asio::ip::udp::endpoint adv_ep_;
+  boost::asio::ip::udp::endpoint adv_ep_;
   LocalBranchInfoPtr info_;
   boost::asio::steady_timer timer_;
   std::vector<std::shared_ptr<SocketEntry>> sockets_;

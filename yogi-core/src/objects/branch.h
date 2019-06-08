@@ -65,9 +65,9 @@ class Branch : public api::ExposedObjectT<Branch, api::ObjectType::kBranch>,
                          const detail::BranchConnectionPtr& conn);
 
   const ContextPtr context_;
-  const detail::ConnectionManagerPtr connection_manager_;
-  const detail::LocalBranchInfoPtr info_;
-  const detail::BroadcastManagerPtr broadcast_manager_;
+  detail::ConnectionManagerPtr con_man_;
+  detail::LocalBranchInfoPtr info_;
+  detail::BroadcastManagerPtr bc_man_;
 };
 
 typedef std::shared_ptr<Branch> BranchPtr;

@@ -33,26 +33,27 @@ ConnectionManager::ConnectionManager(
     ConnectionChangedHandler connection_changed_handler,
     MessageReceiveHandler message_handler)
     : context_(context),
-      adv_ep_(utils::ExtractUdpEndpoint(
-          cfg, "advertising_address", api::kDefaultAdvAddress,
-          "advertising_port", api::kDefaultAdvPort)),
-      adv_ifs_(utils::GetFilteredNetworkInterfaces(
-          utils::ExtractArrayOfStrings(cfg, "advertising_interfaces",
-                                       api::kDefaultAdvInterfaces),
-          adv_ep_.protocol())),
-      password_hash_(utils::MakeSharedByteVector(
-          utils::MakeSha256(cfg.value("network_password", std::string{})))),
       connection_changed_handler_(connection_changed_handler),
       message_handler_(message_handler),
-      adv_sender_(std::make_shared<AdvertisingSender>(context, adv_ep_)),
-      adv_receiver_(std::make_shared<AdvertisingReceiver>(
-          context, adv_ep_,
-          [&](auto& uuid, auto& ep) {
-            this->OnAdvertisementReceived(uuid, ep);
-          })),
       acceptor_(context->IoContext()),
       last_op_tag_(0),
       observed_events_(api::kNoEvent) {
+  adv_ep_ = utils::ExtractUdpEndpoint(cfg, "advertising_address",
+                                      api::kDefaultAdvAddress,
+                                      "advertising_port", api::kDefaultAdvPort);
+  adv_ifs_ = utils::GetFilteredNetworkInterfaces(
+      utils::ExtractArrayOfStrings(cfg, "advertising_interfaces",
+                                   api::kDefaultAdvInterfaces),
+      adv_ep_.protocol());
+
+  password_hash_ = utils::MakeSharedByteVector(
+      utils::MakeSha256(cfg.value("network_password", std::string{})));
+
+  adv_sender_ = std::make_shared<AdvertisingSender>(context, adv_ep_);
+  adv_receiver_ = std::make_shared<AdvertisingReceiver>(
+      context, adv_ep_,
+      [&](auto& uuid, auto& ep) { this->OnAdvertisementReceived(uuid, ep); });
+
   YOGI_ASSERT(adv_ep_.port() != 0);
   using namespace boost::asio::ip;
   SetupAcceptor(adv_ep_.protocol() == udp::v4() ? tcp::v4() : tcp::v6());

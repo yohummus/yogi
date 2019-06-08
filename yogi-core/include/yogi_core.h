@@ -1820,6 +1820,8 @@ YOGI_API int YOGI_TimerCancel(void* timer);
  *  - __advertising_port__: Port to use for advertising.
  *  - __advertising_interval__: Time between advertising messages. Must be at
  *    least 1 ms.
+ *  - __timeout__: Amount of time of inactivity before a connection is
+ *    considered to be broken. Must be at least 1 ms.
  *  - __ghost_mode__: Set to true to activate ghost mode.
  *  - __tx_queue_size__: Size of the send queues for remote branches.
  *  - __rx_queue_size__: Size of the receive queues for remote branches.

@@ -29,11 +29,9 @@ std::chrono::nanoseconds ExtractDuration(const nlohmann::json& json,
   float seconds = json.value(key, static_cast<float>(defaultValue) / 1e9f);
   if (seconds == -1) {
     return (std::chrono::nanoseconds::max)();
-  } else if (seconds < 0) {
-    throw api::DescriptiveError(YOGI_ERR_CONFIG_NOT_VALID)
-        << "Invalid duration value in \"" << key
-        << "\". Valid values are >= 0 or -1 for infinity.";
   }
+
+  YOGI_ASSERT(seconds >= 0);
 
   auto ns = static_cast<long long>(seconds * 1e9f);
   return std::chrono::nanoseconds(ns);
@@ -51,48 +49,28 @@ std::vector<std::string> ExtractArrayOfStrings(const nlohmann::json& json,
     json_vec = nlohmann::json::parse(default_val);
   }
 
-  if (!json_vec.is_array()) {
-    throw api::DescriptiveError(YOGI_ERR_CONFIG_NOT_VALID)
-        << "Configuration value \"" << key << "\" is not an array.";
-  }
+  YOGI_ASSERT(json_vec.is_array());
 
   for (auto& elem : json_vec) {
-    if (!elem.is_string()) {
-      throw api::DescriptiveError(YOGI_ERR_CONFIG_NOT_VALID)
-          << "A value in array \"" << key << "\" is not a string.";
-    }
-
+    YOGI_ASSERT(elem.is_string());
     v.push_back(elem.get<std::string>());
   }
 
   return v;
 }
 
-int ExtractLimitedInt(const nlohmann::json& json, const char* key,
-                      int default_val, int min_val, int max_val) {
-  int val = json.value(key, default_val);
-  if (min_val > val || val > max_val) {
-    throw api::DescriptiveError(YOGI_ERR_INVALID_PARAM)
-        << "Property \"" << key << "\" is out of range. Allowed range is "
-        << min_val << " to " << max_val << ".";
-  }
-
-  return val;
+std::size_t ExtractSize(const nlohmann::json& json, const char* key,
+                        int default_val) {
+  auto val = json.value(key, default_val);
+  return static_cast<std::size_t>(val);
 }
 
 std::size_t ExtractSizeWithInfSupport(const nlohmann::json& json,
-                                      const char* key, int default_val,
-                                      int min_val) {
+                                      const char* key, int default_val) {
   auto val = json.value(key, default_val);
   if (val == -1) {
     return std::numeric_limits<std::size_t>::max();
   } else {
-    if (val < min_val) {
-      throw api::DescriptiveError(YOGI_ERR_INVALID_PARAM)
-          << "Property \"" << key << "\" is out of range. Minimum value is "
-          << min_val << ". A value of -1 denotes infinity.";
-    }
-
     return static_cast<std::size_t>(val);
   }
 }
@@ -101,17 +79,15 @@ boost::asio::ip::udp::endpoint ExtractUdpEndpoint(
     const nlohmann::json& json, const char* addr_key,
     const std::string& default_addr, const char* port_key, int default_port) {
   auto adv_addr = json.value<std::string>(addr_key, default_addr);
-  auto adv_port = ExtractLimitedNumber<unsigned short>(json, port_key,
-                                                       default_port, 1, 65535);
+  YOGI_ASSERT(!adv_addr.empty());
 
-  if (adv_addr.empty()) {
-    throw api::DescriptiveError(YOGI_ERR_INVALID_PARAM)
-        << "Property \"" << addr_key << "\" must not be empty.";
-  }
+  auto adv_port = json.value(port_key, default_port);
+  YOGI_ASSERT(0 < adv_port && adv_port < 65536);
 
   boost::system::error_code ec;
   auto adv_ep = boost::asio::ip::udp::endpoint(
-      boost::asio::ip::make_address(adv_addr, ec), adv_port);
+      boost::asio::ip::make_address(adv_addr, ec),
+      static_cast<unsigned short>(adv_port));
   if (ec) {
     throw api::DescriptiveError(YOGI_ERR_INVALID_PARAM)
         << "Could not parse address in property \"" << addr_key << "\".";

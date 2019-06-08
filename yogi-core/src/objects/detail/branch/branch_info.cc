@@ -92,9 +92,9 @@ LocalBranchInfo::LocalBranchInfo(
   adv_interval_    = utils::ExtractDuration(cfg, "advertising_interval", api::kDefaultAdvInterval);
   ghost_mode_      = cfg.value("ghost_mode", false);
   adv_ep_          = utils::ExtractUdpEndpoint(cfg, "advertising_address", api::kDefaultAdvAddress, "advertising_port", api::kDefaultAdvPort);
-  tx_queue_size_   = utils::ExtractLimitedNumber<std::size_t>(cfg, "tx_queue_size", api::kDefaultTxQueueSize, api::kMinTxQueueSize, api::kMaxTxQueueSize);
-  rx_queue_size_   = utils::ExtractLimitedNumber<std::size_t>(cfg, "rx_queue_size", api::kDefaultRxQueueSize, api::kMinRxQueueSize, api::kMaxRxQueueSize);
-  txrx_byte_limit_ = utils::ExtractSizeWithInfSupport(cfg, "_transceive_byte_limit", -1, 0);
+  tx_queue_size_   = utils::ExtractSize(cfg, "tx_queue_size", api::kDefaultTxQueueSize);
+  rx_queue_size_   = utils::ExtractSize(cfg, "rx_queue_size", api::kDefaultRxQueueSize);
+  txrx_byte_limit_ = utils::ExtractSizeWithInfSupport(cfg, "_transceive_byte_limit", -1);
   // clang-format on
 
   PopulateMessages();

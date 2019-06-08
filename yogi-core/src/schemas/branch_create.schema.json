@@ -1,0 +1,74 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Configuration passed to YOGI_BranchCreate()",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Name of the branch."
+    },
+    "description": {
+      "type": "string",
+      "description": "Description of the branch."
+    },
+    "path": {
+      "type": "string",
+      "pattern": "^/.*$",
+      "description": "Path of the branch in the network. Must start with a slash."
+    },
+    "network_name": {
+      "type": "string",
+      "description": "Name of the network to join."
+    },
+    "network_password": {
+      "type": "string",
+      "description": "Password for the network."
+    },
+    "advertising_interfaces": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true,
+      "description": "Network interfaces to use for advertising and for branch connections. Valid strings are Unix device names (\"eth0\", \"en5\", \"wlan0\"), adapter names on Windows (\"Ethernet\", \"VMware Network Adapter WMnet1\") or MAC addresses (\"11:22:33:44:55:66\"). Furthermore, the special strings \"localhost\" and \"all\" can be used to denote loopback and all available interfaces respectively."
+    },
+    "advertising_address": {
+      "type": "string",
+      "minLength": 2,
+      "description": "Multicast address to use for advertising, e.g. 239.255.0.1 for IPv4 or ff02::8000:1234 for IPv6."
+    },
+    "advertising_port": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 65535,
+      "description": "Port to use for advertising."
+    },
+    "advertising_interval": {
+      "type": "number",
+      "anyOf": [{ "const": -1 }, { "minimum": 0.001 }],
+      "description": "Time between advertising messages."
+    },
+    "timeout": {
+      "type": "number",
+      "anyOf": [{ "const": -1 }, { "minimum": 0.001 }],
+      "description": "Amount of time of inactivity before a connection is considered to be broken."
+    },
+    "ghost_mode": {
+      "type": "boolean",
+      "description": "Ghost mode enabled, i.e. the branch does not connect to any other branches and just listens for their advertising messages."
+    },
+    "tx_queue_size": {
+      "type": "integer",
+      "minimum": 35000,
+      "maximum": 10000000,
+      "description": "Size of the send queues for remote branches."
+    },
+    "rx_queue_size": {
+      "type": "integer",
+      "minimum": 35000,
+      "maximum": 10000000,
+      "description": "Size of the receive queues for remote branches."
+    }
+  }
+}
