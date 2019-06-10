@@ -2,6 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Configuration passed to YOGI_BranchCreate()",
   "type": "object",
+  "additionalProperties": false,
   "properties": {
     "name": {
       "type": "string",
@@ -13,7 +14,7 @@
     },
     "path": {
       "type": "string",
-      "pattern": "^/.*$",
+      "pattern": "^/.+",
       "description": "Path of the branch in the network. Must start with a slash."
     },
     "network_name": {
@@ -69,6 +70,11 @@
       "minimum": 35000,
       "maximum": 10000000,
       "description": "Size of the receive queues for remote branches."
+    },
+    "_transceive_byte_limit": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "DO NOT USE! Maximum number of bytes to transfer during a single send or receive operation."
     }
   }
 }

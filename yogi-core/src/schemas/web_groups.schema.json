@@ -1,0 +1,30 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Web server groups",
+  "type": "object",
+  "required": ["groups"],
+
+  "properties": {
+    "groups": {
+      "type": "object",
+      "additionalProperties": false,
+      "patternProperties": {
+        ".+": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string"
+            },
+            "unrestricted": {
+              "type": "boolean"
+            }
+          }
+        }
+      }
+    }
+  }
+}

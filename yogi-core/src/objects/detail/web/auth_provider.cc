@@ -19,6 +19,8 @@
 #include "../../../api/errors.h"
 #include "../../../api/constants.h"
 #include "../../../utils/crypto.h"
+#include "../../../utils/schema.h"
+#include "../../../utils/json_helpers.h"
 
 #include <boost/filesystem.hpp>
 #include <fstream>
@@ -34,10 +36,7 @@ AuthProviderPtr AuthProvider::Create(const nlohmann::json& auth_cfg,
   static const nlohmann::json dummy = nlohmann::json::object_t{};
 
   auto& cfg = auth_cfg.is_null() ? dummy : auth_cfg;
-  if (!cfg.is_object()) {
-    throw api::DescriptiveError(YOGI_ERR_CONFIG_NOT_VALID)
-        << "Invalid authentication section.";
-  }
+  utils::ValidateJson(cfg, "web_authentication.schema.json");
 
   AuthProviderPtr auth;
 
@@ -47,9 +46,7 @@ AuthProviderPtr AuthProvider::Create(const nlohmann::json& auth_cfg,
   } else if (provider == "files") {
     auth = std::make_unique<FilesAuthProvider>();
   } else {
-    throw api::DescriptiveError(YOGI_ERR_CONFIG_NOT_VALID)
-        << "Invalid authentication provider. Valid types are \"config\" or "
-           "\"files\".";
+    YOGI_NEVER_REACHED;
   }
 
   auth->SetLoggingPrefix(logging_prefix);
@@ -74,114 +71,85 @@ GroupPtr AuthProvider::GetGroupOptional(const std::string& group_name) const {
   return it->second;
 }
 
-nlohmann::json AuthProvider::GetSection(const nlohmann::json& json,
-                                        const char* key,
-                                        const std::string& source) {
-  auto it = json.find(key);
-  if (it == json.end() || !it.value().is_object()) {
-    throw api::DescriptiveError(YOGI_ERR_CONFIG_NOT_VALID)
-        << "Missing or invalid \"" << key << "\" section in " << source << ".";
-  }
-
-  return it.value();
-}
-
-nlohmann::json AuthProvider::GetSectionFromFile(const std::string& file,
-                                                const char* key) {
-  std::ifstream ifs(file);
-  if (!ifs.is_open() || ifs.fail()) {
-    throw api::DescriptiveError(YOGI_ERR_READ_FILE_FAILED)
-        << "The file " << file << " does not exist or is not readable.";
-  }
-
-  nlohmann::json json;
-  try {
-    ifs >> json;
-  } catch (const std::exception& e) {
-    throw api::DescriptiveError(YOGI_ERR_PARSING_FILE_FAILED)
-        << "Could not parse " << file << ": " << e.what();
-  }
-
-  return GetSection(json, key, file);
-}
-
 std::tuple<UsersMap, GroupsMap> ConfigAuthProvider::ReadConfiguration(
     const nlohmann::json& auth_cfg) {
-  nlohmann::json groups_cfg;
+  const nlohmann::json* groups_cfg;
   if (auth_cfg.contains("groups")) {
-    groups_cfg = GetSection(auth_cfg, "groups", "authentication settings");
+    groups_cfg = &auth_cfg;
   } else {
-    groups_cfg = MakeDefaultGroupsSection();
+    groups_cfg = &GetDefaultGroupsSection();
     LOG_IFO("Using default groups in configuration");
   }
 
-  auto groups = Group::CreateAllFromJson(groups_cfg);
+  auto groups = Group::CreateAllFromJson(*groups_cfg);
   LOG_IFO("Loaded " << groups.size() << " groups from configuration");
 
-  nlohmann::json users_cfg;
+  const nlohmann::json* users_cfg;
   if (auth_cfg.contains("users")) {
-    users_cfg = GetSection(auth_cfg, "users", "authentication settings");
+    users_cfg = &auth_cfg;
   } else {
-    users_cfg = MakeDefaultUsersSection();
+    users_cfg = &GetDefaultUsersSection();
     LOG_IFO("Using default users in configuration");
   }
 
-  auto users = User::CreateAllFromJson(users_cfg, groups);
+  auto users = User::CreateAllFromJson(*users_cfg, groups);
   LOG_IFO("Loaded " << users.size() << " users from configuration");
 
   return std::make_tuple(users, groups);
 }
 
-nlohmann::json ConfigAuthProvider::MakeDefaultGroupsSection() {
-  static nlohmann::json section = {
-      {"admins",
-       {{"name", "Administrators"},
-        {"description", "Users with unrestricted access to everything"},
-        {"unrestricted", true}}},
-      {"users",
-       {
-           {"name", "Users"},
-           {"description", "All registered users"},
-       }},
-  };
+const nlohmann::json& ConfigAuthProvider::GetDefaultGroupsSection() {
+  static nlohmann::json section = nlohmann::json::parse(R"(
+    {
+      "groups": {
+        "admins": {
+          "name":         "Administrators",
+          "description":  "Users with unrestricted access to everything",
+          "unrestricted": true
+        },
+        "users": {
+          "name":         "Users",
+          "description":  "All registered users"
+        }
+      }
+    }
+  )");
 
   return section;
 }
 
-nlohmann::json ConfigAuthProvider::MakeDefaultUsersSection() {
+const nlohmann::json& ConfigAuthProvider::GetDefaultUsersSection() {
   static nlohmann::json section = {
-      {api::kDefaultAdminUser,
-       {
-           {"first_name", "Administrator"},
-           {"password", utils::MakeSha256String(api::kDefaultAdminPassword)},
-           {"groups", nlohmann::json::array({"admins", "users"})},
-       }}};
+      // clang-format off
+    {"users", {
+      {api::kDefaultAdminUser, {
+        {"first_name", "Administrator"},
+        {"password",   utils::MakeSha256String(api::kDefaultAdminPassword)},
+        {"groups",     nlohmann::json::array({"admins", "users"})},
+      }}
+    }}
+      // clang-format on
+  };
 
   return section;
 }
 
 std::tuple<UsersMap, GroupsMap> FilesAuthProvider::ReadConfiguration(
     const nlohmann::json& auth_cfg) {
-  auto groups_file = auth_cfg.value("groups_file", "");
-  if (groups_file.empty()) {
-    throw api::DescriptiveError(YOGI_ERR_CONFIG_NOT_VALID)
-        << "Missing or invalid groups_file in authentication section.";
-  }
-
+  auto groups_file = auth_cfg["groups_file"].get<std::string>();
+  YOGI_ASSERT(!groups_file.empty());
   groups_file = boost::filesystem::absolute(groups_file).string();
-  auto groups_section = GetSectionFromFile(groups_file, "groups");
-  auto groups = Group::CreateAllFromJson(groups_section);
+
+  auto groups_file_cfg = utils::ReadJsonFile(groups_file);
+  auto groups = Group::CreateAllFromJson(groups_file_cfg, groups_file);
   LOG_IFO("Loaded " << groups.size() << " groups from " << groups_file);
 
-  auto users_file = auth_cfg.value("users_file", "");
-  if (users_file.empty()) {
-    throw api::DescriptiveError(YOGI_ERR_CONFIG_NOT_VALID)
-        << "Missing or invalid users_file in authentication section.";
-  }
-
+  auto users_file = auth_cfg["users_file"].get<std::string>();
+  YOGI_ASSERT(!users_file.empty());
   users_file = boost::filesystem::absolute(users_file).string();
-  auto users_section = GetSectionFromFile(users_file, "users");
-  auto users = User::CreateAllFromJson(users_section, groups);
+
+  auto users_file_cfg = utils::ReadJsonFile(users_file);
+  auto users = User::CreateAllFromJson(users_file_cfg, groups, users_file);
   LOG_IFO("Loaded " << users.size() << " users from " << users_file);
 
   return std::make_tuple(users, groups);

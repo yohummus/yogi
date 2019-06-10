@@ -1,0 +1,17 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Permissions for web routes and endpoints",
+  "type": "object",
+  "additionalProperties": false,
+
+  "patternProperties": {
+    ".+": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": ["GET", "HEAD", "POST", "PUT", "DELETE", "PATCH"],
+        "uniqueItems": true
+      }
+    }
+  }
+}

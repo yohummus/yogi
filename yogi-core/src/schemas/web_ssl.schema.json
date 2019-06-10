@@ -1,0 +1,58 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Web server SSL configuration",
+  "type": "object",
+
+  "properties": {
+    "ssl": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "private_key": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "private_key_file": {
+          "type": "string",
+          "minLength": 1
+        },
+        "private_key_password": {
+          "type": "string"
+        },
+        "certificate_chain": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "certificate_chain_file": {
+          "type": "string",
+          "minLength": 1
+        },
+        "dh_params": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "dh_params_file": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "allOf": [
+        {
+          "not": {
+            "required": ["private_key", "private_key_file"]
+          }
+        },
+        {
+          "not": {
+            "required": ["certificate_chain", "certificate_chain_file"]
+          }
+        },
+        {
+          "not": {
+            "required": ["dh_params", "dh_params_file"]
+          }
+        }
+      ]
+    }
+  }
+}

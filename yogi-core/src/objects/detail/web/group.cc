@@ -18,14 +18,18 @@
 #include "group.h"
 #include "../../../api/errors.h"
 #include "../../../utils/json_helpers.h"
+#include "../../../utils/schema.h"
 
 namespace objects {
 namespace detail {
 namespace web {
 
-GroupsMap Group::CreateAllFromJson(const nlohmann::json& json) {
+GroupsMap Group::CreateAllFromJson(const nlohmann::json& json,
+                                   const std::string& source) {
+  utils::ValidateJson(json, "web_groups.schema.json", source);
+
   GroupsMap groups;
-  for (auto it : json.items()) {
+  for (auto it : json["groups"].items()) {
     auto group = std::make_shared<Group>();
     utils::CopyJsonProperty(it.value(), "name", "", &group->props_);
     utils::CopyJsonProperty(it.value(), "description", "", &group->props_);

@@ -47,7 +47,14 @@ find_package (Threads REQUIRED)
 
 # Static library
 set (schema_files
-  src/schemas/branch_create.schema.json
+  src/schemas/branch.schema.json
+  src/schemas/web_authentication.schema.json
+  src/schemas/web_groups.schema.json
+  src/schemas/web_permissions.schema.json
+  src/schemas/web_routes.schema.json
+  src/schemas/web_server.schema.json
+  src/schemas/web_ssl.schema.json
+  src/schemas/web_users.schema.json
 )
 
 set (gen_schemas_file generated_schema_files_content.cc)

@@ -27,6 +27,7 @@ namespace utils {
 std::chrono::nanoseconds ExtractDuration(const nlohmann::json& json,
                                          const char* key,
                                          long long defaultValue);
+
 std::vector<std::string> ExtractArrayOfStrings(const nlohmann::json& json,
                                                const char* key,
                                                const char* default_val);
@@ -46,5 +47,7 @@ void CopyJsonProperty(const nlohmann::json& from_section, const char* key,
                       T&& default_value, nlohmann::json* to_section) {
   (*to_section)[key] = from_section.value(key, std::forward<T>(default_value));
 }
+
+nlohmann::json ReadJsonFile(const std::string& filename);
 
 }  // namespace utils

@@ -44,16 +44,16 @@ class WebServer
 
   const ContextPtr context_;
   const BranchPtr branch_;
-  const unsigned short port_;
-  const std::vector<utils::NetworkInterfaceInfo> ifs_;
-  const std::chrono::nanoseconds timeout_;
-  const bool test_mode_;
-  const bool compress_assets_;
-  const std::size_t cache_size_;
-  const std::string logging_prefix_;
-  const detail::web::AuthProviderPtr auth_;
-  const detail::web::RoutesVector routes_;
-  const detail::web::SslParameters ssl_;
+  unsigned short port_;
+  std::vector<utils::NetworkInterfaceInfo> ifs_;
+  std::chrono::nanoseconds timeout_;
+  bool test_mode_;
+  bool compress_assets_;
+  std::size_t cache_size_;
+  std::string logging_prefix_;
+  detail::web::AuthProviderPtr auth_;
+  detail::web::RoutesVector routes_;
+  detail::web::SslParametersPtr ssl_;
 };
 
 typedef std::shared_ptr<WebServer> WebServerPtr;

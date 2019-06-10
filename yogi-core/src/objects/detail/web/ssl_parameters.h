@@ -21,6 +21,7 @@
 #include "../../logger.h"
 
 #include <nlohmann/json.hpp>
+#include <memory>
 
 namespace objects {
 namespace detail {
@@ -59,6 +60,8 @@ class SslParameters : public LoggerUser {
   std::string certificate_chain_;
   std::string dh_params_;
 };
+
+typedef std::unique_ptr<SslParameters> SslParametersPtr;
 
 }  // namespace web
 }  // namespace detail

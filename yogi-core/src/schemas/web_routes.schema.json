@@ -1,0 +1,69 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Web server routes and API endpoints configuration",
+  "type": "object",
+
+  "properties": {
+    "routes": {
+      "type": "object",
+      "additionalProperties": false,
+      "patternProperties": {
+        "^/.+": {
+          "allOf": [
+            {
+              "required": ["type", "permissions"],
+              "properties": {
+                "owner": {
+                  "anyOf": [{ "type": "string" }, { "type": "null" }]
+                },
+                "permissions": { "type": "object" },
+                "enabled": { "type": "boolean" }
+              }
+            },
+            {
+              "anyOf": [
+                {
+                  "required": ["content", "mime"],
+                  "properties": {
+                    "type": {
+                      "const": "content"
+                    },
+                    "content": {
+                      "anyOf": [
+                        { "type": "string" },
+                        { "type": "array", "items": { "type": "string" } }
+                      ]
+                    },
+                    "mime": {
+                      "type": "string"
+                    }
+                  }
+                },
+                {
+                  "required": ["path"],
+                  "properties": {
+                    "type": {
+                      "const": "filesystem"
+                    },
+                    "path": {
+                      "type": "string"
+                    }
+                  }
+                },
+                {
+                  "properties": {
+                    "type": {
+                      "const": "custom"
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      }
+    },
+
+    "api_permissions": { "type": "object" }
+  }
+}

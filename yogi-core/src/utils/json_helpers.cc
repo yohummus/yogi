@@ -16,10 +16,12 @@
  */
 
 #include "json_helpers.h"
+#include "schema.h"
 #include "../api/errors.h"
 
 #include <string.h>
 #include <limits>
+#include <fstream>
 
 namespace utils {
 
@@ -94,6 +96,24 @@ boost::asio::ip::udp::endpoint ExtractUdpEndpoint(
   }
 
   return adv_ep;
+}
+
+nlohmann::json ReadJsonFile(const std::string& filename) {
+  std::ifstream ifs(filename);
+  if (!ifs.is_open() || ifs.fail()) {
+    throw api::DescriptiveError(YOGI_ERR_READ_FILE_FAILED)
+        << "The file " << filename << " does not exist or is not readable.";
+  }
+
+  nlohmann::json json;
+  try {
+    ifs >> json;
+  } catch (const std::exception& e) {
+    throw api::DescriptiveError(YOGI_ERR_PARSING_FILE_FAILED)
+        << "Could not parse " << filename << ": " << e.what();
+  }
+
+  return json;
 }
 
 }  // namespace utils

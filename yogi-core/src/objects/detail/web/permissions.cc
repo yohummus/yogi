@@ -17,8 +17,10 @@
 
 #include "permissions.h"
 #include "../../../api/errors.h"
+#include "../../../utils/schema.h"
 
 #include <map>
+using namespace std::string_literals;
 
 namespace objects {
 namespace detail {
@@ -26,10 +28,8 @@ namespace web {
 
 Permissions::Permissions(const std::string& base_uri, const nlohmann::json& cfg,
                          const GroupsMap& groups) {
-  if (!cfg.is_object()) {
-    throw api::DescriptiveError(YOGI_ERR_CONFIG_NOT_VALID)
-        << "Invalid permissions section in route " << base_uri << ".";
-  }
+  utils::ValidateJson(cfg, "web_permissions.schema.json",
+                      "In route "s + base_uri);
 
   for (auto it = cfg.begin(); it != cfg.end(); ++it) {
     auto methods = ExtractMethods(base_uri, it);
@@ -69,11 +69,7 @@ bool Permissions::MayUserAccess(const UserPtr& user, api::RequestMethods method,
 
 api::RequestMethods Permissions::ExtractMethods(
     const std::string& base_uri, const nlohmann::json::const_iterator& it) {
-  if (!it->is_array()) {
-    throw api::DescriptiveError(YOGI_ERR_CONFIG_NOT_VALID)
-        << "Invalid permissions array for group \"" << it.key()
-        << "\" in route " << base_uri << ".";
-  }
+  YOGI_ASSERT(it->is_array());
 
   auto methods = api::kNoMethod;
   for (auto entry : *it) {
@@ -86,20 +82,11 @@ api::RequestMethods Permissions::ExtractMethods(
         {"PATCH", api::kPatch},
     };
 
-    if (!entry.is_string()) {
-      throw api::DescriptiveError(YOGI_ERR_CONFIG_NOT_VALID)
-          << "Invalid entry in permissions array for group \"" << it.key()
-          << "\" in route " << base_uri << ".";
-    }
+    YOGI_ASSERT(entry.is_string());
 
     auto method_str = entry.get<std::string>();
-    auto map_it = map.find(method_str);
-    if (map_it == map.end()) {
-      throw api::DescriptiveError(YOGI_ERR_CONFIG_NOT_VALID)
-          << "Invalid request method \"" << method_str
-          << "\" in permissions for group \"" << it.key() << "\" in route "
-          << base_uri << ".";
-    }
+    auto map_it = map.find(entry.get<std::string>());
+    YOGI_ASSERT(map_it != map.end());
 
     methods |= map_it->second;
   }

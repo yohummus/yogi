@@ -1,0 +1,50 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Configuration passed to YOGI_WebServerCreate()",
+  "type": "object",
+
+  "properties": {
+    "authentication": {
+      "type": "object",
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "required": ["provider"],
+          "properties": {
+            "readonly": {
+              "type": "boolean"
+            }
+          }
+        },
+        {
+          "anyOf": [
+            {
+              "required": ["users", "groups"],
+              "properties": {
+                "provider": {
+                  "const": "config"
+                },
+                "users": { "type": "object" },
+                "groups": { "type": "object" }
+              }
+            },
+            {
+              "required": ["users_file", "groups_file"],
+              "properties": {
+                "provider": {
+                  "const": "files"
+                },
+                "users_files": {
+                  "type": "string"
+                },
+                "groups_files": {
+                  "type": "string"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

@@ -403,10 +403,12 @@ void* CreateBranch(void* context, const char* name, const char* net_name,
     props["_transceive_byte_limit"] = transceive_byte_limit;
   }
 
+  char err[256];
   void* branch = nullptr;
   int res = YOGI_BranchCreate(&branch, context, MakeConfigFromJson(props),
-                              nullptr, nullptr, 0);
-  EXPECT_OK(res);
+                              nullptr, err, sizeof(err));
+  EXPECT_OK(res) << err;
+
   return branch;
 }
 

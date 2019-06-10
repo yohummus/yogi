@@ -59,7 +59,7 @@ class Error : public Result, public std::exception {
 
   int GetErrorCode() const { return GetValue(); }
 
-  virtual const char* what() const noexcept;
+  virtual const char* what() const noexcept override;
 };
 
 class DescriptiveError : public Error {

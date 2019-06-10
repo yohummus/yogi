@@ -48,13 +48,17 @@ const ValidatorsMap validators = MakeValidators();
 }  // namespace internal
 
 void ValidateJson(const nlohmann::json& json,
-                  const std::string& schema_filename) {
+                  const std::string& schema_filename,
+                  const std::string& error_location) {
   try {
     YOGI_ASSERT(internal::validators.count(schema_filename) > 0);
     internal::validators.at(schema_filename).validate(json);
   } catch (const std::exception& e) {
-    throw api::DescriptiveError(YOGI_ERR_CONFIGURATION_VALIDATION_FAILED)
-        << e.what();
+    api::DescriptiveError err(YOGI_ERR_CONFIGURATION_VALIDATION_FAILED);
+    if (!error_location.empty()) err << error_location << ": ";
+    err << e.what();
+    std::cout << err.GetDetails() << std::endl;
+    throw err;
   }
 }
 

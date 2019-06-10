@@ -37,7 +37,8 @@ typedef std::unordered_map<std::string, UserPtr> UsersMap;
 class User {
  public:
   static UsersMap CreateAllFromJson(const nlohmann::json& json,
-                                    const GroupsMap& groups);
+                                    const GroupsMap& groups,
+                                    const std::string& source = {});
 
   const nlohmann::json& ToJson() const { return props_; }
   bool IsEnabled() const { return enabled_; }

@@ -19,7 +19,6 @@
 #include "../network/ip.h"
 #include "../api/constants.h"
 #include "../utils/schema.h"
-#include "../utils/system.h"
 
 #include <chrono>
 using namespace std::chrono_literals;
@@ -31,7 +30,7 @@ namespace objects {
 
 Branch::Branch(ContextPtr context, const nlohmann::json& cfg)
     : context_(context) {
-  utils::ValidateJson(cfg, "branch_create.schema.json");
+  utils::ValidateJson(cfg, "branch.schema.json");
 
   con_man_ = std::make_shared<detail::ConnectionManager>(
       context, cfg,

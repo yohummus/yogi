@@ -2412,14 +2412,14 @@ YOGI_API int YOGI_DestroyAll();
  *    "WMware Network Adapter WMnet1") or MAC addresses ("11:22:33:44:55:66").
  *    Furthermore, the special strings "localhost" and "all" can be used to
  *    denote loopback and all available interfaces respectively.
+ *  - __timeout__: Time of inactivity before terminating a client connection.
+ *  - __test_mode__: Set to true to enable functionality for testing both server
+ *    and client code. Should only be enabled during development.
  *  - __compress_assets__: Enable compression when transferring compressable,
  *    static assets such as HTML or JavaScript files.
  *  - __cache_size__: Size of the file cache in bytes. Used to keep assets in
  *    memory instead of reading them from disk to improve performance. A value
  *    of 0 disables the cache entirely.
- *  - __timeout__: Time of inactivity before terminating a client connection.
- *  - __test_mode__: Set to true to enable functionality for testing both server
- *    and client code. Should only be enabled during development.
  *
  * The sub-sections following the properties above are described in more detail
  * in the next paragraphs:

@@ -18,15 +18,19 @@
 #include "user.h"
 #include "../../../api/errors.h"
 #include "../../../utils/json_helpers.h"
+#include "../../../utils/schema.h"
 
 namespace objects {
 namespace detail {
 namespace web {
 
 UsersMap User::CreateAllFromJson(const nlohmann::json& json,
-                                 const GroupsMap& groups) {
+                                 const GroupsMap& groups,
+                                 const std::string& source) {
+  utils::ValidateJson(json, "web_users.schema.json", source);
+
   UsersMap users;
-  for (auto it : json.items()) {
+  for (auto it : json["users"].items()) {
     auto user = std::make_shared<User>();
     utils::CopyJsonProperty(it.value(), "first_name", "", &user->props_);
     utils::CopyJsonProperty(it.value(), "last_name", "", &user->props_);
@@ -37,20 +41,9 @@ UsersMap User::CreateAllFromJson(const nlohmann::json& json,
     user->enabled_ = user->props_["enabled"].get<bool>();
     user->password_ = it.value().value("password", "");
 
-    if (!it.value().contains("groups")) {
-      throw api::DescriptiveError(YOGI_ERR_CONFIG_NOT_VALID)
-          << "Section for user \"" << it.key()
-          << "\" does not contain a groups array.";
-    }
-
     nlohmann::json groups_arr;
     for (auto group : it.value()["groups"]) {
-      if (!group.is_string()) {
-        throw api::DescriptiveError(YOGI_ERR_CONFIG_NOT_VALID)
-            << "Groups array for user \"" << it.key()
-            << "\" contains values other than strings.";
-      }
-
+      YOGI_ASSERT(group.is_string());
       groups_arr.push_back(group);
 
       auto group_name = group.get<std::string>();

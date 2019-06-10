@@ -25,6 +25,7 @@
 namespace utils {
 
 void ValidateJson(const nlohmann::json& json,
-                  const std::string& schema_filename);
+                  const std::string& schema_filename,
+                  const std::string& error_location = {});
 
 }  // namespace utils

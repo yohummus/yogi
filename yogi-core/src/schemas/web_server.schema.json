@@ -1,0 +1,42 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Configuration passed to YOGI_WebServerCreate()",
+  "type": "object",
+
+  "properties": {
+    "port": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 65535,
+      "description": "HTTP port to use."
+    },
+    "interfaces": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true,
+      "description": "Network interfaces to use. Valid strings are Unix device names (\"eth0\", \"en5\", \"wlan0\"), adapter names on Windows (\"Ethernet\", \"VMware Network Adapter WMnet1\") or MAC addresses (\"11:22:33:44:55:66\"). Furthermore, the special strings \"localhost\" and \"all\" can be used to denote loopback and all available interfaces respectively."
+    },
+    "timeout": {
+      "type": "number",
+      "minimum": 0.001,
+      "description": "Time of inactivity before terminating a client connection."
+    },
+    "test_mode": {
+      "type": "boolean",
+      "description": "Enable functionality for testing both server and client code. Should only be enabled during development."
+    },
+    "compress_assets": {
+      "type": "boolean",
+      "description": "Enable compression when transferring compressable, static assets such as HTML or JavaScript files."
+    },
+    "cache_size": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 1e9,
+      "description": "Size of the file cache in bytes. Used to keep assets in memory instead of reading them from disk to improve performance. A value of 0 disables the cache entirely."
+    }
+  }
+}
