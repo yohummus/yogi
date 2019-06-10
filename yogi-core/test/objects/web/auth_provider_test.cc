@@ -58,28 +58,28 @@ TEST_F(AuthProviderTest, GetGroupOptional) {
 
 TEST_F(AuthProviderTest, LoadFromConfig) {
   auto auth_cfg = nlohmann::json::parse(R"(
-        {
-          "provider": "config",
-          "readonly": true,
-          "users": {
-            "larry": {
-              "first_name": "Larry",
-              "last_name": "Green",
-              "email": "larry@green.com",
-              "phone": "123-456",
-              "password": "secret",
-              "groups": ["people"],
-              "enabled": false
-            }
-          },
-          "groups": {
-            "people": {
-              "name": "People",
-              "description": "Blabla"
-            }
-          }
+    {
+      "provider": "config",
+      "readonly": true,
+      "users": {
+        "larry": {
+          "first_name": "Larry",
+          "last_name": "Green",
+          "email": "larry@green.com",
+          "phone": "123-456",
+          "password": "secret",
+          "groups": ["people"],
+          "enabled": false
         }
-    )");
+      },
+      "groups": {
+        "people": {
+          "name": "People",
+          "description": "Blabla"
+        }
+      }
+    }
+  )");
 
   auto auth = AuthProvider::Create(auth_cfg, "");
   EXPECT_TRUE(auth->IsReadonly());

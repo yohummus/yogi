@@ -37,8 +37,8 @@ typedef std::unordered_set<GroupPtr> GroupsSet;
 
 class Group {
  public:
-  static GroupsMap CreateAllFromJson(const nlohmann::json& json,
-                                     const std::string& source = {});
+  static GroupsMap CreateAll(const nlohmann::json& json,
+                             const std::string& source = {});
 
   const nlohmann::json& ToJson() const { return props_; }
   bool IsUnrestricted() const { return unrestricted_; }

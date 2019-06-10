@@ -19,11 +19,9 @@
 #include "../../../src/objects/detail/web/permissions.h"
 using namespace objects::detail::web;
 
-#include <boost/algorithm/string.hpp>
-
 class PermissionsTest : public TestFixture {
  protected:
-  GroupsMap groups_ = Group::CreateAllFromJson(nlohmann::json::parse(R"(
+  GroupsMap groups_ = Group::CreateAll(nlohmann::json::parse(R"(
     {
       "groups": {
         "people": {},
@@ -33,7 +31,7 @@ class PermissionsTest : public TestFixture {
     }
   )"));
 
-  UsersMap users_ = User::CreateAllFromJson(nlohmann::json::parse(R"(
+  UsersMap users_ = User::CreateAll(nlohmann::json::parse(R"(
     {
       "users": {
         "bob":   { "groups": ["people"] },
@@ -42,49 +40,47 @@ class PermissionsTest : public TestFixture {
       }
     }
   )"),
-                                            groups_);
+                                    groups_);
 };
 
 TEST_F(PermissionsTest, Construct) {
   auto cfg = nlohmann::json::parse(R"(
     {
-      "*":      ["GET"],
-      "people": ["POST"],
-      "owner":  ["DELETE"]
+      "people": ["POST"]
     }
   )");
 
-  EXPECT_NO_THROW(Permissions("/", cfg, groups_));
+  EXPECT_NO_THROW(Permissions("/", cfg, {}, groups_));
 }
 
 TEST_F(PermissionsTest, UnknownGroup) {
   auto cfg = nlohmann::json::parse(R"({"staff": ["GET"]})");
-  EXPECT_NO_THROW(Permissions("/", cfg, groups_));
+  EXPECT_NO_THROW(Permissions("/", cfg, {}, groups_));
 
   cfg = nlohmann::json::parse(R"({"dogs": ["GET"]})");
-  EXPECT_THROW_DESCRIPTIVE_ERROR(Permissions("/", cfg, groups_),
+  EXPECT_THROW_DESCRIPTIVE_ERROR(Permissions("/", cfg, {}, groups_),
                                  YOGI_ERR_CONFIG_NOT_VALID);
 }
 
 TEST_F(PermissionsTest, SectionInvalid) {
   auto cfg = nlohmann::json::parse(R"([])");
-  EXPECT_THROW_DESCRIPTIVE_ERROR(Permissions("/", cfg, groups_),
+  EXPECT_THROW_DESCRIPTIVE_ERROR(Permissions("/", cfg, {}, groups_),
                                  YOGI_ERR_CONFIGURATION_VALIDATION_FAILED);
 }
 
 TEST_F(PermissionsTest, InvalidPermissionsArray) {
   auto cfg = nlohmann::json::parse(R"({"staff": {}})");
-  EXPECT_THROW_DESCRIPTIVE_ERROR(Permissions("/", cfg, groups_),
+  EXPECT_THROW_DESCRIPTIVE_ERROR(Permissions("/", cfg, {}, groups_),
                                  YOGI_ERR_CONFIGURATION_VALIDATION_FAILED);
 }
 
 TEST_F(PermissionsTest, InvalidRequestMethod) {
   auto cfg = nlohmann::json::parse(R"({"staff": ["MOVE"]})");
-  EXPECT_THROW_DESCRIPTIVE_ERROR(Permissions("/", cfg, groups_),
+  EXPECT_THROW_DESCRIPTIVE_ERROR(Permissions("/", cfg, {}, groups_),
                                  YOGI_ERR_CONFIGURATION_VALIDATION_FAILED);
 
   cfg = nlohmann::json::parse(R"({"staff": [3]})");
-  EXPECT_THROW_DESCRIPTIVE_ERROR(Permissions("/", cfg, groups_),
+  EXPECT_THROW_DESCRIPTIVE_ERROR(Permissions("/", cfg, {}, groups_),
                                  YOGI_ERR_CONFIGURATION_VALIDATION_FAILED);
 }
 
@@ -97,7 +93,7 @@ TEST_F(PermissionsTest, MayUserAccess) {
     }
   )");
 
-  Permissions perms("", cfg, groups_);
+  Permissions perms("", cfg, {}, groups_);
 
   // Everyone ("*")
   EXPECT_FALSE(perms.MayUserAccess({}, api::kGet, {}));
@@ -131,16 +127,32 @@ TEST_F(PermissionsTest, MayUserAccess) {
   EXPECT_FALSE(perms.MayUserAccess(larry, api::kDelete, bob));
 }
 
+TEST_F(PermissionsTest, DefaultOwner) {
+  auto cfg = nlohmann::json::parse(R"(
+    {
+      "owner":  ["DELETE"]
+    }
+  )");
+
+  auto bob = users_["bob"];
+  Permissions perms("", cfg, bob, groups_);
+  EXPECT_EQ(perms.GetDefaultOwner(), bob);
+
+  EXPECT_TRUE(perms.MayUserAccess(bob, api::kDelete, bob));
+  EXPECT_FALSE(perms.MayUserAccess(bob, api::kDelete, users_["larry"]));
+  EXPECT_FALSE(perms.MayUserAccess(bob, api::kDelete, {}));
+}
+
 TEST_F(PermissionsTest, GetImpliesHead) {
   // GET permissions imply HEAD permissions
   auto cfg = nlohmann::json::parse(R"({ "*": ["GET"] })");
-  auto perms = Permissions("/", cfg, groups_);
+  auto perms = Permissions("/", cfg, {}, groups_);
   EXPECT_TRUE(perms.MayUserAccess({}, api::kGet, {}));
   EXPECT_TRUE(perms.MayUserAccess({}, api::kHead, {}));
 
   // But not the other way around!
   cfg = nlohmann::json::parse(R"({ "*": ["HEAD"] })");
-  perms = Permissions("/", cfg, groups_);
+  perms = Permissions("/", cfg, {}, groups_);
   EXPECT_FALSE(perms.MayUserAccess({}, api::kGet, {}));
   EXPECT_TRUE(perms.MayUserAccess({}, api::kHead, {}));
 }

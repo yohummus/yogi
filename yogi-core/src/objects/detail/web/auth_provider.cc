@@ -81,7 +81,7 @@ std::tuple<UsersMap, GroupsMap> ConfigAuthProvider::ReadConfiguration(
     LOG_IFO("Using default groups in configuration");
   }
 
-  auto groups = Group::CreateAllFromJson(*groups_cfg);
+  auto groups = Group::CreateAll(*groups_cfg);
   LOG_IFO("Loaded " << groups.size() << " groups from configuration");
 
   const nlohmann::json* users_cfg;
@@ -92,7 +92,7 @@ std::tuple<UsersMap, GroupsMap> ConfigAuthProvider::ReadConfiguration(
     LOG_IFO("Using default users in configuration");
   }
 
-  auto users = User::CreateAllFromJson(*users_cfg, groups);
+  auto users = User::CreateAll(*users_cfg, groups);
   LOG_IFO("Loaded " << users.size() << " users from configuration");
 
   return std::make_tuple(users, groups);
@@ -141,7 +141,7 @@ std::tuple<UsersMap, GroupsMap> FilesAuthProvider::ReadConfiguration(
   groups_file = boost::filesystem::absolute(groups_file).string();
 
   auto groups_file_cfg = utils::ReadJsonFile(groups_file);
-  auto groups = Group::CreateAllFromJson(groups_file_cfg, groups_file);
+  auto groups = Group::CreateAll(groups_file_cfg, groups_file);
   LOG_IFO("Loaded " << groups.size() << " groups from " << groups_file);
 
   auto users_file = auth_cfg["users_file"].get<std::string>();
@@ -149,7 +149,7 @@ std::tuple<UsersMap, GroupsMap> FilesAuthProvider::ReadConfiguration(
   users_file = boost::filesystem::absolute(users_file).string();
 
   auto users_file_cfg = utils::ReadJsonFile(users_file);
-  auto users = User::CreateAllFromJson(users_file_cfg, groups, users_file);
+  auto users = User::CreateAll(users_file_cfg, groups, users_file);
   LOG_IFO("Loaded " << users.size() << " users from " << users_file);
 
   return std::make_tuple(users, groups);

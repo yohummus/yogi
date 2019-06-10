@@ -24,8 +24,8 @@ namespace objects {
 namespace detail {
 namespace web {
 
-GroupsMap Group::CreateAllFromJson(const nlohmann::json& json,
-                                   const std::string& source) {
+GroupsMap Group::CreateAll(const nlohmann::json& json,
+                           const std::string& source) {
   utils::ValidateJson(json, "web_groups.schema.json", source);
 
   GroupsMap groups;

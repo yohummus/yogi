@@ -218,6 +218,7 @@ add_executable (yogi-core-test
   test/objects/web/web_server_test.cc
   test/objects/web/ssl_parameters_test.cc
   test/objects/web/permissions_test.cc
+  test/objects/web/routes_test.cc
   test/objects/context_test.cc
   test/objects/format_test.cc
   test/objects/logger_test.cc

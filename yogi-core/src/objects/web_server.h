@@ -40,8 +40,6 @@ class WebServer
   void Start();
 
  private:
-  detail::web::RoutesVector CreateAllRoutes(const nlohmann::json& cfg) const;
-
   const ContextPtr context_;
   const BranchPtr branch_;
   unsigned short port_;

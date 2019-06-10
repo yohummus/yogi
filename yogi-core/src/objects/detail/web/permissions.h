@@ -32,11 +32,16 @@ namespace web {
 
 class Permissions {
  public:
+  Permissions() {}
   Permissions(const std::string& base_uri, const nlohmann::json& cfg,
-              const GroupsMap& groups);
+              UserPtr default_owner, const GroupsMap& groups);
+
+  const UserPtr& GetDefaultOwner() const { return default_owner_; }
+
+  bool MayUserAccess(const UserPtr& user, api::RequestMethods method) const;
 
   bool MayUserAccess(const UserPtr& user, api::RequestMethods method,
-                     const UserPtr& route_owner) const;
+                     const UserPtr& owner) const;
 
  private:
   typedef std::unordered_map<GroupPtr, api::RequestMethods> AllowedMethodsMap;
@@ -47,6 +52,7 @@ class Permissions {
                            const nlohmann::json::const_iterator& it,
                            const GroupsMap& groups);
 
+  UserPtr default_owner_;
   api::RequestMethods allowed_for_everyone_;
   api::RequestMethods allowed_for_owner_;
   AllowedMethodsMap allowed_for_group_;

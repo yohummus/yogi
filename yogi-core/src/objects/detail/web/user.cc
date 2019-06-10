@@ -24,9 +24,8 @@ namespace objects {
 namespace detail {
 namespace web {
 
-UsersMap User::CreateAllFromJson(const nlohmann::json& json,
-                                 const GroupsMap& groups,
-                                 const std::string& source) {
+UsersMap User::CreateAll(const nlohmann::json& json, const GroupsMap& groups,
+                         const std::string& source) {
   utils::ValidateJson(json, "web_users.schema.json", source);
 
   UsersMap users;

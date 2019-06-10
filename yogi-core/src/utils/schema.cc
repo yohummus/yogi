@@ -57,7 +57,6 @@ void ValidateJson(const nlohmann::json& json,
     api::DescriptiveError err(YOGI_ERR_CONFIGURATION_VALIDATION_FAILED);
     if (!error_location.empty()) err << error_location << ": ";
     err << e.what();
-    std::cout << err.GetDetails() << std::endl;
     throw err;
   }
 }

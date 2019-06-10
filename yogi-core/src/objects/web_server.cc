@@ -41,7 +41,7 @@ WebServer::WebServer(ContextPtr context, BranchPtr branch,
   cache_size_      = utils::ExtractSize(cfg, "cache_size", api::kDefaultWebCacheSize);
   logging_prefix_  = "["s + std::to_string(port_) + ']';
   auth_            = detail::web::AuthProvider::Create(cfg["authentication"], logging_prefix_);
-  routes_          = CreateAllRoutes(cfg);
+  routes_          = detail::web::Route::CreateAll(cfg, *auth_, logging_prefix_);
   ssl_             = std::make_unique<detail::web::SslParameters>(cfg["ssl"], logging_prefix_);
   // clang-format on
 
@@ -49,34 +49,5 @@ WebServer::WebServer(ContextPtr context, BranchPtr branch,
 }
 
 void WebServer::Start() {}
-
-detail::web::RoutesVector WebServer::CreateAllRoutes(
-    const nlohmann::json& cfg) const {
-  detail::web::RoutesVector routes;
-
-  auto& api_perm_cfg = cfg["api_permissions"];
-  if (!api_perm_cfg.is_object()) {
-    throw api::DescriptiveError(YOGI_ERR_CONFIG_NOT_VALID)
-        << "Missing or invalid API permissions section.";
-  }
-
-  for (auto it = api_perm_cfg.begin(); it != api_perm_cfg.end(); ++it) {
-    // routes.push_back(std::make_unique<detail::web::ApiEndpoint>(
-    //     it.key(), it.value(), logging_prefix_, auth_->GetGroups()));
-  }
-
-  auto& routes_cfg = cfg["routes"];
-  if (!routes_cfg.is_object()) {
-    throw api::DescriptiveError(YOGI_ERR_CONFIG_NOT_VALID)
-        << "Missing or invalid routes section.";
-  }
-
-  for (auto it = routes_cfg.begin(); it != routes_cfg.end(); ++it) {
-    routes.push_back(detail::web::Route::Create(*auth_, it, logging_prefix_,
-                                                auth_->GetGroups()));
-  }
-
-  return routes;
-}
 
 }  // namespace objects

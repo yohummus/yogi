@@ -27,7 +27,10 @@ namespace detail {
 namespace web {
 
 Permissions::Permissions(const std::string& base_uri, const nlohmann::json& cfg,
-                         const GroupsMap& groups) {
+                         UserPtr default_owner, const GroupsMap& groups)
+    : default_owner_(default_owner),
+      allowed_for_everyone_(api::kNoMethod),
+      allowed_for_owner_(api::kNoMethod) {
   utils::ValidateJson(cfg, "web_permissions.schema.json",
                       "In route "s + base_uri);
 
@@ -45,10 +48,15 @@ Permissions::Permissions(const std::string& base_uri, const nlohmann::json& cfg,
   }
 }
 
+bool Permissions::MayUserAccess(const UserPtr& user,
+                                api::RequestMethods method) const {
+  return MayUserAccess(user, method, default_owner_);
+}
+
 bool Permissions::MayUserAccess(const UserPtr& user, api::RequestMethods method,
-                                const UserPtr& route_owner) const {
+                                const UserPtr& owner) const {
   if (user) {
-    if (route_owner && route_owner == user && (allowed_for_owner_ & method)) {
+    if (owner && owner == user && (allowed_for_owner_ & method)) {
       return true;
     }
 
