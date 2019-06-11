@@ -64,8 +64,7 @@ void BranchInfo::PopulateJson() {
       {"path", path_},
       {"hostname", hostname_},
       {"pid", pid_},
-      {"tcp_server_address", network::MakeIpAddressString(tcp_ep_)},
-      {"tcp_server_port", tcp_ep_.port()},
+      {"tcp_server_port", tcp_server_port_},
       {"start_time", start_time_.ToJavaScriptString()},
       {"timeout", timeout},
       {"advertising_interval", adv_interval},
@@ -76,7 +75,7 @@ void BranchInfo::PopulateJson() {
 LocalBranchInfo::LocalBranchInfo(
     const nlohmann::json& cfg,
     const std::vector<utils::NetworkInterfaceInfo>& adv_ifs,
-    const boost::asio::ip::tcp::endpoint& tcp_ep) {
+    unsigned short tcp_server_port) {
   // clang-format off
   uuid_            = boost::uuids::random_generator()();
   name_            = cfg.value("name", std::to_string(utils::GetProcessId()) + '@' + utils::GetHostname());
@@ -86,7 +85,7 @@ LocalBranchInfo::LocalBranchInfo(
   hostname_        = utils::GetHostname();
   pid_             = utils::GetProcessId();
   adv_ifs_         = adv_ifs;
-  tcp_ep_          = tcp_ep;
+  tcp_server_port_ = tcp_server_port;
   start_time_      = utils::Timestamp::Now();
   timeout_         = utils::ExtractDuration(cfg, "timeout", api::kDefaultConnectionTimeout);
   adv_interval_    = utils::ExtractDuration(cfg, "advertising_interval", api::kDefaultAdvInterval);
@@ -107,7 +106,7 @@ void LocalBranchInfo::PopulateMessages() {
   buffer.push_back(api::kVersionMajor);
   buffer.push_back(api::kVersionMinor);
   network::Serialize(&buffer, uuid_);
-  network::Serialize(&buffer, tcp_ep_.port());
+  network::Serialize(&buffer, tcp_server_port_);
 
   YOGI_ASSERT(buffer.size() == kAdvertisingMessageSize);
   adv_msg_ = utils::MakeSharedByteVector(buffer);
@@ -156,14 +155,10 @@ void LocalBranchInfo::PopulateJsonWithLocalInfo() {
 
 RemoteBranchInfo::RemoteBranchInfo(const utils::ByteVector& info_msg,
                                    const boost::asio::ip::address& addr) {
-  unsigned short port;
-  auto res = DeserializeAdvertisingMessage(&uuid_, &port, info_msg);
+  auto res = DeserializeAdvertisingMessage(&uuid_, &tcp_server_port_, info_msg);
   if (res.IsError()) {
     throw res.ToError();
   }
-
-  tcp_ep_.port(port);
-  tcp_ep_.address(addr);
 
   auto it = info_msg.cbegin() + kInfoMessageHeaderSize;
   DeserializeField(&name_, info_msg, &it);

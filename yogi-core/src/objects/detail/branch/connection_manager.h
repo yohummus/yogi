@@ -75,8 +75,8 @@ class ConnectionManager
     return adv_sender_->GetEndpoint();
   }
 
-  boost::asio::ip::tcp::endpoint GetTcpServerEndpoint() const {
-    return acceptor_.local_endpoint();
+  unsigned short GetTcpServerPort() const {
+    return acceptor_.local_endpoint().port();
   }
 
   BranchInfoStringsList MakeConnectedBranchesInfoStrings() const;

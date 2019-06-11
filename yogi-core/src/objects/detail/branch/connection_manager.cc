@@ -70,7 +70,7 @@ void ConnectionManager::Start(LocalBranchInfoPtr info) {
   adv_receiver_->Start(info);
 
   LOG_DBG("Started ConnectionManager with TCP server port "
-          << info_->GetTcpServerEndpoint().port()
+          << info_->GetTcpServerPort()
           << (info_->GetGhostMode() ? " in ghost mode" : ""));
 }
 
@@ -131,11 +131,29 @@ void ConnectionManager::SetupAcceptor(const boost::asio::ip::tcp& protocol) {
   acceptor_.set_option(boost::asio::ip::tcp::acceptor::reuse_address(true), ec);
   if (ec) throw api::Error(YOGI_ERR_SET_SOCKET_OPTION_FAILED);
 
-  acceptor_.bind(boost::asio::ip::tcp::endpoint(protocol, 0), ec);
-  if (ec) throw api::Error(YOGI_ERR_BIND_SOCKET_FAILED);
+  bool bound_at_least_once = false;
+  unsigned short port = 0;
+  for (auto& info : adv_ifs_) {
+    for (auto& addr : info.addresses) {
+      acceptor_.bind(boost::asio::ip::tcp::endpoint(addr, port), ec);
+      if (ec) {
+        LOG_ERR("Could not bind to interface "
+                << addr
+                << " for branch connections. This interface will be ignored.");
+        continue;
+      }
+      LOG_IFO("Using interface " << addr << " for branch connections.");
 
-  acceptor_.listen(acceptor_.max_listen_connections, ec);
-  if (ec) throw api::Error(YOGI_ERR_LISTEN_SOCKET_FAILED);
+      bound_at_least_once = true;
+    }
+  }
+
+  if (bound_at_least_once) {
+    acceptor_.listen(acceptor_.max_listen_connections, ec);
+    if (ec) throw api::Error(YOGI_ERR_LISTEN_SOCKET_FAILED);
+  } else {
+    LOG_ERR("No network interfaces available for branch connections.");
+  }
 }
 
 void ConnectionManager::StartAccept() {

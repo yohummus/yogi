@@ -22,6 +22,7 @@
 #include "../../context.h"
 #include "../../logger.h"
 
+#include <boost/asio/ip/tcp.hpp>
 #include <nlohmann/json.hpp>
 #include <memory>
 #include <chrono>
@@ -35,7 +36,10 @@ class Listener : public LoggerUser {
   Listener(ContextPtr context, const nlohmann::json& cfg);
 
  private:
+  void SetupAcceptor();
+  
   const ContextPtr context_;
+  boost::asio::ip::tcp::acceptor acceptor_;
   std::chrono::nanoseconds timeout_;
   unsigned short port_;
   std::vector<utils::NetworkInterfaceInfo> ifs_;

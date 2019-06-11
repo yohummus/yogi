@@ -136,7 +136,7 @@ class MulticastSocket final {
   MulticastSocket(const boost::asio::ip::udp::endpoint& multicast_ep);
 
   void Send(const utils::ByteVector& msg);
-  utils::ByteVector Receive(
+  std::pair<boost::asio::ip::address, utils::ByteVector> Receive(
       const std::chrono::milliseconds& timeout = std::chrono::seconds(1));
 
  private:
@@ -209,7 +209,7 @@ void* CreateBranch(void* context, const char* name = nullptr,
                    const char* adv_addr = nullptr,
                    std::size_t transceive_byte_limit =
                        std::numeric_limits<std::size_t>::max());
-boost::asio::ip::tcp::endpoint GetBranchTcpEndpoint(void* branch);
+unsigned short GetBranchTcpServerPort(void* branch);
 boost::uuids::uuid GetBranchUuid(void* branch);
 nlohmann::json GetBranchInfo(void* branch);
 void CheckJsonElementsAreEqual(const nlohmann::json& a, const nlohmann::json& b,

@@ -38,8 +38,7 @@ Branch::Branch(ContextPtr context, const nlohmann::json& cfg)
       [&](auto& msg, auto& conn) { this->OnMessageReceived(msg, conn); });
 
   info_ = std::make_shared<detail::LocalBranchInfo>(
-      cfg, con_man_->GetAdvertisingInterfaces(),
-      con_man_->GetTcpServerEndpoint());
+      cfg, con_man_->GetAdvertisingInterfaces(), con_man_->GetTcpServerPort());
 
   bc_man_ = std::make_shared<detail::BroadcastManager>(context, *con_man_);
 }

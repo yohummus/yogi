@@ -138,7 +138,6 @@ TEST_F(BranchTest, GetInfoJson) {
   EXPECT_EQ(json.value("path", "NOT FOUND"), std::string("/") + default_name);
   EXPECT_EQ(json.value("hostname", "NOT FOUND"), utils::GetHostname());
   EXPECT_EQ(json.value("pid", -1), utils::GetProcessId());
-  EXPECT_EQ(json.value("tcp_server_address", "NOT FOUND"), "::");
   EXPECT_GT(json.value("tcp_server_port", 0), 1024);
   EXPECT_TRUE(
       std::regex_match(json.value("start_time", "NOT FOUND"), time_regex));

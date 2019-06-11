@@ -53,9 +53,7 @@ class BranchInfo : public LoggerUser {
 
   int GetPid() const { return pid_; }
 
-  const boost::asio::ip::tcp::endpoint& GetTcpServerEndpoint() const {
-    return tcp_ep_;
-  }
+  unsigned short GetTcpServerPort() const { return tcp_server_port_; }
 
   const utils::Timestamp& GetStartTime() const { return start_time_; }
   const std::chrono::nanoseconds& GetTimeout() const { return timeout_; }
@@ -77,7 +75,7 @@ class BranchInfo : public LoggerUser {
   std::string path_;
   std::string hostname_;
   int pid_;
-  boost::asio::ip::tcp::endpoint tcp_ep_;
+  unsigned short tcp_server_port_;
   utils::Timestamp start_time_;
   std::chrono::nanoseconds timeout_;
   std::chrono::nanoseconds adv_interval_;
@@ -94,7 +92,7 @@ class LocalBranchInfo : public BranchInfo {
  public:
   LocalBranchInfo(const nlohmann::json& cfg,
                   const std::vector<utils::NetworkInterfaceInfo>& adv_ifs,
-                  const boost::asio::ip::tcp::endpoint& tcp_ep);
+                  unsigned short tcp_server_port);
 
   const std::vector<utils::NetworkInterfaceInfo>& GetAdvertisingInterfaces()
       const {

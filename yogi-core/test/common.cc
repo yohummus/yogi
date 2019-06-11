@@ -153,7 +153,7 @@ void MulticastSocket::Send(const utils::ByteVector& msg) {
   socket_.send_to(boost::asio::buffer(msg), mc_ep_);
 }
 
-utils::ByteVector MulticastSocket::Receive(
+std::pair<boost::asio::ip::address, utils::ByteVector> MulticastSocket::Receive(
     const std::chrono::milliseconds& timeout) {
   utils::ByteVector msg(1000);
   boost::asio::ip::udp::endpoint sender_ep;
@@ -168,7 +168,7 @@ utils::ByteVector MulticastSocket::Receive(
         "No multicast message received within the specified time.");
   }
 
-  return msg;
+  return {sender_ep.address(), msg};
 }
 
 FakeBranch::FakeBranch()
@@ -191,12 +191,14 @@ FakeBranch::FakeBranch()
   };
 
   info_ = std::make_shared<objects::detail::LocalBranchInfo>(
-      cfg, adv_ifs, acceptor_.local_endpoint());
+      cfg, adv_ifs, acceptor_.local_endpoint().port());
 }
 
 void FakeBranch::Connect(void* branch,
                          std::function<void(utils::ByteVector*)> msg_changer) {
-  tcp_socket_.connect(GetBranchTcpEndpoint(branch));
+  auto addr = mc_socket_.Receive().first;
+  tcp_socket_.connect(
+      boost::asio::ip::tcp::endpoint(addr, GetBranchTcpServerPort(branch)));
   Authenticate(msg_changer);
 }
 
@@ -412,14 +414,14 @@ void* CreateBranch(void* context, const char* name, const char* net_name,
   return branch;
 }
 
-boost::asio::ip::tcp::endpoint GetBranchTcpEndpoint(void* branch) {
+unsigned short GetBranchTcpServerPort(void* branch) {
   char json_str[1000] = {0};
   YOGI_BranchGetInfo(branch, nullptr, json_str, sizeof(json_str));
 
   auto json = nlohmann::json::parse(json_str);
   auto port = json["tcp_server_port"].get<unsigned short>();
 
-  return {boost::asio::ip::address::from_string("::1"), port};
+  return port;
 }
 
 boost::uuids::uuid GetBranchUuid(void* branch) {

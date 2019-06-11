@@ -44,7 +44,7 @@ class ConnectionManagerTest : public TestFixture {
     ReCreateBranch(adv_addr);
     RunContextInBackground(context_);
 
-    auto msg = multicast.Receive();
+    auto msg = multicast.Receive().second;
     ASSERT_EQ(msg.size(), 25) << "Unexpected advertising message size";
 
     boost::uuids::uuid uuid;
@@ -242,7 +242,6 @@ TEST_F(ConnectionManagerTest, BranchEvents) {
   CheckJsonElementsAreEqual(json, info, "path");
   CheckJsonElementsAreEqual(json, info, "hostname");
   CheckJsonElementsAreEqual(json, info, "pid");
-  EXPECT_FALSE(json.value("tcp_server_address", "").empty());
   CheckJsonElementsAreEqual(json, info, "tcp_server_port");
   CheckJsonElementsAreEqual(json, info, "start_time");
   CheckJsonElementsAreEqual(json, info, "timeout");
@@ -328,7 +327,6 @@ TEST_F(ConnectionManagerTest, GetConnectedBranches) {
     CheckJsonElementsAreEqual(json, info, "path");
     CheckJsonElementsAreEqual(json, info, "hostname");
     CheckJsonElementsAreEqual(json, info, "pid");
-    EXPECT_FALSE(json.value("tcp_server_address", "").empty());
     CheckJsonElementsAreEqual(json, info, "tcp_server_port");
     CheckJsonElementsAreEqual(json, info, "start_time");
     CheckJsonElementsAreEqual(json, info, "timeout");
