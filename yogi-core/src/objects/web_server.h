@@ -23,11 +23,13 @@
 #include "branch.h"
 #include "logger.h"
 #include "detail/web/auth_provider.h"
+#include "detail/web/listener.h"
 #include "detail/web/ssl_parameters.h"
 #include "detail/web/route.h"
 
 #include <nlohmann/json.hpp>
 #include <vector>
+#include <chrono>
 
 namespace objects {
 
@@ -42,13 +44,10 @@ class WebServer
  private:
   const ContextPtr context_;
   const BranchPtr branch_;
-  unsigned short port_;
-  std::vector<utils::NetworkInterfaceInfo> ifs_;
-  std::chrono::nanoseconds timeout_;
   bool test_mode_;
   bool compress_assets_;
   std::size_t cache_size_;
-  std::string logging_prefix_;
+  detail::web::ListenerPtr listener_;
   detail::web::AuthProviderPtr auth_;
   detail::web::RoutesVector routes_;
   detail::web::SslParametersPtr ssl_;

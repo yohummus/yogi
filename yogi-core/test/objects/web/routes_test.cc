@@ -35,7 +35,7 @@ class RoutesTest : public TestFixture {
     throw "Route not found";  // To make compiler happy
   }
 
-  AuthProviderPtr auth_ = AuthProvider::Create({}, "");
+  AuthProviderPtr auth_ = AuthProvider::Create(nlohmann::json::object_t{}, "");
 
   nlohmann::json cfg_ = nlohmann::json::parse(R"(
     {
@@ -82,6 +82,12 @@ TEST_F(RoutesTest, NumberOfRoutes) {
   EXPECT_EQ(routes_.size(), 6);
   for (auto& route : routes_) {
     EXPECT_TRUE(!!route);
+  }
+}
+
+TEST_F(RoutesTest, LoggingPrefix) {
+  for (auto& route : routes_) {
+    EXPECT_EQ(route->GetLoggingPrefix(), "bla");
   }
 }
 

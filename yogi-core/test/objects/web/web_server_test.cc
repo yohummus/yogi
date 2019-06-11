@@ -17,6 +17,16 @@
 
 #include "../../common.h"
 
-class WebServerTest : public TestFixture {};
+class WebServerTest : public TestFixture {
+ protected:
+  void* context_ = CreateContext();
+};
 
-TEST_F(WebServerTest, DISABLED_ImplementMe) {}
+TEST_F(WebServerTest, ConstructWithoutBranch) {
+  char err[256];
+  void* server;
+  int res = YOGI_WebServerCreate(&server, context_, nullptr, nullptr, nullptr,
+                                 err, sizeof(err));
+  EXPECT_OK(res) << err;
+  EXPECT_NE(server, nullptr);
+}

@@ -29,8 +29,7 @@ namespace web {
 
 class SslParameters : public LoggerUser {
  public:
-  SslParameters(const nlohmann::json& ssl_cfg,
-                const std::string& logging_prefix);
+  SslParameters(const nlohmann::json& cfg, const std::string& logging_prefix);
 
   const std::string& GetPrivateKey() const { return private_key_; }
   const std::string& GetPrivateKeyPassword() const { return private_key_pw_; }
@@ -42,9 +41,6 @@ class SslParameters : public LoggerUser {
                                       const std::string& key,
                                       const char* default_val,
                                       const char* desc);
-  void CheckUnambiguousSource(const nlohmann::json& ssl_cfg,
-                              const nlohmann::json::const_iterator& prop,
-                              const nlohmann::json::const_iterator& prop_file);
   std::string LoadFromFile(const nlohmann::json::const_iterator& prop_file,
                            const char* desc);
   std::string LoadFromConfig(const nlohmann::json::const_iterator& prop,

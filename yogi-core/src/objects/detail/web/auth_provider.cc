@@ -31,17 +31,16 @@ namespace objects {
 namespace detail {
 namespace web {
 
-AuthProviderPtr AuthProvider::Create(const nlohmann::json& auth_cfg,
+AuthProviderPtr AuthProvider::Create(const nlohmann::json& cfg,
                                      const std::string& logging_prefix) {
-  static const nlohmann::json dummy = nlohmann::json::object_t{};
-
-  auto& cfg = auth_cfg.is_null() ? dummy : auth_cfg;
   utils::ValidateJson(cfg, "web_authentication.schema.json");
+  static const nlohmann::json dummy = nlohmann::json::object_t{};
+  const auto& auth_cfg = cfg.value("authentication", dummy);
 
   AuthProviderPtr auth;
 
-  auto provider = cfg.value("provider", std::string{});
-  if (!cfg.contains("provider") || provider == "config") {
+  auto provider = auth_cfg.value("provider", "config");
+  if (provider == "config") {
     auth = std::make_unique<ConfigAuthProvider>();
   } else if (provider == "files") {
     auth = std::make_unique<FilesAuthProvider>();
@@ -50,9 +49,9 @@ AuthProviderPtr AuthProvider::Create(const nlohmann::json& auth_cfg,
   }
 
   auth->SetLoggingPrefix(logging_prefix);
-  auth->readonly_ = cfg.value("readonly", false);
+  auth->readonly_ = auth_cfg.value("readonly", false);
 
-  auto users_and_groups = auth->ReadConfiguration(cfg);
+  auto users_and_groups = auth->ReadConfiguration(auth_cfg);
   auth->users_ = std::get<UsersMap>(users_and_groups);
   auth->groups_ = std::get<GroupsMap>(users_and_groups);
 

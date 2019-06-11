@@ -56,6 +56,9 @@ class Route : public objects::LoggerUser {
       const nlohmann::json::const_iterator& route_it){};
 
  private:
+  static const nlohmann::json& GetDefaultRoutesSection();
+  static const nlohmann::json& GetDefaultApiPermissionsSection();
+
   void InitMemberVariables(const nlohmann::json::const_iterator& it,
                            const nlohmann::json& permissions_cfg,
                            const AuthProvider& auth,
@@ -68,9 +71,9 @@ class Route : public objects::LoggerUser {
 };
 
 class ContentRoute : public Route {
-  public:
-const std::string& GetMimeType() { return mime_type_; }
-const std::string& GetContent() { return content_; }
+ public:
+  const std::string& GetMimeType() { return mime_type_; }
+  const std::string& GetContent() { return content_; }
 
  protected:
   void ReadConfiguration(
@@ -82,8 +85,8 @@ const std::string& GetContent() { return content_; }
 };
 
 class FileSystemRoute : public Route {
-  public:
-const std::string& GetPath() { return path_; }
+ public:
+  const std::string& GetPath() { return path_; }
 
  protected:
   void ReadConfiguration(

@@ -38,7 +38,7 @@ typedef std::unique_ptr<AuthProvider> AuthProviderPtr;
 
 class AuthProvider : public objects::LoggerUser {
  public:
-  static AuthProviderPtr Create(const nlohmann::json& auth_cfg,
+  static AuthProviderPtr Create(const nlohmann::json& cfg,
                                 const std::string& logging_prefix);
 
   virtual ~AuthProvider() {}

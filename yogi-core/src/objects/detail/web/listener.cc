@@ -16,12 +16,27 @@
  */
 
 #include "listener.h"
+#include "../../../api/constants.h"
+#include "../../../utils/json_helpers.h"
+
+using namespace std::string_literals;
+
+YOGI_DEFINE_INTERNAL_LOGGER("WebServer");
 
 namespace objects {
 namespace detail {
 namespace web {
 
-// TODO
+Listener::Listener(ContextPtr context, const nlohmann::json& cfg)
+    : context_(context) {
+  // clang-format off
+  port_    = cfg.value("port", static_cast<unsigned short>(api::kDefaultWebPort));
+  ifs_     = utils::GetFilteredNetworkInterfaces(utils::ExtractArrayOfStrings(cfg, "interfaces", api::kDefaultWebInterfaces));
+  timeout_ = utils::ExtractDuration(cfg, "timeout", api::kDefaultWebTimeout);
+  // clang-format on
+
+  SetLoggingPrefix("["s + std::to_string(port_) + ']');
+}
 
 }  // namespace web
 }  // namespace detail

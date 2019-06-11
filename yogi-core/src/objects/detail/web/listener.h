@@ -18,16 +18,30 @@
 #pragma once
 
 #include "../../../config.h"
+#include "../../../utils/system.h"
+#include "../../context.h"
+#include "../../logger.h"
 
+#include <nlohmann/json.hpp>
 #include <memory>
+#include <chrono>
 
 namespace objects {
 namespace detail {
 namespace web {
 
-class Listener {
+class Listener : public LoggerUser {
  public:
+  Listener(ContextPtr context, const nlohmann::json& cfg);
+
+ private:
+  const ContextPtr context_;
+  std::chrono::nanoseconds timeout_;
+  unsigned short port_;
+  std::vector<utils::NetworkInterfaceInfo> ifs_;
 };
+
+typedef std::shared_ptr<Listener> ListenerPtr;
 
 }  // namespace web
 }  // namespace detail

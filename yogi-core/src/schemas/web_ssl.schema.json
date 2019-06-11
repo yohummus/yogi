@@ -8,10 +8,7 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "private_key": {
-          "type": "array",
-          "items": { "type": "string" }
-        },
+        "private_key": { "$ref": "#/definitions/stringOrArrayOfStrings" },
         "private_key_file": {
           "type": "string",
           "minLength": 1
@@ -19,18 +16,12 @@
         "private_key_password": {
           "type": "string"
         },
-        "certificate_chain": {
-          "type": "array",
-          "items": { "type": "string" }
-        },
+        "certificate_chain": { "$ref": "#/definitions/stringOrArrayOfStrings" },
         "certificate_chain_file": {
           "type": "string",
           "minLength": 1
         },
-        "dh_params": {
-          "type": "array",
-          "items": { "type": "string" }
-        },
+        "dh_params": { "$ref": "#/definitions/stringOrArrayOfStrings" },
         "dh_params_file": {
           "type": "string",
           "minLength": 1
@@ -51,6 +42,20 @@
           "not": {
             "required": ["dh_params", "dh_params_file"]
           }
+        }
+      ]
+    }
+  },
+
+  "definitions": {
+    "stringOrArrayOfStrings": {
+      "oneOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "array",
+          "items": { "type": "string" }
         }
       ]
     }

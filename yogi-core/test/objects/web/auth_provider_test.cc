@@ -24,7 +24,7 @@ using objects::detail::web::AuthProvider;
 class AuthProviderTest : public TestFixture {};
 
 TEST_F(AuthProviderTest, Defaults) {
-  auto auth = AuthProvider::Create({}, "");
+  auto auth = AuthProvider::Create(nlohmann::json::object_t{}, "");
   EXPECT_FALSE(auth->IsReadonly());
 
   auto user = auth->GetUserOptional(api::kDefaultAdminUser);
@@ -35,23 +35,23 @@ TEST_F(AuthProviderTest, Defaults) {
 }
 
 TEST_F(AuthProviderTest, IsReadonly) {
-  auto auth_cfg = nlohmann::json::parse(R"({"readonly": true})");
-  auto auth = AuthProvider::Create(auth_cfg, "");
+  auto cfg = nlohmann::json::parse(R"({"authentication": {"readonly":true}})");
+  auto auth = AuthProvider::Create(cfg, "");
   EXPECT_TRUE(auth->IsReadonly());
 
-  auth_cfg = nlohmann::json::parse(R"({"readonly": false})");
-  auth = AuthProvider::Create(auth_cfg, "");
+  cfg = nlohmann::json::parse(R"({"authentication": {"readonly":false}})");
+  auth = AuthProvider::Create(cfg, "");
   EXPECT_FALSE(auth->IsReadonly());
 }
 
 TEST_F(AuthProviderTest, GetUserOptional) {
-  auto auth = AuthProvider::Create({}, "");
+  auto auth = AuthProvider::Create(nlohmann::json::object_t{}, "");
   EXPECT_TRUE(!!auth->GetUserOptional(api::kDefaultAdminUser));
   EXPECT_FALSE(!!auth->GetUserOptional("larry"));
 }
 
 TEST_F(AuthProviderTest, GetGroupOptional) {
-  auto auth = AuthProvider::Create({}, "");
+  auto auth = AuthProvider::Create(nlohmann::json::object_t{}, "");
   EXPECT_TRUE(!!auth->GetGroupOptional("users"));
   EXPECT_FALSE(!!auth->GetGroupOptional("aliens"));
 }
@@ -59,23 +59,25 @@ TEST_F(AuthProviderTest, GetGroupOptional) {
 TEST_F(AuthProviderTest, LoadFromConfig) {
   auto auth_cfg = nlohmann::json::parse(R"(
     {
-      "provider": "config",
-      "readonly": true,
-      "users": {
-        "larry": {
-          "first_name": "Larry",
-          "last_name": "Green",
-          "email": "larry@green.com",
-          "phone": "123-456",
-          "password": "secret",
-          "groups": ["people"],
-          "enabled": false
-        }
-      },
-      "groups": {
-        "people": {
-          "name": "People",
-          "description": "Blabla"
+      "authentication": {
+        "provider": "config",
+        "readonly": true,
+        "users": {
+          "larry": {
+            "first_name": "Larry",
+            "last_name": "Green",
+            "email": "larry@green.com",
+            "phone": "123-456",
+            "password": "secret",
+            "groups": ["people"],
+            "enabled": false
+          }
+        },
+        "groups": {
+          "people": {
+            "name": "People",
+            "description": "Blabla"
+          }
         }
       }
     }
@@ -110,10 +112,12 @@ TEST_F(AuthProviderTest, LoadFromConfig) {
 
 TEST_F(AuthProviderTest, LoadFromFiles) {
   nlohmann::json auth_cfg = {
-      {"provider", "files"},
-      {"users_file", MakeTestDataPath("users.json")},
-      {"groups_file", MakeTestDataPath("groups.json")},
-  };
+      {"authentication",
+       {
+           {"provider", "files"},
+           {"users_file", MakeTestDataPath("users.json")},
+           {"groups_file", MakeTestDataPath("groups.json")},
+       }}};
 
   auto auth = AuthProvider::Create(auth_cfg, "");
   EXPECT_FALSE(auth->IsReadonly());

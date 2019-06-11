@@ -52,7 +52,7 @@ RoutesVector Route::CreateAll(const nlohmann::json& cfg,
   utils::ValidateJson(cfg, "web_routes.schema.json");
 
   RoutesVector routes;
-  auto& routes_cfg = cfg["routes"];
+  const auto& routes_cfg = cfg.value("routes", GetDefaultRoutesSection());
   for (auto it = routes_cfg.begin(); it != routes_cfg.end(); ++it) {
     RoutePtr route;
     auto type = (*it)["type"].get<std::string>();
@@ -71,7 +71,8 @@ RoutesVector Route::CreateAll(const nlohmann::json& cfg,
     routes.push_back(std::move(route));
   }
 
-  auto& api_cfg = cfg["api_permissions"];
+  const auto& api_cfg =
+      cfg.value("api_permissions", GetDefaultApiPermissionsSection());
   for (auto it = api_cfg.begin(); it != api_cfg.end(); ++it) {
     auto route = std::make_unique<ApiEndpoint>();
     route->InitMemberVariables(it, it.value(), auth, logging_prefix);
@@ -79,6 +80,36 @@ RoutesVector Route::CreateAll(const nlohmann::json& cfg,
   }
 
   return routes;
+}
+
+const nlohmann::json& Route::GetDefaultRoutesSection() {
+  static const nlohmann::json json = nlohmann::json::parse(R"(
+    {
+      "/": {
+        "type":        "content",
+        "mime":        "text/html",
+        "permissions": { "*": ["GET"] },
+        "enabled":     true,
+        "content": [
+          "<!DOCTYPE html>",
+          "<html>",
+          "<body>",
+          "  <h1>Welcome to the Yogi web server!</h1>",
+          "</body>",
+          "</html>"
+        ]
+      }
+    }
+  )");
+  return json;
+}
+
+const nlohmann::json& Route::GetDefaultApiPermissionsSection() {
+  static const nlohmann::json json = nlohmann::json::parse(R"(
+    {
+    }
+  )");
+  return json;
 }
 
 void Route::InitMemberVariables(const nlohmann::json::const_iterator& it,

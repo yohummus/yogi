@@ -25,7 +25,7 @@ using objects::detail::web::SslParameters;
 class SslParametersTest : public TestFixture {};
 
 TEST_F(SslParametersTest, DefaultParameters) {
-  SslParameters params({}, "");
+  SslParameters params(nlohmann::json::object_t{}, "");
   EXPECT_EQ(params.GetPrivateKey(), api::kDefaultSslPrivateKey);
   EXPECT_TRUE(params.GetPrivateKeyPassword().empty());
   EXPECT_EQ(params.GetCertificateChain(), api::kDefaultSslCertificateChain);
@@ -33,8 +33,9 @@ TEST_F(SslParametersTest, DefaultParameters) {
 }
 
 TEST_F(SslParametersTest, LoadParametersFromConfig) {
-  auto ssl_cfg = nlohmann::json::parse(R"(
-        {
+  auto cfg = nlohmann::json::parse(R"(
+      { 
+        "ssl": {
           "private_key": [
             "-----BEGIN PRIVATE KEY-----",
             "Hello world",
@@ -43,26 +44,25 @@ TEST_F(SslParametersTest, LoadParametersFromConfig) {
           "certificate_chain": "-----BEGIN CERTIFICATE-----\nGood bye",
           "dh_params": "-----BEGIN DH PARAMETERS-----\nJippie"
         }
+      }
     )");
 
-  SslParameters params(ssl_cfg, "");
+  SslParameters params(cfg, "");
 
   EXPECT_NE(params.GetPrivateKey().find("Hello world"), std::string::npos);
   EXPECT_NE(params.GetCertificateChain().find("Good bye"), std::string::npos);
   EXPECT_NE(params.GetDhParams().find("Jippie"), std::string::npos);
   EXPECT_TRUE(params.GetPrivateKeyPassword().empty());
 
-  ssl_cfg["private_key"] = api::kDefaultSslPrivateKey;
-  EXPECT_EQ(SslParameters(ssl_cfg, "").GetPrivateKey(),
-            api::kDefaultSslPrivateKey);
+  cfg["ssl"]["private_key"] = api::kDefaultSslPrivateKey;
+  EXPECT_EQ(SslParameters(cfg, "").GetPrivateKey(), api::kDefaultSslPrivateKey);
 
   std::vector<std::string> lines;
   boost::split(lines, api::kDefaultSslPrivateKey, boost::is_any_of("\n"));
   lines.pop_back();  // Last empty line
 
-  ssl_cfg["private_key"] = lines;
-  EXPECT_EQ(SslParameters(ssl_cfg, "").GetPrivateKey(),
-            api::kDefaultSslPrivateKey);
+  cfg["ssl"]["private_key"] = lines;
+  EXPECT_EQ(SslParameters(cfg, "").GetPrivateKey(), api::kDefaultSslPrivateKey);
 }
 
 TEST_F(SslParametersTest, LoadParametersFromFiles) {
@@ -70,11 +70,12 @@ TEST_F(SslParametersTest, LoadParametersFromFiles) {
   auto cert_file = MakeTestDataPath("ssl/cert.pem");
   auto dh_file = MakeTestDataPath("ssl/dh_params.pem");
 
-  nlohmann::json ssl_cfg = {{"private_key_file", key_file},
-                            {"certificate_chain_file", cert_file},
-                            {"dh_params_file", dh_file}};
+  nlohmann::json cfg = {{"ssl",
+                         {{"private_key_file", key_file},
+                          {"certificate_chain_file", cert_file},
+                          {"dh_params_file", dh_file}}}};
 
-  SslParameters params(ssl_cfg, "");
+  SslParameters params(cfg, "");
 
   EXPECT_EQ(params.GetPrivateKey(), ReadFile(key_file));
   EXPECT_EQ(params.GetCertificateChain(), ReadFile(cert_file));
@@ -82,45 +83,57 @@ TEST_F(SslParametersTest, LoadParametersFromFiles) {
 }
 
 TEST_F(SslParametersTest, LoadParametersFromNonExistingFile) {
-  nlohmann::json ssl_cfg = {{"private_key_file", "does_not_exist.pem"}};
+  auto cfg = nlohmann::json::parse(R"(
+      {
+        "ssl": {
+          "private_key_file": "does_not_exist.pem"
+        }
+      }
+    )");
 
-  EXPECT_THROW_DESCRIPTIVE_ERROR(SslParameters(ssl_cfg, ""),
+  EXPECT_THROW_DESCRIPTIVE_ERROR(SslParameters(cfg, ""),
                                  YOGI_ERR_READ_FILE_FAILED);
 }
 
 TEST_F(SslParametersTest, PasswordRequired) {
-  auto ssl_cfg = nlohmann::json::parse(R"(
-        {
+  auto cfg = nlohmann::json::parse(R"(
+      {
+        "ssl": {
           "private_key": "-----BEGIN ENCRYPTED PRIVATE KEY-----"
         }
+      }
     )");
 
-  EXPECT_THROW_DESCRIPTIVE_ERROR(SslParameters(ssl_cfg, ""),
+  EXPECT_THROW_DESCRIPTIVE_ERROR(SslParameters(cfg, ""),
                                  YOGI_ERR_CONFIG_NOT_VALID);
 
-  ssl_cfg["private_key_password"] = "secret";
-  EXPECT_NO_THROW(SslParameters(ssl_cfg, ""));
+  cfg["ssl"]["private_key_password"] = "secret";
+  EXPECT_NO_THROW(SslParameters(cfg, ""));
 }
 
 TEST_F(SslParametersTest, InvalidContent) {
-  auto ssl_cfg = nlohmann::json::parse(R"(
-        {
+  auto cfg = nlohmann::json::parse(R"(
+      {
+        "ssl": {
           "dh_params": "Jippie"
         }
+      }
     )");
 
-  EXPECT_THROW_DESCRIPTIVE_ERROR(SslParameters(ssl_cfg, ""),
+  EXPECT_THROW_DESCRIPTIVE_ERROR(SslParameters(cfg, ""),
                                  YOGI_ERR_CONFIG_NOT_VALID);
 }
 
 TEST_F(SslParametersTest, AmbiguousSources) {
-  auto ssl_cfg = nlohmann::json::parse(R"(
-        {
+  auto cfg = nlohmann::json::parse(R"(
+      {
+        "ssl": {
           "dh_params": "-----BEGIN DH PARAMETERS-----\nJippie",
           "dh_params_file": "dh_params.pem"
         }
+      }
     )");
 
-  EXPECT_THROW_DESCRIPTIVE_ERROR(SslParameters(ssl_cfg, ""),
-                                 YOGI_ERR_CONFIG_NOT_VALID);
+  EXPECT_THROW_DESCRIPTIVE_ERROR(SslParameters(cfg, ""),
+                                 YOGI_ERR_CONFIGURATION_VALIDATION_FAILED);
 }

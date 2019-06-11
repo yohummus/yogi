@@ -18,6 +18,7 @@
 #include "ssl_parameters.h"
 #include "../../../api/errors.h"
 #include "../../../api/constants.h"
+#include "../../../utils/schema.h"
 
 #include <boost/filesystem.hpp>
 #include <fstream>
@@ -28,31 +29,27 @@ namespace objects {
 namespace detail {
 namespace web {
 
-SslParameters::SslParameters(const nlohmann::json& ssl_cfg,
+SslParameters::SslParameters(const nlohmann::json& cfg,
                              const std::string& logging_prefix) {
+  utils::ValidateJson(cfg, "web_ssl.schema.json");
   static const nlohmann::json dummy = nlohmann::json::object_t{};
-
-  auto& cfg = ssl_cfg.is_null() ? dummy : ssl_cfg;
-  if (!cfg.is_object()) {
-    throw api::DescriptiveError(YOGI_ERR_CONFIG_NOT_VALID)
-        << "Invalid SSL section.";
-  }
+  const auto& ssl_cfg = cfg.value("ssl", dummy);
 
   SetLoggingPrefix(logging_prefix);
 
   private_key_ = ExtractFromConfigOrFile(
-      cfg, "private_key", api::kDefaultSslPrivateKey, "private key");
+      ssl_cfg, "private_key", api::kDefaultSslPrivateKey, "private key");
   WarnIfUsingDefaultPrivateKey();
 
-  private_key_pw_ = cfg.value("private_key_password", "");
+  private_key_pw_ = ssl_cfg.value("private_key_password", "");
   CheckPrivateKeyPasswordGiven();
 
-  certificate_chain_ = ExtractFromConfigOrFile(cfg, "certificate_chain",
+  certificate_chain_ = ExtractFromConfigOrFile(ssl_cfg, "certificate_chain",
                                                api::kDefaultSslCertificateChain,
                                                "certificate chain");
 
   dh_params_ = ExtractFromConfigOrFile(
-      cfg, "dh_params", api::kDefaultSslDhParams, "DH parameters");
+      ssl_cfg, "dh_params", api::kDefaultSslDhParams, "DH parameters");
 }
 
 std::string SslParameters::ExtractFromConfigOrFile(
@@ -60,7 +57,6 @@ std::string SslParameters::ExtractFromConfigOrFile(
     const char* default_val, const char* desc) {
   auto prop = ssl_cfg.find(key);
   auto prop_file = ssl_cfg.find(key + "_file");
-  CheckUnambiguousSource(ssl_cfg, prop, prop_file);
 
   if (prop_file != ssl_cfg.end()) {
     return LoadFromFile(prop_file, desc);
@@ -71,23 +67,8 @@ std::string SslParameters::ExtractFromConfigOrFile(
   }
 }
 
-void SslParameters::CheckUnambiguousSource(
-    const nlohmann::json& ssl_cfg, const nlohmann::json::const_iterator& prop,
-    const nlohmann::json::const_iterator& prop_file) {
-  if (prop != ssl_cfg.end() && prop_file != ssl_cfg.end()) {
-    throw api::DescriptiveError(YOGI_ERR_CONFIG_NOT_VALID)
-        << "The two properties \"" << prop.key() << "\" and "
-        << "\"" << prop_file.key() << "\" cannot be set at the same time.";
-  }
-}
-
 std::string SslParameters::LoadFromFile(
     const nlohmann::json::const_iterator& prop_file, const char* desc) {
-  if (!prop_file->is_string()) {
-    throw api::DescriptiveError(YOGI_ERR_CONFIG_NOT_VALID)
-        << "The property \"" << prop_file.key() << "\" must be a string.";
-  }
-
   auto filename =
       boost::filesystem::absolute(prop_file->get<std::string>()).string();
 
@@ -110,29 +91,16 @@ std::string SslParameters::LoadFromFile(
 std::string SslParameters::LoadFromConfig(
     const nlohmann::json::const_iterator& prop, const char* desc) {
   std::string content;
-  bool ok = true;
+
   if (prop->is_string()) {
     content = prop->get<std::string>();
-  } else if (prop->is_array()) {
+  } else {
     std::stringstream ss;
     for (auto& line : *prop) {
-      if (line.is_string()) {
-        ss << line.get<std::string>() << std::endl;
-      } else {
-        ok = false;
-        break;
-      }
+      ss << line.get<std::string>() << '\n';
     }
 
     content = ss.str();
-  } else {
-    ok = false;
-  }
-
-  if (!ok) {
-    throw api::DescriptiveError(YOGI_ERR_CONFIG_NOT_VALID)
-        << "The property \"" << prop.key()
-        << "\" must be either a string or an array of strings.";
   }
 
   CheckPemFormat(content, desc, "the configuration");
