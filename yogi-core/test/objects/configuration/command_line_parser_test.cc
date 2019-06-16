@@ -16,9 +16,9 @@
  */
 
 #include "../../common.h"
-#include "../../../src/objects/detail/command_line_parser.h"
+#include "../../../src/objects/config/detail/command_line_parser.h"
 
-using objects::detail::CommandLineParser;
+using objects::config::detail::CommandLineParser;
 namespace fs = boost::filesystem;
 
 class CommandLineParserTest : public TestFixture {

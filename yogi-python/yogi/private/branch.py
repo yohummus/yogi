@@ -119,11 +119,6 @@ class BranchInfo:
         return self._info["advertising_interval"]
 
     @property
-    def tcp_server_address(self) -> str:
-        """Address of the TCP server for incoming connections."""
-        return self._info["tcp_server_address"]
-
-    @property
     def tcp_server_port(self) -> int:
         """Listening port of the TCP server for incoming connections."""
         return self._info["tcp_server_port"]
@@ -159,6 +154,11 @@ class RemoteBranchInfo(BranchInfo):
 
     def __init__(self, info_string: str):
         BranchInfo.__init__(self, info_string)
+
+    @property
+    def tcp_server_address(self) -> str:
+        """Address of the TCP server for incoming connections."""
+        return self._info["tcp_server_address"]
 
 
 class LocalBranchInfo(BranchInfo):
@@ -448,11 +448,6 @@ class Branch(Object):
     def advertising_interval(self) -> float:
         """Advertising interval."""
         return self._info.advertising_interval
-
-    @property
-    def tcp_server_address(self) -> str:
-        """Address of the TCP server for incoming connections."""
-        return self._info.tcp_server_address
 
     @property
     def tcp_server_port(self) -> int:

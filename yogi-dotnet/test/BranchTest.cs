@@ -89,7 +89,6 @@ namespace test
             Assert.Equal("239.255.0.1", info.AdvertisingAddress.ToString());
             Assert.Equal(12345, info.AdvertisingPort);
             Assert.Equal(7, info.AdvertisingInterval.TotalSeconds, precision: 5);
-            Assert.IsType<IPAddress>(info.TcpServerAddress);
             Assert.True(info.TcpServerPort > 0);
             Assert.True(info.StartTime < Yogi.CurrentTime);
             Assert.Equal(Yogi.Duration.Infinity, info.Timeout);
@@ -107,7 +106,6 @@ namespace test
             Assert.Equal(info.AdvertisingAddress, branch.AdvertisingAddress);
             Assert.Equal(info.AdvertisingPort, branch.AdvertisingPort);
             Assert.Equal(info.AdvertisingInterval, branch.AdvertisingInterval);
-            Assert.Equal(info.TcpServerAddress, branch.TcpServerAddress);
             Assert.Equal(info.TcpServerPort, branch.TcpServerPort);
             Assert.Equal(info.StartTime, branch.StartTime);
             Assert.Equal(info.Timeout, branch.Timeout);
@@ -133,10 +131,10 @@ namespace test
             Assert.True(branches.ContainsKey(branch_a.Uuid));
             Assert.Equal(branches[branch_a.Uuid].Name, branch_a.Name);
             Assert.IsType<Yogi.RemoteBranchInfo>(branches[branch_a.Uuid]);
+            Assert.IsType<IPAddress>(branches[branch_a.Uuid].TcpServerAddress);
 
             Assert.True(branches.ContainsKey(branch_b.Uuid));
             Assert.Equal(branches[branch_b.Uuid].Name, branch_b.Name);
-            Assert.IsType<Yogi.RemoteBranchInfo>(branches[branch_b.Uuid]);
         }
 
         [Fact]

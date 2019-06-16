@@ -18,7 +18,7 @@
 #include "macros.h"
 #include "helpers.h"
 #include "../api/constants.h"
-#include "../objects/branch.h"
+#include "../objects/branch/branch.h"
 
 #include <nlohmann/json.hpp>
 #include <string>
@@ -33,7 +33,7 @@ YOGI_API int YOGI_BranchCreate(void** branch, void* context, void* config,
     auto ctx = api::ObjectRegister::Get<objects::Context>(context);
     auto cfg = UserSuppliedConfigToJson(config, section);
 
-    auto brn = objects::Branch::Create(ctx, cfg);
+    auto brn = objects::branch::Branch::Create(ctx, cfg);
     brn->Start();
 
     *branch = api::ObjectRegister::Register(brn);
@@ -47,7 +47,7 @@ YOGI_API int YOGI_BranchGetInfo(void* branch, void* uuid, char* json,
   CHECK_PARAM(json == nullptr || jsonsize > 0);
 
   try {
-    auto brn = api::ObjectRegister::Get<objects::Branch>(branch);
+    auto brn = api::ObjectRegister::Get<objects::branch::Branch>(branch);
     CopyUuidToUserBuffer(brn->GetUuid(), uuid);
 
     if (!CopyStringToUserBuffer(brn->MakeInfoString(), json, jsonsize)) {
@@ -66,7 +66,7 @@ YOGI_API int YOGI_BranchGetConnectedBranches(void* branch, void* uuid,
   CHECK_PARAM(fn != nullptr);
 
   try {
-    auto brn = api::ObjectRegister::Get<objects::Branch>(branch);
+    auto brn = api::ObjectRegister::Get<objects::branch::Branch>(branch);
 
     auto buffer_too_small = false;
     for (auto& entry : brn->MakeConnectedBranchesInfoStrings()) {
@@ -97,7 +97,7 @@ YOGI_API int YOGI_BranchAwaitEventAsync(void* branch, int events, void* uuid,
   CHECK_PARAM(fn != nullptr);
 
   try {
-    auto brn = api::ObjectRegister::Get<objects::Branch>(branch);
+    auto brn = api::ObjectRegister::Get<objects::branch::Branch>(branch);
 
     brn->AwaitEventAsync(
         ConvertFlags(events, api::BranchEvents::kNoEvent),
@@ -123,7 +123,7 @@ YOGI_API int YOGI_BranchCancelAwaitEvent(void* branch) {
   CHECK_PARAM(branch != nullptr);
 
   try {
-    auto brn = api::ObjectRegister::Get<objects::Branch>(branch);
+    auto brn = api::ObjectRegister::Get<objects::branch::Branch>(branch);
     if (!brn->CancelAwaitEvent()) {
       return YOGI_ERR_OPERATION_NOT_RUNNING;
     }
@@ -140,7 +140,7 @@ YOGI_API int YOGI_BranchSendBroadcast(void* branch, int enc, const void* data,
   CHECK_PARAM(block == YOGI_TRUE || block == YOGI_FALSE);
 
   try {
-    auto brn = api::ObjectRegister::Get<objects::Branch>(branch);
+    auto brn = api::ObjectRegister::Get<objects::branch::Branch>(branch);
     auto encoding = static_cast<api::Encoding>(enc);
     auto buffer = boost::asio::buffer(data, static_cast<std::size_t>(datasize));
 
@@ -162,7 +162,7 @@ YOGI_API int YOGI_BranchSendBroadcastAsync(
   CHECK_PARAM(fn != nullptr);
 
   try {
-    auto brn = api::ObjectRegister::Get<objects::Branch>(branch);
+    auto brn = api::ObjectRegister::Get<objects::branch::Branch>(branch);
     auto encoding = static_cast<api::Encoding>(enc);
     auto buffer = boost::asio::buffer(data, static_cast<std::size_t>(datasize));
 
@@ -178,7 +178,7 @@ YOGI_API int YOGI_BranchCancelSendBroadcast(void* branch, int oid) {
   CHECK_PARAM(oid > 0);
 
   try {
-    auto brn = api::ObjectRegister::Get<objects::Branch>(branch);
+    auto brn = api::ObjectRegister::Get<objects::branch::Branch>(branch);
     if (!brn->CancelSendBroadcast(oid)) {
       return YOGI_ERR_INVALID_OPERATION_ID;
     }
@@ -195,7 +195,7 @@ YOGI_API int YOGI_BranchReceiveBroadcastAsync(
   CHECK_PARAM(fn != nullptr);
 
   try {
-    auto brn = api::ObjectRegister::Get<objects::Branch>(branch);
+    auto brn = api::ObjectRegister::Get<objects::branch::Branch>(branch);
     brn->ReceiveBroadcast(
         static_cast<api::Encoding>(enc),
         boost::asio::buffer(data, static_cast<std::size_t>(datasize)),
@@ -214,7 +214,7 @@ YOGI_API int YOGI_BranchCancelReceiveBroadcast(void* branch) {
   CHECK_PARAM(branch != nullptr);
 
   try {
-    auto brn = api::ObjectRegister::Get<objects::Branch>(branch);
+    auto brn = api::ObjectRegister::Get<objects::branch::Branch>(branch);
     if (!brn->CancelReceiveBroadcast()) {
       return YOGI_ERR_OPERATION_NOT_RUNNING;
     }

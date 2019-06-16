@@ -17,8 +17,8 @@
 
 #include "../../common.h"
 #include "../../../src/api/constants.h"
-#include "../../../src/objects/detail/web/ssl_parameters.h"
-using objects::detail::web::SslParameters;
+#include "../../../src/objects/web/detail/ssl_parameters.h"
+using objects::web::detail::SslParameters;
 
 #include <boost/algorithm/string.hpp>
 

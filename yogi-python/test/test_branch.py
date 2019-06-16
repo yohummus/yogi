@@ -71,7 +71,6 @@ class TestBranches(TestCase):
         self.assertEqual(info.advertising_address, "239.255.0.1")
         self.assertEqual(info.advertising_port, 12345)
         self.assertEqual(info.advertising_interval, 7.0)
-        self.assertGreater(len(info.tcp_server_address), 1)
         self.assertGreater(info.tcp_server_port, 0)
         self.assertLessEqual(info.start_time, yogi.get_current_time())
         self.assertEqual(info.timeout, float("inf"))
@@ -96,6 +95,7 @@ class TestBranches(TestCase):
             self.assertTrue(brn.uuid in branches)
             self.assertEqual(branches[brn.uuid].name, brn.name)
             self.assertIsInstance(branches[brn.uuid], yogi.RemoteBranchInfo)
+            self.assertIsInstance(branches[brn.uuid].tcp_server_address, str)
 
     def test_await_event(self):
         branch = yogi.Branch(self.context, '{"name":"My Branch"}')

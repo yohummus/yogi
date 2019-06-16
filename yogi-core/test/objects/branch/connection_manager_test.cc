@@ -215,7 +215,8 @@ TEST_F(ConnectionManagerTest, BrokenInfoMessage) {
   FakeBranch fake;
 
   auto fn = [](auto msg) {
-    ++msg->at(objects::detail::BranchInfo::kAdvertisingMessageSize) = 0xFF;
+    ++msg->at(objects::branch::detail::BranchInfo::kAdvertisingMessageSize) =
+        0xFF;
   };
 
   EXPECT_THROW(fake.Connect(branch_, fn), boost::system::system_error);

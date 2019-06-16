@@ -16,7 +16,6 @@
  */
 
 #include "json_helpers.h"
-#include "schema.h"
 #include "../api/errors.h"
 
 #include <string.h>

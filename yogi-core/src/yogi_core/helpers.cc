@@ -18,7 +18,7 @@
 #include "helpers.h"
 #include "../api/errors.h"
 #include "../api/object.h"
-#include "../objects/configuration.h"
+#include "../objects/config/configuration.h"
 
 #include <string.h>
 #include <boost/algorithm/string.hpp>
@@ -141,7 +141,7 @@ bool CopyStringToUserBuffer(const std::string& str, char* buffer,
 nlohmann::json UserSuppliedConfigToJson(void* config, const char* section) {
   auto json = nlohmann::json::object();
   if (config) {
-    auto cfg = api::ObjectRegister::Get<objects::Configuration>(config);
+    auto cfg = api::ObjectRegister::Get<objects::config::Configuration>(config);
     nlohmann::json::json_pointer jp;
     if (section) {
       try {

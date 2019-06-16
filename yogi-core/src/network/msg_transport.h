@@ -19,7 +19,7 @@
 
 #include "../config.h"
 #include "../utils/ringbuffer.h"
-#include "../objects/logger.h"
+#include "../objects/log/logger.h"
 #include "transport.h"
 #include "messages.h"
 
@@ -44,7 +44,7 @@ typedef std::shared_ptr<MessageTransport> MessageTransportPtr;
 typedef std::weak_ptr<MessageTransport> MessageTransportWeakPtr;
 
 class MessageTransport : public std::enable_shared_from_this<MessageTransport>,
-                         public objects::LoggerUser {
+                         public objects::log::LoggerUser {
  public:
   typedef int OperationTag;
   typedef std::function<void(const api::Result&)> SendHandler;

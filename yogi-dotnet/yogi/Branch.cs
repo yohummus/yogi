@@ -186,7 +186,6 @@ public static partial class Yogi
             Hostname = (string)Data["hostname"];
             Pid = (int)Data["pid"];
             AdvertisingInterval = Duration.FromJson(Data["advertising_interval"]);
-            TcpServerAddress = IPAddress.Parse((string)Data["tcp_server_address"]);
             TcpServerPort = (int)Data["tcp_server_port"];
             StartTime = Timestamp.Parse((string)Data["start_time"]);
             Timeout = Duration.FromJson(Data["timeout"]);
@@ -226,9 +225,6 @@ public static partial class Yogi
         /// <summary>Advertising interval.</summary>
         public Duration AdvertisingInterval { get; }
 
-        /// <summary>Address of the TCP server for incoming connections.</summary>
-        public IPAddress TcpServerAddress { get; }
-
         /// <summary>Listening port of the TCP server for incoming connections.</summary>
         public int TcpServerPort { get; }
 
@@ -254,7 +250,11 @@ public static partial class Yogi
         internal RemoteBranchInfo(string json)
         : base(json)
         {
+            TcpServerAddress = IPAddress.Parse((string)Data["tcp_server_address"]);
         }
+
+        /// <summary>Address of the TCP server for incoming connections.</summary>
+        public IPAddress TcpServerAddress { get; }
     }
 
     /// <summary>
@@ -631,9 +631,6 @@ public static partial class Yogi
 
         /// <summary>Advertising interval.</summary>
         public Duration AdvertisingInterval { get { return Info.AdvertisingInterval; } }
-
-        /// <summary>Address of the TCP server for incoming connections.</summary>
-        public IPAddress TcpServerAddress { get { return Info.TcpServerAddress; } }
 
         /// <summary>Listening port of the TCP server for incoming connections.</summary>
         public int TcpServerPort { get { return Info.TcpServerPort; } }

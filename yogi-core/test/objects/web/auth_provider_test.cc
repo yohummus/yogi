@@ -18,8 +18,8 @@
 #include "../../common.h"
 #include "../../../src/api/constants.h"
 #include "../../../src/utils/crypto.h"
-#include "../../../src/objects/detail/web/auth_provider.h"
-using objects::detail::web::AuthProvider;
+#include "../../../src/objects/web/detail/auth_provider.h"
+using objects::web::detail::AuthProvider;
 
 class AuthProviderTest : public TestFixture {};
 

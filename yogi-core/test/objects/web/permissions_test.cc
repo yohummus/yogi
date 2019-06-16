@@ -16,8 +16,8 @@
  */
 
 #include "../../common.h"
-#include "../../../src/objects/detail/web/permissions.h"
-using namespace objects::detail::web;
+#include "../../../src/objects/web/detail/permissions.h"
+using namespace objects::web::detail;
 
 class PermissionsTest : public TestFixture {
  protected:

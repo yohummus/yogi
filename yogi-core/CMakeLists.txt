@@ -47,14 +47,14 @@ find_package (Threads REQUIRED)
 
 # Static library
 set (schema_files
-  src/schemas/branch.schema.json
-  src/schemas/web_authentication.schema.json
-  src/schemas/web_groups.schema.json
-  src/schemas/web_permissions.schema.json
-  src/schemas/web_routes.schema.json
-  src/schemas/web_server.schema.json
-  src/schemas/web_ssl.schema.json
-  src/schemas/web_users.schema.json
+  src/schema/branch.schema.json
+  src/schema/web_authentication.schema.json
+  src/schema/web_groups.schema.json
+  src/schema/web_permissions.schema.json
+  src/schema/web_routes.schema.json
+  src/schema/web_server.schema.json
+  src/schema/web_ssl.schema.json
+  src/schema/web_users.schema.json
 )
 
 set (gen_schemas_file generated_schema_files_content.cc)
@@ -80,45 +80,45 @@ add_library (yogi-core-static STATIC
   src/network/ip.cc
   src/network/messages.cc
   src/network/msg_transport.cc
+  src/network/tcp_listener.cc
   src/network/tcp_transport.cc
   src/network/transport.cc
-  src/objects/detail/branch/advertising_receiver.cc
-  src/objects/detail/branch/advertising_sender.cc
-  src/objects/detail/branch/branch_connection.cc
-  src/objects/detail/branch/branch_info.cc
-  src/objects/detail/branch/broadcast_manager.cc
-  src/objects/detail/branch/connection_manager.cc
-  src/objects/detail/log/console_log_sink.cc
-  src/objects/detail/log/file_log_sink.cc
-  src/objects/detail/log/hook_log_sink.cc
-  src/objects/detail/log/log_sink.cc
-  src/objects/detail/log/text_based_log_sink.cc
-  src/objects/detail/web/auth_provider.cc
-  src/objects/detail/web/group.cc
-  src/objects/detail/web/http_session.cc
-  src/objects/detail/web/mime.cc
-  src/objects/detail/web/permissions.cc
-  src/objects/detail/web/route.cc
-  src/objects/detail/web/ssl_parameters.cc
-  src/objects/detail/web/user.cc
-  src/objects/detail/web/websocket_session.cc
-  src/objects/detail/command_line_parser.cc
-  src/objects/detail/tcp_listener.cc
-  src/objects/branch.cc
-  src/objects/configuration.cc
+  src/objects/branch/detail/advertising_receiver.cc
+  src/objects/branch/detail/advertising_sender.cc
+  src/objects/branch/detail/branch_connection.cc
+  src/objects/branch/detail/branch_info.cc
+  src/objects/branch/detail/broadcast_manager.cc
+  src/objects/branch/detail/connection_manager.cc
+  src/objects/branch/branch.cc
+  src/objects/config/detail/command_line_parser.cc
+  src/objects/config/configuration.cc
+  src/objects/log/detail/console_log_sink.cc
+  src/objects/log/detail/file_log_sink.cc
+  src/objects/log/detail/hook_log_sink.cc
+  src/objects/log/detail/log_sink.cc
+  src/objects/log/detail/text_based_log_sink.cc
+  src/objects/log/logger.cc
+  src/objects/web/detail/auth_provider.cc
+  src/objects/web/detail/group.cc
+  src/objects/web/detail/http_session.cc
+  src/objects/web/detail/mime.cc
+  src/objects/web/detail/permissions.cc
+  src/objects/web/detail/route.cc
+  src/objects/web/detail/ssl_parameters.cc
+  src/objects/web/detail/user.cc
+  src/objects/web/detail/websocket_session.cc
+  src/objects/web/web_process.cc
+  src/objects/web/web_route.cc
+  src/objects/web/web_server.cc
   src/objects/context.cc
-  src/objects/logger.cc
   src/objects/signal_set.cc
   src/objects/timer.cc
-  src/objects/web_process.cc
-  src/objects/web_route.cc
-  src/objects/web_server.cc
+  src/schema/schema.cc
   src/utils/console.cc
   src/utils/crypto.cc
   src/utils/glob.cc
   src/utils/json_helpers.cc
   src/utils/ringbuffer.cc
-  src/utils/schema.cc
   src/utils/system.cc
   src/utils/timestamp.cc
   src/utils/types.cc
@@ -207,6 +207,7 @@ add_executable (yogi-core-test
   test/network/msg_transport_test.cc
   test/network/serialize_test.cc
   test/network/tcp_transport_test.cc
+  test/network/tcp_listener_test.cc
   test/network/transport_test.cc
   test/objects/branch/branch_test.cc
   test/objects/branch/broadcast_manager_test.cc
@@ -219,11 +220,10 @@ add_executable (yogi-core-test
   test/objects/web/routes_test.cc
   test/objects/web/ssl_parameters_test.cc
   test/objects/web/web_server_test.cc
+  test/objects/log/logger_test.cc
   test/objects/context_test.cc
   test/objects/format_test.cc
-  test/objects/logger_test.cc
   test/objects/signal_set_test.cc
-  test/objects/tcp_listener_test.cc
   test/objects/timer_test.cc
   test/utils/algorithm_test.cc
   test/utils/crypto_test.cc

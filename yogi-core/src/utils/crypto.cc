@@ -16,7 +16,7 @@
  */
 
 #include "crypto.h"
-#include "../objects/logger.h"
+#include "../objects/log/logger.h"
 
 #include <boost/algorithm/hex.hpp>
 #include <openssl/sha.h>
@@ -28,7 +28,7 @@
 
 namespace utils {
 
-const auto logger = objects::Logger::CreateStaticInternalLogger("Utils.Crypto");
+const auto logger = objects::log::Logger::CreateStaticInternalLogger("Crypto");
 
 ByteVector MakeSha256(const ByteVector& data) {
   ByteVector hash(SHA256_DIGEST_LENGTH);

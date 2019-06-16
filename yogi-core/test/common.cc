@@ -190,7 +190,7 @@ FakeBranch::FakeBranch()
       {"advertising_port", kAdvPort},
   };
 
-  info_ = std::make_shared<objects::detail::LocalBranchInfo>(
+  info_ = std::make_shared<objects::branch::detail::LocalBranchInfo>(
       cfg, adv_ifs, acceptor_.local_endpoint().port());
 }
 
@@ -250,12 +250,12 @@ void FakeBranch::Authenticate(
   boost::asio::write(tcp_socket_, boost::asio::buffer(info_msg));
 
   // Receive branch info
-  auto buffer =
-      utils::ByteVector(objects::detail::BranchInfo::kInfoMessageHeaderSize);
+  auto buffer = utils::ByteVector(
+      objects::branch::detail::BranchInfo::kInfoMessageHeaderSize);
   boost::asio::read(tcp_socket_, boost::asio::buffer(buffer));
   std::size_t body_size;
-  objects::detail::RemoteBranchInfo::DeserializeInfoMessageBodySize(&body_size,
-                                                                    buffer);
+  objects::branch::detail::RemoteBranchInfo::DeserializeInfoMessageBodySize(
+      &body_size, buffer);
   buffer.resize(body_size);
   boost::asio::read(tcp_socket_, boost::asio::buffer(buffer));
 
@@ -357,11 +357,12 @@ void SetupLogging(int verbosity) {
 
   // For direct calls, circumventing the public API (needed because the shared
   // library and test memory space are separate)
-  objects::Logger::SetSink(std::make_unique<objects::detail::ConsoleLogSink>(
-      static_cast<api::Verbosity>(verbosity), stderr, true,
-      api::kDefaultLogTimeFormat, api::kDefaultLogFormat));
+  objects::log::Logger::SetSink(
+      std::make_unique<objects::log::detail::ConsoleLogSink>(
+          static_cast<api::Verbosity>(verbosity), stderr, true,
+          api::kDefaultLogTimeFormat, api::kDefaultLogFormat));
 
-  objects::Logger::SetComponentsVerbosity(
+  objects::log::Logger::SetComponentsVerbosity(
       std::regex("Yogi\\..*"), static_cast<api::Verbosity>(verbosity));
 }
 

@@ -17,7 +17,7 @@
 
 #include "macros.h"
 #include "helpers.h"
-#include "../objects/configuration.h"
+#include "../objects/config/configuration.h"
 #include "../../3rd_party/json-schema-validator/src/json-schema.hpp"
 
 #include <iostream>
@@ -29,8 +29,8 @@ YOGI_API int YOGI_ConfigurationCreate(void** config, int flags) {
   CHECK_FLAGS(flags, Flags::kAllFlags);
 
   try {
-    auto cfg =
-        objects::Configuration::Create(ConvertFlags(flags, Flags::kNoFlags));
+    auto cfg = objects::config::Configuration::Create(
+        ConvertFlags(flags, Flags::kNoFlags));
     *config = api::ObjectRegister::Register(cfg);
   }
   CATCH_AND_RETURN;
@@ -49,7 +49,7 @@ YOGI_API int YOGI_ConfigurationUpdateFromCommandLine(void* config, int argc,
   CHECK_PARAM(err == nullptr || errsize > 0);
 
   try {
-    auto cfg = api::ObjectRegister::Get<objects::Configuration>(config);
+    auto cfg = api::ObjectRegister::Get<objects::config::Configuration>(config);
     cfg->UpdateFromCommandLine(argc, argv,
                                ConvertFlags(options, Options::kNoOptions));
   }
@@ -63,7 +63,7 @@ YOGI_API int YOGI_ConfigurationUpdateFromJson(void* config, const char* json,
   CHECK_PARAM(err == nullptr || errsize > 0);
 
   try {
-    auto cfg = api::ObjectRegister::Get<objects::Configuration>(config);
+    auto cfg = api::ObjectRegister::Get<objects::config::Configuration>(config);
     cfg->UpdateFromString(json);
   }
   CATCH_DESCRIPTIVE_AND_RETURN(err, errsize);
@@ -77,7 +77,7 @@ YOGI_API int YOGI_ConfigurationUpdateFromFile(void* config,
   CHECK_PARAM(err == nullptr || errsize > 0);
 
   try {
-    auto cfg = api::ObjectRegister::Get<objects::Configuration>(config);
+    auto cfg = api::ObjectRegister::Get<objects::config::Configuration>(config);
     cfg->UpdateFromFile(filename);
   }
   CATCH_DESCRIPTIVE_AND_RETURN(err, errsize);
@@ -92,7 +92,7 @@ YOGI_API int YOGI_ConfigurationDump(void* config, char* json, int jsonsize,
   CHECK_PARAM(indent >= -1);
 
   try {
-    auto cfg = api::ObjectRegister::Get<objects::Configuration>(config);
+    auto cfg = api::ObjectRegister::Get<objects::config::Configuration>(config);
     auto str = cfg->Dump(resvars == YOGI_TRUE, indent);
     if (!CopyStringToUserBuffer(str, json, jsonsize)) {
       return YOGI_ERR_BUFFER_TOO_SMALL;
@@ -109,7 +109,7 @@ YOGI_API int YOGI_ConfigurationWriteToFile(void* config, const char* filename,
   CHECK_PARAM(indent >= -1);
 
   try {
-    auto cfg = api::ObjectRegister::Get<objects::Configuration>(config);
+    auto cfg = api::ObjectRegister::Get<objects::config::Configuration>(config);
     cfg->WriteToFile(filename, resvars == YOGI_TRUE, indent);
   }
   CATCH_AND_RETURN;
@@ -123,7 +123,7 @@ YOGI_API int YOGI_ConfigurationValidate(void* config, const char* section,
 
   try {
     auto jsn = UserSuppliedConfigToJson(config, section);
-    auto sma = api::ObjectRegister::Get<objects::Configuration>(schema);
+    auto sma = api::ObjectRegister::Get<objects::config::Configuration>(schema);
 
     try {
       nlohmann::json_schema::json_validator validator;

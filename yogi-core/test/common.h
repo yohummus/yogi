@@ -17,7 +17,7 @@
 
 #pragma once
 
-#include "../src/objects/detail/branch/branch_info.h"
+#include "../src/objects/branch/detail/branch_info.h"
 
 #include <nlohmann/json.hpp>
 #include <gtest/gtest.h>
@@ -161,7 +161,7 @@ class FakeBranch final {
   void Authenticate(std::function<void(utils::ByteVector*)> info_changer);
   void ExchangeAck();
 
-  objects::detail::LocalBranchInfoPtr info_;
+  objects::branch::detail::LocalBranchInfoPtr info_;
   boost::asio::io_context ioc_;
   boost::asio::ip::tcp::acceptor acceptor_;
   boost::asio::ip::tcp::socket tcp_socket_;

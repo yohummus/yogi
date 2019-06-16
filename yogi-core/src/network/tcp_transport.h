@@ -18,7 +18,7 @@
 #pragma once
 
 #include "../config.h"
-#include "../objects/logger.h"
+#include "../objects/log/logger.h"
 #include "transport.h"
 
 #include <boost/asio.hpp>

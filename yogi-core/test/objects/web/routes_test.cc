@@ -16,8 +16,8 @@
  */
 
 #include "../../common.h"
-#include "../../../src/objects/detail/web/route.h"
-using namespace objects::detail::web;
+#include "../../../src/objects/web/detail/route.h"
+using namespace objects::web::detail;
 
 class RoutesTest : public TestFixture {
  protected:

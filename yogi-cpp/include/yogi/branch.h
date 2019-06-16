@@ -183,13 +183,6 @@ class BranchInfo {
     return val < 0 ? Duration::kInfinity : Duration::FromSeconds(val);
   }
 
-  /// Returns the address of the TCP server for incoming connections.
-  ///
-  /// \returns The address of the TCP server for incoming connections.
-  std::string GetTcpServerAddress() const {
-    return json_["tcp_server_address"];
-  }
-
   /// Returns the listening port of the TCP server for incoming connections.
   ///
   /// \returns The listening port of the TCP server for incoming connections.
@@ -245,6 +238,14 @@ class BranchInfo {
 class RemoteBranchInfo : public BranchInfo {
   friend class BranchQueriedEventInfo;
   friend class Branch;
+
+ public:
+  /// Returns the address of the TCP server for incoming connections.
+  ///
+  /// \returns The address of the TCP server for incoming connections.
+  std::string GetTcpServerAddress() const {
+    return ToJson()["tcp_server_address"];
+  }
 
  protected:
   using BranchInfo::BranchInfo;
@@ -734,13 +735,6 @@ class Branch : public ObjectT<Branch> {
   /// \returns The advertising interval.
   Duration GetAdvertisingInterval() const {
     return info_.GetAdvertisingInterval();
-  }
-
-  /// Returns the address of the TCP server for incoming connections.
-  ///
-  /// \returns The address of the TCP server for incoming connections.
-  std::string GetTcpServerAddress() const {
-    return info_.GetTcpServerAddress();
   }
 
   /// Returns the listening port of the TCP server for incoming connections.

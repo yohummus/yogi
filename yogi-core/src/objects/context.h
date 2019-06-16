@@ -20,7 +20,7 @@
 #include "../config.h"
 #include "../api/object.h"
 #include "../api/enums.h"
-#include "logger.h"
+#include "log/logger.h"
 
 #include <boost/asio/io_context.hpp>
 #include <boost/asio/signal_set.hpp>
@@ -33,7 +33,7 @@
 namespace objects {
 
 class Context : public api::ExposedObjectT<Context, api::ObjectType::kContext>,
-                public LoggerUser {
+                public log::LoggerUser {
  public:
   typedef std::function<void(const api::Result&, api::Signals)> SignalHandler;
 

@@ -18,7 +18,7 @@
 #include "macros.h"
 #include "helpers.h"
 #include "../api/constants.h"
-#include "../objects/web_server.h"
+#include "../objects/web/web_server.h"
 #include "../utils/system.h"
 
 #include <nlohmann/json.hpp>
@@ -32,8 +32,8 @@ YOGI_API int YOGI_WebServerCreate(void** server, void* context, void* branch,
   CHECK_PARAM(context != nullptr || branch != nullptr);
 
   try {
-    objects::BranchPtr brn;
-    if (branch) brn = api::ObjectRegister::Get<objects::Branch>(branch);
+    objects::branch::BranchPtr brn;
+    if (branch) brn = api::ObjectRegister::Get<objects::branch::Branch>(branch);
 
     objects::ContextPtr ctx;
     if (context) {
@@ -44,7 +44,7 @@ YOGI_API int YOGI_WebServerCreate(void** server, void* context, void* branch,
 
     auto cfg = UserSuppliedConfigToJson(config, section);
 
-    auto svr = objects::WebServer::Create(ctx, brn, cfg);
+    auto svr = objects::web::WebServer::Create(ctx, brn, cfg);
     svr->Start();
 
     *server = api::ObjectRegister::Register(svr);

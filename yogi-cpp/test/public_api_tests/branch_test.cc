@@ -95,7 +95,6 @@ TEST_F(BranchTest, Info) {
   EXPECT_EQ(info.GetAdvertisingAddress(), "239.255.0.1");
   EXPECT_EQ(info.GetAdvertisingPort(), 12345);
   EXPECT_EQ(info.GetAdvertisingInterval(), yogi::Duration::FromSeconds(7));
-  EXPECT_FALSE(info.GetTcpServerAddress().empty());
   EXPECT_GT(info.GetTcpServerPort(), 0);
   EXPECT_LT(info.GetStartTime(), yogi::GetCurrentTime());
   EXPECT_EQ(info.GetTimeout(), yogi::Duration::kInfinity);
@@ -113,7 +112,6 @@ TEST_F(BranchTest, Info) {
   EXPECT_EQ(branch->GetAdvertisingAddress(), info.GetAdvertisingAddress());
   EXPECT_EQ(branch->GetAdvertisingPort(), info.GetAdvertisingPort());
   EXPECT_EQ(branch->GetAdvertisingInterval(), info.GetAdvertisingInterval());
-  EXPECT_EQ(branch->GetTcpServerAddress(), info.GetTcpServerAddress());
   EXPECT_EQ(branch->GetTcpServerPort(), info.GetTcpServerPort());
   EXPECT_EQ(branch->GetStartTime(), info.GetStartTime());
   EXPECT_EQ(branch->GetTimeout(), info.GetTimeout());
@@ -136,9 +134,11 @@ TEST_F(BranchTest, GetConnectedBranches) {
 
   ASSERT_EQ(branches.count(branch_a->GetUuid()), 1);
   EXPECT_EQ(branches.at(branch_a->GetUuid()).GetName(), branch_a->GetName());
+  EXPECT_FALSE(branches.at(branch_a->GetUuid()).GetTcpServerAddress().empty());
 
   ASSERT_EQ(branches.count(branch_b->GetUuid()), 1);
   EXPECT_EQ(branches.at(branch_b->GetUuid()).GetName(), branch_b->GetName());
+  EXPECT_FALSE(branches.at(branch_b->GetUuid()).GetTcpServerAddress().empty());
 }
 
 TEST_F(BranchTest, AwaitEventAsync) {

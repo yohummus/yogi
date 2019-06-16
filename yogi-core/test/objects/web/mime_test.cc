@@ -16,8 +16,8 @@
  */
 
 #include "../../common.h"
-#include "../../../src/objects/detail/web/mime.h"
-using objects::detail::web::FileExtensionToMimeType;
+#include "../../../src/objects/web/detail/mime.h"
+using objects::web::detail::FileExtensionToMimeType;
 
 TEST(MimeTest, WellKnownFileExtensions) {
   EXPECT_EQ(FileExtensionToMimeType("txt"), "text/plain");
