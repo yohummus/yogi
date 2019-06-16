@@ -1,6 +1,6 @@
 /*
  * This file is part of the Yogi distribution https://github.com/yohummus/yogi.
- * Copyright (c) 2018 Johannes Bergmann.
+ * Copyright (c) 2019 Johannes Bergmann.
  *
  * This library is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,6 +21,7 @@
 #include "../../../api/enums.h"
 #include "../../../network/tcp_transport.h"
 #include "../../../utils/system.h"
+#include "../tcp_listener.h"
 #include "advertising_receiver.h"
 #include "advertising_sender.h"
 #include "branch_connection.h"
@@ -59,25 +60,22 @@ class ConnectionManager
       BranchInfoStringsList;
   using OperationTag = network::MessageTransport::OperationTag;
 
-  ConnectionManager(ContextPtr context, const nlohmann::json& cfg,
-                    ConnectionChangedHandler connection_changed_handler,
-                    MessageReceiveHandler message_handler);
+  ConnectionManager(ContextPtr context, const nlohmann::json& cfg);
   virtual ~ConnectionManager();
 
-  void Start(LocalBranchInfoPtr info);
+  void Start(LocalBranchInfoPtr info,
+             ConnectionChangedHandler connection_changed_handler,
+             MessageReceiveHandler message_handler);
 
-  const std::vector<utils::NetworkInterfaceInfo>& GetAdvertisingInterfaces()
-      const {
-    return adv_ifs_;
+  const utils::NetworkInterfaceInfosVector& GetAdvertisingInterfaces() const {
+    return listener_->GetInterfaces();
   }
 
   const boost::asio::ip::udp::endpoint& GetAdvertisingEndpoint() const {
     return adv_sender_->GetEndpoint();
   }
 
-  unsigned short GetTcpServerPort() const {
-    return acceptor_.local_endpoint().port();
-  }
+  int GetTcpServerPort() { return listener_->GetPort(); }
 
   BranchInfoStringsList MakeConnectedBranchesInfoStrings() const;
 
@@ -111,10 +109,9 @@ class ConnectionManager
   typedef std::set<BranchConnectionPtr> ConnectionsSet;
 
   ConnectionManagerWeakPtr MakeWeakPtr() { return {shared_from_this()}; }
-  void SetupAcceptor(const boost::asio::ip::tcp& protocol);
-  void StartAccept();
-  void OnAcceptFinished(const api::Result& res,
-                        network::TcpTransportPtr transport);
+  void CreateAdvSenderAndReceiver(const nlohmann::json& cfg);
+  void CreateListener(const nlohmann::json& cfg);
+  void OnAccepted(boost::asio::ip::tcp::socket socket);
   void OnAdvertisementReceived(const boost::uuids::uuid& adv_uuid,
                                const boost::asio::ip::tcp::endpoint& ep);
   void OnConnectFinished(const api::Result& res,
@@ -159,14 +156,12 @@ class ConnectionManager
 
   const ContextPtr context_;
   boost::asio::ip::udp::endpoint adv_ep_;
-  std::vector<utils::NetworkInterfaceInfo> adv_ifs_;
   utils::SharedByteVector password_hash_;
   ConnectionChangedHandler connection_changed_handler_;
   MessageReceiveHandler message_handler_;
   detail::AdvertisingSenderPtr adv_sender_;
   detail::AdvertisingReceiverPtr adv_receiver_;
-  boost::asio::ip::tcp::acceptor acceptor_;
-  network::TcpTransport::AcceptGuardPtr accept_guard_;
+  TcpListenerPtr listener_;
   ConnectGuardsSet connect_guards_;
   ConnectionsSet connections_kept_alive_;
   LocalBranchInfoPtr info_;

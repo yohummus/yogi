@@ -1,6 +1,6 @@
 /*
  * This file is part of the Yogi distribution https://github.com/yohummus/yogi.
- * Copyright (c) 2018 Johannes Bergmann.
+ * Copyright (c) 2019 Johannes Bergmann.
  *
  * This library is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,20 +32,34 @@ Branch::Branch(ContextPtr context, const nlohmann::json& cfg)
     : context_(context) {
   utils::ValidateJson(cfg, "branch.schema.json");
 
-  con_man_ = std::make_shared<detail::ConnectionManager>(
-      context, cfg,
-      [&](auto& res, auto conn) { this->OnConnectionChanged(res, conn); },
-      [&](auto& msg, auto& conn) { this->OnMessageReceived(msg, conn); });
+  con_man_ = std::make_shared<detail::ConnectionManager>(context_, cfg);
 
   info_ = std::make_shared<detail::LocalBranchInfo>(
-      cfg, con_man_->GetAdvertisingInterfaces(), con_man_->GetTcpServerPort());
+      cfg, con_man_->GetAdvertisingInterfaces(),
+      static_cast<unsigned short>(con_man_->GetTcpServerPort()));
 
   bc_man_ = std::make_shared<detail::BroadcastManager>(context, *con_man_);
 }
 
 void Branch::Start() {
   SetLoggingPrefix(info_->GetLoggingPrefix());
-  con_man_->Start(info_);
+
+  auto weak_self = MakeWeakPtr();
+
+  con_man_->Start(info_,
+                  [weak_self](auto& res, auto conn) {
+                    auto self = weak_self.lock();
+                    if (!self) return;
+
+                    self->OnConnectionChanged(res, conn);
+                  },
+                  [weak_self](auto& msg, auto& conn) {
+                    auto self = weak_self.lock();
+                    if (!self) return;
+
+                    self->OnMessageReceived(msg, conn);
+                  });
+
   bc_man_->Start(info_);
 }
 

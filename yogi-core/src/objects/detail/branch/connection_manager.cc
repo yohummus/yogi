@@ -1,6 +1,6 @@
 /*
  * This file is part of the Yogi distribution https://github.com/yohummus/yogi.
- * Copyright (c) 2018 Johannes Bergmann.
+ * Copyright (c) 2019 Johannes Bergmann.
  *
  * This library is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,52 +22,54 @@
 #include "../../../utils/json_helpers.h"
 
 #include <boost/uuid/uuid_io.hpp>
+#include <algorithm>
 
 YOGI_DEFINE_INTERNAL_LOGGER("Branch.ConnectionManager")
 
 namespace objects {
 namespace detail {
 
-ConnectionManager::ConnectionManager(
-    ContextPtr context, const nlohmann::json& cfg,
-    ConnectionChangedHandler connection_changed_handler,
-    MessageReceiveHandler message_handler)
-    : context_(context),
-      connection_changed_handler_(connection_changed_handler),
-      message_handler_(message_handler),
-      acceptor_(context->IoContext()),
-      last_op_tag_(0),
-      observed_events_(api::kNoEvent) {
-  adv_ep_ = utils::ExtractUdpEndpoint(cfg, "advertising_address",
-                                      api::kDefaultAdvAddress,
-                                      "advertising_port", api::kDefaultAdvPort);
-  adv_ifs_ = utils::GetFilteredNetworkInterfaces(
-      utils::ExtractArrayOfStrings(cfg, "advertising_interfaces",
-                                   api::kDefaultAdvInterfaces),
-      adv_ep_.protocol());
-
+ConnectionManager::ConnectionManager(ContextPtr context,
+                                     const nlohmann::json& cfg)
+    : context_(context), last_op_tag_(0), observed_events_(api::kNoEvent) {
   password_hash_ = utils::MakeSharedByteVector(
       utils::MakeSha256(cfg.value("network_password", std::string{})));
 
-  adv_sender_ = std::make_shared<AdvertisingSender>(context, adv_ep_);
-  adv_receiver_ = std::make_shared<AdvertisingReceiver>(
-      context, adv_ep_,
-      [&](auto& uuid, auto& ep) { this->OnAdvertisementReceived(uuid, ep); });
+  CreateAdvSenderAndReceiver(cfg);
+  CreateListener(cfg);
 
   YOGI_ASSERT(adv_ep_.port() != 0);
-  using namespace boost::asio::ip;
-  SetupAcceptor(adv_ep_.protocol() == udp::v4() ? tcp::v4() : tcp::v6());
 }
 
 ConnectionManager::~ConnectionManager() { CancelAwaitEvent(); }
 
-void ConnectionManager::Start(LocalBranchInfoPtr info) {
+void ConnectionManager::Start(
+    LocalBranchInfoPtr info,
+    ConnectionChangedHandler connection_changed_handler,
+    MessageReceiveHandler message_handler) {
   info_ = info;
+  connection_changed_handler_ = connection_changed_handler;
+  message_handler_ = message_handler;
+
   SetLoggingPrefix(info->GetLoggingPrefix());
 
-  StartAccept();
+  auto weak_self = MakeWeakPtr();
+
+  listener_->Start([weak_self](auto socket) {
+    auto self = weak_self.lock();
+    if (!self) return;
+
+    self->OnAccepted(std::move(socket));
+  });
+
+  adv_receiver_->Start(info, [weak_self](auto& uuid, auto& ep) {
+    auto self = weak_self.lock();
+    if (!self) return;
+
+    self->OnAdvertisementReceived(uuid, ep);
+  });
+
   adv_sender_->Start(info);
-  adv_receiver_->Start(info);
 
   LOG_DBG("Started ConnectionManager with TCP server port "
           << info_->GetTcpServerPort()
@@ -123,65 +125,36 @@ ConnectionManager::OperationTag ConnectionManager::MakeOperationId() {
   return tag;
 }
 
-void ConnectionManager::SetupAcceptor(const boost::asio::ip::tcp& protocol) {
-  boost::system::error_code ec;
-  acceptor_.open(protocol, ec);
-  if (ec) throw api::Error(YOGI_ERR_OPEN_SOCKET_FAILED);
+void ConnectionManager::CreateAdvSenderAndReceiver(const nlohmann::json& cfg) {
+  adv_ep_ = utils::ExtractUdpEndpoint(cfg, "advertising_address",
+                                      api::kDefaultAdvAddress,
+                                      "advertising_port", api::kDefaultAdvPort);
 
-  acceptor_.set_option(boost::asio::ip::tcp::acceptor::reuse_address(true), ec);
-  if (ec) throw api::Error(YOGI_ERR_SET_SOCKET_OPTION_FAILED);
-
-  bool bound_at_least_once = false;
-  unsigned short port = 0;
-  for (auto& info : adv_ifs_) {
-    for (auto& addr : info.addresses) {
-      acceptor_.bind(boost::asio::ip::tcp::endpoint(addr, port), ec);
-      if (ec) {
-        LOG_ERR("Could not bind to interface "
-                << addr
-                << " for branch connections. This interface will be ignored.");
-        continue;
-      }
-      LOG_IFO("Using interface " << addr << " for branch connections.");
-
-      bound_at_least_once = true;
-    }
-  }
-
-  if (bound_at_least_once) {
-    acceptor_.listen(acceptor_.max_listen_connections, ec);
-    if (ec) throw api::Error(YOGI_ERR_LISTEN_SOCKET_FAILED);
-  } else {
-    LOG_ERR("No network interfaces available for branch connections.");
-  }
+  adv_sender_ = std::make_shared<AdvertisingSender>(context_, adv_ep_);
+  adv_receiver_ = std::make_shared<AdvertisingReceiver>(context_, adv_ep_);
 }
 
-void ConnectionManager::StartAccept() {
-  auto weak_self = MakeWeakPtr();
-  accept_guard_ = network::TcpTransport::AcceptAsync(
-      context_, &acceptor_, info_->GetTimeout(),
-      info_->GetTransceiveByteLimit(), [=](auto& res, auto transport, auto) {
-        auto self = weak_self.lock();
-        if (!self) return;
+void ConnectionManager::CreateListener(const nlohmann::json& cfg) {
+  auto interfaces = utils::ExtractArrayOfStrings(cfg, "advertising_interfaces",
+                                                 api::kDefaultAdvInterfaces);
 
-        self->OnAcceptFinished(res, transport);
-      });
+  utils::IpVersion ip_version =
+      adv_ep_.address().is_v4() ? utils::IpVersion::k4 : utils::IpVersion::k6;
+
+  listener_ =
+      std::make_shared<TcpListener>(context_, interfaces, ip_version, "branch");
 }
 
-void ConnectionManager::OnAcceptFinished(const api::Result& res,
-                                         network::TcpTransportPtr transport) {
-  if (res.IsError()) {
-    LOG_ERR("Accepting incoming TCP connection failed: "
-            << res << ". No more connections will be accepted.");
-    return;
-  }
+void ConnectionManager::OnAccepted(boost::asio::ip::tcp::socket socket) {
+  auto transport = std::make_shared<network::TcpTransport>(
+      context_, std::move(socket), info_->GetTimeout(),
+      info_->GetTransceiveByteLimit(), true);
 
   LOG_DBG("Accepted incoming TCP connection from "
           << network::MakeIpAddressString(transport->GetPeerEndpoint()));
 
   StartExchangeBranchInfo(transport, transport->GetPeerEndpoint().address(),
                           {});
-  StartAccept();
 }
 
 void ConnectionManager::OnAdvertisementReceived(

@@ -22,16 +22,21 @@
 #include "context.h"
 #include "branch.h"
 #include "logger.h"
+#include "detail/tcp_listener.h"
 #include "detail/web/auth_provider.h"
-#include "detail/web/listener.h"
 #include "detail/web/ssl_parameters.h"
 #include "detail/web/route.h"
 
 #include <nlohmann/json.hpp>
 #include <vector>
 #include <chrono>
+#include <memory>
 
 namespace objects {
+
+class WebServer;
+typedef std::shared_ptr<WebServer> WebServerPtr;
+typedef std::weak_ptr<WebServer> WebServerWeakPtr;
 
 class WebServer
     : public api::ExposedObjectT<WebServer, api::ObjectType::kWebServer>,
@@ -42,17 +47,18 @@ class WebServer
   void Start();
 
  private:
+  void CreateListener(const nlohmann::json& cfg);
+  void OnAccepted(boost::asio::ip::tcp::socket socket);
+
   const ContextPtr context_;
   const BranchPtr branch_;
   bool test_mode_;
   bool compress_assets_;
   std::size_t cache_size_;
-  detail::web::ListenerPtr listener_;
+  detail::TcpListenerPtr listener_;
   detail::web::AuthProviderPtr auth_;
   detail::web::RoutesVector routes_;
   detail::web::SslParametersPtr ssl_;
 };
-
-typedef std::shared_ptr<WebServer> WebServerPtr;
 
 }  // namespace objects

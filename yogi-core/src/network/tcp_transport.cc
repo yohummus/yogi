@@ -1,6 +1,6 @@
 /*
  * This file is part of the Yogi distribution https://github.com/yohummus/yogi.
- * Copyright (c) 2018 Johannes Bergmann.
+ * Copyright (c) 2019 Johannes Bergmann.
  *
  * This library is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,6 +21,24 @@
 YOGI_DEFINE_INTERNAL_LOGGER("Transport.Tcp");
 
 namespace network {
+
+TcpTransport::TcpTransport(objects::ContextPtr context,
+                           boost::asio::ip::tcp::socket&& socket,
+                           std::chrono::nanoseconds timeout,
+                           std::size_t transceive_byte_limit,
+                           bool created_via_accept)
+    : Transport(context, timeout, created_via_accept,
+                MakePeerDescription(socket), transceive_byte_limit),
+      socket_(std::move(socket)) {}
+
+void TcpTransport::SetNoDelayOption() {
+  boost::system::error_code ec;
+  std::lock_guard<std::mutex> lock(socket_mutex_);
+  socket_.set_option(boost::asio::ip::tcp::no_delay(true), ec);
+  if (ec) {
+    LOG_WRN("Could not set TCP_NODELAY option on socket: " << ec.message());
+  }
+}
 
 TcpTransport::AcceptGuardPtr TcpTransport::AcceptAsync(
     objects::ContextPtr context, boost::asio::ip::tcp::acceptor* acceptor,
@@ -154,24 +172,6 @@ void TcpTransport::CloseSocket(boost::asio::ip::tcp::socket* s) {
   s->cancel(ec);
   s->shutdown(s->shutdown_both, ec);
   s->close(ec);
-}
-
-TcpTransport::TcpTransport(objects::ContextPtr context,
-                           boost::asio::ip::tcp::socket&& socket,
-                           std::chrono::nanoseconds timeout,
-                           std::size_t transceive_byte_limit,
-                           bool created_via_accept)
-    : Transport(context, timeout, created_via_accept,
-                MakePeerDescription(socket), transceive_byte_limit),
-      socket_(std::move(socket)) {}
-
-void TcpTransport::SetNoDelayOption() {
-  boost::system::error_code ec;
-  std::lock_guard<std::mutex> lock(socket_mutex_);
-  socket_.set_option(boost::asio::ip::tcp::no_delay(true), ec);
-  if (ec) {
-    LOG_WRN("Could not set TCP_NODELAY option on socket: " << ec.message());
-  }
 }
 
 }  // namespace network

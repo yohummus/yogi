@@ -1,6 +1,6 @@
 /*
  * This file is part of the Yogi distribution https://github.com/yohummus/yogi.
- * Copyright (c) 2018 Johannes Bergmann.
+ * Copyright (c) 2019 Johannes Bergmann.
  *
  * This library is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -91,11 +91,10 @@ typedef std::shared_ptr<LocalBranchInfo> LocalBranchInfoPtr;
 class LocalBranchInfo : public BranchInfo {
  public:
   LocalBranchInfo(const nlohmann::json& cfg,
-                  const std::vector<utils::NetworkInterfaceInfo>& adv_ifs,
+                  const utils::NetworkInterfaceInfosVector& adv_ifs,
                   unsigned short tcp_server_port);
 
-  const std::vector<utils::NetworkInterfaceInfo>& GetAdvertisingInterfaces()
-      const {
+  const utils::NetworkInterfaceInfosVector& GetAdvertisingInterfaces() const {
     return adv_ifs_;
   }
 
@@ -121,7 +120,7 @@ class LocalBranchInfo : public BranchInfo {
   void PopulateMessages();
   void PopulateJsonWithLocalInfo();
 
-  std::vector<utils::NetworkInterfaceInfo> adv_ifs_;
+  utils::NetworkInterfaceInfosVector adv_ifs_;
   boost::asio::ip::udp::endpoint adv_ep_;
   std::size_t tx_queue_size_;
   std::size_t rx_queue_size_;

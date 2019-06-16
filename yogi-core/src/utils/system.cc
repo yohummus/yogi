@@ -1,6 +1,6 @@
 /*
  * This file is part of the Yogi distribution https://github.com/yohummus/yogi.
- * Copyright (c) 2018 Johannes Bergmann.
+ * Copyright (c) 2019 Johannes Bergmann.
  *
  * This library is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -78,8 +78,7 @@ void AppendIpAddress(NetworkInterfaceInfo* info, const sockaddr* sa) {
   }
 }
 
-void RemoveUnneededIpv6LoopbackAddresses(
-    std::vector<NetworkInterfaceInfo>* ifs) {
+void RemoveUnneededIpv6LoopbackAddresses(NetworkInterfaceInfosVector* ifs) {
   for (auto& info : *ifs) {
     if (!info.is_loopback) continue;
 
@@ -128,8 +127,8 @@ int GetCurrentThreadId() {
   return static_cast<int>(id);
 }
 
-std::vector<NetworkInterfaceInfo> GetNetworkInterfaces() {
-  std::vector<NetworkInterfaceInfo> ifs;
+NetworkInterfaceInfosVector GetNetworkInterfaces() {
+  NetworkInterfaceInfosVector ifs;
 
 #ifdef _WIN32
   std::vector<char> buffer(4096);
@@ -256,9 +255,9 @@ std::vector<NetworkInterfaceInfo> GetNetworkInterfaces() {
   return ifs;
 }
 
-std::vector<NetworkInterfaceInfo> GetFilteredNetworkInterfaces(
+NetworkInterfaceInfosVector GetFilteredNetworkInterfaces(
     const std::vector<std::string>& adv_if_strings, IpVersion ip_version) {
-  std::vector<NetworkInterfaceInfo> ifs;
+  NetworkInterfaceInfosVector ifs;
   for (auto& string : adv_if_strings) {
     for (auto& info : GetNetworkInterfaces()) {
       bool all = boost::iequals(string, "all");
@@ -285,7 +284,7 @@ std::vector<NetworkInterfaceInfo> GetFilteredNetworkInterfaces(
   return ifs;
 }
 
-std::vector<NetworkInterfaceInfo> GetFilteredNetworkInterfaces(
+NetworkInterfaceInfosVector GetFilteredNetworkInterfaces(
     const std::vector<std::string>& adv_if_strings,
     const boost::asio::ip::udp& protocol) {
   if (protocol == boost::asio::ip::udp::v4()) {

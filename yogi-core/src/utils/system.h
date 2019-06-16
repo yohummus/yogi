@@ -1,6 +1,6 @@
 /*
  * This file is part of the Yogi distribution https://github.com/yohummus/yogi.
- * Copyright (c) 2018 Johannes Bergmann.
+ * Copyright (c) 2019 Johannes Bergmann.
  *
  * This library is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -36,14 +36,16 @@ struct NetworkInterfaceInfo {
   bool is_loopback = false;
 };
 
+typedef std::vector<NetworkInterfaceInfo> NetworkInterfaceInfosVector;
+
 std::string GetHostname();
 int GetProcessId();
 int GetCurrentThreadId();
-std::vector<NetworkInterfaceInfo> GetNetworkInterfaces();
-std::vector<NetworkInterfaceInfo> GetFilteredNetworkInterfaces(
+NetworkInterfaceInfosVector GetNetworkInterfaces();
+NetworkInterfaceInfosVector GetFilteredNetworkInterfaces(
     const std::vector<std::string>& adv_if_strings,
     IpVersion ip_version = IpVersion::kAny);
-std::vector<NetworkInterfaceInfo> GetFilteredNetworkInterfaces(
+NetworkInterfaceInfosVector GetFilteredNetworkInterfaces(
     const std::vector<std::string>& adv_if_strings,
     const boost::asio::ip::udp& protocol);
 

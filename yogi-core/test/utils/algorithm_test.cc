@@ -1,6 +1,6 @@
 /*
  * This file is part of the Yogi distribution https://github.com/yohummus/yogi.
- * Copyright (c) 2018 Johannes Bergmann.
+ * Copyright (c) 2019 Johannes Bergmann.
  *
  * This library is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -36,6 +36,11 @@ TEST_F(AlgorithmTest, FindIf) {
 
   it = utils::find_if(vec_, [](int) { return false; });
   EXPECT_EQ(it, vec_.end());
+}
+
+TEST_F(AlgorithmTest, Contains) {
+  EXPECT_TRUE(utils::contains(vec_, 3));
+  EXPECT_FALSE(utils::contains(vec_, 7));
 }
 
 TEST_F(AlgorithmTest, ContainsIf) {

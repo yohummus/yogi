@@ -1,6 +1,6 @@
 /*
  * This file is part of the Yogi distribution https://github.com/yohummus/yogi.
- * Copyright (c) 2018 Johannes Bergmann.
+ * Copyright (c) 2019 Johannes Bergmann.
  *
  * This library is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -128,9 +128,6 @@ void LoggerUser::SetLoggingPrefix(const api::ExposedObject& obj) {
   prefix_ = obj.Format("[$x]");
 }
 
-void LoggerUser::SetLoggingPrefix(std::string prefix) {
-  YOGI_ASSERT(!HasLoggingPrefix());
-  prefix_ = prefix;
-}
+void LoggerUser::SetLoggingPrefix(std::string prefix) { prefix_ = prefix; }
 
 }  // namespace objects

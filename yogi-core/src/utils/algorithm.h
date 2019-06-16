@@ -1,6 +1,6 @@
 /*
  * This file is part of the Yogi distribution https://github.com/yohummus/yogi.
- * Copyright (c) 2018 Johannes Bergmann.
+ * Copyright (c) 2019 Johannes Bergmann.
  *
  * This library is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,15 +28,26 @@ inline typename Container::iterator find(Container& container, const T& value) {
   return std::find(container.begin(), container.end(), value);
 }
 
+template <typename Container, typename T>
+inline typename Container::const_iterator find(const Container& container,
+                                               const T& value) {
+  return std::find(container.begin(), container.end(), value);
+}
+
 template <typename Container, typename Predicate>
 inline typename Container::iterator find_if(Container& container,
                                             Predicate pred) {
   return std::find_if(container.begin(), container.end(), pred);
 }
 
+template <typename Container, typename T>
+inline bool contains(Container& container, const T& value) {
+  return find(container, value) != container.end();
+}
+
 template <typename Container, typename Predicate>
 inline bool contains_if(Container& container, Predicate pred) {
-  return find_if(container, pred) != std::end(container);
+  return find_if(container, pred) != container.end();
 }
 
 template <typename Container, typename T>

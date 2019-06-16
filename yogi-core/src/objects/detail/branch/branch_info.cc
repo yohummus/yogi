@@ -1,6 +1,6 @@
 /*
  * This file is part of the Yogi distribution https://github.com/yohummus/yogi.
- * Copyright (c) 2018 Johannes Bergmann.
+ * Copyright (c) 2019 Johannes Bergmann.
  *
  * This library is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -74,7 +74,7 @@ void BranchInfo::PopulateJson() {
 
 LocalBranchInfo::LocalBranchInfo(
     const nlohmann::json& cfg,
-    const std::vector<utils::NetworkInterfaceInfo>& adv_ifs,
+    const utils::NetworkInterfaceInfosVector& adv_ifs,
     unsigned short tcp_server_port) {
   // clang-format off
   uuid_            = boost::uuids::random_generator()();

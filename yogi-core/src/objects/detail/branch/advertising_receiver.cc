@@ -1,6 +1,6 @@
 /*
  * This file is part of the Yogi distribution https://github.com/yohummus/yogi.
- * Copyright (c) 2018 Johannes Bergmann.
+ * Copyright (c) 2019 Johannes Bergmann.
  *
  * This library is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,20 +27,18 @@ namespace objects {
 namespace detail {
 
 AdvertisingReceiver::AdvertisingReceiver(
-    ContextPtr context, const boost::asio::ip::udp::endpoint& adv_ep,
-    ObserverFn observer_fn)
-    : context_(context),
-      adv_ep_(adv_ep),
-      observer_fn_(observer_fn),
-      socket_(context->IoContext()) {
+    ContextPtr context, const boost::asio::ip::udp::endpoint& adv_ep)
+    : context_(context), adv_ep_(adv_ep), socket_(context->IoContext()) {
   buffer_ =
       utils::MakeSharedByteVector(BranchInfo::kAdvertisingMessageSize + 1);
 
   SetupSocket();
 }
 
-void AdvertisingReceiver::Start(LocalBranchInfoPtr info) {
+void AdvertisingReceiver::Start(LocalBranchInfoPtr info,
+                                ObserverFn observer_fn) {
   YOGI_ASSERT(!info_);
+  observer_fn_ = observer_fn;
 
   info_ = info;
   SetLoggingPrefix(info->GetLoggingPrefix());

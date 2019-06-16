@@ -23,6 +23,9 @@
 
 YOGI_DEFINE_INTERNAL_LOGGER("WebServer");
 
+#include <string>
+using namespace std::string_literals;
+
 namespace objects {
 
 WebServer::WebServer(ContextPtr context, BranchPtr branch,
@@ -30,10 +33,11 @@ WebServer::WebServer(ContextPtr context, BranchPtr branch,
     : context_(context), branch_(branch) {
   utils::ValidateJson(cfg, "web_server.schema.json");
 
-  listener_ = std::make_shared<detail::web::Listener>(context, cfg);
-  SetLoggingPrefix(listener_->GetLoggingPrefix());
+  CreateListener(cfg);
+  SetLoggingPrefix("Port "s + std::to_string(listener_->GetPort()));
 
   // clang-format off
+  // timeout_ = utils::ExtractDuration(cfg, "timeout", api::kDefaultWebTimeout);
   test_mode_       = cfg.value("test_mode", false);
   compress_assets_ = cfg.value("compress_assets", true);
   cache_size_      = utils::ExtractSize(cfg, "cache_size", api::kDefaultWebCacheSize);
@@ -43,6 +47,26 @@ WebServer::WebServer(ContextPtr context, BranchPtr branch,
   // clang-format on
 }
 
-void WebServer::Start() {}
+void WebServer::Start() {
+  auto weak_self = MakeWeakPtr();
+  listener_->Start([weak_self](auto socket) {
+    auto self = weak_self.lock();
+    if (!self) return;
+
+    self->OnAccepted(std::move(socket));
+  });
+}
+
+void WebServer::CreateListener(const nlohmann::json& cfg) {
+  auto interfaces = utils::ExtractArrayOfStrings(cfg, "interfaces",
+                                                 api::kDefaultWebInterfaces);
+  auto port =
+      cfg.value("port", static_cast<unsigned short>(api::kDefaultWebPort));
+
+  listener_ = std::make_shared<detail::TcpListener>(
+      context_, interfaces, utils::IpVersion::kAny, port, "web server");
+}
+
+void WebServer::OnAccepted(boost::asio::ip::tcp::socket socket) {}
 
 }  // namespace objects

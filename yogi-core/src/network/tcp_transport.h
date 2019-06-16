@@ -1,6 +1,6 @@
 /*
  * This file is part of the Yogi distribution https://github.com/yohummus/yogi.
- * Copyright (c) 2018 Johannes Bergmann.
+ * Copyright (c) 2019 Johannes Bergmann.
  *
  * This library is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -74,6 +74,11 @@ class TcpTransport : public Transport {
                                       std::size_t transceive_byte_limit,
                                       ConnectHandler handler);
 
+  TcpTransport(objects::ContextPtr context,
+               boost::asio::ip::tcp::socket&& socket,
+               std::chrono::nanoseconds timeout,
+               std::size_t transceive_byte_limit, bool created_via_accept);
+
   boost::asio::ip::tcp::endpoint GetPeerEndpoint() const {
     return socket_.remote_endpoint();
   }
@@ -90,10 +95,6 @@ class TcpTransport : public Transport {
       const boost::asio::ip::tcp::socket& socket);
   static void CloseSocket(boost::asio::ip::tcp::socket* s);
 
-  TcpTransport(objects::ContextPtr context,
-               boost::asio::ip::tcp::socket&& socket,
-               std::chrono::nanoseconds timeout,
-               std::size_t transceive_byte_limit, bool created_via_accept);
   void SetNoDelayOption();
 
   boost::asio::ip::tcp::socket socket_;

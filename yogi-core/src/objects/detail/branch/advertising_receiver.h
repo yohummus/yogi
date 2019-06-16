@@ -1,6 +1,6 @@
 /*
  * This file is part of the Yogi distribution https://github.com/yohummus/yogi.
- * Copyright (c) 2018 Johannes Bergmann.
+ * Copyright (c) 2019 Johannes Bergmann.
  *
  * This library is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -40,10 +40,9 @@ class AdvertisingReceiver
       ObserverFn;
 
   AdvertisingReceiver(ContextPtr context,
-                      const boost::asio::ip::udp::endpoint& adv_ep,
-                      ObserverFn observer_fn);
+                      const boost::asio::ip::udp::endpoint& adv_ep);
 
-  void Start(LocalBranchInfoPtr info);
+  void Start(LocalBranchInfoPtr info, ObserverFn observer_fn);
 
  private:
   void SetupSocket();
