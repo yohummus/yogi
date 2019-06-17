@@ -44,21 +44,27 @@ class ConnectionManagerTest : public TestFixture {
     ReCreateBranch(adv_addr);
     RunContextInBackground(context_);
 
-    auto msg = multicast.Receive().second;
-    ASSERT_EQ(msg.size(), 25) << "Unexpected advertising message size";
+    bool uuid_ok = false;
+    for (int i = 0; !uuid_ok && i < 10; ++i) {
+      auto msg = multicast.Receive().second;
+      ASSERT_EQ(msg.size(), 25) << "Unexpected advertising message size";
 
-    boost::uuids::uuid uuid;
-    YOGI_BranchGetInfo(branch_, &uuid, nullptr, 0);
+      boost::uuids::uuid uuid;
+      YOGI_BranchGetInfo(branch_, &uuid, nullptr, 0);
 
-    EXPECT_EQ(msg[0], 'Y');
-    EXPECT_EQ(msg[1], 'O');
-    EXPECT_EQ(msg[2], 'G');
-    EXPECT_EQ(msg[3], 'I');
-    EXPECT_EQ(msg[4], '\0');
-    EXPECT_EQ(msg[5], api::kVersionMajor);
-    EXPECT_EQ(msg[6], api::kVersionMinor);
-    EXPECT_EQ(std::memcmp(&uuid, msg.data() + 7, sizeof(uuid)), 0);
-    EXPECT_TRUE(msg[23] != 0 || msg[24] != 0);
+      EXPECT_EQ(msg[0], 'Y');
+      EXPECT_EQ(msg[1], 'O');
+      EXPECT_EQ(msg[2], 'G');
+      EXPECT_EQ(msg[3], 'I');
+      EXPECT_EQ(msg[4], '\0');
+      EXPECT_EQ(msg[5], api::kVersionMajor);
+      EXPECT_EQ(msg[6], api::kVersionMinor);
+      EXPECT_TRUE(msg[23] != 0 || msg[24] != 0);
+
+      uuid_ok = std::memcmp(&uuid, msg.data() + 7, sizeof(uuid)) == 0;
+    }
+
+    EXPECT_TRUE(uuid_ok);
   }
 
   void TestConnectNormally(const char* adv_addr) {
