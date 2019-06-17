@@ -163,6 +163,7 @@ std::pair<boost::asio::ip::address, utils::ByteVector> MulticastSocket::Receive(
                                msg.resize(size);
                              });
 
+  ioc_.reset();
   if (!ioc_.run_one_for(timeout)) {
     throw std::runtime_error(
         "No multicast message received within the specified time.");
