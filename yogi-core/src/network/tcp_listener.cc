@@ -18,6 +18,7 @@
 #include "tcp_listener.h"
 #include "../utils/algorithm.h"
 
+#include <boost/asio/strand.hpp>
 #include <boost/asio/ip/v6_only.hpp>
 using namespace boost::asio::ip;
 
@@ -77,7 +78,7 @@ void TcpListener::SetupAcceptors() {
 
 void TcpListener::CreateAcceptorForAll() {
   boost::system::error_code ec;
-  tcp::acceptor acc(context_->IoContext());
+  tcp::acceptor acc(boost::asio::make_strand(context_->IoContext()));
 
   auto prot = ip_version_ == utils::IpVersion::k4 ? tcp::v4() : tcp::v6();
   acc.open(prot, ec);
@@ -102,7 +103,7 @@ void TcpListener::CreateAcceptorsForSpecific() {
 
   for (auto& info : ifs_) {
     for (auto& addr : info.addresses) {
-      tcp::acceptor acc(context_->IoContext());
+      tcp::acceptor acc(boost::asio::make_strand(context_->IoContext()));
 
       acc.open(addr.is_v4() ? tcp::v4() : tcp::v6(), ec);
       if (!CheckAndLogOpenError(ec, addr)) continue;
@@ -215,12 +216,13 @@ void TcpListener::ListenOnAllAcceptors() {
 
 void TcpListener::StartAccept(tcp::acceptor* acc) {
   auto weak_self = MakeWeakPtr();
-  acc->async_accept([=](auto ec, auto socket) {
-    auto self = weak_self.lock();
-    if (!self) return;
+  acc->async_accept(boost::asio::make_strand(context_->IoContext()),
+                    [=](auto ec, auto socket) {
+                      auto self = weak_self.lock();
+                      if (!self) return;
 
-    self->OnAcceptFinished(ec, std::move(socket), acc);
-  });
+                      self->OnAcceptFinished(ec, std::move(socket), acc);
+                    });
 }
 
 void TcpListener::OnAcceptFinished(boost::system::error_code ec,

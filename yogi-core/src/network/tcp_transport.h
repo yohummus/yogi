@@ -23,8 +23,6 @@
 
 #include <boost/asio.hpp>
 
-#include <mutex>
-
 namespace network {
 
 class TcpTransport;
@@ -98,7 +96,6 @@ class TcpTransport : public Transport {
   void SetNoDelayOption();
 
   boost::asio::ip::tcp::socket socket_;
-  std::mutex socket_mutex_;
 };
 
 }  // namespace network

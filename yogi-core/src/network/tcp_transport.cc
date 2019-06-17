@@ -18,6 +18,8 @@
 #include "tcp_transport.h"
 #include "ip.h"
 
+#include <boost/asio/strand.hpp>
+
 YOGI_DEFINE_INTERNAL_LOGGER("Transport.Tcp");
 
 namespace network {
@@ -33,7 +35,6 @@ TcpTransport::TcpTransport(objects::ContextPtr context,
 
 void TcpTransport::SetNoDelayOption() {
   boost::system::error_code ec;
-  std::lock_guard<std::mutex> lock(socket_mutex_);
   socket_.set_option(boost::asio::ip::tcp::no_delay(true), ec);
   if (ec) {
     LOG_WRN("Could not set TCP_NODELAY option on socket: " << ec.message());
@@ -48,26 +49,27 @@ TcpTransport::AcceptGuardPtr TcpTransport::AcceptAsync(
   auto weak_guard = AcceptGuardWeakPtr(guard);
   auto weak_context = context->MakeWeakPtr();
 
-  auto socket =
-      std::make_shared<boost::asio::ip::tcp::socket>(context->IoContext());
-  acceptor->async_accept(*socket, [=](auto& ec) {
-    auto guard = weak_guard.lock();
-    if (guard) guard->Disable();
+  acceptor->async_accept(
+      boost::asio::make_strand(context->IoContext()),
+      [=](auto& ec, auto socket) {
+        auto guard = weak_guard.lock();
+        if (guard) guard->Disable();
 
-    auto context = weak_context.lock();
-    if (!context) return;
+        auto context = weak_context.lock();
+        if (!context) return;
 
-    if (!ec) {
-      auto transport = TcpTransportPtr(new TcpTransport(
-          context, std::move(*socket), timeout, transceive_byte_limit, true));
-      transport->SetNoDelayOption();
-      handler(api::kSuccess, transport, guard);
-    } else if (ec == boost::asio::error::operation_aborted) {
-      handler(api::Error(YOGI_ERR_CANCELED), {}, guard);
-    } else {
-      handler(api::Error(YOGI_ERR_ACCEPT_SOCKET_FAILED), {}, guard);
-    }
-  });
+        if (!ec) {
+          auto transport = TcpTransportPtr(
+              new TcpTransport(context, std::move(socket), timeout,
+                               transceive_byte_limit, true));
+          transport->SetNoDelayOption();
+          handler(api::kSuccess, transport, guard);
+        } else if (ec == boost::asio::error::operation_aborted) {
+          handler(api::Error(YOGI_ERR_CANCELED), {}, guard);
+        } else {
+          handler(api::Error(YOGI_ERR_ACCEPT_SOCKET_FAILED), {}, guard);
+        }
+      });
 
   return guard;
 }
@@ -77,7 +79,8 @@ TcpTransport::ConnectGuardPtr TcpTransport::ConnectAsync(
     std::chrono::nanoseconds timeout, std::size_t transceive_byte_limit,
     ConnectHandler handler) {
   struct ConnectData {
-    ConnectData(boost::asio::io_context& ioc) : socket(ioc), timer(ioc) {}
+    ConnectData(boost::asio::io_context& ioc)
+        : socket(boost::asio::make_strand(ioc)), timer(ioc) {}
 
     boost::asio::ip::tcp::socket socket;
     boost::asio::steady_timer timer;
@@ -130,7 +133,6 @@ TcpTransport::ConnectGuardPtr TcpTransport::ConnectAsync(
 
 void TcpTransport::WriteSomeAsync(boost::asio::const_buffer data,
                                   TransferSomeHandler handler) {
-  std::lock_guard<std::mutex> lock(socket_mutex_);
   socket_.async_write_some(data, [=](auto& ec, auto bytes_written) {
     if (!ec) {
       handler(api::kSuccess, bytes_written);
@@ -144,7 +146,6 @@ void TcpTransport::WriteSomeAsync(boost::asio::const_buffer data,
 
 void TcpTransport::ReadSomeAsync(boost::asio::mutable_buffer data,
                                  TransferSomeHandler handler) {
-  std::lock_guard<std::mutex> lock(socket_mutex_);
   socket_.async_read_some(data, [=](auto& ec, auto bytes_read) {
     if (!ec) {
       handler(api::kSuccess, bytes_read);
@@ -156,10 +157,7 @@ void TcpTransport::ReadSomeAsync(boost::asio::mutable_buffer data,
   });
 }
 
-void TcpTransport::Shutdown() {
-  std::lock_guard<std::mutex> lock(socket_mutex_);
-  CloseSocket(&socket_);
-}
+void TcpTransport::Shutdown() { CloseSocket(&socket_); }
 
 std::string TcpTransport::MakePeerDescription(
     const boost::asio::ip::tcp::socket& socket) {
