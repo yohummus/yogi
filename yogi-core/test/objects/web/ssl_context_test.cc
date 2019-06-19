@@ -114,11 +114,7 @@ TEST_F(SslContextTest, PasswordRequired) {
                                  YOGI_ERR_CONFIG_NOT_VALID);
 
   cfg["ssl"]["private_key_password"] = "secret";
-  try {
-    SslContext(cfg, "");
-  } catch (const api::DescriptiveError& e) {
-    std::cout << e.GetDetails() << std::endl;
-  }
+
   EXPECT_NO_THROW(SslContext(cfg, ""));
 }
 

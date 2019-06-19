@@ -29,8 +29,14 @@ namespace objects {
 namespace web {
 namespace detail {
 
+class SslContext;
+typedef std::shared_ptr<SslContext> SslContextPtr;
+
 class SslContext : public log::LoggerUser {
  public:
+  static SslContextPtr Create(const nlohmann::json& cfg,
+                              const std::string& logging_prefix);
+
   SslContext(const nlohmann::json& cfg, const std::string& logging_prefix);
 
   boost::asio::ssl::context& AsioSslContext() { return ssl_ctx_; }
@@ -61,8 +67,6 @@ class SslContext : public log::LoggerUser {
   std::string certificate_chain_;
   std::string dh_params_;
 };
-
-typedef std::unique_ptr<SslContext> SslContextPtr;
 
 }  // namespace detail
 }  // namespace web

@@ -27,7 +27,7 @@
 #include "detail/ssl_context.h"
 #include "detail/route.h"
 #include "detail/worker_pool.h"
-#include "detail/http_session.h"
+#include "detail/https_session.h"
 
 #include <nlohmann/json.hpp>
 #include <vector>
@@ -54,7 +54,7 @@ class WebServer
  private:
   void CreateListener(const nlohmann::json& cfg);
   void OnAccepted(boost::asio::ip::tcp::socket socket);
-  detail::HttpSessionPtr MakeHttpSession(boost::asio::ip::tcp::socket socket);
+  detail::HttpsSessionPtr MakeHttpsSession(boost::asio::ip::tcp::socket socket);
 
   const ContextPtr context_;
   const branch::BranchPtr branch_;

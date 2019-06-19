@@ -47,7 +47,7 @@ WebServer::WebServer(ContextPtr context, branch::BranchPtr branch,
   cache_size_      = utils::ExtractSize(cfg, "cache_size", api::kDefaultWebCacheSize);
   auth_            = detail::AuthProvider::Create(cfg, GetLoggingPrefix());
   routes_          = detail::Route::CreateAll(cfg, *auth_, GetLoggingPrefix());
-  ssl_             = std::make_unique<detail::SslContext>(cfg, GetLoggingPrefix());
+  ssl_             = detail::SslContext::Create(cfg, GetLoggingPrefix());
   // clang-format on
 }
 
@@ -76,18 +76,18 @@ void WebServer::CreateListener(const nlohmann::json& cfg) {
 }
 
 void WebServer::OnAccepted(boost::asio::ip::tcp::socket socket) {
-  MakeHttpSession(std::move(socket));
+  MakeHttpsSession(std::move(socket));
 }
 
-detail::HttpSessionPtr WebServer::MakeHttpSession(
+detail::HttpsSessionPtr WebServer::MakeHttpsSession(
     boost::asio::ip::tcp::socket socket) {
   auto worker = worker_pool_.AcquireWorker();
   if (worker.Context() == context_) {
-    return std::make_shared<detail::HttpSession>(std::move(worker),
-                                                 std::move(socket));
+    return std::make_shared<detail::HttpsSession>(ssl_, std::move(worker),
+                                                  std::move(socket));
   } else {
-    return std::make_shared<detail::HttpSession>(
-        std::move(worker),
+    return std::make_shared<detail::HttpsSession>(
+        ssl_, std::move(worker),
         boost::asio::ip::tcp::socket(
             boost::asio::make_strand(worker.Context()->IoContext()),
             socket.local_endpoint().protocol(), socket.release()));

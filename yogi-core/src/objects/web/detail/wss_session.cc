@@ -15,23 +15,13 @@
  * along with this library. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#pragma once
-
-#include "../../../config.h"
-
-#include <memory>
+#include "wss_session.h"
 
 namespace objects {
 namespace web {
 namespace detail {
 
-class WebsocketSession;
-
-typedef std::shared_ptr<WebsocketSession> WebsocketSessionPtr;
-
-class WebsocketSession {
- public:
-};
+// TODO
 
 }  // namespace detail
 }  // namespace web

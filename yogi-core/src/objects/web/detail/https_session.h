@@ -15,14 +15,34 @@
  * along with this library. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "http_session.h"
+#pragma once
+
+#include "../../../config.h"
+#include "worker_pool.h"
+#include "ssl_context.h"
+
+#include <boost/asio/ip/tcp.hpp>
+
+#include <memory>
 
 namespace objects {
 namespace web {
 namespace detail {
 
-HttpSession::HttpSession(Worker&& worker,
-                         boost::asio::ip::tcp::socket&& socket) {}
+class HttpsSession;
+
+typedef std::shared_ptr<HttpsSession> HttpsSessionPtr;
+
+class HttpsSession {
+ public:
+  HttpsSession(SslContextPtr ssl, Worker&& worker,
+               boost::asio::ip::tcp::socket&& socket);
+
+ private:
+  const SslContextPtr ssl_;
+  Worker worker_;
+  boost::asio::ip::tcp::socket socket_;
+};
 
 }  // namespace detail
 }  // namespace web

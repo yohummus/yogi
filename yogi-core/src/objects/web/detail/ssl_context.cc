@@ -29,6 +29,11 @@ namespace objects {
 namespace web {
 namespace detail {
 
+SslContextPtr SslContext::Create(const nlohmann::json& cfg,
+                                 const std::string& logging_prefix) {
+  return std::make_shared<SslContext>(cfg, logging_prefix);
+}
+
 SslContext::SslContext(const nlohmann::json& cfg,
                        const std::string& logging_prefix)
     : ssl_ctx_(boost::asio::ssl::context::tlsv12) {

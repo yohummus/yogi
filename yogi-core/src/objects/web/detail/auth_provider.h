@@ -34,7 +34,7 @@ class AuthProvider;
 class ConfigAuthProvider;
 class FilesAuthProvider;
 
-typedef std::unique_ptr<AuthProvider> AuthProviderPtr;
+typedef std::shared_ptr<AuthProvider> AuthProviderPtr;
 
 class AuthProvider : public objects::log::LoggerUser {
  public:

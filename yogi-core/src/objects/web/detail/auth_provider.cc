@@ -41,9 +41,9 @@ AuthProviderPtr AuthProvider::Create(const nlohmann::json& cfg,
 
   auto provider = auth_cfg.value("provider", "config");
   if (provider == "config") {
-    auth = std::make_unique<ConfigAuthProvider>();
+    auth = std::make_shared<ConfigAuthProvider>();
   } else if (provider == "files") {
-    auth = std::make_unique<FilesAuthProvider>();
+    auth = std::make_shared<FilesAuthProvider>();
   } else {
     YOGI_NEVER_REACHED;
   }
