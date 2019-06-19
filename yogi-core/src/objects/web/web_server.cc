@@ -18,8 +18,11 @@
 #include "web_server.h"
 #include "../../api/errors.h"
 #include "../../api/constants.h"
+#include "../../utils/algorithm.h"
 #include "../../utils/json_helpers.h"
 #include "../../schema/schema.h"
+
+#include <algorithm>
 
 YOGI_DEFINE_INTERNAL_LOGGER("WebServer");
 
@@ -31,7 +34,7 @@ namespace web {
 
 WebServer::WebServer(ContextPtr context, branch::BranchPtr branch,
                      const nlohmann::json& cfg)
-    : context_(context), branch_(branch) {
+    : context_(context), branch_(branch), worker_pool_(context) {
   schema::ValidateJson(cfg, "web_server.schema.json");
 
   CreateListener(cfg);
@@ -46,6 +49,10 @@ WebServer::WebServer(ContextPtr context, branch::BranchPtr branch,
   routes_          = detail::Route::CreateAll(cfg, *auth_, GetLoggingPrefix());
   ssl_             = std::make_unique<detail::SslParameters>(cfg, GetLoggingPrefix());
   // clang-format on
+}
+
+void WebServer::AddWorker(ContextPtr worker_context) {
+  worker_pool_.AddWorker(worker_context);
 }
 
 void WebServer::Start() {
@@ -68,7 +75,24 @@ void WebServer::CreateListener(const nlohmann::json& cfg) {
       context_, interfaces, utils::IpVersion::kAny, port, "web server");
 }
 
-void WebServer::OnAccepted(boost::asio::ip::tcp::socket socket) {}
+void WebServer::OnAccepted(boost::asio::ip::tcp::socket socket) {
+  MakeHttpSession(std::move(socket));
+}
+
+detail::HttpSessionPtr WebServer::MakeHttpSession(
+    boost::asio::ip::tcp::socket socket) {
+  auto worker = worker_pool_.AcquireWorker();
+  if (worker.Context() == context_) {
+    return std::make_shared<detail::HttpSession>(std::move(worker),
+                                                 std::move(socket));
+  } else {
+    return std::make_shared<detail::HttpSession>(
+        std::move(worker),
+        boost::asio::ip::tcp::socket(
+            boost::asio::make_strand(worker.Context()->IoContext()),
+            socket.local_endpoint().protocol(), socket.release()));
+  }
+}
 
 }  // namespace web
 }  // namespace objects

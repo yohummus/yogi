@@ -71,6 +71,7 @@ TEST(ErrorsTest, ErrorCodeEnum) {
   CHECK_ENUM_ELEMENT(ErrorCode, kEnumerateNetworkInterfacesFailed, YOGI_ERR_ENUMERATE_NETWORK_INTERFACES_FAILED);
   CHECK_ENUM_ELEMENT(ErrorCode, kConfigurationSectionNotFound,     YOGI_ERR_CONFIGURATION_SECTION_NOT_FOUND);
   CHECK_ENUM_ELEMENT(ErrorCode, kConfigurationValidationFailed,    YOGI_ERR_CONFIGURATION_VALIDATION_FAILED);
+  CHECK_ENUM_ELEMENT(ErrorCode, kWorkerAlreadyAdded,               YOGI_ERR_WORKER_ALREADY_ADDED);
   // clang-format on
 }
 

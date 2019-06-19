@@ -173,6 +173,9 @@ const char* Result::GetDescription() const {
 
     case YOGI_ERR_CONFIGURATION_VALIDATION_FAILED:
       return "Validating the configuration failed";
+
+    case YOGI_ERR_WORKER_ALREADY_ADDED:
+      return "The context has already been added as a worker";
   }
 
   return "Invalid error code";

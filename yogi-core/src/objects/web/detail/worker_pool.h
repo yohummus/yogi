@@ -18,23 +18,49 @@
 #pragma once
 
 #include "../../../config.h"
-#include "worker_pool.h"
+#include "../../context.h"
 
-#include <boost/asio/ip/tcp.hpp>
-
+#include <mutex>
 #include <memory>
+#include <atomic>
+#include <vector>
 
 namespace objects {
 namespace web {
 namespace detail {
 
-class HttpSession;
-
-typedef std::shared_ptr<HttpSession> HttpSessionPtr;
-
-class HttpSession {
+class Worker final {
  public:
-  HttpSession(Worker&& worker, boost::asio::ip::tcp::socket&& socket);
+  typedef std::shared_ptr<std::atomic<int>> LoadCounterPtr;
+
+  Worker(ContextPtr context, LoadCounterPtr load_counter);
+  Worker(const Worker&) = delete;
+  Worker(Worker&& other);
+  ~Worker();
+
+  Worker& operator=(Worker&& other);
+  Worker& operator=(const Worker&) = delete;
+
+  const ContextPtr& Context() { return context_; }
+
+ private:
+  ContextPtr context_;
+  LoadCounterPtr load_counter_;
+};
+
+class WorkerPool {
+ public:
+  WorkerPool(ContextPtr fallback_context);
+
+  Worker AcquireWorker();
+  void AddWorker(ContextPtr worker_context);
+
+ private:
+  using LoadCounterPtr = Worker::LoadCounterPtr;
+
+  const ContextPtr fallback_context_;
+  std::mutex mutex_;
+  std::vector<std::pair<ContextPtr, LoadCounterPtr>> worker_contexts_;
 };
 
 }  // namespace detail

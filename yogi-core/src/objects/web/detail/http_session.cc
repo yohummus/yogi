@@ -21,7 +21,8 @@ namespace objects {
 namespace web {
 namespace detail {
 
-// TODO
+HttpSession::HttpSession(Worker&& worker,
+                         boost::asio::ip::tcp::socket&& socket) {}
 
 }  // namespace detail
 }  // namespace web

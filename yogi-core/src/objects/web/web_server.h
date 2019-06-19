@@ -26,6 +26,8 @@
 #include "detail/auth_provider.h"
 #include "detail/ssl_parameters.h"
 #include "detail/route.h"
+#include "detail/worker_pool.h"
+#include "detail/http_session.h"
 
 #include <nlohmann/json.hpp>
 #include <vector>
@@ -46,11 +48,13 @@ class WebServer
   WebServer(ContextPtr context, branch::BranchPtr branch,
             const nlohmann::json& cfg);
 
+  void AddWorker(ContextPtr worker);
   void Start();
 
  private:
   void CreateListener(const nlohmann::json& cfg);
   void OnAccepted(boost::asio::ip::tcp::socket socket);
+  detail::HttpSessionPtr MakeHttpSession(boost::asio::ip::tcp::socket socket);
 
   const ContextPtr context_;
   const branch::BranchPtr branch_;
@@ -61,6 +65,7 @@ class WebServer
   detail::AuthProviderPtr auth_;
   detail::RoutesVector routes_;
   detail::SslParametersPtr ssl_;
+  detail::WorkerPool worker_pool_;
 };
 
 }  // namespace web

@@ -184,6 +184,9 @@ public static partial class Yogi
 
         /// <summary>Validating the configuration failed.</summary>
         ConfigurationValidationFailed = -48,
+
+        /// <summary>The context has already been added as a worker.</summary>
+        WorkerAlreadyAdded = -49,
     }
 
     /// <summary>

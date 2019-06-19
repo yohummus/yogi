@@ -311,6 +311,9 @@
 //! Validating the configuration failed
 #define YOGI_ERR_CONFIGURATION_VALIDATION_FAILED -48
 
+//! The context has already been added as a worker
+#define YOGI_ERR_WORKER_ALREADY_ADDED -49
+
 //! @}
 //!
 //! @defgroup VB Log verbosity/severity
@@ -2595,7 +2598,8 @@ YOGI_API int YOGI_WebServerCreate(void** server, void* context, void* branch,
  * Adds a worker thread to a web server.
  *
  * A worker represents a thread handling client requests. Multiple workers can
- * be added to a server in order to improve performance.
+ * be added to a server in order to improve performance. If no workers have been
+ * added, the server will use its own context to handle client requests.
  *
  * \attention
  *   The user has to provide the thread running the provided context or call
@@ -2608,17 +2612,6 @@ YOGI_API int YOGI_WebServerCreate(void** server, void* context, void* branch,
  * \returns [<0] An error code in case of a failure (see \ref EC)
  */
 YOGI_API int YOGI_WebServerAddWorker(void* server, void* context);
-
-/*!
- * Removes a worker thread from a web server.
- *
- * \param[in] server  The server that uses the context
- * \param[in] context The context to remove
- *
- * \returns [=0] #YOGI_OK if successful
- * \returns [<0] An error code in case of a failure (see \ref EC)
- */
-YOGI_API int YOGI_WebServerRemoveWorker(void* server, void* context);
 
 /*!
  * Creates a custom route.

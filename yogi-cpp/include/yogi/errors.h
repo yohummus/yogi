@@ -191,6 +191,9 @@ enum class ErrorCode {
 
   /// Validating the configuration failed
   kConfigurationValidationFailed = -48,
+
+  /// The context has already been added as a worker
+  kWorkerAlreadyAdded = -49,
 };
 
 template <>
@@ -245,6 +248,7 @@ inline std::string ToString<ErrorCode>(const ErrorCode& ec) {
     _YOGI_TO_STRING_ENUM_CASE(ErrorCode, kEnumerateNetworkInterfacesFailed)
     _YOGI_TO_STRING_ENUM_CASE(ErrorCode, kConfigurationSectionNotFound)
     _YOGI_TO_STRING_ENUM_CASE(ErrorCode, kConfigurationValidationFailed)
+    _YOGI_TO_STRING_ENUM_CASE(ErrorCode, kWorkerAlreadyAdded)
   }
 
   bool should_never_get_here = false;

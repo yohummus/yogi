@@ -17,7 +17,7 @@
 
 #include "../common.h"
 
-static constexpr int kLastError = YOGI_ERR_CONFIGURATION_VALIDATION_FAILED;
+static constexpr int kLastError = YOGI_ERR_WORKER_ALREADY_ADDED;
 
 TEST(ErrorsTest, DefaultResultConstructor) {
   api::Result res;

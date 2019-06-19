@@ -56,10 +56,6 @@ YOGI_API int YOGI_WebServerAddWorker(void* server, void* context) {
   return YOGI_ERR_UNKNOWN;
 }
 
-YOGI_API int YOGI_WebServerRemoveWorker(void* server, void* context) {
-  return YOGI_ERR_UNKNOWN;
-}
-
 YOGI_API int YOGI_WebRouteCreate(
     void** route, void* server, const char* baseuri,
     void (*fn)(int res, int rid, const char* user, const char* owner,
