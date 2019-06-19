@@ -15,7 +15,7 @@
  * along with this library. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "ssl_parameters.h"
+#include "ssl_context.h"
 #include "../../../api/errors.h"
 #include "../../../api/constants.h"
 #include "../../../schema/schema.h"
@@ -29,8 +29,9 @@ namespace objects {
 namespace web {
 namespace detail {
 
-SslParameters::SslParameters(const nlohmann::json& cfg,
-                             const std::string& logging_prefix) {
+SslContext::SslContext(const nlohmann::json& cfg,
+                       const std::string& logging_prefix)
+    : ssl_ctx_(boost::asio::ssl::context::tlsv12) {
   schema::ValidateJson(cfg, "web_ssl.schema.json");
   static const nlohmann::json dummy = nlohmann::json::object_t{};
   const auto& ssl_cfg = cfg.value("ssl", dummy);
@@ -50,11 +51,14 @@ SslParameters::SslParameters(const nlohmann::json& cfg,
 
   dh_params_ = ExtractFromConfigOrFile(
       ssl_cfg, "dh_params", api::kDefaultSslDhParams, "DH parameters");
+
+  SetupSslContext();
 }
 
-std::string SslParameters::ExtractFromConfigOrFile(
-    const nlohmann::json& ssl_cfg, const std::string& key,
-    const char* default_val, const char* desc) {
+std::string SslContext::ExtractFromConfigOrFile(const nlohmann::json& ssl_cfg,
+                                                const std::string& key,
+                                                const char* default_val,
+                                                const char* desc) {
   auto prop = ssl_cfg.find(key);
   auto prop_file = ssl_cfg.find(key + "_file");
 
@@ -67,7 +71,7 @@ std::string SslParameters::ExtractFromConfigOrFile(
   }
 }
 
-std::string SslParameters::LoadFromFile(
+std::string SslContext::LoadFromFile(
     const nlohmann::json::const_iterator& prop_file, const char* desc) {
   auto filename =
       boost::filesystem::absolute(prop_file->get<std::string>()).string();
@@ -88,7 +92,7 @@ std::string SslParameters::LoadFromFile(
   return content;
 }
 
-std::string SslParameters::LoadFromConfig(
+std::string SslContext::LoadFromConfig(
     const nlohmann::json::const_iterator& prop, const char* desc) {
   std::string content;
 
@@ -109,14 +113,14 @@ std::string SslParameters::LoadFromConfig(
   return content;
 }
 
-std::string SslParameters::LoadFromDefault(const char* default_val,
-                                           const char* desc) {
+std::string SslContext::LoadFromDefault(const char* default_val,
+                                        const char* desc) {
   LOG_IFO("Using default SSL " << desc);
   return default_val;
 }
 
-void SslParameters::CheckPemFormat(const std::string& content, const char* desc,
-                                   const std::string& source) {
+void SslContext::CheckPemFormat(const std::string& content, const char* desc,
+                                const std::string& source) {
   if (content.find("-----BEGIN ") == std::string::npos) {
     throw api::DescriptiveError(YOGI_ERR_CONFIG_NOT_VALID)
         << "The SSL " << desc << " supplied in " << source
@@ -124,7 +128,7 @@ void SslParameters::CheckPemFormat(const std::string& content, const char* desc,
   }
 }
 
-void SslParameters::WarnIfUsingDefaultPrivateKey() {
+void SslContext::WarnIfUsingDefaultPrivateKey() {
   if (private_key_ == api::kDefaultSslPrivateKey) {
     LOG_WRN(
         "Using the default SSL private key is unsafe since the key is publicly "
@@ -132,12 +136,47 @@ void SslParameters::WarnIfUsingDefaultPrivateKey() {
   }
 }
 
-void SslParameters::CheckPrivateKeyPasswordGiven() {
+void SslContext::CheckPrivateKeyPasswordGiven() {
   if (private_key_.find("ENCRYPTED") != std::string::npos &&
       private_key_pw_.empty()) {
     throw api::DescriptiveError(YOGI_ERR_CONFIG_NOT_VALID)
         << "The SSL private key is encrypted but no password has been supplied "
            "in the configuration.";
+  }
+}
+
+void SslContext::SetupSslContext() {
+  boost::system::error_code ec;
+  ssl_ctx_.set_password_callback(
+      [this](auto, auto) { return this->private_key_pw_; }, ec);
+  if (ec) LOG_ERR("Coult not set SSL password callback: " << ec.message());
+
+  ssl_ctx_.set_options(boost::asio::ssl::context::default_workarounds |
+                           boost::asio::ssl::context::no_sslv2 |
+                           boost::asio::ssl::context::single_dh_use,
+                       ec);
+  if (ec) LOG_ERR("Could not set SSL options: " << ec.message());
+
+  ssl_ctx_.use_certificate_chain(
+      boost::asio::buffer(certificate_chain_, certificate_chain_.size()), ec);
+  if (ec) {
+    throw api::DescriptiveError(YOGI_ERR_CONFIG_NOT_VALID)
+        << "Setting SSL certificate chain failed: " << ec.message();
+  }
+
+  ssl_ctx_.use_private_key(
+      boost::asio::buffer(private_key_.data(), private_key_.size()),
+      boost::asio::ssl::context::file_format::pem, ec);
+  if (ec) {
+    throw api::DescriptiveError(YOGI_ERR_CONFIG_NOT_VALID)
+        << "Setting SSL private key failed: " << ec.message();
+  }
+
+  ssl_ctx_.use_tmp_dh(boost::asio::buffer(dh_params_.data(), dh_params_.size()),
+                      ec);
+  if (ec) {
+    throw api::DescriptiveError(YOGI_ERR_CONFIG_NOT_VALID)
+        << "Setting DH parameters failed: " << ec.message();
   }
 }
 

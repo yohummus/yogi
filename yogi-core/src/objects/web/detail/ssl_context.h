@@ -21,16 +21,19 @@
 #include "../../log/logger.h"
 
 #include <nlohmann/json.hpp>
+#include <boost/asio/ssl.hpp>
+
 #include <memory>
 
 namespace objects {
 namespace web {
 namespace detail {
 
-class SslParameters : public log::LoggerUser {
+class SslContext : public log::LoggerUser {
  public:
-  SslParameters(const nlohmann::json& cfg, const std::string& logging_prefix);
+  SslContext(const nlohmann::json& cfg, const std::string& logging_prefix);
 
+  boost::asio::ssl::context& AsioSslContext() { return ssl_ctx_; }
   const std::string& GetPrivateKey() const { return private_key_; }
   const std::string& GetPrivateKeyPassword() const { return private_key_pw_; }
   const std::string& GetCertificateChain() const { return certificate_chain_; }
@@ -50,14 +53,16 @@ class SslParameters : public log::LoggerUser {
                       const std::string& source);
   void WarnIfUsingDefaultPrivateKey();
   void CheckPrivateKeyPasswordGiven();
+  void SetupSslContext();
 
+  boost::asio::ssl::context ssl_ctx_;
   std::string private_key_;
   std::string private_key_pw_;
   std::string certificate_chain_;
   std::string dh_params_;
 };
 
-typedef std::unique_ptr<SslParameters> SslParametersPtr;
+typedef std::unique_ptr<SslContext> SslContextPtr;
 
 }  // namespace detail
 }  // namespace web

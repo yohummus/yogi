@@ -24,7 +24,7 @@
 #include "../branch/branch.h"
 #include "../log/logger.h"
 #include "detail/auth_provider.h"
-#include "detail/ssl_parameters.h"
+#include "detail/ssl_context.h"
 #include "detail/route.h"
 #include "detail/worker_pool.h"
 #include "detail/http_session.h"
@@ -64,7 +64,7 @@ class WebServer
   network::TcpListenerPtr listener_;
   detail::AuthProviderPtr auth_;
   detail::RoutesVector routes_;
-  detail::SslParametersPtr ssl_;
+  detail::SslContextPtr ssl_;
   detail::WorkerPool worker_pool_;
 };
 

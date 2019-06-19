@@ -104,7 +104,7 @@ add_library (yogi-core-static STATIC
   src/objects/web/detail/mime.cc
   src/objects/web/detail/permissions.cc
   src/objects/web/detail/route.cc
-  src/objects/web/detail/ssl_parameters.cc
+  src/objects/web/detail/ssl_context.cc
   src/objects/web/detail/user.cc
   src/objects/web/detail/websocket_session.cc
   src/objects/web/detail/worker_pool.cc
@@ -154,6 +154,7 @@ target_link_libraries (yogi-core PRIVATE
   yogi-core-static
   ${Boost_LIBRARIES}
   OpenSSL::Crypto
+  OpenSSL::SSL
   nlohmann_json::nlohmann_json
   json-schema-validator
 )
@@ -219,7 +220,7 @@ add_executable (yogi-core-test
   test/objects/web/mime_test.cc
   test/objects/web/permissions_test.cc
   test/objects/web/routes_test.cc
-  test/objects/web/ssl_parameters_test.cc
+  test/objects/web/ssl_context_test.cc
   test/objects/web/web_server_test.cc
   test/objects/web/worker_pool_test.cc
   test/objects/log/logger_test.cc

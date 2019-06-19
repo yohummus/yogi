@@ -47,7 +47,7 @@ WebServer::WebServer(ContextPtr context, branch::BranchPtr branch,
   cache_size_      = utils::ExtractSize(cfg, "cache_size", api::kDefaultWebCacheSize);
   auth_            = detail::AuthProvider::Create(cfg, GetLoggingPrefix());
   routes_          = detail::Route::CreateAll(cfg, *auth_, GetLoggingPrefix());
-  ssl_             = std::make_unique<detail::SslParameters>(cfg, GetLoggingPrefix());
+  ssl_             = std::make_unique<detail::SslContext>(cfg, GetLoggingPrefix());
   // clang-format on
 }
 
