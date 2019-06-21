@@ -23,16 +23,20 @@
 #include "../context.h"
 #include "../branch/branch.h"
 #include "../log/logger.h"
-#include "detail/auth_provider.h"
+#include "detail/auth/auth_provider.h"
+#include "detail/session/session.h"
 #include "detail/ssl_context.h"
 #include "detail/route.h"
 #include "detail/worker_pool.h"
-#include "detail/https_session.h"
 
 #include <nlohmann/json.hpp>
+#include <boost/uuid/uuid.hpp>
+
 #include <vector>
 #include <chrono>
 #include <memory>
+#include <unordered_set>
+#include <mutex>
 
 namespace objects {
 namespace web {
@@ -47,25 +51,38 @@ class WebServer
  public:
   WebServer(ContextPtr context, branch::BranchPtr branch,
             const nlohmann::json& cfg);
+  virtual ~WebServer();
 
+  int GetPort() { return listener_->GetPort(); }
   void AddWorker(ContextPtr worker);
   void Start();
+
+  bool CompressAssetsEnabled() const { return compress_assets_; }
+  std::size_t CacheSize() const { return cache_size_; }
+
+ protected:
+  friend class detail::Session;
+  void DestroySession(detail::SessionPtr session);
+  void ReplaceSession(detail::SessionPtr session);
 
  private:
   void CreateListener(const nlohmann::json& cfg);
   void OnAccepted(boost::asio::ip::tcp::socket socket);
-  detail::HttpsSessionPtr MakeHttpsSession(boost::asio::ip::tcp::socket socket);
+  void CloseAllSessions();
 
   const ContextPtr context_;
   const branch::BranchPtr branch_;
+  std::chrono::nanoseconds timeout_;
   bool test_mode_;
   bool compress_assets_;
   std::size_t cache_size_;
   network::TcpListenerPtr listener_;
   detail::AuthProviderPtr auth_;
-  detail::RoutesVector routes_;
+  detail::RoutesVectorPtr routes_;
   detail::SslContextPtr ssl_;
   detail::WorkerPool worker_pool_;
+  detail::SessionsMap sessions_;
+  std::mutex sessions_mutex_;
 };
 
 }  // namespace web

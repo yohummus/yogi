@@ -98,16 +98,19 @@ add_library (yogi-core-static STATIC
   src/objects/log/detail/log_sink.cc
   src/objects/log/detail/text_based_log_sink.cc
   src/objects/log/logger.cc
-  src/objects/web/detail/auth_provider.cc
-  src/objects/web/detail/group.cc
-  src/objects/web/detail/https_session.cc
+  src/objects/web/detail/auth/auth_provider.cc
+  src/objects/web/detail/auth/permissions.cc
+  src/objects/web/detail/auth/group.cc
+  src/objects/web/detail/auth/user.cc
+  src/objects/web/detail/session/http_session.cc
+  src/objects/web/detail/session/https_session.cc
+  src/objects/web/detail/session/session.cc
+  src/objects/web/detail/session/ssl_detector_session.cc
+  src/objects/web/detail/session/wss_session.cc
   src/objects/web/detail/mime.cc
-  src/objects/web/detail/permissions.cc
   src/objects/web/detail/route.cc
   src/objects/web/detail/ssl_context.cc
-  src/objects/web/detail/user.cc
   src/objects/web/detail/worker_pool.cc
-  src/objects/web/detail/wss_session.cc
   src/objects/web/web_process.cc
   src/objects/web/web_route.cc
   src/objects/web/web_server.cc

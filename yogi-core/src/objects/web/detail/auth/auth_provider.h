@@ -17,22 +17,21 @@
 
 #pragma once
 
-#include "../../../config.h"
-#include "../../log/logger.h"
+#include "../../../../config.h"
+#include "../../../log/logger.h"
 #include "group.h"
 #include "user.h"
 
 #include <nlohmann/json.hpp>
 #include <memory>
 #include <tuple>
+#include <mutex>
 
 namespace objects {
 namespace web {
 namespace detail {
 
 class AuthProvider;
-class ConfigAuthProvider;
-class FilesAuthProvider;
 
 typedef std::shared_ptr<AuthProvider> AuthProviderPtr;
 
@@ -44,8 +43,8 @@ class AuthProvider : public objects::log::LoggerUser {
   virtual ~AuthProvider() {}
 
   bool IsReadonly() const { return readonly_; }
-  const UsersMap& GetUsers() const { return users_; }
-  const GroupsMap& GetGroups() const { return groups_; }
+  UsersMap GetUsers() const;
+  GroupsMap GetGroups() const;
   UserPtr GetUserOptional(const std::string& user_name) const;
   GroupPtr GetGroupOptional(const std::string& group_name) const;
 
@@ -57,6 +56,7 @@ class AuthProvider : public objects::log::LoggerUser {
   bool readonly_;
   UsersMap users_;
   GroupsMap groups_;
+  mutable std::mutex mutex_;
 };
 
 class ConfigAuthProvider : public AuthProvider {

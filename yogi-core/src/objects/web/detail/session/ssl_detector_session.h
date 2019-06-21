@@ -15,34 +15,30 @@
  * along with this library. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "group.h"
-#include "../../../api/errors.h"
-#include "../../../utils/json_helpers.h"
-#include "../../../schema/schema.h"
+#pragma once
+
+#include "../../../../config.h"
+#include "session.h"
 
 namespace objects {
 namespace web {
 namespace detail {
 
-GroupsMap Group::CreateAll(const nlohmann::json& json,
-                           const std::string& source) {
-  schema::ValidateJson(json, "web_groups.schema.json", source);
+class SslDetectorSession : public Session {
+ public:
+  SslDetectorSession(boost::asio::ip::tcp::socket&& socket);
 
-  GroupsMap groups;
-  for (auto it : json["groups"].items()) {
-    auto group = std::make_shared<Group>();
-    utils::CopyJsonProperty(it.value(), "name", "", &group->props_);
-    utils::CopyJsonProperty(it.value(), "description", "", &group->props_);
+  virtual void Start() override;
 
-    group->unrestricted_ = it.value().value("unrestricted", false);
-    group->props_["unrestricted"] = group->unrestricted_;
+ protected:
+  virtual boost::beast::tcp_stream& Stream() override;
 
-    groups[it.key()] = group;
-  }
+ private:
+  void OnDetectSslFinished(boost::beast::error_code ec, boost::tribool is_ssl);
 
-  return groups;
-}
+  boost::beast::tcp_stream stream_;
+};
 
-}  // namespace web
 }  // namespace detail
+}  // namespace web
 }  // namespace objects

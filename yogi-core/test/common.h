@@ -221,6 +221,9 @@ T GetBranchProperty(void* branch, const char* property) {
   return GetBranchInfo(branch)[property].get<T>();
 }
 
+void* CreateWebServer(void* context, void* branch, void* config,
+                      const char* section = nullptr);
+
 std::string MakeTestDataPath(const std::string& data_path);
 std::string ReadFile(const std::string& filename);
 void* MakeConfigFromJson(const nlohmann::json& json);

@@ -15,19 +15,28 @@
  * along with this library. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "../../common.h"
+#pragma once
 
-class WebServerTest : public TestFixture {
+#include "../../../../config.h"
+#include "session.h"
+
+namespace objects {
+namespace web {
+namespace detail {
+
+class HttpSession : public Session {
+ public:
+  HttpSession(boost::beast::tcp_stream&& stream);
+
+  virtual void Start() override;
+
  protected:
-  void* context_ = CreateContext();
+  virtual boost::beast::tcp_stream& Stream() override;
+
+ private:
+  boost::beast::tcp_stream stream_;
 };
 
-TEST_F(WebServerTest, ConstructWithoutBranch) {
-  CreateWebServer(context_, nullptr, nullptr);
-}
-
-TEST_F(WebServerTest, WelcomePage) {
-  CreateWebServer(context_, nullptr, nullptr);
-  RunContextInBackground(context_);
-  getchar();
-}
+}  // namespace detail
+}  // namespace web
+}  // namespace objects

@@ -19,8 +19,8 @@
 
 #include "../../../config.h"
 #include "../../log/logger.h"
-#include "permissions.h"
-#include "auth_provider.h"
+#include "auth/permissions.h"
+#include "auth/auth_provider.h"
 
 #include <nlohmann/json.hpp>
 #include <memory>
@@ -37,12 +37,13 @@ class CustomRoute;
 
 typedef std::unique_ptr<Route> RoutePtr;
 typedef std::vector<RoutePtr> RoutesVector;
+typedef std::shared_ptr<RoutesVector> RoutesVectorPtr;
 
 class Route : public objects::log::LoggerUser {
  public:
-  static RoutesVector CreateAll(const nlohmann::json& cfg,
-                                const AuthProvider& auth,
-                                const std::string& logging_prefix);
+  static RoutesVectorPtr CreateAll(const nlohmann::json& cfg,
+                                   const AuthProvider& auth,
+                                   const std::string& logging_prefix);
 
   virtual ~Route() {}
 

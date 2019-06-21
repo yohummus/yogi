@@ -23,7 +23,7 @@ class RoutesTest : public TestFixture {
  protected:
   template <typename T = Route>
   T& GetRoute(const std::string& base_uri) {
-    for (auto& route : routes_) {
+    for (auto& route : *routes_) {
       if (route->GetBaseUri() == base_uri) {
         auto p = dynamic_cast<T*>(route.get());
         EXPECT_NE(p, nullptr) << "Route " << base_uri << " has the wrong type.";
@@ -75,18 +75,18 @@ class RoutesTest : public TestFixture {
     }
   )");
 
-  RoutesVector routes_ = Route::CreateAll(cfg_, *auth_, "bla");
+  RoutesVectorPtr routes_ = Route::CreateAll(cfg_, *auth_, "bla");
 };
 
 TEST_F(RoutesTest, NumberOfRoutes) {
-  EXPECT_EQ(routes_.size(), 6);
-  for (auto& route : routes_) {
+  EXPECT_EQ(routes_->size(), 6);
+  for (auto& route : *routes_) {
     EXPECT_TRUE(!!route);
   }
 }
 
 TEST_F(RoutesTest, LoggingPrefix) {
-  for (auto& route : routes_) {
+  for (auto& route : *routes_) {
     EXPECT_EQ(route->GetLoggingPrefix(), "bla");
   }
 }

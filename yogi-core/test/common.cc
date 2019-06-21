@@ -30,7 +30,7 @@ namespace fs = boost::filesystem;
 
 TestFixture::TestFixture() {
   // Logging for all tests
-  // SetupLogging(YOGI_VB_TRACE);
+  SetupLogging(YOGI_VB_TRACE);
 }
 
 TestFixture::~TestFixture() {
@@ -466,6 +466,18 @@ std::map<boost::uuids::uuid, nlohmann::json> GetConnectedBranches(
   EXPECT_OK(res);
 
   return data.branches;
+}
+
+void* CreateWebServer(void* context, void* branch, void* config,
+                      const char* section) {
+  char err[256];
+  void* server;
+  int res = YOGI_WebServerCreate(&server, context, branch, config, section, err,
+                                 sizeof(err));
+  EXPECT_OK(res) << err;
+  EXPECT_NE(server, nullptr);
+
+  return server;
 }
 
 std::string MakeTestDataPath(const std::string& data_path) {

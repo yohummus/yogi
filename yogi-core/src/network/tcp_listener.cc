@@ -161,15 +161,7 @@ bool TcpListener::CheckAndLogOpenError(const boost::system::error_code& ec,
 bool TcpListener::CheckAndLogBindError(const boost::system::error_code& ec,
                                        const boost::asio::ip::address& addr) {
   if (ec) {
-    std::stringstream ss;
-    ss << "Could not bind to ";
-    if (port_) {
-      ss << "port " << port_;
-    } else {
-      ss << "any port";
-    }
-    ss << " on address " << addr << ": " << ec.message();
-    LOG_ERR(ss.str());
+    LOG_ERR("Could not bind to address " << addr << ": " << ec.message());
 
     return false;
   }
@@ -228,7 +220,7 @@ void TcpListener::StartAccept(tcp::acceptor* acc) {
 void TcpListener::OnAcceptFinished(boost::system::error_code ec,
                                    tcp::socket socket, tcp::acceptor* acc) {
   if (!ec) {
-    LOG_DBG("Accepted connection from " << socket.remote_endpoint().address());
+    LOG_DBG("Accepted connection from " << socket.remote_endpoint());
     accept_fn_(std::move(socket));
   } else if (ec != boost::asio::error::operation_aborted) {
     LOG_ERR("Accepting connection on " << acc->local_endpoint().address()

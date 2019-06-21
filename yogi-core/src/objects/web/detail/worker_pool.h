@@ -33,6 +33,7 @@ class Worker final {
  public:
   typedef std::shared_ptr<std::atomic<int>> LoadCounterPtr;
 
+  Worker() {}
   Worker(ContextPtr context, LoadCounterPtr load_counter);
   Worker(const Worker&) = delete;
   Worker(Worker&& other);

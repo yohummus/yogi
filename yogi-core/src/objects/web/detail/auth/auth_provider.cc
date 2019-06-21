@@ -16,11 +16,11 @@
  */
 
 #include "auth_provider.h"
-#include "../../../api/errors.h"
-#include "../../../api/constants.h"
-#include "../../../utils/crypto.h"
-#include "../../../utils/json_helpers.h"
-#include "../../../schema/schema.h"
+#include "../../../../api/errors.h"
+#include "../../../../api/constants.h"
+#include "../../../../utils/crypto.h"
+#include "../../../../utils/json_helpers.h"
+#include "../../../../schema/schema.h"
 
 #include <boost/filesystem.hpp>
 #include <fstream>
@@ -58,13 +58,25 @@ AuthProviderPtr AuthProvider::Create(const nlohmann::json& cfg,
   return auth;
 }
 
+UsersMap AuthProvider::GetUsers() const {
+  std::lock_guard<std::mutex> lock(mutex_);
+  return users_;
+}
+
+GroupsMap AuthProvider::GetGroups() const {
+  std::lock_guard<std::mutex> lock(mutex_);
+  return groups_;
+}
+
 UserPtr AuthProvider::GetUserOptional(const std::string& user_name) const {
+  std::lock_guard<std::mutex> lock(mutex_);
   auto it = users_.find(user_name);
   if (it == users_.end()) return {};
   return it->second;
 }
 
 GroupPtr AuthProvider::GetGroupOptional(const std::string& group_name) const {
+  std::lock_guard<std::mutex> lock(mutex_);
   auto it = groups_.find(group_name);
   if (it == groups_.end()) return {};
   return it->second;

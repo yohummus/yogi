@@ -17,8 +17,8 @@
 
 #pragma once
 
-#include "../../../config.h"
-#include "../../../api/enums.h"
+#include "../../../../config.h"
+#include "../../../../api/enums.h"
 #include "group.h"
 #include "user.h"
 

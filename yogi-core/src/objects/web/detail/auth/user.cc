@@ -16,9 +16,9 @@
  */
 
 #include "user.h"
-#include "../../../api/errors.h"
-#include "../../../utils/json_helpers.h"
-#include "../../../schema/schema.h"
+#include "../../../../api/errors.h"
+#include "../../../../utils/json_helpers.h"
+#include "../../../../schema/schema.h"
 
 namespace objects {
 namespace web {

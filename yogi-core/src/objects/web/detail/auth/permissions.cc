@@ -16,8 +16,8 @@
  */
 
 #include "permissions.h"
-#include "../../../api/errors.h"
-#include "../../../schema/schema.h"
+#include "../../../../api/errors.h"
+#include "../../../../schema/schema.h"
 
 #include <map>
 using namespace std::string_literals;

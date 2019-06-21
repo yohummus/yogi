@@ -15,38 +15,33 @@
  * along with this library. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#pragma once
-
-#include "../../../config.h"
-
-#include <nlohmann/json.hpp>
-
-#include <memory>
-#include <unordered_map>
-#include <unordered_set>
+#include "group.h"
+#include "../../../../api/errors.h"
+#include "../../../../utils/json_helpers.h"
+#include "../../../../schema/schema.h"
 
 namespace objects {
 namespace web {
 namespace detail {
 
-class Group;
+GroupsMap Group::CreateAll(const nlohmann::json& json,
+                           const std::string& source) {
+  schema::ValidateJson(json, "web_groups.schema.json", source);
 
-typedef std::shared_ptr<Group> GroupPtr;
-typedef std::unordered_map<std::string, GroupPtr> GroupsMap;
-typedef std::unordered_set<GroupPtr> GroupsSet;
+  GroupsMap groups;
+  for (auto it : json["groups"].items()) {
+    auto group = std::make_shared<Group>();
+    utils::CopyJsonProperty(it.value(), "name", "", &group->props_);
+    utils::CopyJsonProperty(it.value(), "description", "", &group->props_);
 
-class Group {
- public:
-  static GroupsMap CreateAll(const nlohmann::json& json,
-                             const std::string& source = {});
+    group->unrestricted_ = it.value().value("unrestricted", false);
+    group->props_["unrestricted"] = group->unrestricted_;
 
-  const nlohmann::json& ToJson() const { return props_; }
-  bool IsUnrestricted() const { return unrestricted_; }
+    groups[it.key()] = group;
+  }
 
- private:
-  nlohmann::json props_;
-  bool unrestricted_;
-};
+  return groups;
+}
 
 }  // namespace detail
 }  // namespace web

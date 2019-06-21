@@ -89,9 +89,11 @@ class ExposedObjectT : public ExposedObject {
 
   virtual ObjectType Type() const override { return StaticType(); };
 
-  std::weak_ptr<TO> MakeWeakPtr() {
-    return {std::static_pointer_cast<TO>(this->shared_from_this())};
+  std::shared_ptr<TO> MakeSharedPtr() {
+    return std::static_pointer_cast<TO>(this->shared_from_this());
   }
+
+  std::weak_ptr<TO> MakeWeakPtr() { return {MakeSharedPtr()}; }
 };
 
 class ObjectRegister {

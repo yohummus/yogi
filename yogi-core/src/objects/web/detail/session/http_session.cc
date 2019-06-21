@@ -15,34 +15,25 @@
  * along with this library. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#pragma once
+#include "http_session.h"
 
-#include "../../../config.h"
-#include "worker_pool.h"
-#include "ssl_context.h"
+YOGI_DEFINE_INTERNAL_LOGGER("WebServer.HttpSession");
 
-#include <boost/asio/ip/tcp.hpp>
-
-#include <memory>
+using tcp = boost::asio::ip::tcp;
+namespace beast = boost::beast;
 
 namespace objects {
 namespace web {
 namespace detail {
 
-class HttpsSession;
+HttpSession::HttpSession(beast::tcp_stream&& stream)
+    : stream_(std::move(stream)) {}
 
-typedef std::shared_ptr<HttpsSession> HttpsSessionPtr;
+void HttpSession::Start() { StartTimeout(); }
 
-class HttpsSession {
- public:
-  HttpsSession(SslContextPtr ssl, Worker&& worker,
-               boost::asio::ip::tcp::socket&& socket);
-
- private:
-  const SslContextPtr ssl_;
-  Worker worker_;
-  boost::asio::ip::tcp::socket socket_;
-};
+boost::beast::tcp_stream& HttpSession::Stream() {
+  return boost::beast::get_lowest_layer(stream_);
+}
 
 }  // namespace detail
 }  // namespace web

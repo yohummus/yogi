@@ -46,12 +46,12 @@ UserPtr ExtractOwner(const AuthProvider& auth,
 
 }  // namespace
 
-RoutesVector Route::CreateAll(const nlohmann::json& cfg,
-                              const AuthProvider& auth,
-                              const std::string& logging_prefix) {
+RoutesVectorPtr Route::CreateAll(const nlohmann::json& cfg,
+                                 const AuthProvider& auth,
+                                 const std::string& logging_prefix) {
   schema::ValidateJson(cfg, "web_routes.schema.json");
 
-  RoutesVector routes;
+  RoutesVectorPtr routes = std::make_shared<RoutesVector>();
   const auto& routes_cfg = cfg.value("routes", GetDefaultRoutesSection());
   for (auto it = routes_cfg.begin(); it != routes_cfg.end(); ++it) {
     RoutePtr route;
@@ -68,7 +68,7 @@ RoutesVector Route::CreateAll(const nlohmann::json& cfg,
 
     route->owner_ = ExtractOwner(auth, it);
     route->InitMemberVariables(it, (*it)["permissions"], auth, logging_prefix);
-    routes.push_back(std::move(route));
+    routes->push_back(std::move(route));
   }
 
   const auto& api_cfg =
@@ -76,7 +76,7 @@ RoutesVector Route::CreateAll(const nlohmann::json& cfg,
   for (auto it = api_cfg.begin(); it != api_cfg.end(); ++it) {
     auto route = std::make_unique<ApiEndpoint>();
     route->InitMemberVariables(it, it.value(), auth, logging_prefix);
-    routes.push_back(std::move(route));
+    routes->push_back(std::move(route));
   }
 
   return routes;

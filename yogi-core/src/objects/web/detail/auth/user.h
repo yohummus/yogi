@@ -17,20 +17,38 @@
 
 #pragma once
 
-#include "../../../config.h"
+#include "../../../../config.h"
+#include "group.h"
+
+#include <nlohmann/json.hpp>
 
 #include <memory>
+#include <unordered_map>
 
 namespace objects {
 namespace web {
 namespace detail {
 
-class WssSession;
+class User;
 
-typedef std::shared_ptr<WssSession> WssSessionPtr;
+typedef std::shared_ptr<User> UserPtr;
+typedef std::unordered_map<std::string, UserPtr> UsersMap;
 
-class WssSession {
+class User {
  public:
+  static UsersMap CreateAll(const nlohmann::json& json, const GroupsMap& groups,
+                            const std::string& source = {});
+
+  const nlohmann::json& ToJson() const { return props_; }
+  bool IsEnabled() const { return enabled_; }
+  const std::string& GetPassword() const { return password_; }
+  const GroupsSet& GetGroups() const { return groups_; }
+
+ private:
+  nlohmann::json props_;
+  bool enabled_;
+  std::string password_;
+  GroupsSet groups_;
 };
 
 }  // namespace detail

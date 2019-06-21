@@ -24,10 +24,10 @@
 
 #include <algorithm>
 
-YOGI_DEFINE_INTERNAL_LOGGER("WebServer");
-
 #include <string>
 using namespace std::string_literals;
+
+YOGI_DEFINE_INTERNAL_LOGGER("WebServer");
 
 namespace objects {
 namespace web {
@@ -38,10 +38,10 @@ WebServer::WebServer(ContextPtr context, branch::BranchPtr branch,
   schema::ValidateJson(cfg, "web_server.schema.json");
 
   CreateListener(cfg);
-  SetLoggingPrefix("Port "s + std::to_string(listener_->GetPort()));
+  SetLoggingPrefix("Port "s + std::to_string(GetPort()));
 
   // clang-format off
-  // timeout_ = utils::ExtractDuration(cfg, "timeout", api::kDefaultWebTimeout);
+  timeout_         = utils::ExtractDuration(cfg, "timeout", api::kDefaultWebTimeout);
   test_mode_       = cfg.value("test_mode", false);
   compress_assets_ = cfg.value("compress_assets", true);
   cache_size_      = utils::ExtractSize(cfg, "cache_size", api::kDefaultWebCacheSize);
@@ -50,6 +50,8 @@ WebServer::WebServer(ContextPtr context, branch::BranchPtr branch,
   ssl_             = detail::SslContext::Create(cfg, GetLoggingPrefix());
   // clang-format on
 }
+
+WebServer::~WebServer() { CloseAllSessions(); }
 
 void WebServer::AddWorker(ContextPtr worker_context) {
   worker_pool_.AddWorker(worker_context);
@@ -65,6 +67,20 @@ void WebServer::Start() {
   });
 }
 
+void WebServer::DestroySession(detail::SessionPtr session) {
+  session->Close();
+
+  std::lock_guard<std::mutex> lock(sessions_mutex_);
+  YOGI_ASSERT(sessions_.count(session->SessionId()));
+  sessions_.erase(session->SessionId());
+}
+
+void WebServer::ReplaceSession(detail::SessionPtr session) {
+  std::lock_guard<std::mutex> lock(sessions_mutex_);
+  YOGI_ASSERT(sessions_.count(session->SessionId()));
+  sessions_[session->SessionId()] = session;
+}
+
 void WebServer::CreateListener(const nlohmann::json& cfg) {
   auto interfaces = utils::ExtractArrayOfStrings(cfg, "interfaces",
                                                  api::kDefaultWebInterfaces);
@@ -76,21 +92,22 @@ void WebServer::CreateListener(const nlohmann::json& cfg) {
 }
 
 void WebServer::OnAccepted(boost::asio::ip::tcp::socket socket) {
-  MakeHttpsSession(std::move(socket));
+  auto session =
+      detail::Session::Create(MakeWeakPtr(), worker_pool_, auth_, ssl_, routes_,
+                              timeout_, test_mode_, std::move(socket));
+
+  YOGI_ASSERT(!sessions_.count(session->SessionId()));
+  sessions_[session->SessionId()] = session;
+
+  LOG_DBG("Session " << session->GetLoggingPrefix() << " created for client "
+                     << session->GetRemoteEndpoint());
+
+  session->Start();
 }
 
-detail::HttpsSessionPtr WebServer::MakeHttpsSession(
-    boost::asio::ip::tcp::socket socket) {
-  auto worker = worker_pool_.AcquireWorker();
-  if (worker.Context() == context_) {
-    return std::make_shared<detail::HttpsSession>(ssl_, std::move(worker),
-                                                  std::move(socket));
-  } else {
-    return std::make_shared<detail::HttpsSession>(
-        ssl_, std::move(worker),
-        boost::asio::ip::tcp::socket(
-            boost::asio::make_strand(worker.Context()->IoContext()),
-            socket.local_endpoint().protocol(), socket.release()));
+void WebServer::CloseAllSessions() {
+  for (auto& session : sessions_) {
+    session.second->Close();
   }
 }
 

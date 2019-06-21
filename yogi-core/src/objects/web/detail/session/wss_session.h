@@ -15,15 +15,23 @@
  * along with this library. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "https_session.h"
+#pragma once
+
+#include "../../../../config.h"
+
+#include <memory>
 
 namespace objects {
 namespace web {
 namespace detail {
 
-HttpsSession::HttpsSession(SslContextPtr ssl, Worker&& worker,
-                           boost::asio::ip::tcp::socket&& socket)
-    : ssl_(ssl), worker_(std::move(worker)), socket_(std::move(socket)) {}
+class WssSession;
+
+typedef std::shared_ptr<WssSession> WssSessionPtr;
+
+class WssSession {
+ public:
+};
 
 }  // namespace detail
 }  // namespace web
