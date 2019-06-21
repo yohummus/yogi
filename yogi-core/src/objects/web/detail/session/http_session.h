@@ -20,11 +20,13 @@
 #include "../../../../config.h"
 #include "session.h"
 
+#include <boost/beast/http.hpp>
+
 namespace objects {
 namespace web {
 namespace detail {
 
-class HttpSession : public Session {
+class HttpSession : public SessionT<HttpSession> {
  public:
   HttpSession(boost::beast::tcp_stream&& stream);
 
@@ -34,7 +36,15 @@ class HttpSession : public Session {
   virtual boost::beast::tcp_stream& Stream() override;
 
  private:
+  std::string MakeHttpsLocation() const;
+  void StartReceiveRequest();
+  void OnReceiveRequestFinished(boost::beast::error_code ec, std::size_t);
+  void StartSendResponse();
+  void OnSendResponseFinished(boost::beast::error_code ec, std::size_t);
+
   boost::beast::tcp_stream stream_;
+  boost::beast::http::request<boost::beast::http::string_body> req_;
+  boost::beast::http::response<boost::beast::http::empty_body> resp_;
 };
 
 }  // namespace detail

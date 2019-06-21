@@ -24,7 +24,7 @@ namespace objects {
 namespace web {
 namespace detail {
 
-class SslDetectorSession : public Session {
+class SslDetectorSession : public SessionT<SslDetectorSession> {
  public:
   SslDetectorSession(boost::asio::ip::tcp::socket&& socket);
 

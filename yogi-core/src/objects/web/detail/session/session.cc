@@ -72,23 +72,20 @@ boost::asio::ip::tcp::endpoint Session::GetRemoteEndpoint() {
   return Stream().socket().remote_endpoint();
 }
 
-void Session::Close() { Stream().close(); }
+void Session::Close() {
+  boost::system::error_code ec;
+  Stream().socket().shutdown(boost::asio::ip::tcp::socket::shutdown_both, ec);
+  Stream().socket().cancel(ec);
+  Stream().close();
+}
 
 void Session::Destroy() {
+  Close();
+
   auto server = server_.lock();
   if (server) {
     server->DestroySession(shared_from_this());
   }
-}
-
-bool Session::LogAndDestroyIfFailed(boost::beast::error_code ec,
-                                    const char* msg) {
-  if (ec && ec != boost::asio::error::operation_aborted) {
-    LOG_ERR(msg << ": " << ec.message());
-    Destroy();
-  }
-
-  return !!ec;
 }
 
 void Session::StartTimeout() { Stream().expires_after(timeout_); }

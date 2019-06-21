@@ -17,7 +17,7 @@
 
 #include "https_session.h"
 
-YOGI_DEFINE_INTERNAL_LOGGER("WebServer.HttpsSession");
+YOGI_DEFINE_INTERNAL_LOGGER("WebServer.Session.HTTPS");
 
 using tcp = boost::asio::ip::tcp;
 namespace beast = boost::beast;
@@ -33,9 +33,8 @@ void HttpsSession::Start() {
   StartTimeout();
   stream_.async_handshake(
       stream_.server, Buffer().data(),
-      beast::bind_front_handler(
-          &HttpsSession::OnHandshakeFinished,
-          std::static_pointer_cast<HttpsSession>(shared_from_this())));
+      beast::bind_front_handler(&HttpsSession::OnHandshakeFinished,
+                                MakeSharedPtr()));
 }
 
 boost::beast::tcp_stream& HttpsSession::Stream() {
@@ -44,7 +43,11 @@ boost::beast::tcp_stream& HttpsSession::Stream() {
 
 void HttpsSession::OnHandshakeFinished(boost::beast::error_code ec,
                                        std::size_t bytes_used) {
-  if (LogAndDestroyIfFailed(ec, "SSL handshake failed")) return;
+  if (ec) {
+    LOG_ERR("SSL handshake failed: " << ec.message());
+    Destroy();
+    return;
+  }
 
   Buffer().consume(bytes_used);
 }

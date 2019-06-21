@@ -83,7 +83,6 @@ class Session : public log::LoggerUser,
     ChangeSessionTypeImpl(new_session);
   }
 
-  bool LogAndDestroyIfFailed(boost::beast::error_code ec, const char* msg);
   void StartTimeout();
   void CancelTimeout();
 
@@ -100,6 +99,16 @@ class Session : public log::LoggerUser,
   boost::uuids::uuid session_id_;
   boost::beast::flat_buffer buffer_;
   bool replaced_ = false;
+};
+
+template <typename SessionType>
+class SessionT : public Session {
+ public:
+  std::shared_ptr<SessionType> MakeSharedPtr() {
+    return std::static_pointer_cast<SessionType>(shared_from_this());
+  }
+
+  std::weak_ptr<SessionType> MakeWeakPtr() { return {MakeSharedPtr()}; }
 };
 
 }  // namespace detail

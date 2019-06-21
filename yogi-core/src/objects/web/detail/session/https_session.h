@@ -26,7 +26,7 @@ namespace objects {
 namespace web {
 namespace detail {
 
-class HttpsSession : public Session {
+class HttpsSession : public SessionT<HttpsSession> {
  public:
   HttpsSession(boost::beast::tcp_stream&& stream, const SslContextPtr& ssl);
 

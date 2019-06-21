@@ -19,6 +19,8 @@
 #include "http_session.h"
 #include "https_session.h"
 
+YOGI_DEFINE_INTERNAL_LOGGER("WebServer.Session.SSLDetector");
+
 using tcp = boost::asio::ip::tcp;
 namespace beast = boost::beast;
 
@@ -33,9 +35,8 @@ void SslDetectorSession::Start() {
   StartTimeout();
   beast::async_detect_ssl(
       stream_, Buffer(),
-      beast::bind_front_handler(
-          &SslDetectorSession::OnDetectSslFinished,
-          std::static_pointer_cast<SslDetectorSession>(shared_from_this())));
+      beast::bind_front_handler(&SslDetectorSession::OnDetectSslFinished,
+                                MakeSharedPtr()));
 }
 
 beast::tcp_stream& SslDetectorSession::Stream() {
@@ -44,7 +45,12 @@ beast::tcp_stream& SslDetectorSession::Stream() {
 
 void SslDetectorSession::OnDetectSslFinished(beast::error_code ec,
                                              boost::tribool is_ssl) {
-  if (LogAndDestroyIfFailed(ec, "Detecting SSL failed")) return;
+  if (ec) {
+    LOG_ERR("Detecting SSL failed: " << ec.message());
+    Destroy();
+    return;
+  }
+
   if (is_ssl) {
     ChangeSessionType<HttpsSession>(std::move(stream_), SslContext());
   } else {
