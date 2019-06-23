@@ -33,10 +33,14 @@ SslDetectorSession::SslDetectorSession(tcp::socket&& socket)
 
 void SslDetectorSession::Start() {
   StartTimeout();
-  beast::async_detect_ssl(
-      stream_, Buffer(),
-      beast::bind_front_handler(&SslDetectorSession::OnDetectSslFinished,
-                                MakeSharedPtr()));
+
+  auto weak_self = MakeWeakPtr();
+  beast::async_detect_ssl(stream_, Buffer(), [weak_self](auto ec, auto is_ssl) {
+    auto self = weak_self.lock();
+    if (!self) return;
+
+    self->OnDetectSslFinished(ec, is_ssl);
+  });
 }
 
 beast::tcp_stream& SslDetectorSession::Stream() {

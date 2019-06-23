@@ -16,7 +16,7 @@
  */
 
 #include "../../common.h"
-#include "../../../src/objects/web/detail/mime.h"
+#include "../../../src/objects/web/detail/session/mime.h"
 using objects::web::detail::FileExtensionToMimeType;
 
 TEST(MimeTest, WellKnownFileExtensions) {

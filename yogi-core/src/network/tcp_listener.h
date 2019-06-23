@@ -49,6 +49,8 @@ class TcpListener : public std::enable_shared_from_this<TcpListener>,
               utils::IpVersion ip_version, const std::string& owner_type)
       : TcpListener(context, interfaces, ip_version, 0, owner_type) {}
 
+  virtual ~TcpListener();
+
   int GetPort() const { return port_; }
   const utils::NetworkInterfaceInfosVector& GetInterfaces() { return ifs_; }
 
@@ -60,12 +62,9 @@ class TcpListener : public std::enable_shared_from_this<TcpListener>,
   void SetupAcceptors();
   void CreateAcceptorForAll();
   void CreateAcceptorsForSpecific();
-  void ThrowOpenError(const boost::system::error_code& ec);
-  void ThrowBindError(const boost::system::error_code& ec);
-  bool CheckAndLogOpenError(const boost::system::error_code& ec,
-                            const boost::asio::ip::address& addr);
-  bool CheckAndLogBindError(const boost::system::error_code& ec,
-                            const boost::asio::ip::address& addr);
+  void AddAcceptor(boost::asio::ip::tcp::endpoint ep);
+  void ThrowIfError(const boost::system::error_code& ec, int error_code,
+                    const boost::asio::ip::address& addr);
   void SetOptionReuseAddr(bool on);
   void SetOptionV6Only(bool on);
   void ListenOnAllAcceptors();

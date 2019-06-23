@@ -34,7 +34,7 @@ class Worker final {
   typedef std::shared_ptr<std::atomic<int>> LoadCounterPtr;
 
   Worker() {}
-  Worker(ContextPtr context, LoadCounterPtr load_counter);
+  Worker(ContextWeakPtr context, LoadCounterPtr load_counter);
   Worker(const Worker&) = delete;
   Worker(Worker&& other);
   ~Worker();
@@ -42,10 +42,10 @@ class Worker final {
   Worker& operator=(Worker&& other);
   Worker& operator=(const Worker&) = delete;
 
-  const ContextPtr& Context() { return context_; }
+  const ContextWeakPtr& Context() { return context_; }
 
  private:
-  ContextPtr context_;
+  ContextWeakPtr context_;
   LoadCounterPtr load_counter_;
 };
 

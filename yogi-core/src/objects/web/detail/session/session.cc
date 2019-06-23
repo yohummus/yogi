@@ -21,6 +21,7 @@
 
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
+using tcp = boost::asio::ip::tcp;
 
 #include <string>
 using namespace std::string_literals;
@@ -35,16 +36,17 @@ SessionPtr Session::Create(WebServerWeakPtr server, WorkerPool& worker_pool,
                            AuthProviderPtr auth, SslContextPtr ssl,
                            RoutesVectorPtr routes,
                            std::chrono::nanoseconds timeout, bool test_mode,
-                           boost::asio::ip::tcp::socket socket) {
+                           tcp::socket socket) {
   auto worker = worker_pool.AcquireWorker();
+  auto& ioc = worker.Context().lock()->IoContext();
 
   SessionPtr session;
-  if (socket.get_executor() == worker.Context()->IoContext().get_executor()) {
+  if (socket.get_executor() == ioc.get_executor()) {
     session = std::make_shared<SslDetectorSession>(std::move(socket));
   } else {
-    session = std::make_shared<SslDetectorSession>(boost::asio::ip::tcp::socket(
-        boost::asio::make_strand(worker.Context()->IoContext()),
-        socket.local_endpoint().protocol(), socket.release()));
+    session = std::make_shared<SslDetectorSession>(
+        tcp::socket(boost::asio::make_strand(ioc),
+                    socket.local_endpoint().protocol(), socket.release()));
   }
 
   session->server_ = server;
@@ -68,15 +70,19 @@ Session::~Session() {
   }
 }
 
-boost::asio::ip::tcp::endpoint Session::GetRemoteEndpoint() {
+tcp::endpoint Session::GetRemoteEndpoint() {
   return Stream().socket().remote_endpoint();
 }
 
 void Session::Close() {
+  YOGI_ASSERT(!worker_.Context().expired());
+
+  auto& socket = Stream().socket();
+  if (!socket.is_open()) return;
+
   boost::system::error_code ec;
-  Stream().socket().shutdown(boost::asio::ip::tcp::socket::shutdown_both, ec);
-  Stream().socket().cancel(ec);
-  Stream().close();
+  socket.shutdown(tcp::socket::shutdown_both, ec);
+  socket.close(ec);
 }
 
 void Session::Destroy() {
@@ -88,11 +94,19 @@ void Session::Destroy() {
   }
 }
 
-void Session::StartTimeout() { Stream().expires_after(timeout_); }
+void Session::StartTimeout() {
+  YOGI_ASSERT(!worker_.Context().expired());
+  Stream().expires_after(timeout_);
+}
 
-void Session::CancelTimeout() { Stream().expires_never(); }
+void Session::CancelTimeout() {
+  YOGI_ASSERT(!worker_.Context().expired());
+  Stream().expires_never();
+}
 
 void Session::ChangeSessionTypeImpl(SessionPtr new_session) {
+  YOGI_ASSERT(!worker_.Context().expired());
+
   auto server = server_.lock();
   if (!server) return;
 

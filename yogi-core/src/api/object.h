@@ -19,6 +19,7 @@
 
 #include "../config.h"
 #include "errors.h"
+#include "constants.h"
 
 #include <memory>
 #include <mutex>
@@ -51,7 +52,7 @@ class ExposedObject : public std::enable_shared_from_this<ExposedObject> {
   virtual ObjectType Type() const = 0;
 
   const std::string& TypeName() const;
-  std::string Format(std::string fmt) const;
+  std::string Format(std::string fmt = kDefaultObjectFormat) const;
   ObjectHandle Handle() { return static_cast<ObjectHandle>(this); }
 
   template <typename TO>

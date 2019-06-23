@@ -43,10 +43,10 @@ int GetProcessId();
 int GetCurrentThreadId();
 NetworkInterfaceInfosVector GetNetworkInterfaces();
 NetworkInterfaceInfosVector GetFilteredNetworkInterfaces(
-    const std::vector<std::string>& adv_if_strings,
+    const std::vector<std::string>& if_strings,
     IpVersion ip_version = IpVersion::kAny);
 NetworkInterfaceInfosVector GetFilteredNetworkInterfaces(
-    const std::vector<std::string>& adv_if_strings,
+    const std::vector<std::string>& if_strings,
     const boost::asio::ip::udp& protocol);
 
 }  // namespace utils

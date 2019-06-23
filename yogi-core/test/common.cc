@@ -20,21 +20,36 @@
 #include "../src/utils/system.h"
 #include "../src/api/constants.h"
 #include "../src/network/messages.h"
+#include "../src/objects/web/detail/session/methods.h"
 
 #include <boost/uuid/uuid_io.hpp>
 #include <boost/asio.hpp>
+#include <boost/beast/core.hpp>
+#include <boost/beast/ssl.hpp>
+#include <boost/beast/version.hpp>
 #include <sstream>
 using namespace std::string_literals;
 
+namespace uuids = boost::uuids;
 namespace fs = boost::filesystem;
+namespace beast = boost::beast;
+namespace http = beast::http;
+namespace asio = boost::asio;
+namespace ssl = asio::ssl;
+namespace ip = asio::ip;
+using tcp = ip::tcp;
+using udp = ip::udp;
 
 TestFixture::TestFixture() {
-  // Logging for all tests
-  SetupLogging(YOGI_VB_TRACE);
+  // Verbose logging if --gtest_filter is set
+  auto filter = testing::FLAGS_gtest_filter;
+  if (!filter.empty() && filter != "*" && filter != "*.*") {
+    SetupLogging(YOGI_VB_TRACE);
+  }
 }
 
 TestFixture::~TestFixture() {
-  EXPECT_EQ(YOGI_DestroyAll(), YOGI_OK);
+  EXPECT_OK(YOGI_DestroyAll());
 
   YOGI_ConfigureConsoleLogging(YOGI_VB_NONE, 0, 0, nullptr, nullptr);
   YOGI_ConfigureHookLogging(YOGI_VB_NONE, nullptr, nullptr);
@@ -47,8 +62,9 @@ BranchEventRecorder::BranchEventRecorder(void* context, void* branch)
   StartAwaitEvent();
 }
 
-nlohmann::json BranchEventRecorder::RunContextUntil(
-    int event, const boost::uuids::uuid& uuid, int ev_res) {
+nlohmann::json BranchEventRecorder::RunContextUntil(int event,
+                                                    const uuids::uuid& uuid,
+                                                    int ev_res) {
   while (true) {
     for (auto& entry : events_) {
       if (entry.uuid == uuid && entry.event == event &&
@@ -72,7 +88,7 @@ nlohmann::json BranchEventRecorder::RunContextUntil(int event, void* branch,
 
 void RunContextUntilBranchesAreConnected(
     void* context, std::initializer_list<void*> branches) {
-  std::map<void*, std::set<boost::uuids::uuid>> uuids;
+  std::map<void*, std::set<uuids::uuid>> uuids;
   for (auto branch : branches) {
     uuids[branch] = {};
   }
@@ -126,11 +142,8 @@ void BranchEventRecorder::Callback(int res, int event, int ev_res,
   self->StartAwaitEvent();
 }
 
-MulticastSocket::MulticastSocket(
-    const boost::asio::ip::udp::endpoint& multicast_ep)
+MulticastSocket::MulticastSocket(const udp::endpoint& multicast_ep)
     : mc_ep_(multicast_ep), socket_(ioc_, mc_ep_.protocol()) {
-  using namespace boost::asio::ip;
-
   socket_.set_option(udp::socket::reuse_address(true));
   socket_.bind(udp::endpoint(mc_ep_.protocol(), mc_ep_.port()));
 
@@ -139,25 +152,25 @@ MulticastSocket::MulticastSocket(
   auto addr = ifs[0].addresses[0];
 
   if (addr.is_v6()) {
-    socket_.set_option(multicast::join_group(mc_ep_.address().to_v6(),
-                                             addr.to_v6().scope_id()));
-    socket_.set_option(boost::asio::ip::multicast::outbound_interface(
+    socket_.set_option(ip::multicast::join_group(mc_ep_.address().to_v6(),
+                                                 addr.to_v6().scope_id()));
+    socket_.set_option(ip::multicast::outbound_interface(
         static_cast<unsigned int>(addr.to_v6().scope_id())));
   } else {
     socket_.set_option(
-        multicast::join_group(mc_ep_.address().to_v4(), addr.to_v4()));
+        ip::multicast::join_group(mc_ep_.address().to_v4(), addr.to_v4()));
   }
 }
 
 void MulticastSocket::Send(const utils::ByteVector& msg) {
-  socket_.send_to(boost::asio::buffer(msg), mc_ep_);
+  socket_.send_to(asio::buffer(msg), mc_ep_);
 }
 
-std::pair<boost::asio::ip::address, utils::ByteVector> MulticastSocket::Receive(
+std::pair<ip::address, utils::ByteVector> MulticastSocket::Receive(
     const std::chrono::milliseconds& timeout) {
   utils::ByteVector msg(1000);
-  boost::asio::ip::udp::endpoint sender_ep;
-  socket_.async_receive_from(boost::asio::buffer(msg), sender_ep,
+  udp::endpoint sender_ep;
+  socket_.async_receive_from(asio::buffer(msg), sender_ep,
                              [&](auto ec, auto size) {
                                EXPECT_FALSE(ec) << ec.message();
                                msg.resize(size);
@@ -175,11 +188,11 @@ std::pair<boost::asio::ip::address, utils::ByteVector> MulticastSocket::Receive(
 FakeBranch::FakeBranch()
     : acceptor_(ioc_),
       tcp_socket_(ioc_),
-      adv_ep_(boost::asio::ip::make_address(kAdvAddress), kAdvPort),
+      adv_ep_(ip::make_address(kAdvAddress), kAdvPort),
       mc_socket_(adv_ep_) {
   acceptor_.open(kTcpProtocol);
-  acceptor_.set_option(boost::asio::ip::tcp::acceptor::reuse_address(true));
-  acceptor_.bind(boost::asio::ip::tcp::endpoint(kTcpProtocol, 0));
+  acceptor_.set_option(tcp::acceptor::reuse_address(true));
+  acceptor_.bind(tcp::endpoint(kTcpProtocol, 0));
   acceptor_.listen();
 
   auto adv_ifs =
@@ -198,8 +211,7 @@ FakeBranch::FakeBranch()
 void FakeBranch::Connect(void* branch,
                          std::function<void(utils::ByteVector*)> msg_changer) {
   auto addr = mc_socket_.Receive().first;
-  tcp_socket_.connect(
-      boost::asio::ip::tcp::endpoint(addr, GetBranchTcpServerPort(branch)));
+  tcp_socket_.connect(tcp::endpoint(addr, GetBranchTcpServerPort(branch)));
   Authenticate(msg_changer);
 }
 
@@ -222,8 +234,8 @@ void FakeBranch::Advertise(
 
 bool FakeBranch::IsConnectedTo(void* branch) const {
   struct Data {
-    boost::uuids::uuid my_uuid;
-    boost::uuids::uuid uuid;
+    uuids::uuid my_uuid;
+    uuids::uuid uuid;
     bool connected = false;
   } data;
 
@@ -248,39 +260,39 @@ void FakeBranch::Authenticate(
   // Send branch info
   auto info_msg = *info_->MakeInfoMessage();
   if (msg_changer) msg_changer(&info_msg);
-  boost::asio::write(tcp_socket_, boost::asio::buffer(info_msg));
+  asio::write(tcp_socket_, asio::buffer(info_msg));
 
   // Receive branch info
   auto buffer = utils::ByteVector(
       objects::branch::detail::BranchInfo::kInfoMessageHeaderSize);
-  boost::asio::read(tcp_socket_, boost::asio::buffer(buffer));
+  asio::read(tcp_socket_, asio::buffer(buffer));
   std::size_t body_size;
   objects::branch::detail::RemoteBranchInfo::DeserializeInfoMessageBodySize(
       &body_size, buffer);
   buffer.resize(body_size);
-  boost::asio::read(tcp_socket_, boost::asio::buffer(buffer));
+  asio::read(tcp_socket_, asio::buffer(buffer));
 
   // ACK
   ExchangeAck();
 
   // Send challenge
   auto my_challenge = utils::GenerateRandomBytes(8);
-  boost::asio::write(tcp_socket_, boost::asio::buffer(my_challenge));
+  asio::write(tcp_socket_, asio::buffer(my_challenge));
 
   // Receive challenge
   auto remote_challenge = utils::ByteVector(8);
-  boost::asio::read(tcp_socket_, boost::asio::buffer(remote_challenge));
+  asio::read(tcp_socket_, asio::buffer(remote_challenge));
 
   // Send solution
   auto password_hash = utils::MakeSha256(utils::ByteVector{});
   buffer = remote_challenge;
   buffer.insert(buffer.end(), password_hash.begin(), password_hash.end());
   auto remote_solution = utils::MakeSha256(buffer);
-  boost::asio::write(tcp_socket_, boost::asio::buffer(remote_solution));
+  asio::write(tcp_socket_, asio::buffer(remote_solution));
 
   // Receive Solution
   buffer.resize(remote_solution.size());
-  boost::asio::read(tcp_socket_, boost::asio::buffer(buffer));
+  asio::read(tcp_socket_, asio::buffer(buffer));
 
   // ACK
   ExchangeAck();
@@ -288,8 +300,8 @@ void FakeBranch::Authenticate(
 
 void FakeBranch::ExchangeAck() {
   auto buffer = utils::ByteVector{network::MessageType::kAcknowledge};
-  boost::asio::write(tcp_socket_, boost::asio::buffer(buffer));
-  boost::asio::read(tcp_socket_, boost::asio::buffer(buffer));
+  asio::write(tcp_socket_, asio::buffer(buffer));
+  asio::read(tcp_socket_, asio::buffer(buffer));
   EXPECT_EQ(buffer[0], network::MessageType::kAcknowledge);
 }
 
@@ -426,11 +438,11 @@ unsigned short GetBranchTcpServerPort(void* branch) {
   return port;
 }
 
-boost::uuids::uuid GetBranchUuid(void* branch) {
-  boost::uuids::uuid uuid = {0};
+uuids::uuid GetBranchUuid(void* branch) {
+  uuids::uuid uuid = {0};
   int res = YOGI_BranchGetInfo(branch, &uuid, nullptr, 0);
   EXPECT_OK(res);
-  EXPECT_NE(uuid, boost::uuids::uuid{});
+  EXPECT_NE(uuid, uuids::uuid{});
   return uuid;
 }
 
@@ -448,12 +460,11 @@ void CheckJsonElementsAreEqual(const nlohmann::json& a, const nlohmann::json& b,
   EXPECT_EQ(a[key].dump(), b[key].dump());
 }
 
-std::map<boost::uuids::uuid, nlohmann::json> GetConnectedBranches(
-    void* branch) {
+std::map<uuids::uuid, nlohmann::json> GetConnectedBranches(void* branch) {
   struct Data {
-    boost::uuids::uuid uuid;
+    uuids::uuid uuid;
     char json_str[1000] = {0};
-    std::map<boost::uuids::uuid, nlohmann::json> branches;
+    std::map<uuids::uuid, nlohmann::json> branches;
   } data;
 
   int res = YOGI_BranchGetConnectedBranches(
@@ -471,7 +482,7 @@ std::map<boost::uuids::uuid, nlohmann::json> GetConnectedBranches(
 void* CreateWebServer(void* context, void* branch, void* config,
                       const char* section) {
   char err[256];
-  void* server;
+  void* server = nullptr;
   int res = YOGI_WebServerCreate(&server, context, branch, config, section, err,
                                  sizeof(err));
   EXPECT_OK(res) << err;
@@ -503,6 +514,79 @@ void* MakeConfigFromJson(const nlohmann::json& json) {
   EXPECT_OK(res);
 
   return config;
+}
+
+tcp::endpoint MakeWebServerEndpoint(int port) {
+  auto json = nlohmann::json::parse(api::kDefaultWebInterfaces);
+  auto if_strings = json.get<std::vector<std::string>>();
+  auto infos =
+      utils::GetFilteredNetworkInterfaces(if_strings, utils::IpVersion::kAny);
+  auto ep =
+      tcp::endpoint(infos[0].addresses[0], static_cast<unsigned short>(port));
+  return ep;
+}
+
+http::response<http::string_body> DoHttpRequest(
+    int method, const std::string& target,
+    std::function<void(http::request<http::string_body>*)> req_modifier_fn,
+    bool https) {
+  return DoHttpRequest(MakeWebServerEndpoint(), method, target, req_modifier_fn,
+                       https);
+}
+
+http::response<http::string_body> DoHttpRequest(
+    int port, int method, const std::string& target,
+    std::function<void(http::request<http::string_body>*)> req_modifier_fn,
+    bool https) {
+  return DoHttpRequest(MakeWebServerEndpoint(port), method, target,
+                       req_modifier_fn, https);
+}
+
+http::response<http::string_body> DoHttpRequest(
+    tcp::endpoint ep, int method, const std::string& target,
+    std::function<void(http::request<http::string_body>*)> req_modifier_fn,
+    bool https) {
+  try {
+    asio::io_context ioc;
+    ssl::context ssl(ssl::context::tlsv12_client);
+    ssl.set_verify_mode(ssl::verify_none);
+
+    http::request<http::string_body> req(
+        objects::web::detail::MethodToVerb(
+            static_cast<api::RequestMethods>(method)),
+        target, 11);
+
+    beast::flat_buffer buffer;
+    http::response<http::string_body> resp;
+
+    if (https) {
+      beast::ssl_stream<beast::tcp_stream> stream(ioc, ssl);
+      auto& lowest_layer = beast::get_lowest_layer(stream);
+
+      lowest_layer.connect(ep);
+      stream.handshake(ssl::stream_base::client);
+
+      http::write(stream, req);
+      http::read(stream, buffer, resp);
+
+      beast::error_code ec;
+      stream.shutdown(ec);
+    } else {
+      beast::tcp_stream stream(ioc);
+      stream.connect(ep);
+
+      http::write(stream, req);
+      http::read(stream, buffer, resp);
+
+      beast::error_code ec;
+      stream.socket().shutdown(tcp::socket::shutdown_both, ec);
+    }
+
+    return resp;
+  } catch (const std::exception& e) {
+    std::cout << "HTTP request failed: " << e.what() << std::endl;
+    throw;
+  }
 }
 
 std::ostream& operator<<(std::ostream& os,

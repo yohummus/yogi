@@ -21,6 +21,7 @@ YOGI_DEFINE_INTERNAL_LOGGER("WebServer.Session.HTTPS");
 
 using tcp = boost::asio::ip::tcp;
 namespace beast = boost::beast;
+namespace http = beast::http;
 
 namespace objects {
 namespace web {
@@ -31,10 +32,15 @@ HttpsSession::HttpsSession(beast::tcp_stream&& stream, const SslContextPtr& ssl)
 
 void HttpsSession::Start() {
   StartTimeout();
-  stream_.async_handshake(
-      stream_.server, Buffer().data(),
-      beast::bind_front_handler(&HttpsSession::OnHandshakeFinished,
-                                MakeSharedPtr()));
+
+  auto weak_self = MakeWeakPtr();
+  stream_.async_handshake(stream_.server, Buffer().data(),
+                          [weak_self](auto ec, auto bytes_used) {
+                            auto self = weak_self.lock();
+                            if (!self) return;
+
+                            self->OnHandshakeFinished(ec, bytes_used);
+                          });
 }
 
 boost::beast::tcp_stream& HttpsSession::Stream() {
@@ -50,6 +56,96 @@ void HttpsSession::OnHandshakeFinished(boost::beast::error_code ec,
   }
 
   Buffer().consume(bytes_used);
+
+  StartReceiveRequest();
+}
+
+void HttpsSession::StartReceiveRequest() {
+  req_ = {};
+  StartTimeout();
+
+  auto weak_self = MakeWeakPtr();
+  http::async_read(stream_, Buffer(), req_, [weak_self](auto ec, auto) {
+    auto self = weak_self.lock();
+    if (!self) return;
+
+    self->OnReceiveRequestFinished(ec);
+  });
+}
+
+void HttpsSession::OnReceiveRequestFinished(boost::beast::error_code ec) {
+  if (ec) {
+    if (ec == http::error::end_of_stream) {
+      StartShutdown();
+    } else {
+      LOG_ERR("Receiving HTTP request failed: " << ec.message());
+      Destroy();
+    }
+
+    return;
+  }
+
+  PopulateResponse();
+  StartSendResponse();
+}
+
+void HttpsSession::PopulateResponse() {
+  resp_ = {http::status::ok, req_.version()};
+  resp_.set(http::field::server, "Yogi " YOGI_HDR_VERSION " Web Server");
+  resp_.keep_alive(req_.keep_alive());
+  resp_.set(http::field::content_type, "text/html");
+  resp_.body() =
+      R"(<!DOCTYPE html>
+<html>
+<body>
+  <h1>Welcome to the Yogi web server!</h1>
+</body>
+</html>
+)";
+  resp_.prepare_payload();
+}
+
+void HttpsSession::StartSendResponse() {
+  auto weak_self = MakeWeakPtr();
+  http::async_write(stream_, resp_, [weak_self](auto ec, auto) {
+    auto self = weak_self.lock();
+    if (!self) return;
+
+    self->OnSendResponseFinished(ec);
+  });
+}
+
+void HttpsSession::OnSendResponseFinished(boost::beast::error_code ec) {
+  if (ec) {
+    LOG_ERR("Sending HTTP request failed: " << ec.message());
+    Destroy();
+    return;
+  }
+
+  if (resp_.need_eof()) {
+    StartShutdown();
+  } else {
+    resp_ = {};
+    StartReceiveRequest();
+  }
+}
+
+void HttpsSession::StartShutdown() {
+  auto weak_self = MakeWeakPtr();
+  stream_.async_shutdown([weak_self](auto ec) {
+    auto self = weak_self.lock();
+    if (!self) return;
+
+    self->OnShutdownFinished(ec);
+  });
+}
+
+void HttpsSession::OnShutdownFinished(boost::beast::error_code ec) {
+  if (ec) {
+    LOG_ERR("Shutdown failed: " << ec.message());
+  }
+
+  Destroy();
 }
 
 }  // namespace detail

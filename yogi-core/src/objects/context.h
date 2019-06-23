@@ -71,5 +71,6 @@ class Context : public api::ExposedObjectT<Context, api::ObjectType::kContext>,
 };
 
 typedef std::shared_ptr<Context> ContextPtr;
+typedef std::weak_ptr<Context> ContextWeakPtr;
 
 }  // namespace objects

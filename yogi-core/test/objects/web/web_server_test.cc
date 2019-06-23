@@ -17,17 +17,100 @@
 
 #include "../../common.h"
 
+#include <boost/asio/io_context.hpp>
+#include <boost/asio/ip/tcp.hpp>
+namespace http = boost::beast::http;
+namespace asio = boost::asio;
+using asio::ip::tcp;
+
 class WebServerTest : public TestFixture {
  protected:
   void* context_ = CreateContext();
+  void* server_ = nullptr;
+  int port_ = 0;
+
+  static int FindUnusedPort() {
+    asio::io_context ioc;
+    tcp::socket socket(ioc);
+    socket.open(tcp::v6());
+
+    unsigned short port = 20000;
+    boost::system::error_code ec;
+    do {
+      ++port;
+      socket.bind(tcp::endpoint(tcp::v6(), port), ec);
+    } while (ec == boost::asio::error::address_in_use);
+
+    socket.close();
+    return static_cast<int>(port);
+  }
+
+  void CreateServer(nlohmann::json json = nlohmann::json::object_t{},
+                    const char* section = nullptr, void* branch = nullptr) {
+    port_ = FindUnusedPort();
+
+    json["port"] = port_;
+    void* config = MakeConfigFromJson(json);
+
+    server_ = CreateWebServer(context_, branch, config, section);
+  }
 };
 
-TEST_F(WebServerTest, ConstructWithoutBranch) {
-  CreateWebServer(context_, nullptr, nullptr);
+TEST_F(WebServerTest, ConstructWithoutBranch) { CreateServer(); }
+
+TEST_F(WebServerTest, HttpRedirect) {
+  CreateServer();
+  RunContextInBackground(context_);
+
+  auto resp = DoHttpRequest(port_, YOGI_MET_GET, "/", {}, false);
+  EXPECT_EQ(resp.result_int(), 301);
+  EXPECT_EQ(resp[http::field::location].find("https://"), 0);
+  EXPECT_FALSE(resp.keep_alive());
 }
 
 TEST_F(WebServerTest, WelcomePage) {
-  CreateWebServer(context_, nullptr, nullptr);
+  CreateServer();
   RunContextInBackground(context_);
-  getchar();
+
+  auto resp = DoHttpRequest(port_, YOGI_MET_GET, "/");
+  EXPECT_EQ(resp.result_int(), 200);
+  EXPECT_NE(resp.body().find("Welcome to the Yogi web server"),
+            std::string::npos)
+      << resp.body();
+}
+
+TEST_F(WebServerTest, ConnectionKeepAlive) {
+  CreateServer();
+  RunContextInBackground(context_);
+
+  auto resp = DoHttpRequest(port_, YOGI_MET_GET, "/");
+  EXPECT_TRUE(resp.keep_alive());
+}
+
+TEST_F(WebServerTest, CleanDestruction) {
+  CreateServer();
+  RunContextInBackground(context_);
+
+  auto ep = MakeWebServerEndpoint(port_);
+
+  // Connect without sending anything => keeps session on server running
+  asio::io_context ioc;
+  tcp::socket socket(ioc);
+  socket.connect(ep);
+
+  // Do a proper request to make sure that the previous session started
+  DoHttpRequest(ep, YOGI_MET_GET, "/");
+
+  // This will leave some completion handlers in an io_context. If those
+  // handlers are keeping active shared_ptr's to Yogi objects then
+  // YOGI_DestroyAll() will trigger an assertion.
+  int res = YOGI_ContextStop(context_);
+  EXPECT_OK(res);
+  res = YOGI_ContextWaitForStopped(context_, -1);
+  EXPECT_OK(res);
+
+  res = YOGI_DestroyAll();
+  EXPECT_OK(res)
+      << "A server session seems to keep some Yogi objects alive, probably by "
+         "holding active shared_ptr's when it shouldn't.";
 }

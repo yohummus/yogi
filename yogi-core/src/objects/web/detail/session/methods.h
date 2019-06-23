@@ -17,36 +17,40 @@
 
 #pragma once
 
-#include "../../../../config.h"
-#include "session.h"
+#include "../../../../api/enums.h"
 
-#include <boost/beast/http.hpp>
+#include <boost/beast/http/verb.hpp>
 
 namespace objects {
 namespace web {
 namespace detail {
 
-class HttpSession : public SessionT<HttpSession> {
- public:
-  HttpSession(boost::beast::tcp_stream&& stream);
+boost::beast::http::verb MethodToVerb(api::RequestMethods method) {
+  using boost::beast::http::verb;
+  switch (method) {
+    case api::kGet:
+      return verb::get;
 
-  virtual void Start() override;
+    case api::kHead:
+      return verb::head;
 
- protected:
-  virtual boost::beast::tcp_stream& Stream() override;
+    case api::kPost:
+      return verb::post;
 
- private:
-  std::string MakeHttpsLocation() const;
-  void StartReceiveRequest();
-  void OnReceiveRequestFinished(boost::beast::error_code ec);
-  void PopulateResponse();
-  void StartSendResponse();
-  void OnSendResponseFinished(boost::beast::error_code ec);
+    case api::kPut:
+      return verb::put;
 
-  boost::beast::tcp_stream stream_;
-  boost::beast::http::request<boost::beast::http::string_body> req_;
-  boost::beast::http::response<boost::beast::http::empty_body> resp_;
-};
+    case api::kDelete:
+      return verb::delete_;
+
+    case api::kPatch:
+      return verb::patch;
+
+    default:
+      YOGI_NEVER_REACHED;
+      return verb::unknown;
+  }
+}
 
 }  // namespace detail
 }  // namespace web

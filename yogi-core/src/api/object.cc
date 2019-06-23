@@ -19,6 +19,7 @@
 
 #include <boost/algorithm/string.hpp>
 #include <limits>
+#include <iostream>
 
 namespace api {
 
@@ -147,7 +148,17 @@ void ObjectRegister::DestroyAll() {
     }
   }
 
-  YOGI_ASSERT(objs.empty());
+  if (!objs.empty()) {
+#ifndef NDEBUG
+    std::cout << "Objects still in use after DestroyAll():" << std::endl;
+    for (auto& obj : objs) {
+      std::cout << obj.second->Format() << std::endl;
+    }
+    std::cout << std::endl;
+#endif
+
+    throw Error(YOGI_ERR_OBJECT_STILL_USED);
+  }
 }
 
 }  // namespace api

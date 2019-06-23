@@ -18,6 +18,7 @@
 #pragma once
 
 #include "../src/objects/branch/detail/branch_info.h"
+#include "../src/api/constants.h"
 
 #include <nlohmann/json.hpp>
 #include <gtest/gtest.h>
@@ -33,6 +34,7 @@
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <boost/filesystem.hpp>
+#include <boost/beast/http.hpp>
 
 using namespace std::chrono_literals;
 using namespace std::string_literals;
@@ -227,6 +229,27 @@ void* CreateWebServer(void* context, void* branch, void* config,
 std::string MakeTestDataPath(const std::string& data_path);
 std::string ReadFile(const std::string& filename);
 void* MakeConfigFromJson(const nlohmann::json& json);
+
+boost::asio::ip::tcp::endpoint MakeWebServerEndpoint(
+    int port = api::kDefaultWebPort);
+boost::beast::http::response<boost::beast::http::string_body> DoHttpRequest(
+    int method, const std::string& target,
+    std::function<
+        void(boost::beast::http::request<boost::beast::http::string_body>*)>
+        req_modifier_fn = {},
+    bool https = true);
+boost::beast::http::response<boost::beast::http::string_body> DoHttpRequest(
+    int port, int method, const std::string& target,
+    std::function<
+        void(boost::beast::http::request<boost::beast::http::string_body>*)>
+        req_modifier_fn = {},
+    bool https = true);
+boost::beast::http::response<boost::beast::http::string_body> DoHttpRequest(
+    boost::asio::ip::tcp::endpoint ep, int method, const std::string& target,
+    std::function<
+        void(boost::beast::http::request<boost::beast::http::string_body>*)>
+        req_modifier_fn = {},
+    bool https = true);
 
 std::ostream& operator<<(std::ostream& os, const std::chrono::nanoseconds& dur);
 std::ostream& operator<<(std::ostream& os,

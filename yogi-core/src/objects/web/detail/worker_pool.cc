@@ -25,7 +25,7 @@ namespace objects {
 namespace web {
 namespace detail {
 
-Worker::Worker(ContextPtr context, LoadCounterPtr load_counter)
+Worker::Worker(ContextWeakPtr context, LoadCounterPtr load_counter)
     : context_(context), load_counter_(load_counter) {
   if (load_counter_) {
     ++*load_counter;

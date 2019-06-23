@@ -45,15 +45,19 @@ std::string HttpSession::MakeHttpsLocation() const {
 }
 
 void HttpSession::StartReceiveRequest() {
+  req_ = {};
   StartTimeout();
-  http::async_read(
-      stream_, Buffer(), req_,
-      beast::bind_front_handler(&HttpSession::OnReceiveRequestFinished,
-                                MakeSharedPtr()));
+
+  auto weak_self = MakeWeakPtr();
+  http::async_read(stream_, Buffer(), req_, [weak_self](auto ec, auto) {
+    auto self = weak_self.lock();
+    if (!self) return;
+
+    self->OnReceiveRequestFinished(ec);
+  });
 }
 
-void HttpSession::OnReceiveRequestFinished(boost::beast::error_code ec,
-                                           std::size_t) {
+void HttpSession::OnReceiveRequestFinished(boost::beast::error_code ec) {
   if (ec) {
     if (ec != http::error::end_of_stream) {
       LOG_ERR("Receiving HTTP request failed: " << ec.message());
@@ -63,24 +67,32 @@ void HttpSession::OnReceiveRequestFinished(boost::beast::error_code ec,
     return;
   }
 
+  PopulateResponse();
   StartSendResponse();
 }
 
-void HttpSession::StartSendResponse() {
+void HttpSession::PopulateResponse() {
   resp_ = {http::status::moved_permanently, req_.version()};
   resp_.set(http::field::server, "Yogi " YOGI_HDR_VERSION " Web Server");
   resp_.set(http::field::location, MakeHttpsLocation());
   resp_.set(http::field::connection, "close");
-
-  http::async_write(stream_, resp_,
-                    beast::bind_front_handler(
-                        &HttpSession::OnSendResponseFinished, MakeSharedPtr()));
+  resp_.keep_alive(false);
+  resp_.prepare_payload();
 }
 
-void HttpSession::OnSendResponseFinished(boost::beast::error_code ec,
-                                         std::size_t) {
+void HttpSession::StartSendResponse() {
+  auto weak_self = MakeWeakPtr();
+  http::async_write(stream_, resp_, [weak_self](auto ec, auto) {
+    auto self = weak_self.lock();
+    if (!self) return;
+
+    self->OnSendResponseFinished(ec);
+  });
+}
+
+void HttpSession::OnSendResponseFinished(boost::beast::error_code ec) {
   if (ec) {
-    LOG_ERR("Receiving HTTP request failed: " << ec.message());
+    LOG_ERR("Sending HTTP request failed: " << ec.message());
     Destroy();
     return;
   }

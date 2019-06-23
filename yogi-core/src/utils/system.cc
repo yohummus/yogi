@@ -256,9 +256,9 @@ NetworkInterfaceInfosVector GetNetworkInterfaces() {
 }
 
 NetworkInterfaceInfosVector GetFilteredNetworkInterfaces(
-    const std::vector<std::string>& adv_if_strings, IpVersion ip_version) {
+    const std::vector<std::string>& if_strings, IpVersion ip_version) {
   NetworkInterfaceInfosVector ifs;
-  for (auto& string : adv_if_strings) {
+  for (auto& string : if_strings) {
     for (auto& info : GetNetworkInterfaces()) {
       bool all = boost::iequals(string, "all");
       bool same_name = string == info.name;
@@ -285,14 +285,14 @@ NetworkInterfaceInfosVector GetFilteredNetworkInterfaces(
 }
 
 NetworkInterfaceInfosVector GetFilteredNetworkInterfaces(
-    const std::vector<std::string>& adv_if_strings,
+    const std::vector<std::string>& if_strings,
     const boost::asio::ip::udp& protocol) {
   if (protocol == boost::asio::ip::udp::v4()) {
-    return GetFilteredNetworkInterfaces(adv_if_strings, IpVersion::k4);
+    return GetFilteredNetworkInterfaces(if_strings, IpVersion::k4);
   } else if (protocol == boost::asio::ip::udp::v6()) {
-    return GetFilteredNetworkInterfaces(adv_if_strings, IpVersion::k6);
+    return GetFilteredNetworkInterfaces(if_strings, IpVersion::k6);
   } else {
-    return GetFilteredNetworkInterfaces(adv_if_strings, IpVersion::kAny);
+    return GetFilteredNetworkInterfaces(if_strings, IpVersion::kAny);
   }
 }
 

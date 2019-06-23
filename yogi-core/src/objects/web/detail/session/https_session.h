@@ -21,6 +21,7 @@
 #include "session.h"
 
 #include <boost/beast/ssl.hpp>
+#include <boost/beast/http.hpp>
 
 namespace objects {
 namespace web {
@@ -37,8 +38,17 @@ class HttpsSession : public SessionT<HttpsSession> {
 
  private:
   void OnHandshakeFinished(boost::beast::error_code ec, std::size_t bytes_used);
+  void StartReceiveRequest();
+  void OnReceiveRequestFinished(boost::beast::error_code ec);
+  void PopulateResponse();
+  void StartSendResponse();
+  void OnSendResponseFinished(boost::beast::error_code ec);
+  void StartShutdown();
+  void OnShutdownFinished(boost::beast::error_code ec);
 
   boost::beast::ssl_stream<boost::beast::tcp_stream> stream_;
+  boost::beast::http::request<boost::beast::http::string_body> req_;
+  boost::beast::http::response<boost::beast::http::string_body> resp_;
 };
 
 }  // namespace detail

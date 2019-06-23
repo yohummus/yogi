@@ -104,10 +104,10 @@ add_library (yogi-core-static STATIC
   src/objects/web/detail/auth/user.cc
   src/objects/web/detail/session/http_session.cc
   src/objects/web/detail/session/https_session.cc
+  src/objects/web/detail/session/mime.cc
   src/objects/web/detail/session/session.cc
   src/objects/web/detail/session/ssl_detector_session.cc
   src/objects/web/detail/session/wss_session.cc
-  src/objects/web/detail/mime.cc
   src/objects/web/detail/route.cc
   src/objects/web/detail/ssl_context.cc
   src/objects/web/detail/worker_pool.cc
