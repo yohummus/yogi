@@ -111,7 +111,7 @@ class BranchConnection : public std::enable_shared_from_this<BranchConnection> {
                              utils::SharedByteVector ack_msg,
                              CompletionHandler handler);
   void RestartHeartbeatTimer();
-  void OnHeartbeatTimerExpired();
+  void OnHeartbeatTimerExpired(boost::system::error_code ec);
   void StartReceive(utils::SharedByteVector buffer);
   void OnSessionError(const api::Error& err);
   void CheckAckAndSetNextResult(const api::Result& res,
@@ -136,7 +136,7 @@ class BranchConnection : public std::enable_shared_from_this<BranchConnection> {
 };
 
 }  // namespace detail
-}
+}  // namespace branch
 }  // namespace objects
 
 std::ostream& operator<<(std::ostream& os,

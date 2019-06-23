@@ -19,6 +19,7 @@
 #include "../../api/errors.h"
 #include "../../api/constants.h"
 #include "../../utils/algorithm.h"
+#include "../../utils/bind.h"
 #include "../../utils/json_helpers.h"
 #include "../../schema/schema.h"
 
@@ -58,13 +59,7 @@ void WebServer::AddWorker(ContextPtr worker_context) {
 }
 
 void WebServer::Start() {
-  auto weak_self = MakeWeakPtr();
-  listener_->Start([weak_self](auto socket) {
-    auto self = weak_self.lock();
-    if (!self) return;
-
-    self->OnAccepted(std::move(socket));
-  });
+  listener_->Start(utils::BindWeak(&WebServer::OnAccepted, this));
 }
 
 void WebServer::DestroySession(detail::SessionPtr session) {

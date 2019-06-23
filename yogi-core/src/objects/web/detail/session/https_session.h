@@ -39,10 +39,10 @@ class HttpsSession : public SessionT<HttpsSession> {
  private:
   void OnHandshakeFinished(boost::beast::error_code ec, std::size_t bytes_used);
   void StartReceiveRequest();
-  void OnReceiveRequestFinished(boost::beast::error_code ec);
+  void OnReceiveRequestFinished(boost::beast::error_code ec, std::size_t);
   void PopulateResponse();
   void StartSendResponse();
-  void OnSendResponseFinished(boost::beast::error_code ec);
+  void OnSendResponseFinished(boost::beast::error_code ec, std::size_t);
   void StartShutdown();
   void OnShutdownFinished(boost::beast::error_code ec);
 

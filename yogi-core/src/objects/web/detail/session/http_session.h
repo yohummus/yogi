@@ -38,10 +38,10 @@ class HttpSession : public SessionT<HttpSession> {
  private:
   std::string MakeHttpsLocation() const;
   void StartReceiveRequest();
-  void OnReceiveRequestFinished(boost::beast::error_code ec);
+  void OnReceiveRequestFinished(boost::beast::error_code ec, std::size_t);
   void PopulateResponse();
   void StartSendResponse();
-  void OnSendResponseFinished(boost::beast::error_code ec);
+  void OnSendResponseFinished(boost::beast::error_code ec, std::size_t);
 
   boost::beast::tcp_stream stream_;
   boost::beast::http::request<boost::beast::http::string_body> req_;

@@ -19,6 +19,7 @@
 #include "../../network/ip.h"
 #include "../../api/constants.h"
 #include "../../schema/schema.h"
+#include "../../utils/bind.h"
 
 #include <chrono>
 using namespace std::chrono_literals;
@@ -45,21 +46,8 @@ Branch::Branch(ContextPtr context, const nlohmann::json& cfg)
 void Branch::Start() {
   SetLoggingPrefix(info_->GetLoggingPrefix());
 
-  auto weak_self = MakeWeakPtr();
-
-  con_man_->Start(info_,
-                  [weak_self](auto& res, auto conn) {
-                    auto self = weak_self.lock();
-                    if (!self) return;
-
-                    self->OnConnectionChanged(res, conn);
-                  },
-                  [weak_self](auto& msg, auto& conn) {
-                    auto self = weak_self.lock();
-                    if (!self) return;
-
-                    self->OnMessageReceived(msg, conn);
-                  });
+  con_man_->Start(info_, utils::BindWeak(&Branch::OnConnectionChanged, this),
+                  utils::BindWeak(&Branch::OnMessageReceived, this));
 
   bc_man_->Start(info_);
 }

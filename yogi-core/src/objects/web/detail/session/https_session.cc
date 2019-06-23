@@ -16,6 +16,7 @@
  */
 
 #include "https_session.h"
+#include "../../../../utils/bind.h"
 
 YOGI_DEFINE_INTERNAL_LOGGER("WebServer.Session.HTTPS");
 
@@ -33,14 +34,9 @@ HttpsSession::HttpsSession(beast::tcp_stream&& stream, const SslContextPtr& ssl)
 void HttpsSession::Start() {
   StartTimeout();
 
-  auto weak_self = MakeWeakPtr();
-  stream_.async_handshake(stream_.server, Buffer().data(),
-                          [weak_self](auto ec, auto bytes_used) {
-                            auto self = weak_self.lock();
-                            if (!self) return;
-
-                            self->OnHandshakeFinished(ec, bytes_used);
-                          });
+  stream_.async_handshake(
+      stream_.server, Buffer().data(),
+      utils::BindWeak(&HttpsSession::OnHandshakeFinished, this));
 }
 
 boost::beast::tcp_stream& HttpsSession::Stream() {
@@ -64,16 +60,13 @@ void HttpsSession::StartReceiveRequest() {
   req_ = {};
   StartTimeout();
 
-  auto weak_self = MakeWeakPtr();
-  http::async_read(stream_, Buffer(), req_, [weak_self](auto ec, auto) {
-    auto self = weak_self.lock();
-    if (!self) return;
-
-    self->OnReceiveRequestFinished(ec);
-  });
+  http::async_read(
+      stream_, Buffer(), req_,
+      utils::BindWeak(&HttpsSession::OnReceiveRequestFinished, this));
 }
 
-void HttpsSession::OnReceiveRequestFinished(boost::beast::error_code ec) {
+void HttpsSession::OnReceiveRequestFinished(boost::beast::error_code ec,
+                                            std::size_t) {
   if (ec) {
     if (ec == http::error::end_of_stream) {
       StartShutdown();
@@ -106,16 +99,13 @@ void HttpsSession::PopulateResponse() {
 }
 
 void HttpsSession::StartSendResponse() {
-  auto weak_self = MakeWeakPtr();
-  http::async_write(stream_, resp_, [weak_self](auto ec, auto) {
-    auto self = weak_self.lock();
-    if (!self) return;
-
-    self->OnSendResponseFinished(ec);
-  });
+  http::async_write(
+      stream_, resp_,
+      utils::BindWeak(&HttpsSession::OnSendResponseFinished, this));
 }
 
-void HttpsSession::OnSendResponseFinished(boost::beast::error_code ec) {
+void HttpsSession::OnSendResponseFinished(boost::beast::error_code ec,
+                                          std::size_t) {
   if (ec) {
     LOG_ERR("Sending HTTP request failed: " << ec.message());
     Destroy();
@@ -131,13 +121,8 @@ void HttpsSession::OnSendResponseFinished(boost::beast::error_code ec) {
 }
 
 void HttpsSession::StartShutdown() {
-  auto weak_self = MakeWeakPtr();
-  stream_.async_shutdown([weak_self](auto ec) {
-    auto self = weak_self.lock();
-    if (!self) return;
-
-    self->OnShutdownFinished(ec);
-  });
+  stream_.async_shutdown(
+      utils::BindWeak(&HttpsSession::OnShutdownFinished, this));
 }
 
 void HttpsSession::OnShutdownFinished(boost::beast::error_code ec) {

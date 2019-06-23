@@ -18,6 +18,7 @@
 #include "ssl_detector_session.h"
 #include "http_session.h"
 #include "https_session.h"
+#include "../../../../utils/bind.h"
 
 YOGI_DEFINE_INTERNAL_LOGGER("WebServer.Session.SSLDetector");
 
@@ -34,13 +35,9 @@ SslDetectorSession::SslDetectorSession(tcp::socket&& socket)
 void SslDetectorSession::Start() {
   StartTimeout();
 
-  auto weak_self = MakeWeakPtr();
-  beast::async_detect_ssl(stream_, Buffer(), [weak_self](auto ec, auto is_ssl) {
-    auto self = weak_self.lock();
-    if (!self) return;
-
-    self->OnDetectSslFinished(ec, is_ssl);
-  });
+  beast::async_detect_ssl(
+      stream_, Buffer(),
+      utils::BindWeak(&SslDetectorSession::OnDetectSslFinished, this));
 }
 
 beast::tcp_stream& SslDetectorSession::Stream() {

@@ -16,6 +16,7 @@
  */
 
 #include "transport.h"
+#include "../utils/bind.h"
 
 #include <limits>
 
@@ -45,9 +46,9 @@ void Transport::SendSomeAsync(boost::asio::const_buffer data,
     data = boost::asio::buffer(data.data(), transceive_byte_limit_);
   }
 
-  auto weak_self = MakeWeakPtr();
-  StartTimeout(&tx_timer_, weak_self);
+  StartTimeout(&tx_timer_);
 
+  auto weak_self = MakeWeakPtr();
   WriteSomeAsync(data, [=](auto& res, auto bytes_written) {
     auto self = weak_self.lock();
     if (!self) {
@@ -94,9 +95,9 @@ void Transport::ReceiveSomeAsync(boost::asio::mutable_buffer data,
     data = boost::asio::buffer(data.data(), transceive_byte_limit_);
   }
 
-  auto weak_self = MakeWeakPtr();
-  StartTimeout(&rx_timer_, weak_self);
+  StartTimeout(&rx_timer_);
 
+  auto weak_self = MakeWeakPtr();
   ReadSomeAsync(data, [=](auto& res, auto bytes_read) {
     auto self = weak_self.lock();
     if (!self) {
@@ -166,20 +167,14 @@ void Transport::ReceiveAllAsyncImpl(boost::asio::mutable_buffer data,
   }
 }
 
-void Transport::StartTimeout(boost::asio::steady_timer* timer,
-                             TransportWeakPtr weak_self) {
+void Transport::StartTimeout(boost::asio::steady_timer* timer) {
   timer->expires_from_now(timeout_);
-  timer->async_wait([weak_self](auto& ec) {
-    auto self = weak_self.lock();
-    if (!self) return;
-
-    if (!ec) {
-      self->OnTimeout();
-    }
-  });
+  timer->async_wait(utils::BindWeak(&Transport::OnTimeout, this));
 }
 
-void Transport::OnTimeout() {
+void Transport::OnTimeout(boost::system::error_code ec) {
+  if (ec) return;
+
   timed_out_ = true;
 
   Close();

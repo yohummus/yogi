@@ -16,6 +16,7 @@
  */
 
 #include "advertising_sender.h"
+#include "../../../utils/bind.h"
 #include "../../../utils/algorithm.h"
 
 #include <boost/asio/ip/multicast.hpp>
@@ -95,9 +96,9 @@ void AdvertisingSender::SendAdvertisements() {
     return;
   }
 
-  auto weak_self = std::weak_ptr<AdvertisingSender>{shared_from_this()};
   auto msg = info_->MakeAdvertisingMessage();
 
+  auto weak_self = std::weak_ptr<AdvertisingSender>{shared_from_this()};
   for (const auto& socket : sockets_) {
     socket->socket.async_send_to(boost::asio::buffer(*msg), adv_ep_,
                                  [weak_self, msg, socket](auto ec, auto) {
@@ -130,14 +131,7 @@ void AdvertisingSender::OnAdvertisementSent(
 
 void AdvertisingSender::StartTimer() {
   timer_.expires_after(info_->GetAdvertisingInterval());
-
-  auto weak_self = std::weak_ptr<AdvertisingSender>(shared_from_this());
-  timer_.async_wait([weak_self](auto ec) {
-    auto self = weak_self.lock();
-    if (!self) return;
-
-    self->OnTimerExpired(ec);
-  });
+  timer_.async_wait(utils::BindWeak(&AdvertisingSender::OnTimerExpired, this));
 }
 
 void AdvertisingSender::OnTimerExpired(const boost::system::error_code& ec) {

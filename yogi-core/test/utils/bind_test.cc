@@ -30,6 +30,12 @@ struct Derived : public Base {
     called = true;
   }
 
+  void FunctionWithTwoArgs(std::string s, int x) {
+    EXPECT_EQ(s, "hello");
+    EXPECT_EQ(x, 123);
+    called = true;
+  }
+
   bool called = false;
 };
 
@@ -50,8 +56,8 @@ TEST_F(BindTest, FunctionWithOneArgument) {
   EXPECT_TRUE(obj_->called);
 }
 
-TEST_F(BindTest, FunctionWithBoundArgument) {
-  auto fn = utils::BindWeak(&Derived::FunctionWithOneArg, obj_.get(), "hello");
-  fn();
+TEST_F(BindTest, FunctionWithTwoArguments) {
+  auto fn = utils::BindWeak(&Derived::FunctionWithTwoArgs, obj_.get());
+  fn("hello", 123);
   EXPECT_TRUE(obj_->called);
 }

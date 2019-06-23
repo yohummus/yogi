@@ -16,6 +16,7 @@
  */
 
 #include "http_session.h"
+#include "../../../../utils/bind.h"
 
 #include <sstream>
 
@@ -48,16 +49,13 @@ void HttpSession::StartReceiveRequest() {
   req_ = {};
   StartTimeout();
 
-  auto weak_self = MakeWeakPtr();
-  http::async_read(stream_, Buffer(), req_, [weak_self](auto ec, auto) {
-    auto self = weak_self.lock();
-    if (!self) return;
-
-    self->OnReceiveRequestFinished(ec);
-  });
+  http::async_read(
+      stream_, Buffer(), req_,
+      utils::BindWeak(&HttpSession::OnReceiveRequestFinished, this));
 }
 
-void HttpSession::OnReceiveRequestFinished(boost::beast::error_code ec) {
+void HttpSession::OnReceiveRequestFinished(boost::beast::error_code ec,
+                                           std::size_t) {
   if (ec) {
     if (ec != http::error::end_of_stream) {
       LOG_ERR("Receiving HTTP request failed: " << ec.message());
@@ -81,16 +79,13 @@ void HttpSession::PopulateResponse() {
 }
 
 void HttpSession::StartSendResponse() {
-  auto weak_self = MakeWeakPtr();
-  http::async_write(stream_, resp_, [weak_self](auto ec, auto) {
-    auto self = weak_self.lock();
-    if (!self) return;
-
-    self->OnSendResponseFinished(ec);
-  });
+  http::async_write(
+      stream_, resp_,
+      utils::BindWeak(&HttpSession::OnSendResponseFinished, this));
 }
 
-void HttpSession::OnSendResponseFinished(boost::beast::error_code ec) {
+void HttpSession::OnSendResponseFinished(boost::beast::error_code ec,
+                                         std::size_t) {
   if (ec) {
     LOG_ERR("Sending HTTP request failed: " << ec.message());
     Destroy();

@@ -83,9 +83,8 @@ class Transport : public std::enable_shared_from_this<Transport>,
   void ReceiveAllAsyncImpl(boost::asio::mutable_buffer data,
                            const api::Result& res, std::size_t bytes_read,
                            TransferAllHandler handler);
-  void StartTimeout(boost::asio::steady_timer* timer,
-                    TransportWeakPtr weak_self);
-  void OnTimeout();
+  void StartTimeout(boost::asio::steady_timer* timer);
+  void OnTimeout(boost::system::error_code ec);
 
   const objects::ContextPtr context_;
   const std::chrono::nanoseconds timeout_;

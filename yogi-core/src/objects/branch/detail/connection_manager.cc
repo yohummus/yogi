@@ -19,6 +19,7 @@
 #include "../../../utils/crypto.h"
 #include "../../../network/ip.h"
 #include "../../../api/constants.h"
+#include "../../../utils/bind.h"
 #include "../../../utils/json_helpers.h"
 
 #include <boost/uuid/uuid_io.hpp>
@@ -54,22 +55,9 @@ void ConnectionManager::Start(
 
   SetLoggingPrefix(info->GetLoggingPrefix());
 
-  auto weak_self = MakeWeakPtr();
-
-  listener_->Start([weak_self](auto socket) {
-    auto self = weak_self.lock();
-    if (!self) return;
-
-    self->OnAccepted(std::move(socket));
-  });
-
-  adv_receiver_->Start(info, [weak_self](auto& uuid, auto& ep) {
-    auto self = weak_self.lock();
-    if (!self) return;
-
-    self->OnAdvertisementReceived(uuid, ep);
-  });
-
+  listener_->Start(utils::BindWeak(&ConnectionManager::OnAccepted, this));
+  adv_receiver_->Start(
+      info, utils::BindWeak(&ConnectionManager::OnAdvertisementReceived, this));
   adv_sender_->Start(info);
 
   LOG_DBG("Started ConnectionManager with TCP server port "

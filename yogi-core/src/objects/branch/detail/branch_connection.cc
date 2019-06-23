@@ -17,6 +17,7 @@
 
 #include "branch_connection.h"
 #include "../../../api/constants.h"
+#include "../../../utils/bind.h"
 #include "../../../utils/crypto.h"
 #include "../../../network/serialize.h"
 
@@ -296,17 +297,13 @@ void BranchConnection::RestartHeartbeatTimer() {
   heartbeat_timer_.expires_from_now(remote_info_->GetTimeout() / 2);
 
   auto weak_self = MakeWeakPtr();
-  heartbeat_timer_.async_wait([weak_self](auto& ec) {
-    if (ec == boost::asio::error::operation_aborted) return;
-
-    auto self = weak_self.lock();
-    if (!self) return;
-
-    self->OnHeartbeatTimerExpired();
-  });
+  heartbeat_timer_.async_wait(
+      utils::BindWeak(&BranchConnection::OnHeartbeatTimerExpired, this));
 }
 
-void BranchConnection::OnHeartbeatTimerExpired() {
+void BranchConnection::OnHeartbeatTimerExpired(boost::system::error_code ec) {
+  if (ec == boost::asio::error::operation_aborted) return;
+
   TrySend(heartbeat_msg_);
   RestartHeartbeatTimer();
 }
