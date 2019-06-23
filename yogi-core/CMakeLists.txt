@@ -232,6 +232,7 @@ add_executable (yogi-core-test
   test/objects/signal_set_test.cc
   test/objects/timer_test.cc
   test/utils/algorithm_test.cc
+  test/utils/bind_test.cc
   test/utils/crypto_test.cc
   test/utils/glob_test.cc
   test/utils/ringbuffer_test.cc
