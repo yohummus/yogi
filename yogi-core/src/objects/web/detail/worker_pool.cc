@@ -25,8 +25,11 @@ namespace objects {
 namespace web {
 namespace detail {
 
-Worker::Worker(ContextWeakPtr context, LoadCounterPtr load_counter)
-    : context_(context), load_counter_(load_counter) {
+Worker::Worker(ContextWeakPtr context, bool is_fallback,
+               LoadCounterPtr load_counter)
+    : context_(context),
+      is_fallback_(is_fallback),
+      load_counter_(load_counter) {
   if (load_counter_) {
     ++*load_counter;
   }
@@ -44,6 +47,8 @@ Worker& Worker::operator=(Worker&& other) {
   context_ = std::move(other.context_);
   other.context_ = {};
 
+  is_fallback_ = other.is_fallback_;
+
   load_counter_ = std::move(other.load_counter_);
   other.load_counter_ = {};
 
@@ -56,7 +61,7 @@ WorkerPool::WorkerPool(ContextPtr fallback_context)
 Worker WorkerPool::AcquireWorker() {
   std::lock_guard<std::mutex> lock(mutex_);
   if (worker_contexts_.empty()) {
-    return Worker(fallback_context_, {});
+    return Worker(fallback_context_, true, {});
   }
 
   auto it =
@@ -66,7 +71,7 @@ Worker WorkerPool::AcquireWorker() {
                        });
   YOGI_ASSERT(it != worker_contexts_.end());
 
-  return Worker(it->first, it->second);
+  return Worker(it->first, it->first == fallback_context_, it->second);
 }
 
 void WorkerPool::AddWorker(ContextPtr worker_context) {

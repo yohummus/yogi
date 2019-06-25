@@ -39,14 +39,23 @@ TEST_F(WorkerPoolTest, AddSameWorkerTwice) {
 TEST_F(WorkerPoolTest, Fallback) {
   auto worker = pool_.AcquireWorker();
   EXPECT_EQ(worker.Context().lock(), ctx_1_);
+  EXPECT_TRUE(worker.IsFallback());
 
   pool_.AddWorker(ctx_2_);
   worker = pool_.AcquireWorker();
   EXPECT_EQ(worker.Context().lock(), ctx_2_);
+  EXPECT_FALSE(worker.IsFallback());
   worker = pool_.AcquireWorker();
   EXPECT_EQ(worker.Context().lock(), ctx_2_);
+  EXPECT_FALSE(worker.IsFallback());
   worker = pool_.AcquireWorker();
   EXPECT_EQ(worker.Context().lock(), ctx_2_);
+  EXPECT_FALSE(worker.IsFallback());
+
+  pool_.AddWorker(ctx_1_);
+  worker = pool_.AcquireWorker();
+  EXPECT_EQ(worker.Context().lock(), ctx_1_);
+  EXPECT_TRUE(worker.IsFallback());
 }
 
 TEST_F(WorkerPoolTest, TaskDistribution) {

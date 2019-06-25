@@ -41,7 +41,7 @@ SessionPtr Session::Create(WebServerWeakPtr server, WorkerPool& worker_pool,
   auto& ioc = worker.Context().lock()->IoContext();
 
   SessionPtr session;
-  if (socket.get_executor() == ioc.get_executor()) {
+  if (worker.IsFallback()) {
     session = std::make_shared<SslDetectorSession>(std::move(socket));
   } else {
     // TODO: only works on Windows >= 8.1
