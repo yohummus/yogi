@@ -35,7 +35,7 @@ Permissions::Permissions(const std::string& base_uri, const nlohmann::json& cfg,
                        "In route "s + base_uri);
 
   for (auto it = cfg.begin(); it != cfg.end(); ++it) {
-    auto methods = ExtractMethods(base_uri, it);
+    auto methods = ExtractMethods(it);
 
     if (it.key() == "*") {
       allowed_for_everyone_ = methods;
@@ -76,7 +76,7 @@ bool Permissions::MayUserAccess(const UserPtr& user, api::RequestMethods method,
 }
 
 api::RequestMethods Permissions::ExtractMethods(
-    const std::string& base_uri, const nlohmann::json::const_iterator& it) {
+    const nlohmann::json::const_iterator& it) {
   YOGI_ASSERT(it->is_array());
 
   auto methods = api::kNoMethod;

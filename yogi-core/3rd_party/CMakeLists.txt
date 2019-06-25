@@ -25,3 +25,7 @@ target_link_libraries (json-schema-validator
 )
 
 cotire (json-schema-validator)
+
+export (TARGETS json-schema-validator
+  FILE JsonSchemaValidatorConfig.cmake
+)

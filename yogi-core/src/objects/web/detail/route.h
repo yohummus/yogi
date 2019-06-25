@@ -53,8 +53,7 @@ class Route : public objects::log::LoggerUser {
   const UserPtr& GetOwner() const { return owner_; }
 
  protected:
-  virtual void ReadConfiguration(
-      const nlohmann::json::const_iterator& route_it){};
+  virtual void ReadConfiguration(const nlohmann::json::const_iterator&){};
 
  private:
   static const nlohmann::json& GetDefaultRoutesSection();

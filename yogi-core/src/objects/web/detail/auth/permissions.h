@@ -47,7 +47,7 @@ class Permissions {
   typedef std::unordered_map<GroupPtr, api::RequestMethods> AllowedMethodsMap;
 
   static api::RequestMethods ExtractMethods(
-      const std::string& base_uri, const nlohmann::json::const_iterator& it);
+      const nlohmann::json::const_iterator& it);
   static GroupPtr GetGroup(const std::string& base_uri,
                            const nlohmann::json::const_iterator& it,
                            const GroupsMap& groups);

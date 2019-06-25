@@ -40,12 +40,12 @@ void AdvertisingSender::Start(LocalBranchInfoPtr info) {
   info_ = info;
   SetLoggingPrefix(info->GetLoggingPrefix());
 
+  SetupSockets();
   for (auto& socket : sockets_) {
     LOG_IFO("Using interface " << socket->address
                                << " for sending advertising messages.");
   }
 
-  SetupSockets();
   SendAdvertisements();
 }
 

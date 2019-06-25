@@ -153,7 +153,7 @@ add_library (yogi-core SHARED
   src/yogi_core/web.cc
 )
 
-target_link_libraries (yogi-core PRIVATE
+target_link_libraries (yogi-core
   yogi-core-static
   ${Boost_LIBRARIES}
   OpenSSL::Crypto

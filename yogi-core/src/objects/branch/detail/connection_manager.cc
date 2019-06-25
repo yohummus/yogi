@@ -124,14 +124,11 @@ void ConnectionManager::CreateAdvSenderAndReceiver(const nlohmann::json& cfg) {
 }
 
 void ConnectionManager::CreateListener(const nlohmann::json& cfg) {
-  auto interfaces = utils::ExtractArrayOfStrings(cfg, "advertising_interfaces",
-                                                 api::kDefaultAdvInterfaces);
-
   utils::IpVersion ip_version =
       adv_ep_.address().is_v4() ? utils::IpVersion::k4 : utils::IpVersion::k6;
 
-  listener_ = std::make_shared<network::TcpListener>(context_, interfaces,
-                                                     ip_version, "branch");
+  listener_ = std::make_shared<network::TcpListener>(
+      context_, std::vector<std::string>{"all"}, ip_version, "branch");
 }
 
 void ConnectionManager::OnAccepted(boost::asio::ip::tcp::socket socket) {
@@ -155,7 +152,7 @@ void ConnectionManager::OnAdvertisementReceived(
   if (pending_connects_.count(adv_uuid)) return;
 
   LOG_DBG("Attempting to connect to ["
-          << adv_uuid << "] on " << network::MakeIpAddressString(ep) << ":"
+          << adv_uuid << "] on " << network::MakeIpAddressString(ep) << " port "
           << ep.port());
 
   auto weak_self = MakeWeakPtr();

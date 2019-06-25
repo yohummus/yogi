@@ -484,12 +484,12 @@ public static partial class Yogi
         ///  - network_name: Name of the network to join (default: the machine's
         ///    hostname).
         ///  - network_password: Password for the network (default: no password).
-        ///  - advertising_interfaces: Network interfaces to use for advertising and
-        ///    for branch connections. Valid strings are Unix device names ("eth0",
-        ///    "en5", "wlan0"), adapter names on Windows ("Ethernet",
-        ///    "VMware Network Adapter WMnet1") or MAC addresses ("11:22:33:44:55:66").
-        ///    Furthermore, the special strings "localhost" and "all" can be used to
-        ///    denote loopback and all available interfaces respectively.
+        ///  - advertising_interfaces: Network interfaces to use for advertising.
+        ///    Valid strings are Unix device names ("eth0", "en5", "wlan0"), adapter
+        ///    names on Windows ("Ethernet", "VMware Network Adapter WMnet1") or
+        ///    MAC addresses ("11:22:33:44:55:66"). Furthermore, the special strings
+        ///    "localhost" and "all" can be used to denote loopback and all available
+        ///    interfaces respectively.
         ///  - advertising_address: Multicast address to use for advertising, e.g.
         ///    239.255.0.1 for IPv4 or ff02::8000:1234 for IPv6.
         ///  - advertising_port: Port to use for advertising.
@@ -560,12 +560,12 @@ public static partial class Yogi
         ///  - network_name: Name of the network to join (default: the machine's
         ///    hostname).
         ///  - network_password: Password for the network (default: no password).
-        ///  - advertising_interfaces: Network interfaces to use for advertising and
-        ///    for branch connections. Valid strings are Unix device names ("eth0",
-        ///    "en5", "wlan0"), adapter names on Windows ("Ethernet",
-        ///    "VMware Network Adapter WMnet1") or MAC addresses ("11:22:33:44:55:66").
-        ///    Furthermore, the special strings "localhost" and "all" can be used to
-        ///    denote loopback and all available interfaces respectively.
+        ///  - advertising_interfaces: Network interfaces to use for advertising.
+        ///    Valid strings are Unix device names ("eth0", "en5", "wlan0"), adapter
+        ///    names on Windows ("Ethernet", "VMware Network Adapter WMnet1") or
+        ///    MAC addresses ("11:22:33:44:55:66"). Furthermore, the special strings
+        ///    "localhost" and "all" can be used to denote loopback and all available
+        ///    interfaces respectively.
         ///  - advertising_address: Multicast address to use for advertising, e.g.
         ///    239.255.0.1 for IPv4 or ff02::8000:1234 for IPv6.
         ///  - advertising_port: Port to use for advertising.

@@ -32,7 +32,7 @@
         "minLength": 1
       },
       "uniqueItems": true,
-      "description": "Network interfaces to use for advertising and for branch connections. Valid strings are Unix device names (\"eth0\", \"en5\", \"wlan0\"), adapter names on Windows (\"Ethernet\", \"VMware Network Adapter WMnet1\") or MAC addresses (\"11:22:33:44:55:66\"). Furthermore, the special strings \"localhost\" and \"all\" can be used to denote loopback and all available interfaces respectively."
+      "description": "Network interfaces to use for advertising. Valid strings are Unix device names (\"eth0\", \"en5\", \"wlan0\"), adapter names on Windows (\"Ethernet\", \"VMware Network Adapter WMnet1\") or MAC addresses (\"11:22:33:44:55:66\"). Furthermore, the special strings \"localhost\" and \"all\" can be used to denote loopback and all available interfaces respectively."
     },
     "advertising_address": {
       "type": "string",
@@ -47,12 +47,26 @@
     },
     "advertising_interval": {
       "type": "number",
-      "anyOf": [{ "const": -1 }, { "minimum": 0.001 }],
+      "anyOf": [
+        {
+          "const": -1
+        },
+        {
+          "minimum": 0.001
+        }
+      ],
       "description": "Time between advertising messages."
     },
     "timeout": {
       "type": "number",
-      "anyOf": [{ "const": -1 }, { "minimum": 0.001 }],
+      "anyOf": [
+        {
+          "const": -1
+        },
+        {
+          "minimum": 0.001
+        }
+      ],
       "description": "Amount of time of inactivity before a connection is considered to be broken."
     },
     "ghost_mode": {

@@ -19,10 +19,12 @@
 
 #include "../config.h"
 
-#include <vector>
-#include <string>
 #include <boost/asio/ip/address.hpp>
 #include <boost/asio/ip/udp.hpp>
+
+#include <vector>
+#include <string>
+#include <sstream>
 
 namespace utils {
 
@@ -50,3 +52,8 @@ NetworkInterfaceInfosVector GetFilteredNetworkInterfaces(
     const boost::asio::ip::udp& protocol);
 
 }  // namespace utils
+
+std::ostream& operator<<(std::ostream& os,
+                         const utils::NetworkInterfaceInfo& info);
+std::ostream& operator<<(std::ostream& os,
+                         const std::vector<utils::NetworkInterfaceInfo>& infos);

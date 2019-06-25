@@ -137,9 +137,11 @@
     "*.tcc": "cpp",
     "memory_resource": "cpp",
     "__errc": "cpp",
-    "__node_handle": "cpp"
+    "__node_handle": "cpp",
+    "resumable": "cpp",
+    "shared_mutex": "cpp"
   },
-  "python.pythonPath": "/usr/local/opt/python/bin/python3.7",
+  "python.pythonPath": "C:\\Users\\j-ber\\AppData\\Local\\Programs\\Python\\Python37-32\\python.exe",
   "editor.tokenColorCustomizations": {
     "textMateRules": [
       {

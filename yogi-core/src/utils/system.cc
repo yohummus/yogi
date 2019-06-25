@@ -26,6 +26,7 @@
 #include <cstdio>
 #include <locale>
 #include <codecvt>
+using namespace std::string_literals;
 
 #ifdef _WIN32
 #include <process.h>
@@ -271,7 +272,9 @@ NetworkInterfaceInfosVector GetFilteredNetworkInterfaces(
       auto ifc = info;
       if (ip_version != IpVersion::kAny) {
         remove_erase_if(ifc.addresses, [&](auto& addr) {
-          return addr.is_v6() != (ip_version == IpVersion::k6);
+          if (ip_version == IpVersion::k4) return !addr.is_v4();
+          if (ip_version == IpVersion::k6) return !addr.is_v6();
+          return false;
         });
       }
 
@@ -297,3 +300,27 @@ NetworkInterfaceInfosVector GetFilteredNetworkInterfaces(
 }
 
 }  // namespace utils
+
+std::ostream& operator<<(std::ostream& os,
+                         const utils::NetworkInterfaceInfo& info) {
+  os << "Name:       " << info.name << std::endl;
+  os << "Identifier: " << info.identifier << std::endl;
+  os << "MAC:        " << (info.mac.empty() ? "none"s : info.mac) << std::endl;
+  os << "Loopback:   " << (info.is_loopback ? "yes" : "no") << std::endl;
+
+  for (std::size_t i = 0; i < info.addresses.size(); ++i) {
+    os << (i == 0 ? "Addresses:  " : "            ");
+    os << info.addresses[i] << std::endl;
+  }
+
+  return os;
+}
+
+std::ostream& operator<<(
+    std::ostream& os, const std::vector<utils::NetworkInterfaceInfo>& infos) {
+  for (auto& info : infos) {
+    os << info << std::endl;
+  }
+
+  return os;
+}

@@ -84,8 +84,8 @@ class TcpListenerTest : public TestFixture {
         break;
     }
 
-    listener_ =
-        std::make_shared<TcpListener>(context_, interfaces, ip_version, "");
+    listener_ = std::make_shared<TcpListener>(context_, interfaces, ip_version,
+                                              port, "");
 
     listener_->Start([this](auto socket) { ++this->accepted_cnt_; });
   }
@@ -105,13 +105,17 @@ class TcpListenerTest : public TestFixture {
       called = true;
     });
 
-    while (!called && context_->RunOne(1s))
+    while (!called && context_->RunOne(100ms))
       ;
 
-    EXPECT_TRUE(called);
+    if (!called) {
+      s.cancel();
+    }
+
+    while (!called) context_->PollOne();
 
     if (connected) {
-      while (accepted_cnt_ == prev_accepted_cnt && context_->RunOne(1s))
+      while (accepted_cnt_ == prev_accepted_cnt && context_->RunOne(100ms))
         ;
     }
 
@@ -133,12 +137,12 @@ TEST_F(TcpListenerTest, GetPortForOneInterfaceWithAnyPort) {
 
 TEST_F(TcpListenerTest, GetPortForAllInterfacesWithFixedPort) {
   CreateListener(kAll, utils::IpVersion::kAny, kFixedPort);
-  EXPECT_GT(listener_->GetPort(), kFixedPort);
+  EXPECT_EQ(listener_->GetPort(), kFixedPort);
 }
 
 TEST_F(TcpListenerTest, GetPortForOneInterfaceWithFixedPort) {
   CreateListener(kTwo, utils::IpVersion::kAny, kFixedPort);
-  EXPECT_GT(listener_->GetPort(), kFixedPort);
+  EXPECT_EQ(listener_->GetPort(), kFixedPort);
 }
 
 TEST_F(TcpListenerTest, AllInterfacesAnyPort) {

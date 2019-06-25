@@ -121,7 +121,7 @@ TEST_F(RoutesTest, ContentRouteMultiLineContent) {
 }
 
 TEST_F(RoutesTest, CustomRoute) {
-  auto& route = GetRoute<CustomRoute>("/messages");
+  EXPECT_NO_THROW(GetRoute<CustomRoute>("/messages"));
 }
 
 TEST_F(RoutesTest, ApiEndpoint) {

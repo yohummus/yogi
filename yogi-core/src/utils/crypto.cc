@@ -59,7 +59,7 @@ ByteVector GenerateRandomBytes(std::size_t n) {
   std::lock_guard<std::mutex> lock(mutex);
   auto res = RAND_bytes(bytes.data(), static_cast<int>(bytes.size()));
   if (res != 1) {
-    char str[128];
+    // char str[128];
     // ERR_error_string_n(ERR_get_error(), str, sizeof(str));
     std::random_device rd;
     std::default_random_engine gen(rd());

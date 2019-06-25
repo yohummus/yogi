@@ -1812,12 +1812,12 @@ YOGI_API int YOGI_TimerCancel(void* timer);
  *  - __path__: Path of the branch in the network. Must start with a slash.
  *  - __network_name__: Name of the network to join.
  *  - __network_password__: Password for the network.
- *  - __advertising_interfaces__: Network interfaces to use for advertising and
- *    for branch connections. Valid strings are Unix device names ("eth0",
- *    "en5", "wlan0"), adapter names on Windows ("Ethernet",
- *    "VMware Network Adapter WMnet1") or MAC addresses ("11:22:33:44:55:66").
- *    Furthermore, the special strings "localhost" and "all" can be used to
- *    denote loopback and all available interfaces respectively.
+ *  - __advertising_interfaces__: Network interfaces to use for advertising.
+ *    Valid strings are Unix device names ("eth0", "en5", "wlan0"), adapter
+ *    names on Windows ("Ethernet", "VMware Network Adapter WMnet1") or MAC
+ *    addresses ("11:22:33:44:55:66"). Furthermore, the special strings
+ *    "localhost" and "all" can be used to denote loopback and all available
+ *    interfaces respectively.
  *  - __advertising_address__: Multicast address to use for advertising, e.g.
  *    239.255.0.1 for IPv4 or ff02::8000:1234 for IPv6.
  *  - __advertising_port__: Port to use for advertising.
