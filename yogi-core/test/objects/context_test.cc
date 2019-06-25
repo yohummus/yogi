@@ -217,7 +217,7 @@ TEST_F(ContextTest, ExceptionInBackgroundThread) {
                    nullptr);
 
   // Background thread should stop and print an error message
-  res = YOGI_ContextWaitForStopped(context_, 1000000);
+  res = YOGI_ContextWaitForStopped(context_, 1000000000);
   EXPECT_OK(res);
 }
 

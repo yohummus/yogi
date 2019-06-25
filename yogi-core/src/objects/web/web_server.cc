@@ -87,17 +87,21 @@ void WebServer::CreateListener(const nlohmann::json& cfg) {
 }
 
 void WebServer::OnAccepted(boost::asio::ip::tcp::socket socket) {
-  auto session =
-      detail::Session::Create(MakeWeakPtr(), worker_pool_, auth_, ssl_, routes_,
-                              timeout_, test_mode_, std::move(socket));
+  try {
+    auto session = detail::Session::Create(MakeWeakPtr(), worker_pool_, auth_,
+                                           ssl_, routes_, timeout_, test_mode_,
+                                           std::move(socket));
 
-  YOGI_ASSERT(!sessions_.count(session->SessionId()));
-  sessions_[session->SessionId()] = session;
+    YOGI_ASSERT(!sessions_.count(session->SessionId()));
+    sessions_[session->SessionId()] = session;
 
-  LOG_DBG("Session " << session->GetLoggingPrefix() << " created for client "
-                     << session->GetRemoteEndpoint());
+    LOG_DBG("Session " << session->GetLoggingPrefix() << " created for client "
+                       << session->GetRemoteEndpoint());
 
-  session->Start();
+    session->Start();
+  } catch (const std::exception& e) {
+    LOG_ERR("Could not start session: " << e.what());
+  }
 }
 
 void WebServer::CloseAllSessions() {

@@ -7,8 +7,11 @@ if (WIN32)
   set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_STATIC_LINKER_FLAGS}")
   use_static_windows_runtime ()
 
+  set (windows_version 0x0603) # Windows 8.1
+  
   add_definitions(
-    -D_WIN32_WINNT=0x0601 # Windows 7
+    -DWINVER=${windows_version}
+    -D_WIN32_WINNT=${windows_version}
     -D_SCL_SECURE_NO_WARNINGS
     -D_CRT_SECURE_NO_WARNINGS
     -D_WINSOCK_DEPRECATED_NO_WARNINGS

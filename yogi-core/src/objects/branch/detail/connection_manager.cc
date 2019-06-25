@@ -123,7 +123,7 @@ void ConnectionManager::CreateAdvSenderAndReceiver(const nlohmann::json& cfg) {
   adv_receiver_ = std::make_shared<AdvertisingReceiver>(context_, adv_ep_);
 }
 
-void ConnectionManager::CreateListener(const nlohmann::json& cfg) {
+void ConnectionManager::CreateListener(const nlohmann::json&) {
   utils::IpVersion ip_version =
       adv_ep_.address().is_v4() ? utils::IpVersion::k4 : utils::IpVersion::k6;
 
