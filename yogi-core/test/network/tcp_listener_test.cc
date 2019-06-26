@@ -30,6 +30,10 @@ using namespace boost::asio;
 #include <chrono>
 using namespace std::chrono_literals;
 
+#define EXPECT_CONNECT(if_idx, ip_version, can_connect)              \
+  EXPECT_EQ(CanConnect(ifs_[if_idx].addr_##ip_version), can_connect) \
+      << "Trying to connect to " << ifs_[if_idx].addr_##ip_version;
+
 class TcpListenerTest : public TestFixture {
  protected:
   enum InterfacesCount { kOne, kTwo, kAll };
@@ -105,7 +109,7 @@ class TcpListenerTest : public TestFixture {
       called = true;
     });
 
-    while (!called && context_->RunOne(1s))
+    while (!called && context_->RunOne(5s))
       ;
 
     EXPECT_TRUE(called);
@@ -144,58 +148,58 @@ TEST_F(TcpListenerTest, GetPortForOneInterfaceWithFixedPort) {
 TEST_F(TcpListenerTest, AllInterfacesAnyPort) {
   CreateListener(kAll, utils::IpVersion::kAny);
 
-  EXPECT_TRUE(CanConnect(ifs_[0].addr_v4));
-  EXPECT_TRUE(CanConnect(ifs_[0].addr_v6));
-  EXPECT_TRUE(CanConnect(ifs_[1].addr_v4));
-  EXPECT_TRUE(CanConnect(ifs_[1].addr_v6));
+  EXPECT_CONNECT(0, v4, true);
+  EXPECT_CONNECT(0, v6, true);
+  EXPECT_CONNECT(1, v4, true);
+  EXPECT_CONNECT(1, v6, true);
 }
 
 TEST_F(TcpListenerTest, AllInterfacesIpv4AnyPort) {
   CreateListener(kAll, utils::IpVersion::k4);
 
-  EXPECT_TRUE(CanConnect(ifs_[0].addr_v4));
-  EXPECT_FALSE(CanConnect(ifs_[0].addr_v6));
-  EXPECT_TRUE(CanConnect(ifs_[1].addr_v4));
-  EXPECT_FALSE(CanConnect(ifs_[1].addr_v6));
+  EXPECT_CONNECT(0, v4, true);
+  EXPECT_CONNECT(0, v6, false);
+  EXPECT_CONNECT(1, v4, true);
+  EXPECT_CONNECT(1, v6, false);
 }
 
 TEST_F(TcpListenerTest, AllInterfacesIpv6AnyPort) {
   CreateListener(kAll, utils::IpVersion::k6);
 
-  EXPECT_TRUE(CanConnect(ifs_[0].addr_v6));
-  EXPECT_TRUE(CanConnect(ifs_[1].addr_v6));
+  EXPECT_CONNECT(0, v6, true);
+  EXPECT_CONNECT(1, v6, true);
 
   // Connecting using IPv4 may still work
 }
 
 TEST_F(TcpListenerTest, AllInterfacesFixedPort) {
-  EXPECT_FALSE(CanConnect(ifs_[0].addr_v4));
-  EXPECT_FALSE(CanConnect(ifs_[0].addr_v6));
-  EXPECT_FALSE(CanConnect(ifs_[1].addr_v4));
-  EXPECT_FALSE(CanConnect(ifs_[1].addr_v6));
+  EXPECT_CONNECT(0, v4, false);
+  EXPECT_CONNECT(0, v6, false);
+  EXPECT_CONNECT(1, v4, false);
+  EXPECT_CONNECT(1, v6, false);
 
   CreateListener(kAll, utils::IpVersion::kAny, fixed_port_);
 
-  EXPECT_TRUE(CanConnect(ifs_[0].addr_v4));
-  EXPECT_TRUE(CanConnect(ifs_[0].addr_v6));
-  EXPECT_TRUE(CanConnect(ifs_[1].addr_v4));
-  EXPECT_TRUE(CanConnect(ifs_[1].addr_v6));
+  EXPECT_CONNECT(0, v4, true);
+  EXPECT_CONNECT(0, v6, true);
+  EXPECT_CONNECT(1, v4, true);
+  EXPECT_CONNECT(1, v6, true);
 }
 
 TEST_F(TcpListenerTest, AllInterfacesIpv4FixedPort) {
   CreateListener(kAll, utils::IpVersion::k4, fixed_port_);
 
-  EXPECT_TRUE(CanConnect(ifs_[0].addr_v4));
-  EXPECT_FALSE(CanConnect(ifs_[0].addr_v6));
-  EXPECT_TRUE(CanConnect(ifs_[1].addr_v4));
-  EXPECT_FALSE(CanConnect(ifs_[1].addr_v6));
+  EXPECT_CONNECT(0, v4, true);
+  EXPECT_CONNECT(0, v6, false);
+  EXPECT_CONNECT(1, v4, true);
+  EXPECT_CONNECT(1, v6, false);
 }
 
 TEST_F(TcpListenerTest, AllInterfacesIpv6FixedPort) {
   CreateListener(kAll, utils::IpVersion::k6, fixed_port_);
 
-  EXPECT_TRUE(CanConnect(ifs_[0].addr_v6));
-  EXPECT_TRUE(CanConnect(ifs_[1].addr_v6));
+  EXPECT_CONNECT(0, v6, true);
+  EXPECT_CONNECT(1, v6, true);
 
   // Connecting using IPv4 may still work
 }
@@ -203,26 +207,26 @@ TEST_F(TcpListenerTest, AllInterfacesIpv6FixedPort) {
 TEST_F(TcpListenerTest, OneInterfaceAnyPort) {
   CreateListener(kOne, utils::IpVersion::kAny);
 
-  EXPECT_TRUE(CanConnect(ifs_[0].addr_v4));
-  EXPECT_TRUE(CanConnect(ifs_[0].addr_v6));
-  EXPECT_FALSE(CanConnect(ifs_[1].addr_v4));
-  EXPECT_FALSE(CanConnect(ifs_[1].addr_v6));
+  EXPECT_CONNECT(0, v4, true);
+  EXPECT_CONNECT(0, v6, true);
+  EXPECT_CONNECT(1, v4, false);
+  EXPECT_CONNECT(1, v6, false);
 }
 
 TEST_F(TcpListenerTest, OneInterfaceIpv4AnyPort) {
   CreateListener(kOne, utils::IpVersion::k4);
 
-  EXPECT_TRUE(CanConnect(ifs_[0].addr_v4));
-  EXPECT_FALSE(CanConnect(ifs_[0].addr_v6));
-  EXPECT_FALSE(CanConnect(ifs_[1].addr_v4));
-  EXPECT_FALSE(CanConnect(ifs_[1].addr_v6));
+  EXPECT_CONNECT(0, v4, true);
+  EXPECT_CONNECT(0, v6, false);
+  EXPECT_CONNECT(1, v4, false);
+  EXPECT_CONNECT(1, v6, false);
 }
 
 TEST_F(TcpListenerTest, OneInterfaceIpv6AnyPort) {
   CreateListener(kOne, utils::IpVersion::k6);
 
-  EXPECT_TRUE(CanConnect(ifs_[0].addr_v6));
-  EXPECT_FALSE(CanConnect(ifs_[1].addr_v6));
+  EXPECT_CONNECT(0, v6, true);
+  EXPECT_CONNECT(1, v6, false);
 
   // Connecting using IPv4 may still work
 }
@@ -230,26 +234,26 @@ TEST_F(TcpListenerTest, OneInterfaceIpv6AnyPort) {
 TEST_F(TcpListenerTest, OneInterfaceFixedPort) {
   CreateListener(kOne, utils::IpVersion::kAny, fixed_port_);
 
-  EXPECT_TRUE(CanConnect(ifs_[0].addr_v4));
-  EXPECT_TRUE(CanConnect(ifs_[0].addr_v6));
-  EXPECT_FALSE(CanConnect(ifs_[1].addr_v4));
-  EXPECT_FALSE(CanConnect(ifs_[1].addr_v6));
+  EXPECT_CONNECT(0, v4, true);
+  EXPECT_CONNECT(0, v6, true);
+  EXPECT_CONNECT(1, v4, false);
+  EXPECT_CONNECT(1, v6, false);
 }
 
 TEST_F(TcpListenerTest, OneInterfaceIpv4FixedPort) {
   CreateListener(kOne, utils::IpVersion::k4, fixed_port_);
 
-  EXPECT_TRUE(CanConnect(ifs_[0].addr_v4));
-  EXPECT_FALSE(CanConnect(ifs_[0].addr_v6));
-  EXPECT_FALSE(CanConnect(ifs_[1].addr_v4));
-  EXPECT_FALSE(CanConnect(ifs_[1].addr_v6));
+  EXPECT_CONNECT(0, v4, true);
+  EXPECT_CONNECT(0, v6, false);
+  EXPECT_CONNECT(1, v4, false);
+  EXPECT_CONNECT(1, v6, false);
 }
 
 TEST_F(TcpListenerTest, OneInterfaceIpv6FixedPort) {
   CreateListener(kOne, utils::IpVersion::k6, fixed_port_);
 
-  EXPECT_TRUE(CanConnect(ifs_[0].addr_v6));
-  EXPECT_FALSE(CanConnect(ifs_[1].addr_v6));
+  EXPECT_CONNECT(0, v6, true);
+  EXPECT_CONNECT(1, v6, false);
 
   // Connecting using IPv4 may still work
 }
@@ -257,17 +261,17 @@ TEST_F(TcpListenerTest, OneInterfaceIpv6FixedPort) {
 TEST_F(TcpListenerTest, TwoInterfacesAnyPort) {
   CreateListener(kTwo, utils::IpVersion::kAny);
 
-  EXPECT_TRUE(CanConnect(ifs_[0].addr_v4));
-  EXPECT_TRUE(CanConnect(ifs_[0].addr_v6));
-  EXPECT_TRUE(CanConnect(ifs_[1].addr_v4));
-  EXPECT_TRUE(CanConnect(ifs_[1].addr_v6));
+  EXPECT_CONNECT(0, v4, true);
+  EXPECT_CONNECT(0, v6, true);
+  EXPECT_CONNECT(1, v4, true);
+  EXPECT_CONNECT(1, v6, true);
 }
 
 TEST_F(TcpListenerTest, TwoInterfacesFixedPort) {
   CreateListener(kTwo, utils::IpVersion::kAny, fixed_port_);
 
-  EXPECT_TRUE(CanConnect(ifs_[0].addr_v4));
-  EXPECT_TRUE(CanConnect(ifs_[0].addr_v6));
-  EXPECT_TRUE(CanConnect(ifs_[1].addr_v4));
-  EXPECT_TRUE(CanConnect(ifs_[1].addr_v6));
+  EXPECT_CONNECT(0, v4, true);
+  EXPECT_CONNECT(0, v6, true);
+  EXPECT_CONNECT(1, v4, true);
+  EXPECT_CONNECT(1, v6, true);
 }
