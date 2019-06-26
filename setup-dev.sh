@@ -100,6 +100,11 @@ if ! command -v python3 >/dev/null 2>&1; then
     exit 1
 fi
 
+if ! command -v pip3 >/dev/null 2>&1; then
+    echo "Python Package Index (command: pip3) not found. Please install it."
+    exit 1
+fi
+
 # Install required Python libraries
 pip3 install -r yogi-python/requirements.txt
 
