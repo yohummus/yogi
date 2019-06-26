@@ -1,3 +1,6 @@
 [submodule "yogi-core/3rd_party/json-schema-validator"]
 	path = yogi-core/3rd_party/json-schema-validator
 	url = https://github.com/pboettch/json-schema-validator
+[submodule "vcpkg"]
+	path = vcpkg
+	url = https://github.com/Microsoft/vcpkg.git

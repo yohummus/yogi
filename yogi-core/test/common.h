@@ -17,11 +17,11 @@
 
 #pragma once
 
+#include <gtest/gtest.h>
 #include "../src/objects/branch/detail/branch_info.h"
 #include "../src/api/constants.h"
 
 #include <nlohmann/json.hpp>
-#include <gtest/gtest.h>
 #include <yogi_core.h>
 #include <chrono>
 #include <vector>
