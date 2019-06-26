@@ -28,8 +28,7 @@ ConsoleLogSink::ConsoleLogSink(api::Verbosity verbosity, FILE* stream,
                                bool color, std::string time_fmt,
                                std::string fmt)
     : TextBasedLogSink(verbosity, time_fmt, fmt, !color),
-      stream_(stream),
-      color_(color) {}
+      stream_(stream) {}
 
 void ConsoleLogSink::WritePartialOutput(const std::string& str) {
   fputs(str.c_str(), stream_);

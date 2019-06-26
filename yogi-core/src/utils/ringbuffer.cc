@@ -24,6 +24,7 @@ LockFreeRingBuffer::LockFreeRingBuffer(std::size_t capacity)
   write_idx_ = 0;
   read_idx_ = 0;
   data_.resize(capacity + 1);
+  (void)padding_;  // To avoid compiler warning about unused field
 }
 
 bool LockFreeRingBuffer::Empty() {

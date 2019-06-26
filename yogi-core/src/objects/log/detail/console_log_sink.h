@@ -37,7 +37,6 @@ class ConsoleLogSink : public TextBasedLogSink {
 
  private:
   FILE* const stream_;
-  const bool color_;
 };
 
 typedef std::unique_ptr<ConsoleLogSink> ConsoleLogSinkPtr;
