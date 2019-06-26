@@ -429,8 +429,9 @@ void* CreateBranch(void* context, const char* name, const char* net_name,
 }
 
 unsigned short GetBranchTcpServerPort(void* branch) {
-  char json_str[1000] = {0};
-  YOGI_BranchGetInfo(branch, nullptr, json_str, sizeof(json_str));
+  char json_str[10000] = {0};
+  int res = YOGI_BranchGetInfo(branch, nullptr, json_str, sizeof(json_str));
+  EXPECT_OK(res);
 
   auto json = nlohmann::json::parse(json_str);
   auto port = json["tcp_server_port"].get<unsigned short>();
@@ -514,6 +515,22 @@ void* MakeConfigFromJson(const nlohmann::json& json) {
   EXPECT_OK(res);
 
   return config;
+}
+
+int FindUnusedPort() {
+  asio::io_context ioc;
+  tcp::socket socket(ioc);
+  socket.open(tcp::v6());
+
+  unsigned short port = 20000;
+  boost::system::error_code ec;
+  do {
+    ++port;
+    socket.bind(tcp::endpoint(tcp::v6(), port), ec);
+  } while (ec == boost::asio::error::address_in_use);
+
+  socket.close();
+  return static_cast<int>(port);
 }
 
 tcp::endpoint MakeWebServerEndpoint(int port) {

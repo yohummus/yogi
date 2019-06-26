@@ -119,7 +119,7 @@ TEST_F(BranchTest, GetInfoUuid) { GetBranchUuid(branch_); }
 
 TEST_F(BranchTest, GetInfoJson) {
   boost::uuids::uuid uuid;
-  char json_str[1000] = {0};
+  char json_str[10000] = {0};
   int res = YOGI_BranchGetInfo(branch_, &uuid, json_str, sizeof(json_str));
   EXPECT_OK(res);
   EXPECT_NE(std::count(json_str, json_str + sizeof(json_str), '\0'), 0);

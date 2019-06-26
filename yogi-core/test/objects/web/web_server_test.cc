@@ -29,22 +29,6 @@ class WebServerTest : public TestFixture {
   void* server_ = nullptr;
   int port_ = 0;
 
-  static int FindUnusedPort() {
-    asio::io_context ioc;
-    tcp::socket socket(ioc);
-    socket.open(tcp::v6());
-
-    unsigned short port = 20000;
-    boost::system::error_code ec;
-    do {
-      ++port;
-      socket.bind(tcp::endpoint(tcp::v6(), port), ec);
-    } while (ec == boost::asio::error::address_in_use);
-
-    socket.close();
-    return static_cast<int>(port);
-  }
-
   void CreateServer(nlohmann::json json = nlohmann::json::object_t{},
                     const char* section = nullptr, void* branch = nullptr) {
     port_ = FindUnusedPort();

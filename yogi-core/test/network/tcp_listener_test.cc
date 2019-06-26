@@ -62,7 +62,7 @@ class TcpListenerTest : public TestFixture {
   ContextPtr context_ = std::make_shared<Context>();
   TcpListenerPtr listener_;
   std::vector<TestInterface> ifs_;
-  const int kFixedPort = api::kDefaultWebPort;
+  int fixed_port_ = FindUnusedPort();
   int accepted_cnt_ = 0;
 
   void CreateListener(InterfacesCount if_cnt, utils::IpVersion ip_version,
@@ -84,8 +84,8 @@ class TcpListenerTest : public TestFixture {
         break;
     }
 
-    listener_ = std::make_shared<TcpListener>(context_, interfaces, ip_version,
-                                              port, "");
+    listener_ =
+        std::make_shared<TcpListener>(context_, interfaces, ip_version, "");
 
     listener_->Start([this](auto socket) { ++this->accepted_cnt_; });
   }
@@ -93,7 +93,7 @@ class TcpListenerTest : public TestFixture {
   bool CanConnect(const ip::address& addr) {
     ip::tcp::socket s(context_->IoContext());
 
-    int port = listener_ ? listener_->GetPort() : kFixedPort;
+    int port = listener_ ? listener_->GetPort() : fixed_port_;
     ip::tcp::endpoint ep(addr, static_cast<unsigned short>(port));
 
     int prev_accepted_cnt = accepted_cnt_;
@@ -105,17 +105,13 @@ class TcpListenerTest : public TestFixture {
       called = true;
     });
 
-    while (!called && context_->RunOne(100ms))
+    while (!called && context_->RunOne(1s))
       ;
 
-    if (!called) {
-      s.cancel();
-    }
-
-    while (!called) context_->PollOne();
+    EXPECT_TRUE(called);
 
     if (connected) {
-      while (accepted_cnt_ == prev_accepted_cnt && context_->RunOne(100ms))
+      while (accepted_cnt_ == prev_accepted_cnt && context_->RunOne(1s))
         ;
     }
 
@@ -136,13 +132,13 @@ TEST_F(TcpListenerTest, GetPortForOneInterfaceWithAnyPort) {
 }
 
 TEST_F(TcpListenerTest, GetPortForAllInterfacesWithFixedPort) {
-  CreateListener(kAll, utils::IpVersion::kAny, kFixedPort);
-  EXPECT_EQ(listener_->GetPort(), kFixedPort);
+  CreateListener(kAll, utils::IpVersion::kAny, fixed_port_);
+  EXPECT_GT(listener_->GetPort(), fixed_port_);
 }
 
 TEST_F(TcpListenerTest, GetPortForOneInterfaceWithFixedPort) {
-  CreateListener(kTwo, utils::IpVersion::kAny, kFixedPort);
-  EXPECT_EQ(listener_->GetPort(), kFixedPort);
+  CreateListener(kTwo, utils::IpVersion::kAny, fixed_port_);
+  EXPECT_GT(listener_->GetPort(), fixed_port_);
 }
 
 TEST_F(TcpListenerTest, AllInterfacesAnyPort) {
@@ -178,7 +174,7 @@ TEST_F(TcpListenerTest, AllInterfacesFixedPort) {
   EXPECT_FALSE(CanConnect(ifs_[1].addr_v4));
   EXPECT_FALSE(CanConnect(ifs_[1].addr_v6));
 
-  CreateListener(kAll, utils::IpVersion::kAny, kFixedPort);
+  CreateListener(kAll, utils::IpVersion::kAny, fixed_port_);
 
   EXPECT_TRUE(CanConnect(ifs_[0].addr_v4));
   EXPECT_TRUE(CanConnect(ifs_[0].addr_v6));
@@ -187,7 +183,7 @@ TEST_F(TcpListenerTest, AllInterfacesFixedPort) {
 }
 
 TEST_F(TcpListenerTest, AllInterfacesIpv4FixedPort) {
-  CreateListener(kAll, utils::IpVersion::k4, kFixedPort);
+  CreateListener(kAll, utils::IpVersion::k4, fixed_port_);
 
   EXPECT_TRUE(CanConnect(ifs_[0].addr_v4));
   EXPECT_FALSE(CanConnect(ifs_[0].addr_v6));
@@ -196,7 +192,7 @@ TEST_F(TcpListenerTest, AllInterfacesIpv4FixedPort) {
 }
 
 TEST_F(TcpListenerTest, AllInterfacesIpv6FixedPort) {
-  CreateListener(kAll, utils::IpVersion::k6, kFixedPort);
+  CreateListener(kAll, utils::IpVersion::k6, fixed_port_);
 
   EXPECT_TRUE(CanConnect(ifs_[0].addr_v6));
   EXPECT_TRUE(CanConnect(ifs_[1].addr_v6));
@@ -232,7 +228,7 @@ TEST_F(TcpListenerTest, OneInterfaceIpv6AnyPort) {
 }
 
 TEST_F(TcpListenerTest, OneInterfaceFixedPort) {
-  CreateListener(kOne, utils::IpVersion::kAny, kFixedPort);
+  CreateListener(kOne, utils::IpVersion::kAny, fixed_port_);
 
   EXPECT_TRUE(CanConnect(ifs_[0].addr_v4));
   EXPECT_TRUE(CanConnect(ifs_[0].addr_v6));
@@ -241,7 +237,7 @@ TEST_F(TcpListenerTest, OneInterfaceFixedPort) {
 }
 
 TEST_F(TcpListenerTest, OneInterfaceIpv4FixedPort) {
-  CreateListener(kOne, utils::IpVersion::k4, kFixedPort);
+  CreateListener(kOne, utils::IpVersion::k4, fixed_port_);
 
   EXPECT_TRUE(CanConnect(ifs_[0].addr_v4));
   EXPECT_FALSE(CanConnect(ifs_[0].addr_v6));
@@ -250,7 +246,7 @@ TEST_F(TcpListenerTest, OneInterfaceIpv4FixedPort) {
 }
 
 TEST_F(TcpListenerTest, OneInterfaceIpv6FixedPort) {
-  CreateListener(kOne, utils::IpVersion::k6, kFixedPort);
+  CreateListener(kOne, utils::IpVersion::k6, fixed_port_);
 
   EXPECT_TRUE(CanConnect(ifs_[0].addr_v6));
   EXPECT_FALSE(CanConnect(ifs_[1].addr_v6));
@@ -268,7 +264,7 @@ TEST_F(TcpListenerTest, TwoInterfacesAnyPort) {
 }
 
 TEST_F(TcpListenerTest, TwoInterfacesFixedPort) {
-  CreateListener(kTwo, utils::IpVersion::kAny, kFixedPort);
+  CreateListener(kTwo, utils::IpVersion::kAny, fixed_port_);
 
   EXPECT_TRUE(CanConnect(ifs_[0].addr_v4));
   EXPECT_TRUE(CanConnect(ifs_[0].addr_v6));
