@@ -20,7 +20,7 @@
 #include "https_session.h"
 #include "../../../../utils/bind.h"
 
-YOGI_DEFINE_INTERNAL_LOGGER("WebServer.Session.SSLDetector");
+YOGI_DEFINE_INTERNAL_LOGGER("WebServer.Session.SSLDetector")
 
 using tcp = boost::asio::ip::tcp;
 namespace beast = boost::beast;

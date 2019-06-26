@@ -172,7 +172,7 @@ int Timestamp::ParseNumber(const std::string& str,
     throw api::Error(YOGI_ERR_PARSING_TIME_FAILED);
   }
 
-  char buf[Width + 1];
+  char buf[static_cast<std::size_t>(Width + 1)];
   std::copy_n(*it, Width, buf);
   buf[Width] = '\0';
 

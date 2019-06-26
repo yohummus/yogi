@@ -23,7 +23,7 @@
 #include <boost/filesystem.hpp>
 #include <fstream>
 
-YOGI_DEFINE_INTERNAL_LOGGER("WebServer");
+YOGI_DEFINE_INTERNAL_LOGGER("WebServer")
 
 namespace objects {
 namespace web {

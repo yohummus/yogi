@@ -1,46 +1,40 @@
 {
+  "env": {
+    "definesFromBuildSystem": ["YOGI_TEST_DATA_DIR=\"/some/path\""]
+  },
   "configurations": [
     {
       "name": "Mac",
       "includePath": [
-        "/usr/local/include",
-        "~/Projects/vcpkg/installed/x64-osx/include",
-        "${workspaceRoot}/yogi-core/include",
-        "${workspaceRoot}/yogi-cpp/include"
+        "${workspaceFolder}/yogi-core/include",
+        "${workspaceFolder}/yogi-cpp/include",
+        "${workspaceFolder}/vcpkg/installed/x64-osx/include",
+        "/usr/local/include"
       ],
-      "defines": [],
+      "defines": ["${definesFromBuildSystem}"],
       "intelliSenseMode": "clang-x64",
+      "macFrameworkPath": ["/System/Library/Frameworks"],
+      "cppStandard": "c++14",
       "browse": {
-        "path": [
-          "/usr/local/include",
-          "${workspaceRoot}/yogi-core/include",
-          "${workspaceRoot}/yogi-cpp/include"
-        ],
+        "path": ["${workspaceFolder}"],
         "limitSymbolsToIncludedHeaders": true,
         "databaseFilename": ""
-      },
-      "macFrameworkPath": [
-        "/System/Library/Frameworks",
-        "/Library/Frameworks"
-      ]
+      }
     },
     {
       "name": "Linux",
       "includePath": [
+        "${workspaceFolder}/yogi-core/include",
+        "${workspaceFolder}/yogi-cpp/include",
+        "${workspaceFolder}/vcpkg/installed/x64-linux/include",
         "/usr/include",
-        "/usr/local/include",
-        "${workspaceRoot}/yogi-core/include",
-        "${workspaceRoot}/yogi-cpp/include"
+        "/usr/local/include"
       ],
-      "defines": [],
+      "defines": ["${definesFromBuildSystem}"],
       "intelliSenseMode": "clang-x64",
+      "cppStandard": "c++14",
       "browse": {
-        "path": [
-          "/usr/include",
-          "/usr/local/include",
-          "${workspaceRoot}/yogi-core/include",
-          "${workspaceRoot}/yogi-cpp/include"
-        ],
+        "path": ["${workspaceFolder}"],
         "limitSymbolsToIncludedHeaders": true,
         "databaseFilename": ""
       }
@@ -48,22 +42,15 @@
     {
       "name": "Win32",
       "includePath": [
-        "${workspaceRoot}/yogi-core/include",
-        "${workspaceRoot}/yogi-cpp/include",
-        "${workspaceRoot}/../vcpkg/installed/x86-windows-static/include"
+        "${workspaceFolder}/yogi-core/include",
+        "${workspaceFolder}/yogi-cpp/include",
+        "${workspaceFolder}/vcpkg/installed/x64-windows-static/include"
       ],
-      "defines": [
-        "_DEBUG",
-        "UNICODE",
-        "WIN32"
-      ],
+      "defines": ["_DEBUG", "UNICODE", "WIN32"],
       "intelliSenseMode": "msvc-x64",
+      "cppStandard": "c++14",
       "browse": {
-        "path": [
-          "${workspaceRoot}/yogi-core/include",
-          "${workspaceRoot}/yogi-cpp/include",
-          "${workspaceRoot}/../vcpkg/installed/x86-windows-static/include"
-        ],
+        "path": ["${workspaceFolder}"],
         "limitSymbolsToIncludedHeaders": true,
         "databaseFilename": ""
       }

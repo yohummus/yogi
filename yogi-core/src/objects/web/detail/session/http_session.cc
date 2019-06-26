@@ -20,7 +20,7 @@
 
 #include <sstream>
 
-YOGI_DEFINE_INTERNAL_LOGGER("WebServer.Session.HTTP");
+YOGI_DEFINE_INTERNAL_LOGGER("WebServer.Session.HTTP")
 
 using tcp = boost::asio::ip::tcp;
 namespace beast = boost::beast;

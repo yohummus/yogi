@@ -27,7 +27,7 @@ using tcp = ip::tcp;
 #include <sstream>
 using namespace std::string_literals;
 
-YOGI_DEFINE_INTERNAL_LOGGER("TcpListener");
+YOGI_DEFINE_INTERNAL_LOGGER("TcpListener")
 
 namespace network {
 

@@ -26,7 +26,7 @@ using tcp = boost::asio::ip::tcp;
 #include <string>
 using namespace std::string_literals;
 
-YOGI_DEFINE_INTERNAL_LOGGER("WebServer.Session");
+YOGI_DEFINE_INTERNAL_LOGGER("WebServer.Session")
 
 namespace objects {
 namespace web {

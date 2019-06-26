@@ -45,7 +45,7 @@ class BroadcastReceiver {
   bool BroadcastReceived() const { return handler_called_; }
   std::vector<char> GetReceivedData() const { return data_; }
 
-  template <int N>
+  template <std::size_t N>
   void CheckReceivedDataEquals(const char (&expected_data)[N]) const {
     EXPECT_EQ(data_, std::vector<char>(std::begin(expected_data),
                                        std::end(expected_data)));

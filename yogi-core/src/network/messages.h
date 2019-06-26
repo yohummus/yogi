@@ -26,6 +26,7 @@
 #include <boost/asio/buffer.hpp>
 #include <fstream>
 #include <array>
+#include <functional>
 
 namespace network {
 namespace internal {

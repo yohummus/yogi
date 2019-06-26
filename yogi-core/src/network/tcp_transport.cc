@@ -20,7 +20,7 @@
 
 #include <boost/asio/strand.hpp>
 
-YOGI_DEFINE_INTERNAL_LOGGER("Transport.Tcp");
+YOGI_DEFINE_INTERNAL_LOGGER("Transport.Tcp")
 
 namespace network {
 
