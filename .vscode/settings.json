@@ -141,7 +141,6 @@
     "resumable": "cpp",
     "shared_mutex": "cpp"
   },
-  "python.pythonPath": "C:\\Users\\j-ber\\AppData\\Local\\Programs\\Python\\Python37-32\\python.exe",
   "editor.tokenColorCustomizations": {
     "textMateRules": [
       {

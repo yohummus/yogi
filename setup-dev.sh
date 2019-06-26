@@ -100,6 +100,9 @@ if ! command -v python3 >/dev/null 2>&1; then
     exit 1
 fi
 
+# Install required Python libraries
+pip3 install -r yogi-python/requirements.txt
+
 # Create build directory and run cmake
 if [ -d ./build/ ]; then
     echo "Build directory ./build already exists. Not running cmake."
