@@ -34,9 +34,9 @@ TEST(UuidTest, Pod) {
 }
 
 TEST(UuidTest, Size) {
-  EXPECT_EQ(sizeof(yogi::Uuid), 16);
-  EXPECT_EQ(yogi::Uuid::static_size(), 16);
-  EXPECT_EQ(yogi::Uuid().size(), 16);
+  EXPECT_EQ(sizeof(yogi::Uuid), 16u);
+  EXPECT_EQ(yogi::Uuid::static_size(), 16u);
+  EXPECT_EQ(yogi::Uuid().size(), 16u);
 }
 
 TEST(UuidTest, Iterators) {

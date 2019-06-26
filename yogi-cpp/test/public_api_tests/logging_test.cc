@@ -197,7 +197,7 @@ TEST_F(LoggingTest, Macros) {
                << "b");
   YOGI_LOG(kInfo, 123 << 45);
 
-  ASSERT_EQ(entries.size(), 14);
+  ASSERT_EQ(entries.size(), 14u);
   EXPECT_EQ(entries[0].severity, yogi::Verbosity::kFatal);
   EXPECT_EQ(entries[1].severity, yogi::Verbosity::kFatal);
   EXPECT_EQ(entries[2].severity, yogi::Verbosity::kError);

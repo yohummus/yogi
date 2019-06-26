@@ -86,7 +86,7 @@ TEST(ErrorsTest, Result) {
   EXPECT_EQ(yogi::Result(10).GetErrorCode(), yogi::ErrorCode::kOk);
   EXPECT_EQ(yogi::Result(3), yogi::Result(3));
   EXPECT_NE(yogi::Result(2), yogi::Result(3));
-  EXPECT_GT(yogi::Result(-3).ToString().size(), 5);
+  EXPECT_GT(yogi::Result(-3).ToString().size(), 5u);
   EXPECT_EQ(yogi::Result(0).GetErrorCode(), yogi::ErrorCode::kOk);
   EXPECT_EQ(yogi::Result(0).GetErrorCode(), yogi::Result(1).GetErrorCode());
 }

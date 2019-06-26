@@ -156,11 +156,11 @@ TEST(ConstantsTest, kMaxWebCacheSize) {
 }
 
 TEST(ConstantsTest, kDefaultAdminUser) {
-  EXPECT_GE(yogi::constants::kDefaultAdminUser.size(), 3);
+  EXPECT_GE(yogi::constants::kDefaultAdminUser.size(), 3u);
 }
 
 TEST(ConstantsTest, kDefaultAdminPassword) {
-  EXPECT_GE(yogi::constants::kDefaultAdminPassword.size(), 3);
+  EXPECT_GE(yogi::constants::kDefaultAdminPassword.size(), 3u);
 }
 
 TEST(ConstantsTest, kDefaultSslPrivateKey) {

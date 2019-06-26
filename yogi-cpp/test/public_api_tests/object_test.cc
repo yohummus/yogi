@@ -38,7 +38,7 @@ TEST_F(ObjectTest, Format) {
 
   FakeObject obj;
   s = obj.Format();
-  EXPECT_EQ(s.find("INVALID"), 0);
+  EXPECT_EQ(s.find("INVALID"), 0u);
 
   s = obj.Format(nullptr, "MOO");
   EXPECT_EQ(s, "MOO");

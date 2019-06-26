@@ -132,11 +132,11 @@ TEST_F(BranchTest, GetConnectedBranches) {
 
   auto branches = branch->GetConnectedBranches();
 
-  ASSERT_EQ(branches.count(branch_a->GetUuid()), 1);
+  ASSERT_EQ(branches.count(branch_a->GetUuid()), 1u);
   EXPECT_EQ(branches.at(branch_a->GetUuid()).GetName(), branch_a->GetName());
   EXPECT_FALSE(branches.at(branch_a->GetUuid()).GetTcpServerAddress().empty());
 
-  ASSERT_EQ(branches.count(branch_b->GetUuid()), 1);
+  ASSERT_EQ(branches.count(branch_b->GetUuid()), 1u);
   EXPECT_EQ(branches.at(branch_b->GetUuid()).GetName(), branch_b->GetName());
   EXPECT_FALSE(branches.at(branch_b->GetUuid()).GetTcpServerAddress().empty());
 }

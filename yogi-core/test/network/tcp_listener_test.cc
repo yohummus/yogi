@@ -84,8 +84,8 @@ class TcpListenerTest : public TestFixture {
         break;
     }
 
-    listener_ =
-        std::make_shared<TcpListener>(context_, interfaces, ip_version, "");
+    listener_ = std::make_shared<TcpListener>(context_, interfaces, ip_version,
+                                              port, "");
 
     listener_->Start([this](auto socket) { ++this->accepted_cnt_; });
   }
