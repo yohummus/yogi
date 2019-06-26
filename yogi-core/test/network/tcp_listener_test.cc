@@ -133,12 +133,12 @@ TEST_F(TcpListenerTest, GetPortForOneInterfaceWithAnyPort) {
 
 TEST_F(TcpListenerTest, GetPortForAllInterfacesWithFixedPort) {
   CreateListener(kAll, utils::IpVersion::kAny, fixed_port_);
-  EXPECT_GT(listener_->GetPort(), fixed_port_);
+  EXPECT_EQ(listener_->GetPort(), fixed_port_);
 }
 
 TEST_F(TcpListenerTest, GetPortForOneInterfaceWithFixedPort) {
   CreateListener(kTwo, utils::IpVersion::kAny, fixed_port_);
-  EXPECT_GT(listener_->GetPort(), fixed_port_);
+  EXPECT_EQ(listener_->GetPort(), fixed_port_);
 }
 
 TEST_F(TcpListenerTest, AllInterfacesAnyPort) {
