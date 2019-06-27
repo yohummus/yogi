@@ -15,6 +15,7 @@ if (WIN32)
     -D_SCL_SECURE_NO_WARNINGS
     -D_CRT_SECURE_NO_WARNINGS
     -D_WINSOCK_DEPRECATED_NO_WARNINGS
+    -DNOMINMAX
   )
 else ()
   set (warnings                  "-Wall -Wextra -Wnon-virtual-dtor -pedantic -Wold-style-cast -Wcast-align -Wunused -Woverloaded-virtual -Wconversion -Wsign-conversion -Wnull-dereference")
