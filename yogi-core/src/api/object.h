@@ -140,12 +140,24 @@ class ObjectRegister {
 
  private:
   typedef std::unordered_map<ObjectHandle, ObjectPtr> ObjectsMap;
+  typedef std::vector<ObjectPtr> ObjectsVector;
 
-  static ObjectsMap TakeObjects();
-  static bool DestroyUnusedObjects(ObjectsMap* objs);
-  static void StopAllContexts(const ObjectsMap& objs);
-  static void PollAllContexts(const ObjectsMap& objs);
-  static void PrintObjectsStillInUse(const ObjectsMap& objs);
+  template <typename TO>
+  static std::vector<std::shared_ptr<TO>> GetAll(const ObjectsVector& objs) {
+    std::vector<std::shared_ptr<TO>> vec;
+    for (auto& obj : objs) {
+      if (obj->Type() == TO::StaticType()) {
+        vec.push_back(std::static_pointer_cast<TO>(obj));
+      }
+    }
+    return vec;
+  }
+
+  static ObjectsVector TakeObjects();
+  static bool RemoveUnusedObjects(ObjectsVector* objs);
+  static void StopAllContexts(const ObjectsVector& objs);
+  static bool PollAllContexts(const ObjectsVector& objs);
+  static void PrintObjectsStillInUse(const ObjectsVector& objs);
 
   static std::mutex mutex_;
   static ObjectsMap objects_;

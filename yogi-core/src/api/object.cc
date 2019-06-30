@@ -129,11 +129,11 @@ void ObjectRegister::Destroy(ObjectHandle handle) {
 }
 
 void ObjectRegister::DestroyAll() {
-  auto objs = TakeObjects();
+  std::vector<ObjectPtr> objs = TakeObjects();
+  StopAllContexts(objs);
 
-  while (DestroyUnusedObjects(&objs)) {
-    PollAllContexts(objs);
-  }
+  while (RemoveUnusedObjects(&objs) || PollAllContexts(objs))
+    ;
 
   if (!objs.empty()) {
     YOGI_DEBUG_ONLY(PrintObjectsStillInUse(objs));
@@ -141,19 +141,24 @@ void ObjectRegister::DestroyAll() {
   }
 }
 
-ObjectRegister::ObjectsMap ObjectRegister::TakeObjects() {
-  ObjectsMap objs;
+ObjectRegister::ObjectsVector ObjectRegister::TakeObjects() {
+  ObjectsVector objs;
+
   std::lock_guard<std::mutex> lock(mutex_);
-  std::swap(objects_, objs);
+  for (auto& entry : objects_) {
+    objs.push_back(std::move(entry.second));
+  }
+  objects_.clear();
+
   return objs;
 }
 
-bool ObjectRegister::DestroyUnusedObjects(ObjectsMap* objs) {
+bool ObjectRegister::RemoveUnusedObjects(ObjectsVector* objs) {
   bool destroyed_some = false;
 
   auto it = objs->begin();
   while (it != objs->end()) {
-    if (it->second.unique()) {
+    if (it->unique()) {
       it = objs->erase(it);
       destroyed_some = true;
     } else {
@@ -164,23 +169,28 @@ bool ObjectRegister::DestroyUnusedObjects(ObjectsMap* objs) {
   return destroyed_some;
 }
 
-void ObjectRegister::StopAllContexts(const ObjectsMap& objs) {
-  for (auto& context : GetAll<objects::Context>()) {
+void ObjectRegister::StopAllContexts(const ObjectsVector& objs) {
+  for (auto& context : GetAll<objects::Context>(objs)) {
     context->Stop();
-    context->WaitForStopped(std::chrono::nanoseconds::max());
+    bool stopped = context->WaitForStopped(std::chrono::nanoseconds::max());
+    YOGI_ASSERT(stopped);
   }
 }
 
-void ObjectRegister::PollAllContexts(const ObjectsMap& objs) {
-  for (auto& context : GetAll<objects::Context>()) {
-    context->Poll();
+bool ObjectRegister::PollAllContexts(const ObjectsVector& objs) {
+  bool polled_some = false;
+  for (auto& context : GetAll<objects::Context>(objs)) {
+    int n = context->Poll();
+    if (n) polled_some = true;
   }
+
+  return polled_some;
 }
 
-void ObjectRegister::PrintObjectsStillInUse(const ObjectsMap& objs) {
+void ObjectRegister::PrintObjectsStillInUse(const ObjectsVector& objs) {
   std::cout << "Objects still in use after DestroyAll():" << std::endl;
   for (auto& obj : objs) {
-    std::cout << obj.second->Format() << std::endl;
+    std::cout << obj->Format() << std::endl;
   }
   std::cout << std::endl;
 }

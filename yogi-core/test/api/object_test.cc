@@ -20,8 +20,7 @@
 
 class Dummy : public api::ExposedObjectT<Dummy, api::ObjectType::kDummy> {};
 
-class MyObject
-    : public api::ExposedObjectT<MyObject, api::ObjectType::kContext> {
+class MyObject : public api::ExposedObjectT<MyObject, api::ObjectType::kTimer> {
  public:
   MyObject(int) {}
   ~MyObject() { ++dtor_calls_; }
@@ -36,9 +35,7 @@ int MyObject::dtor_calls_ = 0;
 
 class ObjectTest : public TestFixture {
  protected:
-  virtual void TearDown() override {
-    api::ObjectRegister::DestroyAll();
-  }
+  virtual void TearDown() override { api::ObjectRegister::DestroyAll(); }
 };
 
 TEST_F(ObjectTest, Create) {
@@ -48,8 +45,8 @@ TEST_F(ObjectTest, Create) {
 
 TEST_F(ObjectTest, Type) {
   auto obj = MyObject::Create(123);
-  EXPECT_EQ(obj->Type(), api::ObjectType::kContext);
-  EXPECT_EQ(MyObject::StaticType(), api::ObjectType::kContext);
+  EXPECT_EQ(obj->Type(), api::ObjectType::kTimer);
+  EXPECT_EQ(MyObject::StaticType(), api::ObjectType::kTimer);
 }
 
 TEST_F(ObjectTest, Handle) {
