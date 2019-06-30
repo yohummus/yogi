@@ -139,7 +139,12 @@
     "__errc": "cpp",
     "__node_handle": "cpp",
     "resumable": "cpp",
-    "shared_mutex": "cpp"
+    "shared_mutex": "cpp",
+    "any": "cpp",
+    "compare": "cpp",
+    "coroutine": "cpp",
+    "bit": "cpp",
+    "slist": "cpp"
   },
   "editor.tokenColorCustomizations": {
     "textMateRules": [

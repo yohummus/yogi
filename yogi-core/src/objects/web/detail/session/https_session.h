@@ -18,8 +18,10 @@
 #pragma once
 
 #include "../../../../config.h"
+#include "../route.h"
 #include "session.h"
 
+#include <boost/optional.hpp>
 #include <boost/beast/ssl.hpp>
 #include <boost/beast/http.hpp>
 
@@ -40,15 +42,15 @@ class HttpsSession : public SessionT<HttpsSession> {
   void OnHandshakeFinished(boost::beast::error_code ec, std::size_t bytes_used);
   void StartReceiveRequest();
   void OnReceiveRequestFinished(boost::beast::error_code ec, std::size_t);
-  void PopulateResponse();
+  void HandleRequest();
   void StartSendResponse();
   void OnSendResponseFinished(boost::beast::error_code ec, std::size_t);
   void StartShutdown();
   void OnShutdownFinished(boost::beast::error_code ec);
 
   boost::beast::ssl_stream<boost::beast::tcp_stream> stream_;
-  boost::beast::http::request<boost::beast::http::string_body> req_;
-  boost::beast::http::response<boost::beast::http::string_body> resp_;
+  Route::Request req_;
+  Route::Response resp_;
 };
 
 }  // namespace detail

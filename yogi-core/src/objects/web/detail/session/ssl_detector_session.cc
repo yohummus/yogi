@@ -37,7 +37,7 @@ void SslDetectorSession::Start() {
 
   beast::async_detect_ssl(
       stream_, Buffer(),
-      utils::BindWeak(&SslDetectorSession::OnDetectSslFinished, this));
+      utils::BindStrong(&SslDetectorSession::OnDetectSslFinished, this));
 }
 
 beast::tcp_stream& SslDetectorSession::Stream() {
@@ -48,13 +48,15 @@ void SslDetectorSession::OnDetectSslFinished(beast::error_code ec,
                                              boost::tribool is_ssl) {
   if (ec) {
     LOG_ERR("Detecting SSL failed: " << ec.message());
-    Destroy();
+    Close();
     return;
   }
 
   if (is_ssl) {
+    LOG_TRC("Detected SSL HTTP session");
     ChangeSessionType<HttpsSession>(std::move(stream_), SslContext());
   } else {
+    LOG_TRC("Detected plain HTTP session");
     ChangeSessionType<HttpSession>(std::move(stream_));
   }
 }

@@ -23,8 +23,12 @@
 #include "../../utils/json_helpers.h"
 #include "../../schema/schema.h"
 
-#include <algorithm>
+#include <boost/asio/ip/tcp.hpp>
+#include <boost/asio/strand.hpp>
+namespace asio = boost::asio;
+using asio::ip::tcp;
 
+#include <algorithm>
 #include <string>
 using namespace std::string_literals;
 
@@ -49,10 +53,11 @@ WebServer::WebServer(ContextPtr context, branch::BranchPtr branch,
   auth_            = detail::AuthProvider::Create(cfg, GetLoggingPrefix());
   routes_          = detail::Route::CreateAll(cfg, *auth_, GetLoggingPrefix());
   ssl_             = detail::SslContext::Create(cfg, GetLoggingPrefix());
+  sessions_        = std::make_shared<detail::SessionManager>();
   // clang-format on
 }
 
-WebServer::~WebServer() { CloseAllSessions(); }
+WebServer::~WebServer() { sessions_->CloseAll(); }
 
 void WebServer::AddWorker(ContextPtr worker_context) {
   worker_pool_.AddWorker(worker_context);
@@ -60,20 +65,6 @@ void WebServer::AddWorker(ContextPtr worker_context) {
 
 void WebServer::Start() {
   listener_->Start(utils::BindWeak(&WebServer::OnAccepted, this));
-}
-
-void WebServer::DestroySession(detail::SessionPtr session) {
-  session->Close();
-
-  std::lock_guard<std::mutex> lock(sessions_mutex_);
-  YOGI_ASSERT(sessions_.count(session->SessionId()));
-  sessions_.erase(session->SessionId());
-}
-
-void WebServer::ReplaceSession(detail::SessionPtr session) {
-  std::lock_guard<std::mutex> lock(sessions_mutex_);
-  YOGI_ASSERT(sessions_.count(session->SessionId()));
-  sessions_[session->SessionId()] = session;
 }
 
 void WebServer::CreateListener(const nlohmann::json& cfg) {
@@ -88,15 +79,14 @@ void WebServer::CreateListener(const nlohmann::json& cfg) {
 
 void WebServer::OnAccepted(boost::asio::ip::tcp::socket socket) {
   try {
-    auto session = detail::Session::Create(MakeWeakPtr(), worker_pool_, auth_,
-                                           ssl_, routes_, timeout_, test_mode_,
-                                           std::move(socket));
-
-    YOGI_ASSERT(!sessions_.count(session->SessionId()));
-    sessions_[session->SessionId()] = session;
+    auto worker = worker_pool_.AcquireWorker();
+    auto ass_socket = MakeSocketAssignedToWorker(std::move(socket), worker);
+    auto session =
+        sessions_->CreateSession(auth_, ssl_, routes_, std::move(worker),
+                                 timeout_, test_mode_, std::move(ass_socket));
 
     LOG_DBG("Session " << session->GetLoggingPrefix() << " created for client "
-                       << session->GetRemoteEndpoint());
+                       << session->RemoteEndpoint());
 
     session->Start();
   } catch (const std::exception& e) {
@@ -104,9 +94,14 @@ void WebServer::OnAccepted(boost::asio::ip::tcp::socket socket) {
   }
 }
 
-void WebServer::CloseAllSessions() {
-  for (auto& session : sessions_) {
-    session.second->Close();
+tcp::socket WebServer::MakeSocketAssignedToWorker(
+    tcp::socket&& socket, const detail::Worker& worker) {
+  if (worker.IsFallback()) {
+    return std::move(socket);
+  } else {
+    auto& ioc = worker.Context()->IoContext();
+    auto prot = socket.local_endpoint().protocol();
+    return tcp::socket(asio::make_strand(ioc), prot, socket.release());
   }
 }
 

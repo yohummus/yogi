@@ -25,7 +25,7 @@ namespace objects {
 namespace web {
 namespace detail {
 
-Worker::Worker(ContextWeakPtr context, bool is_fallback,
+Worker::Worker(ContextPtr context, bool is_fallback,
                LoadCounterPtr load_counter)
     : context_(context),
       is_fallback_(is_fallback),
@@ -45,12 +45,8 @@ Worker::~Worker() {
 
 Worker& Worker::operator=(Worker&& other) {
   context_ = std::move(other.context_);
-  other.context_ = {};
-
   is_fallback_ = other.is_fallback_;
-
   load_counter_ = std::move(other.load_counter_);
-  other.load_counter_ = {};
 
   return *this;
 }

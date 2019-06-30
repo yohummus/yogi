@@ -51,7 +51,7 @@ void HttpSession::StartReceiveRequest() {
 
   http::async_read(
       stream_, Buffer(), req_,
-      utils::BindWeak(&HttpSession::OnReceiveRequestFinished, this));
+      utils::BindStrong(&HttpSession::OnReceiveRequestFinished, this));
 }
 
 void HttpSession::OnReceiveRequestFinished(boost::beast::error_code ec,
@@ -61,7 +61,7 @@ void HttpSession::OnReceiveRequestFinished(boost::beast::error_code ec,
       LOG_ERR("Receiving HTTP request failed: " << ec.message());
     }
 
-    Destroy();
+    Close();
     return;
   }
 
@@ -81,20 +81,18 @@ void HttpSession::PopulateResponse() {
 void HttpSession::StartSendResponse() {
   http::async_write(
       stream_, resp_,
-      utils::BindWeak(&HttpSession::OnSendResponseFinished, this));
+      utils::BindStrong(&HttpSession::OnSendResponseFinished, this));
 }
 
 void HttpSession::OnSendResponseFinished(boost::beast::error_code ec,
                                          std::size_t) {
   if (ec) {
     LOG_ERR("Sending HTTP request failed: " << ec.message());
-    Destroy();
-    return;
+  } else {
+    LOG_IFO("Redirected client to use HTTPS");
   }
 
-  LOG_IFO("Redirected client to use HTTPS");
-
-  Destroy();
+  Close();
 }
 
 }  // namespace detail

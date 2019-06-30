@@ -44,20 +44,44 @@ class BindTest : public TestFixture {
   std::shared_ptr<Derived> obj_ = std::make_shared<Derived>();
 };
 
-TEST_F(BindTest, FunctionWithNoArguments) {
+TEST_F(BindTest, WeakFunctionWithNoArguments) {
   auto fn = utils::BindWeak(&Derived::FunctionWithNoArgs, obj_.get());
   fn();
   EXPECT_TRUE(obj_->called);
 }
 
-TEST_F(BindTest, FunctionWithOneArgument) {
+TEST_F(BindTest, StrongFunctionWithNoArguments) {
+  auto fn = utils::BindStrong(&Derived::FunctionWithNoArgs, obj_.get());
+  fn();
+  EXPECT_TRUE(obj_->called);
+}
+
+TEST_F(BindTest, WeakFunctionWithOneArgument) {
   auto fn = utils::BindWeak(&Derived::FunctionWithOneArg, obj_.get());
   fn("hello");
   EXPECT_TRUE(obj_->called);
 }
 
-TEST_F(BindTest, FunctionWithTwoArguments) {
+TEST_F(BindTest, StrongFunctionWithOneArgument) {
+  auto fn = utils::BindStrong(&Derived::FunctionWithOneArg, obj_.get());
+  fn("hello");
+  EXPECT_TRUE(obj_->called);
+}
+
+TEST_F(BindTest, WeakFunctionWithTwoArguments) {
   auto fn = utils::BindWeak(&Derived::FunctionWithTwoArgs, obj_.get());
   fn("hello", 123);
   EXPECT_TRUE(obj_->called);
+}
+
+TEST_F(BindTest, StrongFunctionWithTwoArguments) {
+  auto fn = utils::BindStrong(&Derived::FunctionWithTwoArgs, obj_.get());
+  fn("hello", 123);
+  EXPECT_TRUE(obj_->called);
+}
+
+TEST_F(BindTest, WeakExpired) {
+  auto fn = utils::BindWeak(&Derived::FunctionWithNoArgs, obj_.get());
+  obj_ = {};
+  EXPECT_NO_THROW(fn()); // Should not crash
 }

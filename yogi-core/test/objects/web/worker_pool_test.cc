@@ -38,23 +38,23 @@ TEST_F(WorkerPoolTest, AddSameWorkerTwice) {
 
 TEST_F(WorkerPoolTest, Fallback) {
   auto worker = pool_.AcquireWorker();
-  EXPECT_EQ(worker.Context().lock(), ctx_1_);
+  EXPECT_EQ(worker.Context(), ctx_1_);
   EXPECT_TRUE(worker.IsFallback());
 
   pool_.AddWorker(ctx_2_);
   worker = pool_.AcquireWorker();
-  EXPECT_EQ(worker.Context().lock(), ctx_2_);
+  EXPECT_EQ(worker.Context(), ctx_2_);
   EXPECT_FALSE(worker.IsFallback());
   worker = pool_.AcquireWorker();
-  EXPECT_EQ(worker.Context().lock(), ctx_2_);
+  EXPECT_EQ(worker.Context(), ctx_2_);
   EXPECT_FALSE(worker.IsFallback());
   worker = pool_.AcquireWorker();
-  EXPECT_EQ(worker.Context().lock(), ctx_2_);
+  EXPECT_EQ(worker.Context(), ctx_2_);
   EXPECT_FALSE(worker.IsFallback());
 
   pool_.AddWorker(ctx_1_);
   worker = pool_.AcquireWorker();
-  EXPECT_EQ(worker.Context().lock(), ctx_1_);
+  EXPECT_EQ(worker.Context(), ctx_1_);
   EXPECT_TRUE(worker.IsFallback());
 }
 
@@ -64,16 +64,16 @@ TEST_F(WorkerPoolTest, TaskDistribution) {
 
   auto worker_1 = std::make_unique<Worker>(pool_.AcquireWorker());
   auto worker_2 = std::make_unique<Worker>(pool_.AcquireWorker());
-  EXPECT_NE(worker_1->Context().lock(), ctx_1_);
-  EXPECT_NE(worker_2->Context().lock(), ctx_1_);
-  EXPECT_NE(worker_2->Context().lock(), worker_1->Context().lock());
+  EXPECT_NE(worker_1->Context(), ctx_1_);
+  EXPECT_NE(worker_2->Context(), ctx_1_);
+  EXPECT_NE(worker_2->Context(), worker_1->Context());
 
   auto worker_3 = std::make_unique<Worker>(pool_.AcquireWorker());
-  EXPECT_NE(worker_3->Context().lock(), ctx_1_);
+  EXPECT_NE(worker_3->Context(), ctx_1_);
 
   worker_1.reset();
   worker_2.reset();
   auto worker_4 = std::make_unique<Worker>(pool_.AcquireWorker());
-  EXPECT_NE(worker_4->Context().lock(), ctx_1_);
-  EXPECT_NE(worker_4->Context().lock(), worker_3->Context().lock());
+  EXPECT_NE(worker_4->Context(), ctx_1_);
+  EXPECT_NE(worker_4->Context(), worker_3->Context());
 }

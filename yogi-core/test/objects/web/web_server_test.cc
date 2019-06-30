@@ -85,15 +85,7 @@ TEST_F(WebServerTest, CleanDestruction) {
   // Do a proper request to make sure that the previous session started
   DoHttpRequest(ep, YOGI_MET_GET, "/");
 
-  // This will leave some completion handlers in an io_context. If those
-  // handlers are keeping active shared_ptr's to Yogi objects then
-  // YOGI_DestroyAll() will trigger an assertion.
-  int res = YOGI_ContextStop(context_);
-  EXPECT_OK(res);
-  res = YOGI_ContextWaitForStopped(context_, -1);
-  EXPECT_OK(res);
-
-  res = YOGI_DestroyAll();
+  int res = YOGI_DestroyAll();
   EXPECT_OK(res)
       << "A server session seems to keep some Yogi objects alive, probably by "
          "holding active shared_ptr's when it shouldn't.";

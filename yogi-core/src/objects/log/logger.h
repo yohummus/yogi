@@ -38,16 +38,16 @@
 #define LOG_DBG(...) YOGI_INTERNAL_LOG(kDebug, __VA_ARGS__)
 #define LOG_TRC(...) YOGI_INTERNAL_LOG(kTrace, __VA_ARGS__)
 
-#define YOGI_INTERNAL_LOG(severity, stream)                         \
-  {                                                                 \
-    auto& logger = file_global_internal_logger;                     \
-    if (::api::Verbosity::severity <= (logger)->GetVerbosity()) {   \
-      std::stringstream ss;                                         \
-      if (HasLoggingPrefix()) ss << GetLoggingPrefix() << ": ";     \
-      ss << stream;                                                 \
-      (logger)->Log(::api::Verbosity::severity, __FILE__, __LINE__, \
-                    ss.str().c_str());                              \
-    }                                                               \
+#define YOGI_INTERNAL_LOG(severity, stream)                                 \
+  {                                                                         \
+    auto& logger = file_global_internal_logger;                             \
+    if (::api::Verbosity::severity <= (logger)->GetVerbosity()) {           \
+      std::stringstream ss;                                                 \
+      if (this->HasLoggingPrefix()) ss << this->GetLoggingPrefix() << ": "; \
+      ss << stream;                                                         \
+      (logger)->Log(::api::Verbosity::severity, __FILE__, __LINE__,         \
+                    ss.str().c_str());                                      \
+    }                                                                       \
   }
 
 #define YOGI_DEFINE_INTERNAL_LOGGER(component)                     \

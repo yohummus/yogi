@@ -31,6 +31,7 @@
 
 #include <nlohmann/json.hpp>
 #include <boost/uuid/uuid.hpp>
+#include <boost/asio/ip/tcp.hpp>
 
 #include <vector>
 #include <chrono>
@@ -57,18 +58,11 @@ class WebServer
   void AddWorker(ContextPtr worker);
   void Start();
 
-  bool CompressAssetsEnabled() const { return compress_assets_; }
-  std::size_t CacheSize() const { return cache_size_; }
-
- protected:
-  friend class detail::Session;
-  void DestroySession(detail::SessionPtr session);
-  void ReplaceSession(detail::SessionPtr session);
-
  private:
   void CreateListener(const nlohmann::json& cfg);
   void OnAccepted(boost::asio::ip::tcp::socket socket);
-  void CloseAllSessions();
+  boost::asio::ip::tcp::socket MakeSocketAssignedToWorker(
+      boost::asio::ip::tcp::socket&& socket, const detail::Worker& worker);
 
   const ContextPtr context_;
   const branch::BranchPtr branch_;
@@ -81,8 +75,7 @@ class WebServer
   detail::RoutesVectorPtr routes_;
   detail::SslContextPtr ssl_;
   detail::WorkerPool worker_pool_;
-  detail::SessionsMap sessions_;
-  std::mutex sessions_mutex_;
+  detail::SessionManagerPtr sessions_;
 };
 
 }  // namespace web

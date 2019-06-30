@@ -18,6 +18,7 @@
 #pragma once
 
 #include "../../../../config.h"
+#include "../route.h"
 #include "session.h"
 
 #include <boost/beast/http.hpp>
@@ -44,8 +45,8 @@ class HttpSession : public SessionT<HttpSession> {
   void OnSendResponseFinished(boost::beast::error_code ec, std::size_t);
 
   boost::beast::tcp_stream stream_;
-  boost::beast::http::request<boost::beast::http::string_body> req_;
-  boost::beast::http::response<boost::beast::http::empty_body> resp_;
+  Route::Request req_;
+  Route::Response resp_;
 };
 
 }  // namespace detail

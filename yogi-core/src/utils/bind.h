@@ -42,4 +42,15 @@ inline std::function<void(Args...)> BindWeak(void (Obj::*fn)(Args...),
   return wrapper;
 }
 
+template <typename Obj, typename... Args>
+inline std::function<void(Args...)> BindStrong(void (Obj::*fn)(Args...),
+                                               Obj* obj) {
+  auto p = std::static_pointer_cast<Obj>(obj->shared_from_this());
+  std::function<void(Args...)> wrapper = [p, fn](Args&&... args) {
+    ((*p).*fn)(std::forward<Args>(args)...);
+  };
+
+  return wrapper;
+}
+
 }  // namespace utils

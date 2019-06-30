@@ -36,7 +36,7 @@ void HttpsSession::Start() {
 
   stream_.async_handshake(
       stream_.server, Buffer().data(),
-      utils::BindWeak(&HttpsSession::OnHandshakeFinished, this));
+      utils::BindStrong(&HttpsSession::OnHandshakeFinished, this));
 }
 
 boost::beast::tcp_stream& HttpsSession::Stream() {
@@ -47,7 +47,7 @@ void HttpsSession::OnHandshakeFinished(boost::beast::error_code ec,
                                        std::size_t bytes_used) {
   if (ec) {
     LOG_ERR("SSL handshake failed: " << ec.message());
-    Destroy();
+    Close();
     return;
   }
 
@@ -62,7 +62,7 @@ void HttpsSession::StartReceiveRequest() {
 
   http::async_read(
       stream_, Buffer(), req_,
-      utils::BindWeak(&HttpsSession::OnReceiveRequestFinished, this));
+      utils::BindStrong(&HttpsSession::OnReceiveRequestFinished, this));
 }
 
 void HttpsSession::OnReceiveRequestFinished(boost::beast::error_code ec,
@@ -72,57 +72,68 @@ void HttpsSession::OnReceiveRequestFinished(boost::beast::error_code ec,
       StartShutdown();
     } else {
       LOG_ERR("Receiving HTTP request failed: " << ec.message());
-      Destroy();
+      Close();
     }
 
     return;
   }
 
-  PopulateResponse();
-  StartSendResponse();
+  HandleRequest();
 }
 
-void HttpsSession::PopulateResponse() {
-  resp_ = {http::status::ok, req_.version()};
+void HttpsSession::HandleRequest() {
+  auto uri = req_.target();
+
+  LOG_IFO("Received " << req_.method() << ' ' << uri);
+
+  resp_.version(req_.version());
   resp_.set(http::field::server, "Yogi " YOGI_HDR_VERSION " Web Server");
   resp_.keep_alive(req_.keep_alive());
-  resp_.set(http::field::content_type, "text/html");
-  resp_.body() =
-      R"(<!DOCTYPE html>
-<html>
-<body>
-  <h1>Welcome to the Yogi web server!</h1>
-</body>
-</html>
-)";
-  resp_.prepare_payload();
+
+  auto self = MakeSharedPtr();
+  auto send_fn = [self, this] {
+    self->StartSendResponse();
+    LOG_IFO("Response " << resp_.result_int() << " sent");
+  };
+
+  auto route = Route::FindRouteByUri(uri, *Routes());
+  if (route) {
+    route->HandleRequest(req_, &resp_, self, send_fn);
+  } else {
+    LOG_ERR("Route " << uri.substr(0, uri.find('?')) << " not found");
+    resp_.result(http::status::not_found);
+    resp_.set(http::field::content_type, "text/html");
+    resp_.body() = "The resource '" + std::string(uri) + "' was not found.";
+    resp_.prepare_payload();
+
+    send_fn();
+  }
 }
 
 void HttpsSession::StartSendResponse() {
   http::async_write(
       stream_, resp_,
-      utils::BindWeak(&HttpsSession::OnSendResponseFinished, this));
+      utils::BindStrong(&HttpsSession::OnSendResponseFinished, this));
 }
 
 void HttpsSession::OnSendResponseFinished(boost::beast::error_code ec,
                                           std::size_t) {
   if (ec) {
     LOG_ERR("Sending HTTP request failed: " << ec.message());
-    Destroy();
+    Close();
     return;
   }
 
   if (resp_.need_eof()) {
     StartShutdown();
   } else {
-    resp_ = {};
     StartReceiveRequest();
   }
 }
 
 void HttpsSession::StartShutdown() {
   stream_.async_shutdown(
-      utils::BindWeak(&HttpsSession::OnShutdownFinished, this));
+      utils::BindStrong(&HttpsSession::OnShutdownFinished, this));
 }
 
 void HttpsSession::OnShutdownFinished(boost::beast::error_code ec) {
@@ -130,7 +141,7 @@ void HttpsSession::OnShutdownFinished(boost::beast::error_code ec) {
     LOG_ERR("Shutdown failed: " << ec.message());
   }
 
-  Destroy();
+  Close();
 }
 
 }  // namespace detail

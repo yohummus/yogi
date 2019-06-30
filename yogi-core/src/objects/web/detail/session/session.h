@@ -32,64 +32,68 @@
 #include <memory>
 #include <unordered_map>
 #include <utility>
+#include <mutex>
 
 namespace objects {
 namespace web {
-
-class WebServer;
-typedef std::weak_ptr<WebServer> WebServerWeakPtr;
-
 namespace detail {
 
 class Session;
 typedef std::shared_ptr<Session> SessionPtr;
-typedef std::unordered_map<boost::uuids::uuid, detail::SessionPtr,
-                           boost::hash<boost::uuids::uuid>>
-    SessionsMap;
+
+class SessionManager;
+typedef std::shared_ptr<SessionManager> SessionManagerPtr;
 
 class Session : public log::LoggerUser,
                 public std::enable_shared_from_this<Session> {
  public:
-  static SessionPtr Create(WebServerWeakPtr server, WorkerPool& worker_pool,
-                           AuthProviderPtr auth, SslContextPtr ssl,
-                           RoutesVectorPtr routes,
-                           std::chrono::nanoseconds timeout, bool test_mode,
-                           boost::asio::ip::tcp::socket socket);
+  static SessionPtr Create(SessionManagerPtr manager, AuthProviderPtr auth,
+                           SslContextPtr ssl, RoutesVectorPtr routes,
+                           Worker&& worker, std::chrono::nanoseconds timeout,
+                           bool test_mode,
+                           boost::asio::ip::tcp::socket&& socket);
 
   virtual ~Session();
 
   virtual void Start() = 0;
+  void Close();
+
+  const boost::uuids::uuid& SessionId() const { return session_id_; }
+  const boost::asio::ip::tcp::endpoint& RemoteEndpoint() const { return rep_; }
+
+ protected:
+  virtual boost::beast::tcp_stream& Stream() = 0;
 
   std::chrono::nanoseconds Timeout() const { return timeout_; }
   bool TestModeEnabled() const { return test_mode_; }
   const detail::AuthProviderPtr& AuthProvider() const { return auth_; }
   const detail::SslContextPtr& SslContext() const { return ssl_; }
   const detail::RoutesVectorPtr& Routes() const { return routes_; }
-  const boost::uuids::uuid& SessionId() const { return session_id_; }
-  boost::asio::ip::tcp::endpoint GetRemoteEndpoint();
-
-  void Close();
-  void Destroy();
-
- protected:
-  virtual boost::beast::tcp_stream& Stream() = 0;
-
   boost::beast::flat_buffer& Buffer() { return buffer_; }
+  const ContextPtr& Context() const { return worker_.Context(); }
 
   template <typename SessionType, typename... Args>
   void ChangeSessionType(Args&&... args) {
-    auto new_session =
-        std::make_shared<SessionType>(std::forward<Args>(args)...);
-    ChangeSessionTypeImpl(new_session);
+    CancelTimeout();
+    ChangeSessionTypeImpl(
+        std::make_shared<SessionType>(std::forward<Args>(args)...));
   }
 
   void StartTimeout();
   void CancelTimeout();
 
  private:
+  void PopulateMembers(SessionManagerPtr manager, Worker&& worker,
+                       AuthProviderPtr auth, SslContextPtr ssl,
+                       RoutesVectorPtr routes, std::chrono::nanoseconds timeout,
+                       bool test_mode, boost::uuids::uuid session_id,
+                       boost::asio::ip::tcp::endpoint remote_ep,
+                       boost::beast::flat_buffer buffer,
+                       std::string logging_prefix);
   void ChangeSessionTypeImpl(SessionPtr new_session);
+  void DoClose();
 
-  WebServerWeakPtr server_;
+  SessionManagerPtr manager_;
   Worker worker_;
   AuthProviderPtr auth_;
   SslContextPtr ssl_;
@@ -97,6 +101,7 @@ class Session : public log::LoggerUser,
   std::chrono::nanoseconds timeout_;
   bool test_mode_;
   boost::uuids::uuid session_id_;
+  boost::asio::ip::tcp::endpoint rep_;
   boost::beast::flat_buffer buffer_;
   bool replaced_ = false;
 };
@@ -109,6 +114,33 @@ class SessionT : public Session {
   }
 
   std::weak_ptr<SessionType> MakeWeakPtr() { return {MakeSharedPtr()}; }
+};
+
+class SessionManager : public std::enable_shared_from_this<SessionManager> {
+ public:
+  template <typename... Args>
+  SessionPtr CreateSession(Args&&... args) {
+    auto session =
+        Session::Create(shared_from_this(), std::forward<Args>(args)...);
+
+    std::lock_guard<std::mutex> lock(mutex_);
+    YOGI_ASSERT(!sessions_.count(session->SessionId()));
+    sessions_[session->SessionId()] = session;
+
+    return session;
+  }
+
+  void Remove(const Session& session);
+  void Replace(SessionPtr new_session);
+  void CloseAll();
+
+ private:
+  typedef std::unordered_map<boost::uuids::uuid, SessionPtr,
+                             boost::hash<boost::uuids::uuid>>
+      SessionsMap;
+
+  SessionsMap sessions_;
+  std::mutex mutex_;
 };
 
 }  // namespace detail

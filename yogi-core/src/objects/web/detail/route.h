@@ -23,29 +23,54 @@
 #include "auth/auth_provider.h"
 
 #include <nlohmann/json.hpp>
+#include <boost/beast/core.hpp>
+#include <boost/beast/http.hpp>
 #include <memory>
 #include <vector>
+#include <functional>
 
 namespace objects {
 namespace web {
 namespace detail {
 
-class Route;
-class ContentRoute;
-class FilesystemRoute;
-class CustomRoute;
+class Session;
+typedef std::shared_ptr<Session> SessionPtr;
 
-typedef std::unique_ptr<Route> RoutePtr;
+class Route;
+typedef std::shared_ptr<Route> RoutePtr;
 typedef std::vector<RoutePtr> RoutesVector;
 typedef std::shared_ptr<RoutesVector> RoutesVectorPtr;
 
 class Route : public objects::log::LoggerUser {
  public:
+  typedef boost::beast::http::string_body MsgBody;
+  typedef boost::beast::http::request<MsgBody> Request;
+  typedef boost::beast::http::response<MsgBody> Response;
+  typedef std::function<void()> SendResponseFn;
+
   static RoutesVectorPtr CreateAll(const nlohmann::json& cfg,
                                    const AuthProvider& auth,
                                    const std::string& logging_prefix);
+  static RoutePtr FindRouteByUri(boost::beast::string_view uri,
+                                 const RoutesVector& routes);
 
   virtual ~Route() {}
+
+  virtual void HandleRequest(const Request& req, Response* resp,
+                             SessionPtr session, SendResponseFn send_fn) {
+    // TODO: Function should be pure virtual and implemented in derived classes
+    resp->result(boost::beast::http::status::ok);
+    resp->set(boost::beast::http::field::content_type, "text/html");
+    resp->body() = R"(<!DOCTYPE html>
+<html>
+<body>
+  <h1>Welcome to the Yogi web server!</h1>
+</body>
+</html>
+)";
+    resp->prepare_payload();
+    send_fn();
+  };
 
   const std::string& GetBaseUri() const { return base_uri_; }
   bool IsEnabled() const { return enabled_; }

@@ -18,10 +18,12 @@
 #include "session.h"
 #include "ssl_detector_session.h"
 #include "../../web_server.h"
+#include "../../../../utils/bind.h"
 
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
-using tcp = boost::asio::ip::tcp;
+namespace asio = boost::asio;
+using tcp = asio::ip::tcp;
 
 #include <string>
 using namespace std::string_literals;
@@ -32,34 +34,17 @@ namespace objects {
 namespace web {
 namespace detail {
 
-SessionPtr Session::Create(WebServerWeakPtr server, WorkerPool& worker_pool,
-                           AuthProviderPtr auth, SslContextPtr ssl,
-                           RoutesVectorPtr routes,
-                           std::chrono::nanoseconds timeout, bool test_mode,
-                           tcp::socket socket) {
-  auto worker = worker_pool.AcquireWorker();
-  auto& ioc = worker.Context().lock()->IoContext();
+SessionPtr Session::Create(SessionManagerPtr manager, AuthProviderPtr auth,
+                           SslContextPtr ssl, RoutesVectorPtr routes,
+                           Worker&& worker, std::chrono::nanoseconds timeout,
+                           bool test_mode, tcp::socket&& socket) {
+  auto sid = boost::uuids::random_generator()();
+  auto remote_ep = socket.remote_endpoint();
 
-  SessionPtr session;
-  if (worker.IsFallback()) {
-    session = std::make_shared<SslDetectorSession>(std::move(socket));
-  } else {
-    auto prot = socket.local_endpoint().protocol();
-    session = std::make_shared<SslDetectorSession>(
-        tcp::socket(boost::asio::make_strand(ioc), prot, socket.release()));
-  }
-
-  session->server_ = server;
-  session->worker_ = std::move(worker);
-  session->auth_ = auth;
-  session->ssl_ = ssl;
-  session->routes_ = routes;
-  session->timeout_ = timeout;
-  session->test_mode_ = test_mode;
-  session->session_id_ = boost::uuids::random_generator()();
-
-  session->SetLoggingPrefix(
-      "["s + boost::uuids::to_string(session->session_id_) + ']');
+  auto session = std::make_shared<SslDetectorSession>(std::move(socket));
+  session->PopulateMembers(manager, std::move(worker), auth, ssl, routes,
+                           timeout, test_mode, sid, remote_ep, {},
+                           "["s + boost::uuids::to_string(sid) + ']');
 
   return session;
 }
@@ -70,12 +55,49 @@ Session::~Session() {
   }
 }
 
-tcp::endpoint Session::GetRemoteEndpoint() {
-  return Stream().socket().remote_endpoint();
+void Session::Close() {
+  asio::post(Context()->IoContext(), utils::BindWeak(&Session::DoClose, this));
 }
 
-void Session::Close() {
-  YOGI_ASSERT(!worker_.Context().expired());
+void Session::StartTimeout() { Stream().expires_after(timeout_); }
+
+void Session::CancelTimeout() { Stream().expires_never(); }
+
+void Session::PopulateMembers(SessionManagerPtr manager, Worker&& worker,
+                              AuthProviderPtr auth, SslContextPtr ssl,
+                              RoutesVectorPtr routes,
+                              std::chrono::nanoseconds timeout, bool test_mode,
+                              boost::uuids::uuid session_id,
+                              boost::asio::ip::tcp::endpoint remote_ep,
+                              boost::beast::flat_buffer buffer,
+                              std::string logging_prefix) {
+  manager_ = manager;
+  worker_ = std::move(worker);
+  auth_ = auth;
+  ssl_ = ssl;
+  routes_ = routes;
+  timeout_ = timeout;
+  test_mode_ = test_mode;
+  session_id_ = session_id;
+  rep_ = remote_ep;
+  buffer_ = std::move(buffer);
+
+  SetLoggingPrefix(logging_prefix);
+}
+
+void Session::ChangeSessionTypeImpl(SessionPtr new_session) {
+  new_session->PopulateMembers(manager_, std::move(worker_), std::move(auth_),
+                               std::move(ssl_), std::move(routes_), timeout_,
+                               test_mode_, session_id_, rep_,
+                               std::move(buffer_), GetLoggingPrefix());
+  manager_->Replace(new_session);
+  replaced_ = true;
+
+  new_session->Start();
+}
+
+void Session::DoClose() {
+  if (replaced_) return;
 
   auto& socket = Stream().socket();
   if (!socket.is_open()) return;
@@ -83,49 +105,26 @@ void Session::Close() {
   boost::system::error_code ec;
   socket.shutdown(tcp::socket::shutdown_both, ec);
   socket.close(ec);
+
+  manager_->Remove(*this);
 }
 
-void Session::Destroy() {
-  Close();
+void SessionManager::Remove(const Session& session) {
+  std::lock_guard<std::mutex> lock(mutex_);
+  sessions_.erase(session.SessionId());
+}
 
-  auto server = server_.lock();
-  if (server) {
-    server->DestroySession(shared_from_this());
+void SessionManager::Replace(SessionPtr new_session) {
+  std::lock_guard<std::mutex> lock(mutex_);
+  YOGI_ASSERT(sessions_.count(new_session->SessionId()));
+  sessions_[new_session->SessionId()] = new_session;
+}
+
+void SessionManager::CloseAll() {
+  std::lock_guard<std::mutex> lock(mutex_);
+  for (auto& session : sessions_) {
+    session.second->Close();
   }
-}
-
-void Session::StartTimeout() {
-  YOGI_ASSERT(!worker_.Context().expired());
-  Stream().expires_after(timeout_);
-}
-
-void Session::CancelTimeout() {
-  YOGI_ASSERT(!worker_.Context().expired());
-  Stream().expires_never();
-}
-
-void Session::ChangeSessionTypeImpl(SessionPtr new_session) {
-  YOGI_ASSERT(!worker_.Context().expired());
-
-  auto server = server_.lock();
-  if (!server) return;
-
-  new_session->server_ = std::move(server_);
-  new_session->worker_ = std::move(worker_);
-  new_session->auth_ = std::move(auth_);
-  new_session->ssl_ = std::move(ssl_);
-  new_session->routes_ = std::move(routes_);
-  new_session->timeout_ = std::move(timeout_);
-  new_session->test_mode_ = std::move(test_mode_);
-  new_session->session_id_ = std::move(session_id_);
-  new_session->buffer_ = std::move(buffer_);
-
-  new_session->SetLoggingPrefix(GetLoggingPrefix());
-
-  server->ReplaceSession(new_session);
-  replaced_ = true;
-
-  new_session->Start();
 }
 
 }  // namespace detail

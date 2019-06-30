@@ -82,6 +82,12 @@ RoutesVectorPtr Route::CreateAll(const nlohmann::json& cfg,
   return routes;
 }
 
+RoutePtr Route::FindRouteByUri(boost::beast::string_view uri,
+                               const RoutesVector& routes) {
+  // TODO: Implement this
+  return routes.front();
+}
+
 const nlohmann::json& Route::GetDefaultRoutesSection() {
   static const nlohmann::json json = nlohmann::json::parse(R"(
     {

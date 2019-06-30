@@ -53,11 +53,6 @@ YOGI_API int YOGI_Destroy(void* object) {
 
 YOGI_API int YOGI_DestroyAll() {
   try {
-    for (auto& ctx : api::ObjectRegister::GetAll<objects::Context>()) {
-      ctx->Stop();
-      ctx->WaitForStopped(std::chrono::nanoseconds::max());
-    }
-
     api::ObjectRegister::DestroyAll();
   }
   CATCH_AND_RETURN;
