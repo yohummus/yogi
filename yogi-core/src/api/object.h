@@ -141,6 +141,12 @@ class ObjectRegister {
  private:
   typedef std::unordered_map<ObjectHandle, ObjectPtr> ObjectsMap;
 
+  static ObjectsMap TakeObjects();
+  static bool DestroyUnusedObjects(ObjectsMap* objs);
+  static void StopAllContexts(const ObjectsMap& objs);
+  static void PollAllContexts(const ObjectsMap& objs);
+  static void PrintObjectsStillInUse(const ObjectsMap& objs);
+
   static std::mutex mutex_;
   static ObjectsMap objects_;
 };

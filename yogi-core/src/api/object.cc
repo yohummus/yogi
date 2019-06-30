@@ -16,6 +16,7 @@
  */
 
 #include "object.h"
+#include "../objects/context.h"
 
 #include <boost/algorithm/string.hpp>
 #include <limits>
@@ -128,37 +129,60 @@ void ObjectRegister::Destroy(ObjectHandle handle) {
 }
 
 void ObjectRegister::DestroyAll() {
-  ObjectsMap objs;
+  auto objs = TakeObjects();
 
-  {
-    std::lock_guard<std::mutex> lock(mutex_);
-    std::swap(objects_, objs);
-  }
-
-  auto old_size = std::numeric_limits<size_t>::max();
-  while (objs.size() < old_size) {
-    old_size = objs.size();
-
-    for (auto it = objs.begin(); it != objs.end();) {
-      if (it->second.unique()) {
-        it = objs.erase(it);
-      } else {
-        ++it;
-      }
-    }
+  while (DestroyUnusedObjects(&objs)) {
+    PollAllContexts(objs);
   }
 
   if (!objs.empty()) {
-#ifndef NDEBUG
-    std::cout << "Objects still in use after DestroyAll():" << std::endl;
-    for (auto& obj : objs) {
-      std::cout << obj.second->Format() << std::endl;
-    }
-    std::cout << std::endl;
-#endif
-
+    YOGI_DEBUG_ONLY(PrintObjectsStillInUse(objs));
     throw Error(YOGI_ERR_OBJECT_STILL_USED);
   }
+}
+
+ObjectRegister::ObjectsMap ObjectRegister::TakeObjects() {
+  ObjectsMap objs;
+  std::lock_guard<std::mutex> lock(mutex_);
+  std::swap(objects_, objs);
+  return objs;
+}
+
+bool ObjectRegister::DestroyUnusedObjects(ObjectsMap* objs) {
+  bool destroyed_some = false;
+
+  auto it = objs->begin();
+  while (it != objs->end()) {
+    if (it->second.unique()) {
+      it = objs->erase(it);
+      destroyed_some = true;
+    } else {
+      ++it;
+    }
+  }
+
+  return destroyed_some;
+}
+
+void ObjectRegister::StopAllContexts(const ObjectsMap& objs) {
+  for (auto& context : GetAll<objects::Context>()) {
+    context->Stop();
+    context->WaitForStopped(std::chrono::nanoseconds::max());
+  }
+}
+
+void ObjectRegister::PollAllContexts(const ObjectsMap& objs) {
+  for (auto& context : GetAll<objects::Context>()) {
+    context->Poll();
+  }
+}
+
+void ObjectRegister::PrintObjectsStillInUse(const ObjectsMap& objs) {
+  std::cout << "Objects still in use after DestroyAll():" << std::endl;
+  for (auto& obj : objs) {
+    std::cout << obj.second->Format() << std::endl;
+  }
+  std::cout << std::endl;
 }
 
 }  // namespace api
