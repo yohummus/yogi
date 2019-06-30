@@ -39,16 +39,10 @@
 using namespace std::chrono_literals;
 using namespace std::string_literals;
 
-#define EXPECT_OK(res) EXPECT_EQ(res, YOGI_OK) _TEST_OK_TAIL(res)
-#define ASSERT_OK(res) ASSERT_EQ(res, YOGI_OK) _TEST_OK_TAIL(res)
-#define _TEST_OK_TAIL(res) \
-  << #res " is \"" << YOGI_GetErrorString(res) << "\" instead of YOGI_OK. "
-
-#define EXPECT_ERR(res, err) EXPECT_LT(res, 0) _TEST_ERR_TAIL(res, err)
-#define ASSERT_ERR(res, err) EXPECT_LT(res, 0) _TEST_ERR_TAIL(res, err)
-#define _TEST_ERR_TAIL(res, err)                               \
-  << #res " is " << ((res) ? std::to_string(res) : "YOGI_OK"s) \
-  << " instead of \"" << YOGI_GetErrorString(err) << "\". "
+#define EXPECT_OK(res) EXPECT_ERR(res, YOGI_OK)
+#define ASSERT_OK(res) ASSERT_ERR(res, YOGI_OK)
+#define EXPECT_ERR(res, err) EXPECT_EQ(res, err)
+#define ASSERT_ERR(res, err) EXPECT_EQ(res, err)
 
 #define _EXPECT_THROW_ERROR(statement, ec, catch_statement)       \
   try {                                                           \

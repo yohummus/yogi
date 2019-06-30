@@ -102,7 +102,7 @@ TEST_F(BranchTest, InvalidQueueSizes) {
     void* branch;
     int res = YOGI_BranchCreate(&branch, context_, MakeConfigFromJson(props),
                                 nullptr, err, sizeof(err));
-    EXPECT_ERR(res, YOGI_ERR_INVALID_PARAM);
+    EXPECT_ERR(res, YOGI_ERR_CONFIGURATION_VALIDATION_FAILED);
     EXPECT_NE(std::string(err).find(entry.first), std::string::npos);
   }
 }
