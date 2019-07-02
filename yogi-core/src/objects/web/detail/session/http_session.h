@@ -45,7 +45,7 @@ class HttpSession : public SessionT<HttpSession> {
   void OnSendResponseFinished(boost::beast::error_code ec, std::size_t);
 
   boost::beast::tcp_stream stream_;
-  Route::Request req_;
+  boost::optional<boost::beast::http::request_parser<Route::MsgBody>> parser_;
   Route::Response resp_;
 };
 

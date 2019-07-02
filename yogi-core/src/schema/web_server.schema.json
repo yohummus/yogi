@@ -24,6 +24,16 @@
       "minimum": 0.001,
       "description": "Time of inactivity before terminating a client connection."
     },
+    "http_header_limit": {
+      "type": "integer",
+      "anyOf": [{ "const": -1 }, { "minimum": 1 }],
+      "description": "Maximum allowed HTTP header size of incoming HTTP requests."
+    },
+    "http_body_limit": {
+      "type": "integer",
+      "anyOf": [{ "const": -1 }, { "minimum": 1 }],
+      "description": "Maximum allowed HTTP body size of incoming HTTP requests."
+    },
     "test_mode": {
       "type": "boolean",
       "description": "Enable functionality for testing both server and client code. Should only be enabled during development."

@@ -16,12 +16,13 @@
  */
 
 #include "route.h"
+#include "session/session.h"
 #include "../../../api/errors.h"
 #include "../../../schema/schema.h"
 
 #include <sstream>
 
-YOGI_DEFINE_INTERNAL_LOGGER("WebServer")
+YOGI_DEFINE_INTERNAL_LOGGER("WebServer.Session.HTTPS")
 
 namespace objects {
 namespace web {
@@ -77,6 +78,7 @@ RoutesVectorPtr Route::CreateAll(const nlohmann::json& cfg,
 
     route->owner_ = ExtractOwner(auth, it);
     route->InitMemberVariables(it, (*it)["permissions"], auth, logging_prefix);
+    route->ClearLoggingPrefix();
     routes->push_back(std::move(route));
   }
 
@@ -156,6 +158,9 @@ void Route::InitMemberVariables(const nlohmann::json::const_iterator& it,
 void ContentRoute::HandleRequest(const Request& req, const std::string& uri,
                                  Response* resp, SessionPtr session,
                                  SendResponseFn send_fn) {
+  LOG_IFO(session->GetLoggingPrefix()
+          << ": Serving static content from " << GetBaseUri() << "...");
+
   resp->result(boost::beast::http::status::ok);
   resp->set(boost::beast::http::field::content_type, "text/html");
   resp->body() = R"(<!DOCTYPE html>

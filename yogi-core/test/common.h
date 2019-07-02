@@ -227,24 +227,19 @@ int FindUnusedPort();
 
 boost::asio::ip::tcp::endpoint MakeWebServerEndpoint(
     int port = api::kDefaultWebPort);
+
+typedef std::function<void(
+    boost::beast::http::request<boost::beast::http::string_body>*)>
+    RequestModifierFn;
 boost::beast::http::response<boost::beast::http::string_body> DoHttpRequest(
     int method, const std::string& target,
-    std::function<
-        void(boost::beast::http::request<boost::beast::http::string_body>*)>
-        req_modifier_fn = {},
-    bool https = true);
+    RequestModifierFn req_modifier_fn = {}, bool https = true, int repeat = 1);
 boost::beast::http::response<boost::beast::http::string_body> DoHttpRequest(
     int port, int method, const std::string& target,
-    std::function<
-        void(boost::beast::http::request<boost::beast::http::string_body>*)>
-        req_modifier_fn = {},
-    bool https = true);
+    RequestModifierFn req_modifier_fn = {}, bool https = true, int repeat = 1);
 boost::beast::http::response<boost::beast::http::string_body> DoHttpRequest(
     boost::asio::ip::tcp::endpoint ep, int method, const std::string& target,
-    std::function<
-        void(boost::beast::http::request<boost::beast::http::string_body>*)>
-        req_modifier_fn = {},
-    bool https = true);
+    RequestModifierFn req_modifier_fn = {}, bool https = true, int repeat = 1);
 
 std::ostream& operator<<(std::ostream& os, const std::chrono::nanoseconds& dur);
 std::ostream& operator<<(std::ostream& os,

@@ -174,39 +174,49 @@ class MetaConstants(type):
         return Duration.from_nanoseconds(get_constant(28, c_longlong))
 
     @property
+    def DEFAULT_HTTP_HEADER_LIMIT(self) -> int:
+        """Default maximum HTTP header size of incoming requests in bytes."""
+        return get_constant(29, c_int)
+
+    @property
+    def DEFAULT_HTTP_BODY_LIMIT(self) -> int:
+        """Default maximum HTTP body size of incoming requests in bytes."""
+        return get_constant(30, c_int)
+
+    @property
     def DEFAULT_WEB_CACHE_SIZE(self) -> int:
         """Default size of the web server cache in bytes."""
-        return get_constant(29, c_int)
+        return get_constant(31, c_int)
 
     @property
     def MAX_WEB_CACHE_SIZE(self) -> int:
         """Maximum size of the web server cache in bytes."""
-        return get_constant(30, c_int)
+        return get_constant(32, c_int)
 
     @property
     def DEFAULT_ADMIN_USER(self) -> str:
         """Default user name for the administrator account."""
-        return get_constant(31, c_char_p)
+        return get_constant(33, c_char_p)
 
     @property
     def DEFAULT_ADMIN_PASSWORD(self) -> str:
         """Default password for the administrator account."""
-        return get_constant(32, c_char_p)
+        return get_constant(34, c_char_p)
 
     @property
     def DEFAULT_SSL_PRIVATE_KEY(self) -> str:
         """Default private key to use for SSL connections."""
-        return get_constant(33, c_char_p)
+        return get_constant(35, c_char_p)
 
     @property
     def DEFAULT_SSL_CERTIFICATE_CHAIN(self) -> str:
         """Default certificate chain to use for SSL connections."""
-        return get_constant(34, c_char_p)
+        return get_constant(36, c_char_p)
 
     @property
     def DEFAULT_SSL_DH_PARAMS(self) -> str:
         """Default DH parameters to use for SSL connections."""
-        return get_constant(35, c_char_p)
+        return get_constant(37, c_char_p)
 
 
 class Constants(metaclass=MetaConstants):

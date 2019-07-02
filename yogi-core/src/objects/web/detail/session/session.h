@@ -50,6 +50,7 @@ class Session : public log::LoggerUser,
   static SessionPtr Create(SessionManagerPtr manager, AuthProviderPtr auth,
                            SslContextPtr ssl, RoutesVectorPtr routes,
                            Worker&& worker, std::chrono::nanoseconds timeout,
+                           std::uint32_t header_limit, std::uint32_t body_limit,
                            bool test_mode,
                            boost::asio::ip::tcp::socket&& socket);
 
@@ -65,6 +66,8 @@ class Session : public log::LoggerUser,
   virtual boost::beast::tcp_stream& Stream() = 0;
 
   std::chrono::nanoseconds Timeout() const { return timeout_; }
+  std::uint32_t HeaderLimit() const { return header_limit_; }
+  std::uint32_t BodyLimit() const { return body_limit_; }
   bool TestModeEnabled() const { return test_mode_; }
   const detail::AuthProviderPtr& AuthProvider() const { return auth_; }
   const detail::SslContextPtr& SslContext() const { return ssl_; }
@@ -86,6 +89,7 @@ class Session : public log::LoggerUser,
   void PopulateMembers(SessionManagerPtr manager, Worker&& worker,
                        AuthProviderPtr auth, SslContextPtr ssl,
                        RoutesVectorPtr routes, std::chrono::nanoseconds timeout,
+                       std::uint32_t header_limit, std::uint32_t body_limit,
                        bool test_mode, boost::uuids::uuid session_id,
                        boost::asio::ip::tcp::endpoint remote_ep,
                        boost::beast::flat_buffer buffer,
@@ -99,6 +103,8 @@ class Session : public log::LoggerUser,
   SslContextPtr ssl_;
   RoutesVectorPtr routes_;
   std::chrono::nanoseconds timeout_;
+  std::uint32_t header_limit_;
+  std::uint32_t body_limit_;
   bool test_mode_;
   boost::uuids::uuid session_id_;
   boost::asio::ip::tcp::endpoint rep_;

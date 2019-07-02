@@ -131,5 +131,7 @@ void LoggerUser::SetLoggingPrefix(const api::ExposedObject& obj) {
 
 void LoggerUser::SetLoggingPrefix(std::string prefix) { prefix_ = prefix; }
 
+void LoggerUser::ClearLoggingPrefix() { prefix_ = {}; }
+
 }  // namespace log
 }  // namespace objects

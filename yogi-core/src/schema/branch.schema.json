@@ -47,26 +47,12 @@
     },
     "advertising_interval": {
       "type": "number",
-      "anyOf": [
-        {
-          "const": -1
-        },
-        {
-          "minimum": 0.001
-        }
-      ],
+      "anyOf": [{ "const": -1 }, { "minimum": 0.001 }],
       "description": "Time between advertising messages."
     },
     "timeout": {
       "type": "number",
-      "anyOf": [
-        {
-          "const": -1
-        },
-        {
-          "minimum": 0.001
-        }
-      ],
+      "anyOf": [{ "const": -1 }, { "minimum": 0.001 }],
       "description": "Amount of time of inactivity before a connection is considered to be broken."
     },
     "ghost_mode": {

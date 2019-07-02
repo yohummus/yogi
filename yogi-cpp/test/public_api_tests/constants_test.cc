@@ -144,6 +144,17 @@ TEST(ConstantsTest, kDefaultWebTimeout) {
   EXPECT_GT(yogi::constants::kDefaultWebTimeout, 500ms);
 }
 
+TEST(ConstantsTest, kDefaultHttpHeaderLimit) {
+  EXPECT_GT(yogi::constants::kDefaultHttpHeaderLimit, 100);
+  EXPECT_LT(yogi::constants::kDefaultHttpHeaderLimit, 1000000);
+}
+
+TEST(ConstantsTest, kDefaultHttpBodyLimit) {
+  EXPECT_GT(yogi::constants::kDefaultHttpBodyLimit, 100);
+  EXPECT_GE(yogi::constants::kDefaultHttpBodyLimit,
+            yogi::constants::kDefaultHttpHeaderLimit);
+}
+
 TEST(ConstantsTest, kDefaultWebCacheSize) {
   EXPECT_GE(yogi::constants::kDefaultWebCacheSize, 1'000'000);
   EXPECT_LT(yogi::constants::kDefaultWebCacheSize,

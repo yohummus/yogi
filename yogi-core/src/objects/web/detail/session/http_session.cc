@@ -46,11 +46,14 @@ std::string HttpSession::MakeHttpsLocation() const {
 }
 
 void HttpSession::StartReceiveRequest() {
-  req_ = {};
+  parser_.emplace();
+  parser_->header_limit(HeaderLimit());
+  parser_->body_limit(BodyLimit());
+
   StartTimeout();
 
   http::async_read(
-      stream_, Buffer(), req_,
+      stream_, Buffer(), *parser_,
       utils::BindStrong(&HttpSession::OnReceiveRequestFinished, this));
 }
 
@@ -70,7 +73,7 @@ void HttpSession::OnReceiveRequestFinished(boost::beast::error_code ec,
 }
 
 void HttpSession::PopulateResponse() {
-  resp_ = {http::status::moved_permanently, req_.version()};
+  resp_ = {http::status::moved_permanently, parser_->get().version()};
   resp_.set(http::field::server, "Yogi " YOGI_HDR_VERSION " Web Server");
   resp_.set(http::field::location, MakeHttpsLocation());
   resp_.set(http::field::connection, "close");

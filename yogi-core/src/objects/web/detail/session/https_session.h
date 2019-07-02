@@ -49,7 +49,7 @@ class HttpsSession : public SessionT<HttpsSession> {
   void OnShutdownFinished(boost::beast::error_code ec);
 
   boost::beast::ssl_stream<boost::beast::tcp_stream> stream_;
-  Route::Request req_;
+  boost::optional<boost::beast::http::request_parser<Route::MsgBody>> parser_;
   Route::Response resp_;
 };
 

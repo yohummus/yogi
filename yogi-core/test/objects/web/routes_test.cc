@@ -97,12 +97,6 @@ TEST_F(RoutesTest, NumberOfRoutes) {
   }
 }
 
-TEST_F(RoutesTest, LoggingPrefix) {
-  for (auto& route : *routes_) {
-    EXPECT_EQ(route->GetLoggingPrefix(), "bla");
-  }
-}
-
 TEST_F(RoutesTest, BasicRouteProperties) {
   EXPECT_EQ(GetRoute("/secret").GetBaseUri(), "/secret");
   EXPECT_FALSE(GetRoute("/").GetOwner());

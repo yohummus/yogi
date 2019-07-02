@@ -164,6 +164,18 @@ class TestConstants(TestCase):
         self.assertIsInstance(c, yogi.Duration)
         self.assertAlmostEqual(c.total_seconds, 30.0, delta=100.0)
 
+    def test_default_http_header_limit(self):
+        c = yogi.Constants.DEFAULT_HTTP_HEADER_LIMIT
+        self.assertIsInstance(c, int)
+        self.assertGreater(c, 100)
+        self.assertLess(c, 1000000)
+
+    def test_default_http_body_limit(self):
+        c = yogi.Constants.DEFAULT_HTTP_BODY_LIMIT
+        self.assertIsInstance(c, int)
+        self.assertGreater(c, 100)
+        self.assertGreater(c, yogi.Constants.DEFAULT_HTTP_HEADER_LIMIT)
+
     def test_default_web_cache_size(self):
         c = yogi.Constants.DEFAULT_WEB_CACHE_SIZE
         self.assertIsInstance(c, int)

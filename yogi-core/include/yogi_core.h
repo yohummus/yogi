@@ -134,26 +134,32 @@
 //! Default timeout for web server connections in nanoseconds (long long)
 #define YOGI_CONST_DEFAULT_WEB_TIMEOUT 28
 
+//! Default maximum HTTP header size of incoming requests in bytes (int)
+#define YOGI_CONST_DEFAULT_HTTP_HEADER_LIMIT 29
+
+//! Default maximum HTTP body size of incoming requests in bytes (int)
+#define YOGI_CONST_DEFAULT_HTTP_BODY_LIMIT 30
+
 //! Default size of the web server cache in bytes (int)
-#define YOGI_CONST_DEFAULT_WEB_CACHE_SIZE 29
+#define YOGI_CONST_DEFAULT_WEB_CACHE_SIZE 31
 
 //! Maximum size of the web server cache in bytes (int)
-#define YOGI_CONST_MAX_WEB_CACHE_SIZE 30
+#define YOGI_CONST_MAX_WEB_CACHE_SIZE 32
 
 //! Default user name for the administrator account (const char*)
-#define YOGI_CONST_DEFAULT_ADMIN_USER 31
+#define YOGI_CONST_DEFAULT_ADMIN_USER 33
 
 //! Default password for the administrator account (const char*)
-#define YOGI_CONST_DEFAULT_ADMIN_PASSWORD 32
+#define YOGI_CONST_DEFAULT_ADMIN_PASSWORD 34
 
 //! Default private key to use for SSL connections (const char*)
-#define YOGI_CONST_DEFAULT_SSL_PRIVATE_KEY 33
+#define YOGI_CONST_DEFAULT_SSL_PRIVATE_KEY 35
 
 //! Default certificate chain to use for SSL connections (const char*)
-#define YOGI_CONST_DEFAULT_SSL_CERTIFICATE_CHAIN 34
+#define YOGI_CONST_DEFAULT_SSL_CERTIFICATE_CHAIN 36
 
 //! Default DH parameters to use for SSL connections (const char*)
-#define YOGI_CONST_DEFAULT_SSL_DH_PARAMS 35
+#define YOGI_CONST_DEFAULT_SSL_DH_PARAMS 37
 
 //! @}
 //!
@@ -2284,12 +2290,14 @@ YOGI_API int YOGI_DestroyAll();
  *
  * \code
  *   {
- *     "port":            8443,
- *     "interfaces":      ["localhost"],
- *     "timeout":         30.0,
- *     "test_mode":       false,
- *     "compress_assets": true,
- *     "cache_size":      100000000,
+ *     "port":              8443,
+ *     "interfaces":        ["localhost"],
+ *     "timeout":           30.0,
+ *     "http_header_limit": 1000,
+ *     "http_body_limit":   10000,
+ *     "test_mode":         false,
+ *     "compress_assets":   true,
+ *     "cache_size":        100000000,
  *     "routes": {
  *       "/": {
  *         "type":        "content",
@@ -2413,6 +2421,10 @@ YOGI_API int YOGI_DestroyAll();
  *    Furthermore, the special strings "localhost" and "all" can be used to
  *    denote loopback and all available interfaces respectively.
  *  - __timeout__: Time of inactivity before terminating a client connection.
+ *  - __http_header_limit__: Maximum HTTP header size in bytes for incoming HTTP
+ *    requests. If the header is larger then the connection will be closed.
+ *  - __http_body_limit__: Maximum HTTP body size in bytes for incoming HTTP
+ *    requests. If the body is larger then the connection will be closed.
  *  - __test_mode__: Set to true to enable functionality for testing both server
  *    and client code. Should only be enabled during development.
  *  - __compress_assets__: Enable compression when transferring compressable,

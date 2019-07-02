@@ -220,6 +220,21 @@ namespace test
         }
 
         [Fact]
+        public void DefaultHttpHeaderLimit()
+        {
+            Assert.True(Yogi.Constants.DefaultHttpHeaderLimit > 100);
+            Assert.True(Yogi.Constants.DefaultHttpHeaderLimit < 1000000);
+        }
+
+        [Fact]
+        public void DefaultHttpBodyLimit()
+        {
+            Assert.True(Yogi.Constants.DefaultHttpBodyLimit > 100);
+            Assert.True(Yogi.Constants.DefaultHttpBodyLimit >
+                        Yogi.Constants.DefaultHttpHeaderLimit);
+        }
+
+        [Fact]
         public void DefaultWebCacheSize()
         {
             Assert.IsType<int>(Yogi.Constants.DefaultWebCacheSize);

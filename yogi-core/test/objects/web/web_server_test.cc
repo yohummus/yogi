@@ -63,8 +63,12 @@ TEST_F(WebServerTest, WelcomePage) {
       << resp.body();
 }
 
-TEST_F(WebServerTest, DISABLED_ReuseConnection) {
-  // TODO: Make two requests over the same connection
+TEST_F(WebServerTest, ReuseConnection) {
+  CreateServer();
+  RunContextInBackground(context_);
+
+  auto resp = DoHttpRequest(port_, YOGI_MET_GET, "/", {}, true, 3);
+  EXPECT_EQ(resp.result_int(), 200);
 }
 
 TEST_F(WebServerTest, ConnectionKeepAlive) {
@@ -95,10 +99,42 @@ TEST_F(WebServerTest, CleanDestruction) {
          "holding active shared_ptr's when it shouldn't.";
 }
 
-TEST_F(WebServerTest, DISABLED_HeaderLimit) {
-  // TODO: Add beast parser and set header_limit()
+TEST_F(WebServerTest, HeaderLimit) {
+  CreateServer(nlohmann::json::parse(R"(
+    {
+      "http_header_limit": 200
+    }
+  )"));
+  RunContextInBackground(context_);
+
+  std::string target = "/xxxxx";
+  EXPECT_NO_THROW(DoHttpRequest(port_, YOGI_MET_GET, target, {}, true));
+  EXPECT_NO_THROW(DoHttpRequest(port_, YOGI_MET_GET, target, {}, false));
+
+  target.resize(250, 'x');
+  EXPECT_ANY_THROW(DoHttpRequest(port_, YOGI_MET_GET, target, {}, true));
+  EXPECT_ANY_THROW(DoHttpRequest(port_, YOGI_MET_GET, target, {}, false));
 }
 
-TEST_F(WebServerTest, DISABLED_BodyLimit) {
-  // TODO: Add beast parser and set body_limit()
+TEST_F(WebServerTest, BodyLimit) {
+  CreateServer(nlohmann::json::parse(R"(
+    {
+      "http_body_limit": 50
+    }
+  )"));
+  RunContextInBackground(context_);
+
+  std::string body = "xxxxx";
+  auto fn = [&](http::request<http::string_body>* req) {
+    req->set(http::field::content_type, "text/plain");
+    req->body() = body;
+    req->prepare_payload();
+  };
+
+  EXPECT_NO_THROW(DoHttpRequest(port_, YOGI_MET_GET, "/", fn, true));
+  EXPECT_NO_THROW(DoHttpRequest(port_, YOGI_MET_GET, "/", fn, false));
+
+  body.resize(100, 'x');
+  EXPECT_ANY_THROW(DoHttpRequest(port_, YOGI_MET_GET, "/", fn, true));
+  EXPECT_ANY_THROW(DoHttpRequest(port_, YOGI_MET_GET, "/", fn, false));
 }

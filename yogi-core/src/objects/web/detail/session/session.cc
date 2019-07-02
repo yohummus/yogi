@@ -37,13 +37,15 @@ namespace detail {
 SessionPtr Session::Create(SessionManagerPtr manager, AuthProviderPtr auth,
                            SslContextPtr ssl, RoutesVectorPtr routes,
                            Worker&& worker, std::chrono::nanoseconds timeout,
+                           std::uint32_t header_limit, std::uint32_t body_limit,
                            bool test_mode, tcp::socket&& socket) {
   auto sid = boost::uuids::random_generator()();
   auto remote_ep = socket.remote_endpoint();
 
   auto session = std::make_shared<SslDetectorSession>(std::move(socket));
   session->PopulateMembers(manager, std::move(worker), auth, ssl, routes,
-                           timeout, test_mode, sid, remote_ep, {},
+                           timeout, header_limit, body_limit, test_mode, sid,
+                           remote_ep, {},
                            "["s + boost::uuids::to_string(sid) + ']');
 
   return session;
@@ -63,20 +65,20 @@ void Session::StartTimeout() { Stream().expires_after(timeout_); }
 
 void Session::CancelTimeout() { Stream().expires_never(); }
 
-void Session::PopulateMembers(SessionManagerPtr manager, Worker&& worker,
-                              AuthProviderPtr auth, SslContextPtr ssl,
-                              RoutesVectorPtr routes,
-                              std::chrono::nanoseconds timeout, bool test_mode,
-                              boost::uuids::uuid session_id,
-                              boost::asio::ip::tcp::endpoint remote_ep,
-                              boost::beast::flat_buffer buffer,
-                              std::string logging_prefix) {
+void Session::PopulateMembers(
+    SessionManagerPtr manager, Worker&& worker, AuthProviderPtr auth,
+    SslContextPtr ssl, RoutesVectorPtr routes, std::chrono::nanoseconds timeout,
+    std::uint32_t header_limit, std::uint32_t body_limit, bool test_mode,
+    boost::uuids::uuid session_id, boost::asio::ip::tcp::endpoint remote_ep,
+    boost::beast::flat_buffer buffer, std::string logging_prefix) {
   manager_ = manager;
   worker_ = std::move(worker);
   auth_ = auth;
   ssl_ = ssl;
   routes_ = routes;
   timeout_ = timeout;
+  header_limit_ = header_limit;
+  body_limit_ = body_limit;
   test_mode_ = test_mode;
   session_id_ = session_id;
   rep_ = remote_ep;
@@ -86,10 +88,10 @@ void Session::PopulateMembers(SessionManagerPtr manager, Worker&& worker,
 }
 
 void Session::ChangeSessionTypeImpl(SessionPtr new_session) {
-  new_session->PopulateMembers(manager_, std::move(worker_), std::move(auth_),
-                               std::move(ssl_), std::move(routes_), timeout_,
-                               test_mode_, session_id_, rep_,
-                               std::move(buffer_), GetLoggingPrefix());
+  new_session->PopulateMembers(
+      manager_, std::move(worker_), std::move(auth_), std::move(ssl_),
+      std::move(routes_), timeout_, header_limit_, body_limit_, test_mode_,
+      session_id_, rep_, std::move(buffer_), GetLoggingPrefix());
   manager_->Replace(new_session);
   replaced_ = true;
 

@@ -137,6 +137,14 @@ void GetConstant(void* dest, int constant) {
       *static_cast<long long*>(dest) = kDefaultWebTimeout;
       break;
 
+    case YOGI_CONST_DEFAULT_HTTP_HEADER_LIMIT:
+      *static_cast<int*>(dest) = kDefaultHttpHeaderLimit;
+      break;
+
+    case YOGI_CONST_DEFAULT_HTTP_BODY_LIMIT:
+      *static_cast<int*>(dest) = kDefaultHttpBodyLimit;
+      break;
+
     case YOGI_CONST_DEFAULT_WEB_CACHE_SIZE:
       *static_cast<int*>(dest) = kDefaultWebCacheSize;
       break;

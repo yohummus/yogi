@@ -47,6 +47,8 @@ WebServer::WebServer(ContextPtr context, branch::BranchPtr branch,
 
   // clang-format off
   timeout_         = utils::ExtractDuration(cfg, "timeout", api::kDefaultWebTimeout);
+  header_limit_    = utils::ExtractNumberWithInfSupport<std::uint32_t>(cfg, "http_header_limit", api::kDefaultHttpHeaderLimit);
+  body_limit_      = utils::ExtractNumberWithInfSupport<std::uint32_t>(cfg, "http_body_limit", api::kDefaultHttpBodyLimit);
   test_mode_       = cfg.value("test_mode", false);
   compress_assets_ = cfg.value("compress_assets", true);
   cache_size_      = utils::ExtractSize(cfg, "cache_size", api::kDefaultWebCacheSize);
@@ -81,9 +83,9 @@ void WebServer::OnAccepted(boost::asio::ip::tcp::socket socket) {
   try {
     auto worker = worker_pool_.AcquireWorker();
     auto ass_socket = MakeSocketAssignedToWorker(std::move(socket), worker);
-    auto session =
-        sessions_->CreateSession(auth_, ssl_, routes_, std::move(worker),
-                                 timeout_, test_mode_, std::move(ass_socket));
+    auto session = sessions_->CreateSession(
+        auth_, ssl_, routes_, std::move(worker), timeout_, header_limit_,
+        body_limit_, test_mode_, std::move(ass_socket));
 
     LOG_DBG("Session " << session->GetLoggingPrefix() << " created for client "
                        << session->RemoteEndpoint());

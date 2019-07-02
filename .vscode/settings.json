@@ -14,7 +14,8 @@
     "**/.exe/": true,
     "**/__pycache__/": true,
     "**/*.dll": true,
-    "**/node_modules/": true
+    "**/node_modules/": true,
+    "vcpkg": true
   },
   "python.testing.cwd": "yogi-python",
   "python.testing.unittestArgs": ["-v", "-s", ".", "-p", "test_*.py"],

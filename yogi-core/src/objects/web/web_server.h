@@ -67,6 +67,8 @@ class WebServer
   const ContextPtr context_;
   const branch::BranchPtr branch_;
   std::chrono::nanoseconds timeout_;
+  std::uint32_t header_limit_;
+  std::uint32_t body_limit_;
   bool test_mode_;
   bool compress_assets_;
   std::size_t cache_size_;

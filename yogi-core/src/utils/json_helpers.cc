@@ -66,16 +66,6 @@ std::size_t ExtractSize(const nlohmann::json& json, const char* key,
   return static_cast<std::size_t>(val);
 }
 
-std::size_t ExtractSizeWithInfSupport(const nlohmann::json& json,
-                                      const char* key, int default_val) {
-  auto val = json.value(key, default_val);
-  if (val == -1) {
-    return std::numeric_limits<std::size_t>::max();
-  } else {
-    return static_cast<std::size_t>(val);
-  }
-}
-
 boost::asio::ip::udp::endpoint ExtractUdpEndpoint(
     const nlohmann::json& json, const char* addr_key,
     const std::string& default_addr, const char* port_key, int default_port) {

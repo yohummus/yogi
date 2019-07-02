@@ -544,66 +544,68 @@ tcp::endpoint MakeWebServerEndpoint(int port) {
 }
 
 http::response<http::string_body> DoHttpRequest(
-    int method, const std::string& target,
-    std::function<void(http::request<http::string_body>*)> req_modifier_fn,
-    bool https) {
+    int method, const std::string& target, RequestModifierFn req_modifier_fn,
+    bool https, int repeat) {
   return DoHttpRequest(MakeWebServerEndpoint(), method, target, req_modifier_fn,
-                       https);
+                       https, repeat);
 }
 
 http::response<http::string_body> DoHttpRequest(
     int port, int method, const std::string& target,
-    std::function<void(http::request<http::string_body>*)> req_modifier_fn,
-    bool https) {
+    RequestModifierFn req_modifier_fn, bool https, int repeat) {
   return DoHttpRequest(MakeWebServerEndpoint(port), method, target,
-                       req_modifier_fn, https);
+                       req_modifier_fn, https, repeat);
 }
 
 http::response<http::string_body> DoHttpRequest(
     tcp::endpoint ep, int method, const std::string& target,
-    std::function<void(http::request<http::string_body>*)> req_modifier_fn,
-    bool https) {
-  try {
-    asio::io_context ioc;
-    ssl::context ssl(ssl::context::tlsv12_client);
-    ssl.set_verify_mode(ssl::verify_none);
+    RequestModifierFn req_modifier_fn, bool https, int repeat) {
+  asio::io_context ioc;
+  ssl::context ssl(ssl::context::tlsv12_client);
+  ssl.set_verify_mode(ssl::verify_none);
 
-    http::request<http::string_body> req(
-        objects::web::detail::MethodToVerb(
-            static_cast<api::RequestMethods>(method)),
-        target, 11);
+  http::request<http::string_body> req(
+      objects::web::detail::MethodToVerb(
+          static_cast<api::RequestMethods>(method)),
+      target, 11);
 
-    beast::flat_buffer buffer;
-    http::response<http::string_body> resp;
+  if (req_modifier_fn) {
+    req_modifier_fn(&req);
+  }
 
-    if (https) {
-      beast::ssl_stream<beast::tcp_stream> stream(ioc, ssl);
-      auto& lowest_layer = beast::get_lowest_layer(stream);
+  beast::flat_buffer buffer;
+  http::response<http::string_body> resp;
 
-      lowest_layer.connect(ep);
-      stream.handshake(ssl::stream_base::client);
+  if (https) {
+    beast::ssl_stream<beast::tcp_stream> stream(ioc, ssl);
+    auto& lowest_layer = beast::get_lowest_layer(stream);
 
+    lowest_layer.connect(ep);
+    stream.handshake(ssl::stream_base::client);
+
+    for (int i = 0; i < repeat; ++i) {
       http::write(stream, req);
+      resp = {};
       http::read(stream, buffer, resp);
-
-      beast::error_code ec;
-      stream.shutdown(ec);
-    } else {
-      beast::tcp_stream stream(ioc);
-      stream.connect(ep);
-
-      http::write(stream, req);
-      http::read(stream, buffer, resp);
-
-      beast::error_code ec;
-      stream.socket().shutdown(tcp::socket::shutdown_both, ec);
     }
 
-    return resp;
-  } catch (const std::exception& e) {
-    std::cout << "HTTP request failed: " << e.what() << std::endl;
-    throw;
+    beast::error_code ec;
+    stream.shutdown(ec);
+  } else {
+    beast::tcp_stream stream(ioc);
+    stream.connect(ep);
+
+    for (int i = 0; i < repeat; ++i) {
+      http::write(stream, req);
+      resp = {};
+      http::read(stream, buffer, resp);
+    }
+
+    beast::error_code ec;
+    stream.socket().shutdown(tcp::socket::shutdown_both, ec);
   }
+
+  return resp;
 }
 
 std::ostream& operator<<(std::ostream& os,

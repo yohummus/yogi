@@ -78,6 +78,8 @@ TEST(ConstantsTest, GetEachConstant) {
   check(YOGI_CONST_DEFAULT_WEB_PORT,              kDefaultWebPort);
   check(YOGI_CONST_DEFAULT_WEB_INTERFACES,        kDefaultWebInterfaces);
   check(YOGI_CONST_DEFAULT_WEB_TIMEOUT,           kDefaultWebTimeout);
+  check(YOGI_CONST_DEFAULT_HTTP_HEADER_LIMIT,     kDefaultHttpHeaderLimit);
+  check(YOGI_CONST_DEFAULT_HTTP_BODY_LIMIT,       kDefaultHttpBodyLimit);
   check(YOGI_CONST_DEFAULT_WEB_CACHE_SIZE,        kDefaultWebCacheSize);
   check(YOGI_CONST_MAX_WEB_CACHE_SIZE,            kMaxWebCacheSize);
   check(YOGI_CONST_DEFAULT_ADMIN_USER,            kDefaultAdminUser);

@@ -58,11 +58,14 @@ void HttpsSession::OnHandshakeFinished(boost::beast::error_code ec,
 }
 
 void HttpsSession::StartReceiveRequest() {
-  req_ = {};
+  parser_.emplace();
+  parser_->header_limit(HeaderLimit());
+  parser_->body_limit(BodyLimit());
+
   StartTimeout();
 
   http::async_read(
-      stream_, Buffer(), req_,
+      stream_, Buffer(), *parser_,
       utils::BindStrong(&HttpsSession::OnReceiveRequestFinished, this));
 }
 
@@ -83,9 +86,11 @@ void HttpsSession::OnReceiveRequestFinished(boost::beast::error_code ec,
 }
 
 void HttpsSession::HandleRequest() {
-  resp_.version(req_.version());
+  auto& req = parser_->get();
+
+  resp_.version(req.version());
   resp_.set(http::field::server, "Yogi " YOGI_HDR_VERSION " Web Server");
-  resp_.keep_alive(req_.keep_alive());
+  resp_.keep_alive(req.keep_alive());
 
   auto self = MakeSharedPtr();
   auto send_fn = [self, this] {
@@ -93,9 +98,9 @@ void HttpsSession::HandleRequest() {
     LOG_IFO("Response " << resp_.result_int() << " sent");
   };
 
-  auto uri = DecodeUrl(req_.target());
+  auto uri = DecodeUrl(req.target());
   if (!uri) {
-    LOG_ERR("Received " << req_.method() << " with invalid URI encoding");
+    LOG_ERR("Received " << req.method() << " with invalid URI encoding");
 
     resp_.result(http::status::bad_request);
     resp_.set(http::field::content_type, "text/html");
@@ -106,11 +111,11 @@ void HttpsSession::HandleRequest() {
     return;
   }
 
-  LOG_IFO("Received " << req_.method() << ' ' << *uri);
+  LOG_IFO("Received " << req.method() << ' ' << *uri);
 
   auto route = Route::FindRouteByUri(*uri, *Routes());
   if (route) {
-    route->HandleRequest(req_, *uri, &resp_, self, send_fn);
+    route->HandleRequest(req, *uri, &resp_, self, send_fn);
   } else {
     LOG_ERR("Route " << uri->substr(0, uri->find('?')) << " not found");
 

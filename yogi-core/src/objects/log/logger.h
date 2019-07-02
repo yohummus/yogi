@@ -107,6 +107,7 @@ class LoggerUser {
  protected:
   void SetLoggingPrefix(const api::ExposedObject& obj);
   void SetLoggingPrefix(std::string prefix);
+  void ClearLoggingPrefix();
 
  private:
   std::string prefix_;

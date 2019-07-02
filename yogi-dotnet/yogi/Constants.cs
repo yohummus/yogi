@@ -134,6 +134,12 @@ public static partial class Yogi
         /// <summary>Default timeout for web server connections in nanoseconds.</summary>
         public static readonly Duration DefaultWebTimeout;
 
+        /// <summary>Default maximum HTTP header size of incoming requests in bytes.</summary>
+        public static readonly int DefaultHttpHeaderLimit;
+
+        /// <summary>Default maximum HTTP body size of incoming requests in bytes.</summary>
+        public static readonly int DefaultHttpBodyLimit;
+
         /// <summary>Default size of the web server cache in bytes.</summary>
         public static readonly int DefaultWebCacheSize;
 
@@ -226,22 +232,24 @@ public static partial class Yogi
             CheckErrorCode(Api.YOGI_GetLongLongConstant(ref t, 28));
             DefaultWebTimeout = Duration.FromNanoseconds(t);
 
-            CheckErrorCode(Api.YOGI_GetIntConstant(ref DefaultWebCacheSize, 29));
-            CheckErrorCode(Api.YOGI_GetIntConstant(ref MaxWebCacheSize, 30));
-
-            CheckErrorCode(Api.YOGI_GetStringConstant(ref str, 31));
-            DefaultAdminUser = Marshal.PtrToStringAnsi(str);
-
-            CheckErrorCode(Api.YOGI_GetStringConstant(ref str, 32));
-            DefaultAdminPassword = Marshal.PtrToStringAnsi(str);
+            CheckErrorCode(Api.YOGI_GetIntConstant(ref DefaultHttpHeaderLimit, 29));
+            CheckErrorCode(Api.YOGI_GetIntConstant(ref DefaultHttpBodyLimit, 30));
+            CheckErrorCode(Api.YOGI_GetIntConstant(ref DefaultWebCacheSize, 31));
+            CheckErrorCode(Api.YOGI_GetIntConstant(ref MaxWebCacheSize, 32));
 
             CheckErrorCode(Api.YOGI_GetStringConstant(ref str, 33));
-            DefaultSslPrivateKey = Marshal.PtrToStringAnsi(str);
+            DefaultAdminUser = Marshal.PtrToStringAnsi(str);
 
             CheckErrorCode(Api.YOGI_GetStringConstant(ref str, 34));
-            DefaultSslCertificateChain = Marshal.PtrToStringAnsi(str);
+            DefaultAdminPassword = Marshal.PtrToStringAnsi(str);
 
             CheckErrorCode(Api.YOGI_GetStringConstant(ref str, 35));
+            DefaultSslPrivateKey = Marshal.PtrToStringAnsi(str);
+
+            CheckErrorCode(Api.YOGI_GetStringConstant(ref str, 36));
+            DefaultSslCertificateChain = Marshal.PtrToStringAnsi(str);
+
+            CheckErrorCode(Api.YOGI_GetStringConstant(ref str, 37));
             DefaultSslDhParams = Marshal.PtrToStringAnsi(str);
         }
     }

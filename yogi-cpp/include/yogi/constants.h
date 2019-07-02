@@ -134,6 +134,12 @@ struct constants {
   /// Default timeout for web server connections in nanoseconds.
   static const Duration kDefaultWebTimeout;
 
+  /// Default maximum HTTP header size of incoming requests in bytes.
+  static const int kDefaultHttpHeaderLimit;
+
+  /// Default maximum HTTP body size of incoming requests in bytes.
+  static const int kDefaultHttpBodyLimit;
+
   /// Default size of the web server cache in bytes.
   static const int kDefaultWebCacheSize;
 
@@ -240,26 +246,32 @@ _YOGI_WEAK_SYMBOL const std::string constants::kDefaultWebInterfaces =
 _YOGI_WEAK_SYMBOL const Duration constants::kDefaultWebTimeout =
     Duration::FromNanoseconds(internal::GetConstant<long long>(28));
 
-_YOGI_WEAK_SYMBOL const int constants::kDefaultWebCacheSize =
+_YOGI_WEAK_SYMBOL const int constants::kDefaultHttpHeaderLimit =
     internal::GetConstant<int>(29);
 
-_YOGI_WEAK_SYMBOL const int constants::kMaxWebCacheSize =
+_YOGI_WEAK_SYMBOL const int constants::kDefaultHttpBodyLimit =
     internal::GetConstant<int>(30);
 
+_YOGI_WEAK_SYMBOL const int constants::kDefaultWebCacheSize =
+    internal::GetConstant<int>(31);
+
+_YOGI_WEAK_SYMBOL const int constants::kMaxWebCacheSize =
+    internal::GetConstant<int>(32);
+
 _YOGI_WEAK_SYMBOL const std::string constants::kDefaultAdminUser =
-    internal::GetConstant<char*>(31);
-
-_YOGI_WEAK_SYMBOL const std::string constants::kDefaultAdminPassword =
-    internal::GetConstant<char*>(32);
-
-_YOGI_WEAK_SYMBOL const std::string constants::kDefaultSslPrivateKey =
     internal::GetConstant<char*>(33);
 
-_YOGI_WEAK_SYMBOL const std::string constants::kDefaultSslCertificateChain =
+_YOGI_WEAK_SYMBOL const std::string constants::kDefaultAdminPassword =
     internal::GetConstant<char*>(34);
 
-_YOGI_WEAK_SYMBOL const std::string constants::kDefaultSslDhParams =
+_YOGI_WEAK_SYMBOL const std::string constants::kDefaultSslPrivateKey =
     internal::GetConstant<char*>(35);
+
+_YOGI_WEAK_SYMBOL const std::string constants::kDefaultSslCertificateChain =
+    internal::GetConstant<char*>(36);
+
+_YOGI_WEAK_SYMBOL const std::string constants::kDefaultSslDhParams =
+    internal::GetConstant<char*>(37);
 
 }  // namespace yogi
 
