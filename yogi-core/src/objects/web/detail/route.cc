@@ -44,6 +44,15 @@ UserPtr ExtractOwner(const AuthProvider& auth,
   return user;
 }
 
+bool DoesRouteSatisfyUri(const std::string& base_uri,
+                         boost::beast::string_view uri) {
+  if (!uri.starts_with(base_uri)) return false;
+  if (uri.size() == base_uri.size()) return true;
+  if (!base_uri.empty() && base_uri.back() == '/') return true;
+  if (uri[base_uri.size()] == '/') return true;
+  return false;
+}
+
 }  // namespace
 
 RoutesVectorPtr Route::CreateAll(const nlohmann::json& cfg,
@@ -84,8 +93,22 @@ RoutesVectorPtr Route::CreateAll(const nlohmann::json& cfg,
 
 RoutePtr Route::FindRouteByUri(boost::beast::string_view uri,
                                const RoutesVector& routes) {
-  // TODO: Implement this
-  return routes.front();
+  uri = uri.substr(0, uri.find('?'));
+
+  std::size_t match_length = 0;
+  RoutesVector::const_iterator match = routes.end();
+
+  for (auto it = routes.begin(); it != routes.end(); ++it) {
+    auto& base_uri = (*it)->GetBaseUri();
+    if (base_uri.size() <= match_length) continue;
+
+    if (DoesRouteSatisfyUri(base_uri, uri)) {
+      match_length = base_uri.size();
+      match = it;
+    }
+  }
+
+  return match != routes.end() ? *match : RoutePtr{};
 }
 
 const nlohmann::json& Route::GetDefaultRoutesSection() {

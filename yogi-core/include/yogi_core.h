@@ -2309,9 +2309,7 @@ YOGI_API int YOGI_DestroyAll();
  *     "api_permissions": {
  *       "/auth/session":       { "*": ["POST", "DELETE"] },
  *       "/auth/groups":        { "*": ["GET"] },
- *       "/auth/groups/ *":"    { "*": ["GET"] },
- *       "/auth/users":         { "*": ["GET"] },
- *       "/auth/users/ *":      { "users": ["GET"], "owner": ["PATCH"] },
+ *       "/auth/users":         { "*": ["GET"], "owner": ["PATCH"] },
  *       "/branch/info":        { "users": ["GET"] },
  *       "/branch/connections": { "users": ["GET"] },
  *       "/branch/broadcasts":  { "users": ["GET", "POST"] }

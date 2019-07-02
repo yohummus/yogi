@@ -56,8 +56,9 @@ class Route : public objects::log::LoggerUser {
 
   virtual ~Route() {}
 
-  virtual void HandleRequest(const Request& req, Response* resp,
-                             SessionPtr session, SendResponseFn send_fn) {
+  virtual void HandleRequest(const Request& req, const std::string& uri,
+                             Response* resp, SessionPtr session,
+                             SendResponseFn send_fn) {
     // TODO: Function should be pure virtual and implemented in derived classes
     resp->result(boost::beast::http::status::ok);
     resp->set(boost::beast::http::field::content_type, "text/html");

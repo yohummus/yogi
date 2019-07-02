@@ -63,6 +63,10 @@ TEST_F(WebServerTest, WelcomePage) {
       << resp.body();
 }
 
+TEST_F(WebServerTest, DISABLED_ReuseConnection) {
+  // TODO: Make two requests over the same connection
+}
+
 TEST_F(WebServerTest, ConnectionKeepAlive) {
   CreateServer();
   RunContextInBackground(context_);
@@ -89,4 +93,12 @@ TEST_F(WebServerTest, CleanDestruction) {
   EXPECT_OK(res)
       << "A server session seems to keep some Yogi objects alive, probably by "
          "holding active shared_ptr's when it shouldn't.";
+}
+
+TEST_F(WebServerTest, DISABLED_HeaderLimit) {
+  // TODO: Add beast parser and set header_limit()
+}
+
+TEST_F(WebServerTest, DISABLED_BodyLimit) {
+  // TODO: Add beast parser and set body_limit()
 }

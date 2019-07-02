@@ -16,6 +16,7 @@
  */
 
 #include "https_session.h"
+#include "url_encoding.h"
 #include "../../../../utils/bind.h"
 
 YOGI_DEFINE_INTERNAL_LOGGER("WebServer.Session.HTTPS")
@@ -82,10 +83,6 @@ void HttpsSession::OnReceiveRequestFinished(boost::beast::error_code ec,
 }
 
 void HttpsSession::HandleRequest() {
-  auto uri = req_.target();
-
-  LOG_IFO("Received " << req_.method() << ' ' << uri);
-
   resp_.version(req_.version());
   resp_.set(http::field::server, "Yogi " YOGI_HDR_VERSION " Web Server");
   resp_.keep_alive(req_.keep_alive());
@@ -96,16 +93,31 @@ void HttpsSession::HandleRequest() {
     LOG_IFO("Response " << resp_.result_int() << " sent");
   };
 
-  auto route = Route::FindRouteByUri(uri, *Routes());
+  auto uri = DecodeUrl(req_.target());
+  if (!uri) {
+    LOG_ERR("Received " << req_.method() << " with invalid URI encoding");
+
+    resp_.result(http::status::bad_request);
+    resp_.set(http::field::content_type, "text/html");
+    resp_.body() = "Invalid URI encoding in header.";
+    resp_.prepare_payload();
+    send_fn();
+
+    return;
+  }
+
+  LOG_IFO("Received " << req_.method() << ' ' << *uri);
+
+  auto route = Route::FindRouteByUri(*uri, *Routes());
   if (route) {
-    route->HandleRequest(req_, &resp_, self, send_fn);
+    route->HandleRequest(req_, *uri, &resp_, self, send_fn);
   } else {
-    LOG_ERR("Route " << uri.substr(0, uri.find('?')) << " not found");
+    LOG_ERR("Route " << uri->substr(0, uri->find('?')) << " not found");
+
     resp_.result(http::status::not_found);
     resp_.set(http::field::content_type, "text/html");
-    resp_.body() = "The resource '" + std::string(uri) + "' was not found.";
+    resp_.body() = "The resource '" + *uri + "' was not found.";
     resp_.prepare_payload();
-
     send_fn();
   }
 }

@@ -111,6 +111,7 @@ add_library (yogi-core-static STATIC
   src/objects/web/detail/session/mime.cc
   src/objects/web/detail/session/session.cc
   src/objects/web/detail/session/ssl_detector_session.cc
+  src/objects/web/detail/session/url_encoding.cc
   src/objects/web/detail/session/wss_session.cc
   src/objects/web/detail/route.cc
   src/objects/web/detail/ssl_context.cc
@@ -228,6 +229,7 @@ add_executable (yogi-core-test
   test/objects/web/permissions_test.cc
   test/objects/web/routes_test.cc
   test/objects/web/ssl_context_test.cc
+  test/objects/web/url_encoding_test.cc
   test/objects/web/web_server_test.cc
   test/objects/web/worker_pool_test.cc
   test/objects/log/logger_test.cc

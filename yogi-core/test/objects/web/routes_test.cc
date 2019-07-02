@@ -46,6 +46,18 @@ class RoutesTest : public TestFixture {
           "permissions": { "*": ["GET"] },
           "enabled":     true
         },
+        "/somewhere": {
+          "type":        "filesystem",
+          "path":        "/tmp",
+          "permissions": { "*": ["GET"] },
+          "enabled":     true
+        },
+        "/somewhere/far-away": {
+          "type":        "filesystem",
+          "path":        "/home",
+          "permissions": { "*": ["GET"] },
+          "enabled":     true
+        },
         "/secret": {
           "type":        "content",
           "mime":        "text/plain",
@@ -79,7 +91,7 @@ class RoutesTest : public TestFixture {
 };
 
 TEST_F(RoutesTest, NumberOfRoutes) {
-  EXPECT_EQ(routes_->size(), 6);
+  EXPECT_EQ(routes_->size(), 8);
   for (auto& route : *routes_) {
     EXPECT_TRUE(!!route);
   }
@@ -130,4 +142,26 @@ TEST_F(RoutesTest, ApiEndpoint) {
   EXPECT_TRUE(route.GetPermissions().MayUserAccess({}, api::kGet, {}));
   EXPECT_FALSE(route.GetPermissions().MayUserAccess({}, api::kPut, {}));
   EXPECT_TRUE(route.IsEnabled());
+}
+
+TEST_F(RoutesTest, FindRouteByUri) {
+  auto check_route = [&](std::string uri) {
+    auto route = Route::FindRouteByUri(uri, *routes_);
+    if (!route) std::cout << "ERROR: Route not found" << std::endl;
+    return route ? route->GetBaseUri() : ""s;
+  };
+
+  EXPECT_EQ(check_route("/"), "/");
+  EXPECT_EQ(check_route("/somewher"), "/");
+  EXPECT_EQ(check_route("/somewher?a=b"), "/");
+  EXPECT_EQ(check_route("/somewhere"), "/somewhere");
+  EXPECT_EQ(check_route("/somewhere?a=b"), "/somewhere");
+  EXPECT_EQ(check_route("/somewhere/"), "/somewhere");
+  EXPECT_EQ(check_route("/somewhere/x?a=b"), "/somewhere");
+  EXPECT_EQ(check_route("/somewhere/here"), "/somewhere");
+  EXPECT_EQ(check_route("/somewhere/far-aways"), "/somewhere");
+  EXPECT_EQ(check_route("/somewhere/far-away"), "/somewhere/far-away");
+  EXPECT_EQ(check_route("/somewhere/far-away/"), "/somewhere/far-away");
+
+  EXPECT_FALSE(Route::FindRouteByUri("", *routes_));
 }
