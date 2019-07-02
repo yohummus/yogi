@@ -153,6 +153,22 @@ void Route::InitMemberVariables(const nlohmann::json::const_iterator& it,
   ReadConfiguration(it);
 }
 
+void ContentRoute::HandleRequest(const Request& req, const std::string& uri,
+                                 Response* resp, SessionPtr session,
+                                 SendResponseFn send_fn) {
+  resp->result(boost::beast::http::status::ok);
+  resp->set(boost::beast::http::field::content_type, "text/html");
+  resp->body() = R"(<!DOCTYPE html>
+<html>
+<body>
+  <h1>Welcome to the Yogi web server!</h1>
+</body>
+</html>
+)";
+  resp->prepare_payload();
+  send_fn();
+}
+
 void ContentRoute::ReadConfiguration(
     const nlohmann::json::const_iterator& route_it) {
   mime_type_ = (*route_it)["mime"].get<std::string>();
@@ -173,6 +189,10 @@ void ContentRoute::ReadConfiguration(
                                  << (IsEnabled() ? "" : " (disabled)"));
 }
 
+void FileSystemRoute::HandleRequest(const Request& req, const std::string& uri,
+                                    Response* resp, SessionPtr session,
+                                    SendResponseFn send_fn) {}
+
 void FileSystemRoute::ReadConfiguration(
     const nlohmann::json::const_iterator& route_it) {
   path_ = (*route_it)["path"].get<std::string>();
@@ -181,11 +201,19 @@ void FileSystemRoute::ReadConfiguration(
                                     << (IsEnabled() ? "" : " (disabled)"));
 }
 
+void CustomRoute::HandleRequest(const Request& req, const std::string& uri,
+                                Response* resp, SessionPtr session,
+                                SendResponseFn send_fn) {}
+
 void CustomRoute::ReadConfiguration(
     const nlohmann::json::const_iterator& route_it) {
   LOG_DBG("Configured custom route " << route_it.key()
                                      << (IsEnabled() ? "" : " (disabled)"));
 }
+
+void ApiEndpoint::HandleRequest(const Request& req, const std::string& uri,
+                                Response* resp, SessionPtr session,
+                                SendResponseFn send_fn) {}
 
 }  // namespace detail
 }  // namespace web

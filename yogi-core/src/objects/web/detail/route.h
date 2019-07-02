@@ -58,20 +58,7 @@ class Route : public objects::log::LoggerUser {
 
   virtual void HandleRequest(const Request& req, const std::string& uri,
                              Response* resp, SessionPtr session,
-                             SendResponseFn send_fn) {
-    // TODO: Function should be pure virtual and implemented in derived classes
-    resp->result(boost::beast::http::status::ok);
-    resp->set(boost::beast::http::field::content_type, "text/html");
-    resp->body() = R"(<!DOCTYPE html>
-<html>
-<body>
-  <h1>Welcome to the Yogi web server!</h1>
-</body>
-</html>
-)";
-    resp->prepare_payload();
-    send_fn();
-  };
+                             SendResponseFn send_fn) = 0;
 
   const std::string& GetBaseUri() const { return base_uri_; }
   bool IsEnabled() const { return enabled_; }
@@ -101,8 +88,12 @@ class ContentRoute : public Route {
   const std::string& GetMimeType() { return mime_type_; }
   const std::string& GetContent() { return content_; }
 
+  virtual void HandleRequest(const Request& req, const std::string& uri,
+                             Response* resp, SessionPtr session,
+                             SendResponseFn send_fn) override;
+
  protected:
-  void ReadConfiguration(
+  virtual void ReadConfiguration(
       const nlohmann::json::const_iterator& route_it) override;
 
  private:
@@ -112,10 +103,14 @@ class ContentRoute : public Route {
 
 class FileSystemRoute : public Route {
  public:
+  virtual void HandleRequest(const Request& req, const std::string& uri,
+                             Response* resp, SessionPtr session,
+                             SendResponseFn send_fn) override;
+
   const std::string& GetPath() { return path_; }
 
  protected:
-  void ReadConfiguration(
+  virtual void ReadConfiguration(
       const nlohmann::json::const_iterator& route_it) override;
 
  private:
@@ -123,12 +118,22 @@ class FileSystemRoute : public Route {
 };
 
 class CustomRoute : public Route {
+ public:
+  virtual void HandleRequest(const Request& req, const std::string& uri,
+                             Response* resp, SessionPtr session,
+                             SendResponseFn send_fn) override;
+
  protected:
-  void ReadConfiguration(
+  virtual void ReadConfiguration(
       const nlohmann::json::const_iterator& route_it) override;
 };
 
-class ApiEndpoint : public Route {};
+class ApiEndpoint : public Route {
+ public:
+  virtual void HandleRequest(const Request& req, const std::string& uri,
+                             Response* resp, SessionPtr session,
+                             SendResponseFn send_fn) override;
+};
 
 }  // namespace detail
 }  // namespace web
