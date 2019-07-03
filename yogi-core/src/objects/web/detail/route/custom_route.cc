@@ -15,39 +15,23 @@
  * along with this library. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#pragma once
+#include "custom_route.h"
 
-#include "../../../../config.h"
-#include "../route/route.h"
-#include "session.h"
-
-#include <boost/beast/http.hpp>
+YOGI_DEFINE_INTERNAL_LOGGER("WebServer.Session.HTTPS")
 
 namespace objects {
 namespace web {
 namespace detail {
 
-class HttpSession : public SessionT<HttpSession> {
- public:
-  HttpSession(boost::beast::tcp_stream&& stream);
+void CustomRoute::HandleRequest(const Request& req, const std::string& uri,
+                                Response* resp, SessionPtr session,
+                                SendResponseFn send_fn) {}
 
-  virtual void Start() override;
-
- protected:
-  virtual boost::beast::tcp_stream& Stream() override;
-
- private:
-  std::string MakeHttpsLocation() const;
-  void StartReceiveRequest();
-  void OnReceiveRequestFinished(boost::beast::error_code ec, std::size_t);
-  void PopulateResponse();
-  void StartSendResponse();
-  void OnSendResponseFinished(boost::beast::error_code ec, std::size_t);
-
-  boost::beast::tcp_stream stream_;
-  boost::optional<boost::beast::http::request_parser<Route::MsgBody>> parser_;
-  Route::Response resp_;
-};
+void CustomRoute::ReadConfiguration(
+    const nlohmann::json::const_iterator& route_it) {
+  LOG_DBG("Configured custom route " << route_it.key()
+                                     << (IsEnabled() ? "" : " (disabled)"));
+}
 
 }  // namespace detail
 }  // namespace web

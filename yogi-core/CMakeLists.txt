@@ -106,6 +106,11 @@ add_library (yogi-core-static STATIC
   src/objects/web/detail/auth/permissions.cc
   src/objects/web/detail/auth/group.cc
   src/objects/web/detail/auth/user.cc
+  src/objects/web/detail/route/api_endpoint.cc
+  src/objects/web/detail/route/content_route.cc
+  src/objects/web/detail/route/custom_route.cc
+  src/objects/web/detail/route/file_system_route.cc
+  src/objects/web/detail/route/route.cc
   src/objects/web/detail/session/http_session.cc
   src/objects/web/detail/session/https_session.cc
   src/objects/web/detail/session/mime.cc
@@ -113,7 +118,6 @@ add_library (yogi-core-static STATIC
   src/objects/web/detail/session/ssl_detector_session.cc
   src/objects/web/detail/session/url_encoding.cc
   src/objects/web/detail/session/wss_session.cc
-  src/objects/web/detail/route.cc
   src/objects/web/detail/ssl_context.cc
   src/objects/web/detail/worker_pool.cc
   src/objects/web/web_process.cc

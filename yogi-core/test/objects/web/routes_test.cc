@@ -16,7 +16,11 @@
  */
 
 #include "../../common.h"
-#include "../../../src/objects/web/detail/route.h"
+#include "../../../src/objects/web/detail/route/api_endpoint.h"
+#include "../../../src/objects/web/detail/route/content_route.h"
+#include "../../../src/objects/web/detail/route/custom_route.h"
+#include "../../../src/objects/web/detail/route/file_system_route.h"
+#include "../../../src/objects/web/detail/route/route.h"
 using namespace objects::web::detail;
 
 class RoutesTest : public TestFixture {

@@ -16,9 +16,13 @@
  */
 
 #include "route.h"
-#include "session/session.h"
-#include "../../../api/errors.h"
-#include "../../../schema/schema.h"
+#include "api_endpoint.h"
+#include "content_route.h"
+#include "custom_route.h"
+#include "file_system_route.h"
+#include "../session/session.h"
+#include "../../../../api/errors.h"
+#include "../../../../schema/schema.h"
 
 #include <sstream>
 

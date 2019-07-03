@@ -17,10 +17,10 @@
 
 #pragma once
 
-#include "../../../config.h"
-#include "../../log/logger.h"
-#include "auth/permissions.h"
-#include "auth/auth_provider.h"
+#include "../../../../config.h"
+#include "../../../log/logger.h"
+#include "../auth/permissions.h"
+#include "../auth/auth_provider.h"
 
 #include <nlohmann/json.hpp>
 #include <boost/beast/core.hpp>
@@ -81,58 +81,6 @@ class Route : public objects::log::LoggerUser {
   bool enabled_;
   UserPtr owner_;
   Permissions permissions_;
-};
-
-class ContentRoute : public Route {
- public:
-  const std::string& GetMimeType() { return mime_type_; }
-  const std::string& GetContent() { return content_; }
-
-  virtual void HandleRequest(const Request& req, const std::string& uri,
-                             Response* resp, SessionPtr session,
-                             SendResponseFn send_fn) override;
-
- protected:
-  virtual void ReadConfiguration(
-      const nlohmann::json::const_iterator& route_it) override;
-
- private:
-  std::string mime_type_;
-  std::string content_;
-};
-
-class FileSystemRoute : public Route {
- public:
-  virtual void HandleRequest(const Request& req, const std::string& uri,
-                             Response* resp, SessionPtr session,
-                             SendResponseFn send_fn) override;
-
-  const std::string& GetPath() { return path_; }
-
- protected:
-  virtual void ReadConfiguration(
-      const nlohmann::json::const_iterator& route_it) override;
-
- private:
-  std::string path_;
-};
-
-class CustomRoute : public Route {
- public:
-  virtual void HandleRequest(const Request& req, const std::string& uri,
-                             Response* resp, SessionPtr session,
-                             SendResponseFn send_fn) override;
-
- protected:
-  virtual void ReadConfiguration(
-      const nlohmann::json::const_iterator& route_it) override;
-};
-
-class ApiEndpoint : public Route {
- public:
-  virtual void HandleRequest(const Request& req, const std::string& uri,
-                             Response* resp, SessionPtr session,
-                             SendResponseFn send_fn) override;
 };
 
 }  // namespace detail

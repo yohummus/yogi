@@ -26,7 +26,7 @@
 #include "detail/auth/auth_provider.h"
 #include "detail/session/session.h"
 #include "detail/ssl_context.h"
-#include "detail/route.h"
+#include "detail/route/route.h"
 #include "detail/worker_pool.h"
 
 #include <nlohmann/json.hpp>

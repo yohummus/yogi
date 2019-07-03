@@ -18,39 +18,28 @@
 #pragma once
 
 #include "../../../../config.h"
-#include "../route/route.h"
-#include "session.h"
-
-#include <boost/optional.hpp>
-#include <boost/beast/ssl.hpp>
-#include <boost/beast/http.hpp>
+#include "route.h"
 
 namespace objects {
 namespace web {
 namespace detail {
 
-class HttpsSession : public SessionT<HttpsSession> {
+class ContentRoute : public Route {
  public:
-  HttpsSession(boost::beast::tcp_stream&& stream, const SslContextPtr& ssl);
+  const std::string& GetMimeType() { return mime_type_; }
+  const std::string& GetContent() { return content_; }
 
-  virtual void Start() override;
+  virtual void HandleRequest(const Request& req, const std::string& uri,
+                             Response* resp, SessionPtr session,
+                             SendResponseFn send_fn) override;
 
  protected:
-  virtual boost::beast::tcp_stream& Stream() override;
+  virtual void ReadConfiguration(
+      const nlohmann::json::const_iterator& route_it) override;
 
  private:
-  void OnHandshakeFinished(boost::beast::error_code ec, std::size_t bytes_used);
-  void StartReceiveRequest();
-  void OnReceiveRequestFinished(boost::beast::error_code ec, std::size_t);
-  void HandleRequest();
-  void StartSendResponse();
-  void OnSendResponseFinished(boost::beast::error_code ec, std::size_t);
-  void StartShutdown();
-  void OnShutdownFinished(boost::beast::error_code ec);
-
-  boost::beast::ssl_stream<boost::beast::tcp_stream> stream_;
-  boost::optional<boost::beast::http::request_parser<Route::MsgBody>> parser_;
-  Route::Response resp_;
+  std::string mime_type_;
+  std::string content_;
 };
 
 }  // namespace detail
