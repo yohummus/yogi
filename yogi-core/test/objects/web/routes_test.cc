@@ -85,8 +85,8 @@ class RoutesTest : public TestFixture {
         }
       },
       "api_permissions": {
-        "/auth/session": { "*": ["POST", "DELETE"] },
-        "/auth/groups":  { "*": ["GET"] }
+        "/api/auth/session": { "*": ["POST", "DELETE"] },
+        "/api/auth/groups":  { "*": ["GET"] }
       }
     }
   )");
@@ -135,7 +135,7 @@ TEST_F(RoutesTest, CustomRoute) {
 }
 
 TEST_F(RoutesTest, ApiEndpoint) {
-  auto& route = GetRoute<ApiEndpoint>("/auth/groups");
+  auto& route = GetRoute<ApiEndpoint>("/api/auth/groups");
   EXPECT_FALSE(route.GetOwner());
   EXPECT_TRUE(route.GetPermissions().MayUserAccess({}, api::kGet, {}));
   EXPECT_FALSE(route.GetPermissions().MayUserAccess({}, api::kPut, {}));

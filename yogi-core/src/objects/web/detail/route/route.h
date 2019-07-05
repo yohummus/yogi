@@ -67,6 +67,7 @@ class Route : public objects::log::LoggerUser {
 
  protected:
   virtual void ReadConfiguration(const nlohmann::json::const_iterator&){};
+  virtual void LogCreation() = 0;
 
  private:
   static const nlohmann::json& GetDefaultRoutesSection();

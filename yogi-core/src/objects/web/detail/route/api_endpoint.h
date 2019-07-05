@@ -24,7 +24,53 @@ namespace objects {
 namespace web {
 namespace detail {
 
+class ApiEndpoint;
+typedef std::shared_ptr<ApiEndpoint> ApiEndpointPtr;
+
 class ApiEndpoint : public Route {
+ public:
+  static ApiEndpointPtr Create(const std::string& base_uri);
+
+ protected:
+  virtual void LogCreation() override;
+};
+
+class AuthSessionApiEndpoint : public ApiEndpoint {
+ public:
+  virtual void HandleRequest(const Request& req, const std::string& uri,
+                             Response* resp, SessionPtr session,
+                             SendResponseFn send_fn) override;
+};
+
+class AuthGroupsApiEndpoint : public ApiEndpoint {
+ public:
+  virtual void HandleRequest(const Request& req, const std::string& uri,
+                             Response* resp, SessionPtr session,
+                             SendResponseFn send_fn) override;
+};
+
+class AuthUsersApiEndpoint : public ApiEndpoint {
+ public:
+  virtual void HandleRequest(const Request& req, const std::string& uri,
+                             Response* resp, SessionPtr session,
+                             SendResponseFn send_fn) override;
+};
+
+class BranchInfoApiEndpoint : public ApiEndpoint {
+ public:
+  virtual void HandleRequest(const Request& req, const std::string& uri,
+                             Response* resp, SessionPtr session,
+                             SendResponseFn send_fn) override;
+};
+
+class BranchConnectionsApiEndpoint : public ApiEndpoint {
+ public:
+  virtual void HandleRequest(const Request& req, const std::string& uri,
+                             Response* resp, SessionPtr session,
+                             SendResponseFn send_fn) override;
+};
+
+class BranchBroadcastsApiEndpoint : public ApiEndpoint {
  public:
   virtual void HandleRequest(const Request& req, const std::string& uri,
                              Response* resp, SessionPtr session,

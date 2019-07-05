@@ -28,8 +28,10 @@ void CustomRoute::HandleRequest(const Request& req, const std::string& uri,
                                 SendResponseFn send_fn) {}
 
 void CustomRoute::ReadConfiguration(
-    const nlohmann::json::const_iterator& route_it) {
-  LOG_DBG("Configured custom route " << route_it.key()
+    const nlohmann::json::const_iterator& route_it) {}
+
+void CustomRoute::LogCreation() {
+  LOG_IFO("Configured custom route " << GetBaseUri()
                                      << (IsEnabled() ? "" : " (disabled)"));
 }
 

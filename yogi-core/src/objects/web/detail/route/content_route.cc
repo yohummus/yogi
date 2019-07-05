@@ -60,8 +60,10 @@ void ContentRoute::ReadConfiguration(
 
     content_ = ss.str();
   }
+}
 
-  LOG_DBG("Added content route " << route_it.key() << " serving " << mime_type_
+void ContentRoute::LogCreation() {
+  LOG_DBG("Added content route " << GetBaseUri() << " serving " << mime_type_
                                  << (IsEnabled() ? "" : " (disabled)"));
 }
 

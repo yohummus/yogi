@@ -2315,12 +2315,12 @@ YOGI_API int YOGI_DestroyAll();
  *       }
  *     },
  *     "api_permissions": {
- *       "/auth/session":       { "*": ["POST", "DELETE"] },
- *       "/auth/groups":        { "*": ["GET"] },
- *       "/auth/users":         { "*": ["GET"], "owner": ["PATCH"] },
- *       "/branch/info":        { "users": ["GET"] },
- *       "/branch/connections": { "users": ["GET"] },
- *       "/branch/broadcasts":  { "users": ["GET", "POST"] }
+ *       "/api/auth/session":       { "*": ["POST", "DELETE"] },
+ *       "/api/auth/groups":        { "*": ["GET"] },
+ *       "/api/auth/users":         { "*": ["GET"], "owner": ["PATCH"] },
+ *       "/api/branch/info":        { "users": ["GET"] },
+ *       "/api/branch/connections": { "users": ["GET"] },
+ *       "/api/branch/broadcasts":  { "users": ["GET", "POST"] }
  *     },
  *     "authentication": {
  *       "provider": "config",

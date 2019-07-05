@@ -35,6 +35,7 @@ class FileSystemRoute : public Route {
  protected:
   virtual void ReadConfiguration(
       const nlohmann::json::const_iterator& route_it) override;
+  virtual void LogCreation() override;
 
  private:
   std::string path_;

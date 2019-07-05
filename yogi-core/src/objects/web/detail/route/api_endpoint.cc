@@ -23,9 +23,58 @@ namespace objects {
 namespace web {
 namespace detail {
 
-void ApiEndpoint::HandleRequest(const Request& req, const std::string& uri,
-                                Response* resp, SessionPtr session,
-                                SendResponseFn send_fn) {}
+ApiEndpointPtr ApiEndpoint::Create(const std::string& base_uri) {
+#define TRY_CREATE(uri, cls) \
+  if (base_uri == uri) return std::make_shared<cls>();
+
+  TRY_CREATE("/api/auth/session", AuthSessionApiEndpoint);
+  TRY_CREATE("/api/auth/groups", AuthGroupsApiEndpoint);
+  TRY_CREATE("/api/auth/users", AuthUsersApiEndpoint);
+  TRY_CREATE("/api/branch/info", BranchInfoApiEndpoint);
+  TRY_CREATE("/api/branch/connections", BranchConnectionsApiEndpoint);
+  TRY_CREATE("/api/branch/broadcasts", BranchBroadcastsApiEndpoint);
+
+#undef TRY_CREATE
+
+  throw api::DescriptiveError(YOGI_ERR_CONFIG_NOT_VALID)
+      << "Uknown API endpoint '" << base_uri << "'";
+}
+
+void ApiEndpoint::LogCreation() {
+  LOG_IFO("Added API endpoint " << GetBaseUri());
+}
+
+void AuthSessionApiEndpoint::HandleRequest(const Request& req,
+                                           const std::string& uri,
+                                           Response* resp, SessionPtr session,
+                                           SendResponseFn send_fn) {}
+
+void AuthGroupsApiEndpoint::HandleRequest(const Request& req,
+                                          const std::string& uri,
+                                          Response* resp, SessionPtr session,
+                                          SendResponseFn send_fn) {}
+
+void AuthUsersApiEndpoint::HandleRequest(const Request& req,
+                                         const std::string& uri, Response* resp,
+                                         SessionPtr session,
+                                         SendResponseFn send_fn) {}
+
+void BranchInfoApiEndpoint::HandleRequest(const Request& req,
+                                          const std::string& uri,
+                                          Response* resp, SessionPtr session,
+                                          SendResponseFn send_fn) {}
+
+void BranchConnectionsApiEndpoint::HandleRequest(const Request& req,
+                                                 const std::string& uri,
+                                                 Response* resp,
+                                                 SessionPtr session,
+                                                 SendResponseFn send_fn) {}
+
+void BranchBroadcastsApiEndpoint::HandleRequest(const Request& req,
+                                                const std::string& uri,
+                                                Response* resp,
+                                                SessionPtr session,
+                                                SendResponseFn send_fn) {}
 
 }  // namespace detail
 }  // namespace web

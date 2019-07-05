@@ -71,27 +71,31 @@ RoutesVectorPtr Route::CreateAll(const nlohmann::json& cfg,
     RoutePtr route;
     auto type = (*it)["type"].get<std::string>();
     if (type == "content") {
-      route = std::make_unique<ContentRoute>();
+      route = std::make_shared<ContentRoute>();
     } else if (type == "filesystem") {
-      route = std::make_unique<FileSystemRoute>();
+      route = std::make_shared<FileSystemRoute>();
     } else if (type == "custom") {
-      route = std::make_unique<CustomRoute>();
+      route = std::make_shared<CustomRoute>();
     } else {
       YOGI_NEVER_REACHED;
     }
 
     route->owner_ = ExtractOwner(auth, it);
     route->InitMemberVariables(it, (*it)["permissions"], auth, logging_prefix);
-    route->ClearLoggingPrefix();
     routes->push_back(std::move(route));
   }
 
   const auto& api_cfg =
       cfg.value("api_permissions", GetDefaultApiPermissionsSection());
   for (auto it = api_cfg.begin(); it != api_cfg.end(); ++it) {
-    auto route = std::make_unique<ApiEndpoint>();
+    auto route = ApiEndpoint::Create(it.key());
     route->InitMemberVariables(it, it.value(), auth, logging_prefix);
     routes->push_back(std::move(route));
+  }
+
+  for (auto& route : *routes) {
+    route->LogCreation();
+    route->ClearLoggingPrefix();
   }
 
   return routes;
@@ -142,6 +146,12 @@ const nlohmann::json& Route::GetDefaultRoutesSection() {
 const nlohmann::json& Route::GetDefaultApiPermissionsSection() {
   static const nlohmann::json json = nlohmann::json::parse(R"(
     {
+      "/api/auth/session":       { "*": ["POST", "DELETE"] },
+      "/api/auth/groups":        { "*": ["GET"] },
+      "/api/auth/users":         { "*": ["GET"], "owner": ["PATCH"] },
+      "/api/branch/info":        { "users": ["GET"] },
+      "/api/branch/connections": { "users": ["GET"] },
+      "/api/branch/broadcasts":  { "users": ["GET", "POST"] }
     }
   )");
   return json;
@@ -158,71 +168,6 @@ void Route::InitMemberVariables(const nlohmann::json::const_iterator& it,
       Permissions(it.key(), permissions_cfg, owner_, auth.GetGroups());
   ReadConfiguration(it);
 }
-
-void ContentRoute::HandleRequest(const Request& req, const std::string& uri,
-                                 Response* resp, SessionPtr session,
-                                 SendResponseFn send_fn) {
-  LOG_IFO(session->GetLoggingPrefix()
-          << ": Serving static content from " << GetBaseUri() << "...");
-
-  resp->result(boost::beast::http::status::ok);
-  resp->set(boost::beast::http::field::content_type, "text/html");
-  resp->body() = R"(<!DOCTYPE html>
-<html>
-<body>
-  <h1>Welcome to the Yogi web server!</h1>
-</body>
-</html>
-)";
-  resp->prepare_payload();
-  send_fn();
-}
-
-void ContentRoute::ReadConfiguration(
-    const nlohmann::json::const_iterator& route_it) {
-  mime_type_ = (*route_it)["mime"].get<std::string>();
-
-  auto& content_cfg = (*route_it)["content"];
-  if (content_cfg.is_string()) {
-    content_ = content_cfg.get<std::string>();
-  } else {
-    std::stringstream ss;
-    for (auto& line : content_cfg) {
-      ss << line.get<std::string>() << '\n';
-    }
-
-    content_ = ss.str();
-  }
-
-  LOG_DBG("Added content route " << route_it.key() << " serving " << mime_type_
-                                 << (IsEnabled() ? "" : " (disabled)"));
-}
-
-void FileSystemRoute::HandleRequest(const Request& req, const std::string& uri,
-                                    Response* resp, SessionPtr session,
-                                    SendResponseFn send_fn) {}
-
-void FileSystemRoute::ReadConfiguration(
-    const nlohmann::json::const_iterator& route_it) {
-  path_ = (*route_it)["path"].get<std::string>();
-
-  LOG_DBG("Added filesystem route " << route_it.key() << " serving " << path_
-                                    << (IsEnabled() ? "" : " (disabled)"));
-}
-
-void CustomRoute::HandleRequest(const Request& req, const std::string& uri,
-                                Response* resp, SessionPtr session,
-                                SendResponseFn send_fn) {}
-
-void CustomRoute::ReadConfiguration(
-    const nlohmann::json::const_iterator& route_it) {
-  LOG_DBG("Configured custom route " << route_it.key()
-                                     << (IsEnabled() ? "" : " (disabled)"));
-}
-
-void ApiEndpoint::HandleRequest(const Request& req, const std::string& uri,
-                                Response* resp, SessionPtr session,
-                                SendResponseFn send_fn) {}
 
 }  // namespace detail
 }  // namespace web

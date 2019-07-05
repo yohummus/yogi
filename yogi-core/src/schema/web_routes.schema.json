@@ -53,9 +53,7 @@
                 },
                 {
                   "properties": {
-                    "type": {
-                      "const": "custom"
-                    }
+                    "type": { "const": "custom" }
                   }
                 }
               ]
@@ -65,6 +63,17 @@
       }
     },
 
-    "api_permissions": { "type": "object" }
+    "api_permissions": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "/api/auth/session": { "type": "object" },
+        "/api/auth/groups": { "type": "object" },
+        "/api/auth/users": { "type": "object" },
+        "/api/branch/info": { "type": "object" },
+        "/api/branch/connections": { "type": "object" },
+        "/api/branch/broadcasts": { "type": "object" }
+      }
+    }
   }
 }

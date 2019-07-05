@@ -30,8 +30,10 @@ void FileSystemRoute::HandleRequest(const Request& req, const std::string& uri,
 void FileSystemRoute::ReadConfiguration(
     const nlohmann::json::const_iterator& route_it) {
   path_ = (*route_it)["path"].get<std::string>();
+}
 
-  LOG_DBG("Added filesystem route " << route_it.key() << " serving " << path_
+void FileSystemRoute::LogCreation() {
+  LOG_IFO("Added filesystem route " << GetBaseUri() << " serving " << path_
                                     << (IsEnabled() ? "" : " (disabled)"));
 }
 
