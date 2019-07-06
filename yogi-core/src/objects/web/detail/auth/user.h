@@ -41,12 +41,14 @@ class User {
 
   const nlohmann::json& ToJson() const { return props_; }
   bool IsEnabled() const { return enabled_; }
+  const std::string& GetUsername() const { return username_; }
   const std::string& GetPassword() const { return password_; }
   const GroupsSet& GetGroups() const { return groups_; }
 
  private:
   nlohmann::json props_;
   bool enabled_;
+  std::string username_;
   std::string password_;
   GroupsSet groups_;
 };

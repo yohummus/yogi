@@ -17,7 +17,9 @@
 
 #include "https_session.h"
 #include "url_encoding.h"
+#include "methods.h"
 #include "../../../../utils/bind.h"
+#include "../../../../utils/base64.h"
 
 YOGI_DEFINE_INTERNAL_LOGGER("WebServer.Session.HTTPS")
 
@@ -87,44 +89,28 @@ void HttpsSession::OnReceiveRequestFinished(boost::beast::error_code ec,
 
 void HttpsSession::HandleRequest() {
   auto& req = parser_->get();
+  InitResponse();
 
-  resp_.version(req.version());
-  resp_.set(http::field::server, "Yogi " YOGI_HDR_VERSION " Web Server");
-  resp_.keep_alive(req.keep_alive());
+  if (!CheckRequestMethod()) return;
+
+  auto uri = DecodeTargetUri();
+  if (uri.empty()) return;
+  LOG_IFO("Received " << req.method() << ' ' << uri);
+
+  auto route = FindRoute(uri);
+  if (!route) return;
+
+  UserPtr user;
+  if (!AuthenticateUser(&user)) return;
+  if (user) {
+    LOG_DBG("Request is from by user: " << user->GetUsername());
+  } else {
+    LOG_DBG("Request is from anonymous user");
+  }
 
   auto self = MakeSharedPtr();
-  auto send_fn = [self, this] {
-    self->StartSendResponse();
-    LOG_IFO("Response " << resp_.result_int() << " sent");
-  };
-
-  auto uri = DecodeUrl(req.target());
-  if (!uri) {
-    LOG_ERR("Received " << req.method() << " with invalid URI encoding");
-
-    resp_.result(http::status::bad_request);
-    resp_.set(http::field::content_type, "text/html");
-    resp_.body() = "Invalid URI encoding in header.";
-    resp_.prepare_payload();
-    send_fn();
-
-    return;
-  }
-
-  LOG_IFO("Received " << req.method() << ' ' << *uri);
-
-  auto route = Route::FindRouteByUri(*uri, *Routes());
-  if (route) {
-    route->HandleRequest(req, *uri, &resp_, self, send_fn);
-  } else {
-    LOG_ERR("Route " << uri->substr(0, uri->find('?')) << " not found");
-
-    resp_.result(http::status::not_found);
-    resp_.set(http::field::content_type, "text/html");
-    resp_.body() = "The resource '" + *uri + "' was not found.";
-    resp_.prepare_payload();
-    send_fn();
-  }
+  route->HandleRequest(req, uri, &resp_, self, user,
+                       [self] { self->StartSendResponse(); });
 }
 
 void HttpsSession::StartSendResponse() {
@@ -136,10 +122,12 @@ void HttpsSession::StartSendResponse() {
 void HttpsSession::OnSendResponseFinished(boost::beast::error_code ec,
                                           std::size_t) {
   if (ec) {
-    LOG_ERR("Sending HTTP request failed: " << ec.message());
+    LOG_ERR("Sending response failed: " << ec.message());
     Close();
     return;
   }
+
+  LOG_IFO("Response " << resp_.result_int() << " sent");
 
   if (resp_.need_eof()) {
     StartShutdown();
@@ -159,6 +147,104 @@ void HttpsSession::OnShutdownFinished(boost::beast::error_code ec) {
   }
 
   Close();
+}
+
+void HttpsSession::InitResponse() {
+  auto& req = parser_->get();
+  resp_.version(req.version());
+  resp_.set(http::field::server, "Yogi " YOGI_HDR_VERSION " Web Server");
+  resp_.keep_alive(req.keep_alive());
+  resp_.result(http::status::ok);
+}
+
+bool HttpsSession::CheckRequestMethod() {
+  auto verb = parser_->get().method();
+  auto method = VerbToMethod(verb);
+  if (method == api::kNoMethod) {
+    LOG_ERR("Received invalid method " << verb);
+
+    resp_.result(http::status::method_not_allowed);
+    StartSendResponse();
+
+    return false;
+  }
+
+  return true;
+}
+
+std::string HttpsSession::DecodeTargetUri() {
+  auto& req = parser_->get();
+  auto uri = DecodeUrl(req.target());
+  if (!uri) {
+    LOG_ERR("Received " << req.method() << " with invalid URI encoding");
+
+    resp_.result(http::status::bad_request);
+    resp_.set(http::field::content_type, "text/html");
+    resp_.body() = "Invalid URI encoding in header.";
+    resp_.prepare_payload();
+    StartSendResponse();
+  }
+
+  if (uri) {
+    return *uri;
+  } else {
+    return {};
+  }
+}
+
+RoutePtr HttpsSession::FindRoute(const std::string& uri) {
+  auto route = Route::FindRouteByUri(uri, *Routes());
+  if (!route) {
+    LOG_ERR("Route " << uri.substr(0, uri.find('?')) << " not found");
+
+    resp_.result(http::status::not_found);
+    resp_.set(http::field::content_type, "text/html");
+    resp_.body() = "The resource '" + uri + "' was not found.";
+    resp_.prepare_payload();
+    StartSendResponse();
+  }
+
+  return route;
+}
+
+bool HttpsSession::AuthenticateUser(UserPtr* user) {
+  auto& req = parser_->get();
+
+  if (!req.count(http::field::authorization)) {
+    return true;
+  }
+
+  const char* auth_error = nullptr;
+  auto& field_val = req[http::field::authorization];
+  if (field_val.starts_with("Basic ")) {
+    auto auth_token =
+        utils::DecodeBase64(field_val.substr(sizeof("Basic")).to_string());
+
+    auto split_pos = auth_token.find(':');
+    if (split_pos != std::string::npos) {
+      auto username = auth_token.substr(0, split_pos);
+      auto password = auth_token.substr(split_pos + 1);
+      *user = AuthProvider()->Authenticate(username, password);
+      if (!*user) {
+        auth_error = "Invalid user and/or password.";
+      }
+    } else {
+      auth_error = "Invalid authentication format. Must be user:password.";
+    }
+  } else {
+    auth_error = "Invalid authentication method.";
+  }
+
+  if (auth_error) {
+    resp_.result(http::status::unauthorized);
+    resp_.set(http::field::www_authenticate, "Basic");
+    resp_.set(http::field::content_type, "text/html");
+    resp_.body() = auth_error;
+    resp_.prepare_payload();
+    StartSendResponse();
+  }
+
+  return !auth_error;
 }
 
 }  // namespace detail

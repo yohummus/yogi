@@ -48,6 +48,12 @@ class HttpsSession : public SessionT<HttpsSession> {
   void StartShutdown();
   void OnShutdownFinished(boost::beast::error_code ec);
 
+  void InitResponse();
+  bool CheckRequestMethod();
+  std::string DecodeTargetUri();
+  RoutePtr FindRoute(const std::string& uri);
+  bool AuthenticateUser(UserPtr* user);
+
   boost::beast::ssl_stream<boost::beast::tcp_stream> stream_;
   boost::optional<boost::beast::http::request_parser<Route::MsgBody>> parser_;
   Route::Response resp_;

@@ -145,3 +145,17 @@ TEST_F(AuthProviderTest, LoadFromFiles) {
   EXPECT_TRUE(user->ToJson().contains("enabled"));
   EXPECT_TRUE(user->ToJson()["enabled"].get<bool>());
 }
+
+TEST_F(AuthProviderTest, Authenticate) {
+  auto auth = AuthProvider::Create(nlohmann::json::object_t{}, "");
+
+  auto user = auth->Authenticate("blabla", "blup");
+  EXPECT_FALSE(user);
+
+  user = auth->Authenticate(api::kDefaultAdminUser, "");
+  EXPECT_FALSE(user);
+
+  user = auth->Authenticate(api::kDefaultAdminUser, api::kDefaultAdminPassword);
+  EXPECT_TRUE(user);
+  EXPECT_EQ(user->GetUsername(), api::kDefaultAdminUser);
+}

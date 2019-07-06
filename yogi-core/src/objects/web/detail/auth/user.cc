@@ -31,6 +31,9 @@ UsersMap User::CreateAll(const nlohmann::json& json, const GroupsMap& groups,
   UsersMap users;
   for (auto it : json["users"].items()) {
     auto user = std::make_shared<User>();
+    user->username_ = it.key();
+    user->props_["username"] = it.key();
+
     utils::CopyJsonProperty(it.value(), "first_name", "", &user->props_);
     utils::CopyJsonProperty(it.value(), "last_name", "", &user->props_);
     utils::CopyJsonProperty(it.value(), "email", "", &user->props_);

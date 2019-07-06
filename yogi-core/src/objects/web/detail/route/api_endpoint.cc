@@ -46,34 +46,34 @@ void ApiEndpoint::LogCreation() {
 
 void AuthSessionApiEndpoint::HandleRequest(const Request& req,
                                            const std::string& uri,
-                                           Response* resp, SessionPtr session,
+                                           Response* resp, SessionPtr session, UserPtr user,
                                            SendResponseFn send_fn) {}
 
 void AuthGroupsApiEndpoint::HandleRequest(const Request& req,
                                           const std::string& uri,
-                                          Response* resp, SessionPtr session,
+                                          Response* resp, SessionPtr session, UserPtr user,
                                           SendResponseFn send_fn) {}
 
 void AuthUsersApiEndpoint::HandleRequest(const Request& req,
                                          const std::string& uri, Response* resp,
-                                         SessionPtr session,
+                                         SessionPtr session, UserPtr user,
                                          SendResponseFn send_fn) {}
 
 void BranchInfoApiEndpoint::HandleRequest(const Request& req,
                                           const std::string& uri,
-                                          Response* resp, SessionPtr session,
+                                          Response* resp, SessionPtr session, UserPtr user,
                                           SendResponseFn send_fn) {}
 
 void BranchConnectionsApiEndpoint::HandleRequest(const Request& req,
                                                  const std::string& uri,
                                                  Response* resp,
-                                                 SessionPtr session,
+                                                 SessionPtr session, UserPtr user,
                                                  SendResponseFn send_fn) {}
 
 void BranchBroadcastsApiEndpoint::HandleRequest(const Request& req,
                                                 const std::string& uri,
                                                 Response* resp,
-                                                SessionPtr session,
+                                                SessionPtr session, UserPtr user,
                                                 SendResponseFn send_fn) {}
 
 }  // namespace detail

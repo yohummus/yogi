@@ -24,7 +24,7 @@ namespace web {
 namespace detail {
 
 void FileSystemRoute::HandleRequest(const Request& req, const std::string& uri,
-                                    Response* resp, SessionPtr session,
+                                    Response* resp, SessionPtr session, UserPtr user,
                                     SendResponseFn send_fn) {}
 
 void FileSystemRoute::ReadConfiguration(

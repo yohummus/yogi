@@ -57,7 +57,7 @@ class Route : public objects::log::LoggerUser {
   virtual ~Route() {}
 
   virtual void HandleRequest(const Request& req, const std::string& uri,
-                             Response* resp, SessionPtr session,
+                             Response* resp, SessionPtr session, UserPtr user,
                              SendResponseFn send_fn) = 0;
 
   const std::string& GetBaseUri() const { return base_uri_; }

@@ -16,6 +16,7 @@
  */
 
 #include "../../common.h"
+#include "../src/utils/base64.h"
 
 #include <boost/asio/io_context.hpp>
 #include <boost/asio/ip/tcp.hpp>
@@ -42,6 +43,20 @@ class WebServerTest : public TestFixture {
 
 TEST_F(WebServerTest, ConstructWithoutBranch) { CreateServer(); }
 
+TEST_F(WebServerTest, SchemaValidation) {
+  char err[256] = {0};
+  void* config = MakeConfigFromJson(nlohmann::json::parse(R"(
+    {
+      "port": "should be an int"
+    }
+  )"));
+
+  int res = YOGI_WebServerCreate(&server_, context_, nullptr, config, nullptr,
+                                 err, sizeof(err));
+  EXPECT_ERR(res, YOGI_ERR_CONFIGURATION_VALIDATION_FAILED);
+  EXPECT_NE(err, "");
+}
+
 TEST_F(WebServerTest, HttpRedirect) {
   CreateServer();
   RunContextInBackground(context_);
@@ -61,6 +76,64 @@ TEST_F(WebServerTest, WelcomePage) {
   EXPECT_NE(resp.body().find("Welcome to the Yogi web server"),
             std::string::npos)
       << resp.body();
+}
+
+TEST_F(WebServerTest, InvalidMethod) {
+  CreateServer();
+  RunContextInBackground(context_);
+
+  auto resp = DoHttpRequest(port_, YOGI_MET_DELETE, "/");
+  EXPECT_EQ(resp.result_int(), 405);
+}
+
+TEST_F(WebServerTest, Authentication) {
+  CreateServer();
+  RunContextInBackground(context_);
+
+  auto auth_token =
+      ""s + api::kDefaultAdminUser + ':' + api::kDefaultAdminPassword;
+
+  auto resp = DoHttpRequest(port_, YOGI_MET_GET, "/", [&](auto* req) {
+    auto val = "Basic "s + utils::EncodeBase64(auth_token);
+    req->set(http::field::authorization, val);
+  });
+  EXPECT_LT(resp.result_int(), 400);
+
+  resp = DoHttpRequest(port_, YOGI_MET_GET, "/", [&](auto* req) {
+    auto val = "Basic "s + utils::EncodeBase64(auth_token + "bla");
+    req->set(http::field::authorization, val);
+  });
+  EXPECT_EQ(resp.result_int(), 401);
+}
+
+TEST_F(WebServerTest, ContentRoutePermissions) {
+  CreateServer(nlohmann::json::parse(R"(
+    {
+      "routes": {
+        "/allowed": {
+          "type": "content",
+          "permissions": { "*": ["GET"] },
+          "mime": "text/plain",
+          "content": "allowed"
+        },
+        "/denied": {
+          "type": "content",
+          "permissions": {},
+          "mime": "text/plain",
+          "content": "denied"
+        }
+      }
+    }
+  )"));
+  RunContextInBackground(context_);
+
+  auto resp = DoHttpRequest(port_, YOGI_MET_GET, "/allowed");
+  EXPECT_EQ(resp.result_int(), 200);
+  EXPECT_EQ(resp.body(), "allowed");
+
+  resp = DoHttpRequest(port_, YOGI_MET_GET, "/denied");
+  EXPECT_EQ(resp.result_int(), 403);
+  EXPECT_NE(resp.body(), "denied");
 }
 
 TEST_F(WebServerTest, ReuseConnection) {

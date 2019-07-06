@@ -17,25 +17,13 @@
 
 #pragma once
 
-#include "../../../../config.h"
-#include "route.h"
+#include "../config.h"
 
-namespace objects {
-namespace web {
-namespace detail {
+#include <string>
 
-class CustomRoute : public Route {
- public:
-  virtual void HandleRequest(const Request& req, const std::string& uri,
-                             Response* resp, SessionPtr session, UserPtr user,
-                             SendResponseFn send_fn) override;
+namespace utils {
 
- protected:
-  virtual void ReadConfiguration(
-      const nlohmann::json::const_iterator& route_it) override;
-  virtual void LogCreation() override;
-};
+std::string EncodeBase64(std::string plain);
+std::string DecodeBase64(std::string encoded);
 
-}  // namespace detail
-}  // namespace web
-}  // namespace objects
+}  // namespace utils

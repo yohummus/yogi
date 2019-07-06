@@ -47,6 +47,8 @@ class AuthProvider : public objects::log::LoggerUser {
   GroupsMap GetGroups() const;
   UserPtr GetUserOptional(const std::string& user_name) const;
   GroupPtr GetGroupOptional(const std::string& group_name) const;
+  UserPtr Authenticate(const std::string& user_name,
+                       const std::string& plain_password);
 
  protected:
   virtual std::tuple<UsersMap, GroupsMap> ReadConfiguration(

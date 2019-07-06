@@ -24,6 +24,7 @@
 namespace objects {
 namespace web {
 namespace detail {
+namespace {
 
 boost::beast::http::verb MethodToVerb(api::RequestMethods method) {
   using boost::beast::http::verb;
@@ -52,6 +53,33 @@ boost::beast::http::verb MethodToVerb(api::RequestMethods method) {
   }
 }
 
+api::RequestMethods VerbToMethod(boost::beast::http::verb verb) {
+  using boost::beast::http::verb;
+  switch (verb) {
+    case verb::get:
+      return api::kGet;
+
+    case verb::head:
+      return api::kHead;
+
+    case verb::post:
+      return api::kPost;
+
+    case verb::put:
+      return api::kPut;
+
+    case verb::delete_:
+      return api::kDelete;
+
+    case verb::patch:
+      return api::kPatch;
+
+    default:
+      return api::RequestMethods::kNoMethod;
+  }
+}
+
+}  // anonymous namespace
 }  // namespace detail
 }  // namespace web
 }  // namespace objects

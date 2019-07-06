@@ -17,8 +17,10 @@
 
 #include "content_route.h"
 #include "../session/session.h"
+#include "../session/methods.h"
 
 #include <sstream>
+namespace http = boost::beast::http;
 
 YOGI_DEFINE_INTERNAL_LOGGER("WebServer.Session.HTTPS")
 
@@ -28,19 +30,27 @@ namespace detail {
 
 void ContentRoute::HandleRequest(const Request& req, const std::string& uri,
                                  Response* resp, SessionPtr session,
-                                 SendResponseFn send_fn) {
-  LOG_IFO(session->GetLoggingPrefix()
-          << ": Serving static content from " << GetBaseUri() << "...");
+                                 UserPtr user, SendResponseFn send_fn) {
+  auto method = VerbToMethod(req.method());
 
-  resp->result(boost::beast::http::status::ok);
-  resp->set(boost::beast::http::field::content_type, "text/html");
-  resp->body() = R"(<!DOCTYPE html>
-<html>
-<body>
-  <h1>Welcome to the Yogi web server!</h1>
-</body>
-</html>
-)";
+  if (method != api::kGet && method != api::kHead) {
+    resp->result(http::status::method_not_allowed);
+    send_fn();
+    return;
+  }
+
+  if (!GetPermissions().MayUserAccess(user, method)) {
+    resp->result(http::status::forbidden);
+    send_fn();
+    return;
+  }
+
+  LOG_IFO(session->GetLoggingPrefix()
+          << ": Serving static content from " << GetBaseUri());
+
+  resp->result(http::status::ok);
+  resp->set(http::field::content_type, GetMimeType());
+  resp->body() = GetContent();
   resp->prepare_payload();
   send_fn();
 }

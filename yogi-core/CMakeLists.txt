@@ -127,6 +127,7 @@ add_library (yogi-core-static STATIC
   src/objects/signal_set.cc
   src/objects/timer.cc
   src/schema/schema.cc
+  src/utils/base64.cc
   src/utils/console.cc
   src/utils/crypto.cc
   src/utils/glob.cc
@@ -241,6 +242,7 @@ add_executable (yogi-core-test
   test/objects/format_test.cc
   test/objects/signal_set_test.cc
   test/objects/timer_test.cc
+  test/utils/base64_test.cc
   test/utils/algorithm_test.cc
   test/utils/bind_test.cc
   test/utils/crypto_test.cc

@@ -482,7 +482,7 @@ std::map<uuids::uuid, nlohmann::json> GetConnectedBranches(void* branch) {
 
 void* CreateWebServer(void* context, void* branch, void* config,
                       const char* section) {
-  char err[256];
+  char err[256] = {0};
   void* server = nullptr;
   int res = YOGI_WebServerCreate(&server, context, branch, config, section, err,
                                  sizeof(err));

@@ -82,6 +82,25 @@ GroupPtr AuthProvider::GetGroupOptional(const std::string& group_name) const {
   return it->second;
 }
 
+UserPtr AuthProvider::Authenticate(const std::string& user_name,
+                                   const std::string& plain_password) {
+  auto user = GetUserOptional(user_name);
+  if (!user) {
+    LOG_WRN("Authentication failed: Unknown user '" << user_name << "'");
+    return {};
+  }
+
+  auto password = utils::MakeSha256String(plain_password);
+  if (password != user->GetPassword()) {
+    LOG_WRN("Authentication failed: Wrong password for user " << user_name);
+    return {};
+  }
+
+  LOG_TRC("User " << user_name << " successfully authenticated");
+
+  return user;
+}
+
 std::tuple<UsersMap, GroupsMap> ConfigAuthProvider::ReadConfiguration(
     const nlohmann::json& auth_cfg) {
   const nlohmann::json* groups_cfg;

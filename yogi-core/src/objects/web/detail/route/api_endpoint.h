@@ -38,42 +38,42 @@ class ApiEndpoint : public Route {
 class AuthSessionApiEndpoint : public ApiEndpoint {
  public:
   virtual void HandleRequest(const Request& req, const std::string& uri,
-                             Response* resp, SessionPtr session,
+                             Response* resp, SessionPtr session, UserPtr user,
                              SendResponseFn send_fn) override;
 };
 
 class AuthGroupsApiEndpoint : public ApiEndpoint {
  public:
   virtual void HandleRequest(const Request& req, const std::string& uri,
-                             Response* resp, SessionPtr session,
+                             Response* resp, SessionPtr session, UserPtr user,
                              SendResponseFn send_fn) override;
 };
 
 class AuthUsersApiEndpoint : public ApiEndpoint {
  public:
   virtual void HandleRequest(const Request& req, const std::string& uri,
-                             Response* resp, SessionPtr session,
+                             Response* resp, SessionPtr session, UserPtr user,
                              SendResponseFn send_fn) override;
 };
 
 class BranchInfoApiEndpoint : public ApiEndpoint {
  public:
   virtual void HandleRequest(const Request& req, const std::string& uri,
-                             Response* resp, SessionPtr session,
+                             Response* resp, SessionPtr session, UserPtr user,
                              SendResponseFn send_fn) override;
 };
 
 class BranchConnectionsApiEndpoint : public ApiEndpoint {
  public:
   virtual void HandleRequest(const Request& req, const std::string& uri,
-                             Response* resp, SessionPtr session,
+                             Response* resp, SessionPtr session, UserPtr user,
                              SendResponseFn send_fn) override;
 };
 
 class BranchBroadcastsApiEndpoint : public ApiEndpoint {
  public:
   virtual void HandleRequest(const Request& req, const std::string& uri,
-                             Response* resp, SessionPtr session,
+                             Response* resp, SessionPtr session, UserPtr user,
                              SendResponseFn send_fn) override;
 };
 

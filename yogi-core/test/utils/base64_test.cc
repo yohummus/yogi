@@ -15,27 +15,23 @@
  * along with this library. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#pragma once
+#include "../common.h"
+#include "../../src/utils/base64.h"
 
-#include "../../../../config.h"
-#include "route.h"
+#include <vector>
 
-namespace objects {
-namespace web {
-namespace detail {
-
-class CustomRoute : public Route {
- public:
-  virtual void HandleRequest(const Request& req, const std::string& uri,
-                             Response* resp, SessionPtr session, UserPtr user,
-                             SendResponseFn send_fn) override;
-
+class Base64Test : public TestFixture {
  protected:
-  virtual void ReadConfiguration(
-      const nlohmann::json::const_iterator& route_it) override;
-  virtual void LogCreation() override;
+  std::string plain_ = "hello";
+  std::string encoded_ = "aGVsbG8=";
 };
 
-}  // namespace detail
-}  // namespace web
-}  // namespace objects
+TEST_F(Base64Test, Encode) {
+  auto encoded = utils::EncodeBase64(plain_);
+  EXPECT_EQ(encoded, encoded_);
+}
+
+TEST_F(Base64Test, Decode) {
+  auto plain = utils::DecodeBase64(encoded_);
+  EXPECT_EQ(plain, plain_);
+}

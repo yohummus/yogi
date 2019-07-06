@@ -27,7 +27,7 @@ namespace detail {
 class FileSystemRoute : public Route {
  public:
   virtual void HandleRequest(const Request& req, const std::string& uri,
-                             Response* resp, SessionPtr session,
+                             Response* resp, SessionPtr session, UserPtr user,
                              SendResponseFn send_fn) override;
 
   const std::string& GetPath() { return path_; }
