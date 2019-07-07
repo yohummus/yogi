@@ -38,43 +38,43 @@ class ApiEndpoint : public Route {
 class AuthSessionApiEndpoint : public ApiEndpoint {
  public:
   virtual void HandleRequest(const Request& req, const std::string& uri,
-                             Response* resp, SessionPtr session, UserPtr user,
-                             SendResponseFn send_fn) override;
+                             const HttpsSessionPtr& session,
+                             UserPtr user) override;
 };
 
 class AuthGroupsApiEndpoint : public ApiEndpoint {
  public:
   virtual void HandleRequest(const Request& req, const std::string& uri,
-                             Response* resp, SessionPtr session, UserPtr user,
-                             SendResponseFn send_fn) override;
+                             const HttpsSessionPtr& session,
+                             UserPtr user) override;
 };
 
 class AuthUsersApiEndpoint : public ApiEndpoint {
  public:
   virtual void HandleRequest(const Request& req, const std::string& uri,
-                             Response* resp, SessionPtr session, UserPtr user,
-                             SendResponseFn send_fn) override;
+                             const HttpsSessionPtr& session,
+                             UserPtr user) override;
 };
 
 class BranchInfoApiEndpoint : public ApiEndpoint {
  public:
   virtual void HandleRequest(const Request& req, const std::string& uri,
-                             Response* resp, SessionPtr session, UserPtr user,
-                             SendResponseFn send_fn) override;
+                             const HttpsSessionPtr& session,
+                             UserPtr user) override;
 };
 
 class BranchConnectionsApiEndpoint : public ApiEndpoint {
  public:
   virtual void HandleRequest(const Request& req, const std::string& uri,
-                             Response* resp, SessionPtr session, UserPtr user,
-                             SendResponseFn send_fn) override;
+                             const HttpsSessionPtr& session,
+                             UserPtr user) override;
 };
 
 class BranchBroadcastsApiEndpoint : public ApiEndpoint {
  public:
   virtual void HandleRequest(const Request& req, const std::string& uri,
-                             Response* resp, SessionPtr session, UserPtr user,
-                             SendResponseFn send_fn) override;
+                             const HttpsSessionPtr& session,
+                             UserPtr user) override;
 };
 
 }  // namespace detail

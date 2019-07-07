@@ -24,8 +24,7 @@ namespace web {
 namespace detail {
 
 void CustomRoute::HandleRequest(const Request& req, const std::string& uri,
-                                Response* resp, SessionPtr session, UserPtr user,
-                                SendResponseFn send_fn) {}
+                                const HttpsSessionPtr& session, UserPtr user) {}
 
 void CustomRoute::ReadConfiguration(
     const nlohmann::json::const_iterator& route_it) {}

@@ -2427,7 +2427,7 @@ YOGI_API int YOGI_DestroyAll();
  *    requests. If the body is larger then the connection will be closed.
  *  - __test_mode__: Set to true to enable functionality for testing both server
  *    and client code. Should only be enabled during development.
- *  - __compress_assets__: Enable compression when transferring compressable,
+ *  - __compress_assets__: Allow the use of compression when transferring
  *    static assets such as HTML or JavaScript files.
  *  - __cache_size__: Size of the file cache in bytes. Used to keep assets in
  *    memory instead of reading them from disk to improve performance. A value

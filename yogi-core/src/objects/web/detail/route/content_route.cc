@@ -16,7 +16,7 @@
  */
 
 #include "content_route.h"
-#include "../session/session.h"
+#include "../session/https_session.h"
 #include "../session/methods.h"
 
 #include <sstream>
@@ -29,30 +29,33 @@ namespace web {
 namespace detail {
 
 void ContentRoute::HandleRequest(const Request& req, const std::string& uri,
-                                 Response* resp, SessionPtr session,
-                                 UserPtr user, SendResponseFn send_fn) {
+                                 const HttpsSessionPtr& session, UserPtr user) {
   auto method = VerbToMethod(req.method());
 
   if (method != api::kGet && method != api::kHead) {
-    resp->result(http::status::method_not_allowed);
-    send_fn();
+    session->SendResponse(http::status::method_not_allowed);
     return;
   }
 
   if (!GetPermissions().MayUserAccess(user, method)) {
-    resp->result(http::status::forbidden);
-    send_fn();
+    session->SendResponse(http::status::forbidden);
     return;
   }
 
   LOG_IFO(session->GetLoggingPrefix()
           << ": Serving static content from " << GetBaseUri());
 
-  resp->result(http::status::ok);
-  resp->set(http::field::content_type, GetMimeType());
-  resp->body() = GetContent();
-  resp->prepare_payload();
-  send_fn();
+  HttpsSession::GenericResponse resp;
+  resp.result(http::status::ok);
+  resp.set(http::field::content_type, GetMimeType());
+  if (method == api::kHead) {
+    resp.content_length(GetContent().size());
+  } else {
+    resp.body() = GetContent();
+    resp.prepare_payload();
+  }
+
+  session->SendResponse(std::move(resp));
 }
 
 void ContentRoute::ReadConfiguration(

@@ -46,35 +46,33 @@ void ApiEndpoint::LogCreation() {
 
 void AuthSessionApiEndpoint::HandleRequest(const Request& req,
                                            const std::string& uri,
-                                           Response* resp, SessionPtr session, UserPtr user,
-                                           SendResponseFn send_fn) {}
+                                           const HttpsSessionPtr& session,
+                                           UserPtr user) {}
 
 void AuthGroupsApiEndpoint::HandleRequest(const Request& req,
                                           const std::string& uri,
-                                          Response* resp, SessionPtr session, UserPtr user,
-                                          SendResponseFn send_fn) {}
+                                          const HttpsSessionPtr& session,
+                                          UserPtr user) {}
 
 void AuthUsersApiEndpoint::HandleRequest(const Request& req,
-                                         const std::string& uri, Response* resp,
-                                         SessionPtr session, UserPtr user,
-                                         SendResponseFn send_fn) {}
+                                         const std::string& uri,
+                                         const HttpsSessionPtr& session,
+                                         UserPtr user) {}
 
 void BranchInfoApiEndpoint::HandleRequest(const Request& req,
                                           const std::string& uri,
-                                          Response* resp, SessionPtr session, UserPtr user,
-                                          SendResponseFn send_fn) {}
+                                          const HttpsSessionPtr& session,
+                                          UserPtr user) {}
 
 void BranchConnectionsApiEndpoint::HandleRequest(const Request& req,
                                                  const std::string& uri,
-                                                 Response* resp,
-                                                 SessionPtr session, UserPtr user,
-                                                 SendResponseFn send_fn) {}
+                                                 const HttpsSessionPtr& session,
+                                                 UserPtr user) {}
 
 void BranchBroadcastsApiEndpoint::HandleRequest(const Request& req,
                                                 const std::string& uri,
-                                                Response* resp,
-                                                SessionPtr session, UserPtr user,
-                                                SendResponseFn send_fn) {}
+                                                const HttpsSessionPtr& session,
+                                                UserPtr user) {}
 
 }  // namespace detail
 }  // namespace web

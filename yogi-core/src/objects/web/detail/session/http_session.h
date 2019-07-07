@@ -44,9 +44,14 @@ class HttpSession : public SessionT<HttpSession> {
   void StartSendResponse();
   void OnSendResponseFinished(boost::beast::error_code ec, std::size_t);
 
+  typedef boost::beast::http::request_parser<boost::beast::http::string_body>
+      RequestParser;
+  typedef boost::beast::http::response<boost::beast::http::string_body>
+      Response;
+
   boost::beast::tcp_stream stream_;
-  boost::optional<boost::beast::http::request_parser<Route::MsgBody>> parser_;
-  Route::Response resp_;
+  boost::optional<RequestParser> parser_;
+  Response resp_;
 };
 
 }  // namespace detail

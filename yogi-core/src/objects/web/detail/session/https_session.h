@@ -31,9 +31,21 @@ namespace detail {
 
 class HttpsSession : public SessionT<HttpsSession> {
  public:
+  typedef boost::beast::http::response<boost::beast::http::empty_body>
+      EmptyResponse;
+  typedef boost::beast::http::response<boost::beast::http::string_body>
+      GenericResponse;
+  typedef boost::beast::http::response<boost::beast::http::file_body>
+      FileResponse;
+
   HttpsSession(boost::beast::tcp_stream&& stream, const SslContextPtr& ssl);
 
   virtual void Start() override;
+
+  void SendResponse(EmptyResponse&& resp);
+  void SendResponse(GenericResponse&& resp);
+  void SendResponse(FileResponse&& resp);
+  void SendResponse(boost::beast::http::status status, std::string html = {});
 
  protected:
   virtual boost::beast::tcp_stream& Stream() override;
@@ -43,20 +55,28 @@ class HttpsSession : public SessionT<HttpsSession> {
   void StartReceiveRequest();
   void OnReceiveRequestFinished(boost::beast::error_code ec, std::size_t);
   void HandleRequest();
-  void StartSendResponse();
   void OnSendResponseFinished(boost::beast::error_code ec, std::size_t);
   void StartShutdown();
   void OnShutdownFinished(boost::beast::error_code ec);
 
-  void InitResponse();
   bool CheckRequestMethod();
   std::string DecodeTargetUri();
   RoutePtr FindRoute(const std::string& uri);
   bool AuthenticateUser(UserPtr* user);
 
+  template <typename Response>
+  void FinaliseResponse(Response* resp);
+
+  typedef boost::beast::http::request_parser<boost::beast::http::string_body>
+      RequestParser;
+
   boost::beast::ssl_stream<boost::beast::tcp_stream> stream_;
-  boost::optional<boost::beast::http::request_parser<Route::MsgBody>> parser_;
-  Route::Response resp_;
+  boost::optional<RequestParser> parser_;
+  EmptyResponse empty_response_;
+  GenericResponse generic_response_;
+  FileResponse file_response_;
+  unsigned response_status_;
+  bool response_needs_eof_;
 };
 
 }  // namespace detail

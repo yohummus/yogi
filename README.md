@@ -37,15 +37,7 @@ YOGI_CORE_LIBRARY="/Users/yohummus/Projects/yogi/build/yogi-core/libyogi-core.dy
 - Need to check user data size. Right now, an assertion triggers when it's too large.
 - Would it make sense to have a user-defined function that gets called in case that a buffer is too small? That function could then increase the buffer size and have the data re-copied. This would probably have to be a per-API call parameter though...
 - In yogi-cpp: In some classes (e.g. BranchInfo, Branch) there are getters called GetSomething() whereas in other classes (e.g. PayloadView) the getters are called Something(). Should this be consistent?
-
-Use those CMakeLists.txt defines for compilers:
-IF ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-         SET (CMAKE_CXX_FLAGS "-std=c++17 ${CMAKE_CXX_FLAGS}")
-ELSEIF ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-         SET (CMAKE_CXX_FLAGS "-std=c++17 ${CMAKE_CXX_FLAGS}")
-ELSEIF ("\${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
-MESSAGE ( FATAL_ERROR "MSVC doesn't support C++17.")
-ENDIF ()
+- Remove web cache or implement it
 
 Outgoing data queue design:
 

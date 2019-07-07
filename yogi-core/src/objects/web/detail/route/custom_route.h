@@ -27,8 +27,8 @@ namespace detail {
 class CustomRoute : public Route {
  public:
   virtual void HandleRequest(const Request& req, const std::string& uri,
-                             Response* resp, SessionPtr session, UserPtr user,
-                             SendResponseFn send_fn) override;
+                             const HttpsSessionPtr& session,
+                             UserPtr user) override;
 
  protected:
   virtual void ReadConfiguration(

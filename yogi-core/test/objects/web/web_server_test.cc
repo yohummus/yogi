@@ -16,7 +16,6 @@
  */
 
 #include "../../common.h"
-#include "../src/utils/base64.h"
 
 #include <boost/asio/io_context.hpp>
 #include <boost/asio/ip/tcp.hpp>
@@ -90,50 +89,25 @@ TEST_F(WebServerTest, Authentication) {
   CreateServer();
   RunContextInBackground(context_);
 
-  auto auth_token =
-      ""s + api::kDefaultAdminUser + ':' + api::kDefaultAdminPassword;
-
-  auto resp = DoHttpRequest(port_, YOGI_MET_GET, "/", [&](auto* req) {
-    auto val = "Basic "s + utils::EncodeBase64(auth_token);
-    req->set(http::field::authorization, val);
-  });
+  auto resp =
+      DoHttpRequest(port_, YOGI_MET_GET, "/", MakeAuthRequestModifierFn());
   EXPECT_LT(resp.result_int(), 400);
 
-  resp = DoHttpRequest(port_, YOGI_MET_GET, "/", [&](auto* req) {
-    auto val = "Basic "s + utils::EncodeBase64(auth_token + "bla");
-    req->set(http::field::authorization, val);
+  resp = DoHttpRequest(
+      port_, YOGI_MET_GET, "/",
+      MakeAuthRequestModifierFn(api::kDefaultAdminUser,
+                                ""s + api::kDefaultAdminPassword + "bla"));
+  EXPECT_EQ(resp.result_int(), 401);
+
+  resp = DoHttpRequest(port_, YOGI_MET_GET, "/", [](auto* req) {
+    req->set(http::field::authorization, "Basic aGVsbG93b3JsZA==");
   });
   EXPECT_EQ(resp.result_int(), 401);
-}
 
-TEST_F(WebServerTest, ContentRoutePermissions) {
-  CreateServer(nlohmann::json::parse(R"(
-    {
-      "routes": {
-        "/allowed": {
-          "type": "content",
-          "permissions": { "*": ["GET"] },
-          "mime": "text/plain",
-          "content": "allowed"
-        },
-        "/denied": {
-          "type": "content",
-          "permissions": {},
-          "mime": "text/plain",
-          "content": "denied"
-        }
-      }
-    }
-  )"));
-  RunContextInBackground(context_);
-
-  auto resp = DoHttpRequest(port_, YOGI_MET_GET, "/allowed");
-  EXPECT_EQ(resp.result_int(), 200);
-  EXPECT_EQ(resp.body(), "allowed");
-
-  resp = DoHttpRequest(port_, YOGI_MET_GET, "/denied");
-  EXPECT_EQ(resp.result_int(), 403);
-  EXPECT_NE(resp.body(), "denied");
+  resp = DoHttpRequest(port_, YOGI_MET_GET, "/", [](auto* req) {
+    req->set(http::field::authorization, "Hello sdf");
+  });
+  EXPECT_EQ(resp.result_int(), 401);
 }
 
 TEST_F(WebServerTest, ReuseConnection) {
@@ -210,4 +184,111 @@ TEST_F(WebServerTest, BodyLimit) {
   body.resize(100, 'x');
   EXPECT_ANY_THROW(DoHttpRequest(port_, YOGI_MET_GET, "/", fn, true));
   EXPECT_ANY_THROW(DoHttpRequest(port_, YOGI_MET_GET, "/", fn, false));
+}
+
+TEST_F(WebServerTest, ContentRoute) {
+  CreateServer();
+  RunContextInBackground(context_);
+
+  auto resp = DoHttpRequest(port_, YOGI_MET_GET, "/");
+  EXPECT_EQ(resp.result_int(), 200);
+  EXPECT_FALSE(resp.body().empty());
+
+  resp = DoHttpRequest(port_, YOGI_MET_HEAD, "/");
+  EXPECT_EQ(resp.result_int(), 200);
+  EXPECT_TRUE(resp.has_content_length());
+}
+
+TEST_F(WebServerTest, ContentRoutePermissions) {
+  CreateServer(nlohmann::json::parse(R"(
+    {
+      "routes": {
+        "/allowed": {
+          "type": "content",
+          "permissions": { "*": ["GET"] },
+          "mime": "text/plain",
+          "content": "allowed"
+        },
+        "/denied": {
+          "type": "content",
+          "permissions": {},
+          "mime": "text/plain",
+          "content": "denied"
+        }
+      }
+    }
+  )"));
+  RunContextInBackground(context_);
+
+  auto resp = DoHttpRequest(port_, YOGI_MET_GET, "/allowed");
+  EXPECT_EQ(resp.result_int(), 200);
+  EXPECT_EQ(resp.body(), "allowed");
+
+  resp = DoHttpRequest(port_, YOGI_MET_GET, "/denied");
+  EXPECT_EQ(resp.result_int(), 403);
+  EXPECT_NE(resp.body(), "denied");
+}
+
+TEST_F(WebServerTest, FileSystemRoute) {
+  auto cfg = nlohmann::json::parse(R"(
+    {
+      "routes": {
+        "/foo": {
+          "type": "filesystem",
+          "path": "",
+          "permissions": { "*": ["GET"] }
+        },
+        "/foo/bar": {
+          "type": "filesystem",
+          "path": "",
+          "permissions": {}
+        }
+      }
+    }
+  )");
+
+  cfg["routes"]["/foo"]["path"] = MakeTestDataPath("www");
+  cfg["routes"]["/foo/bar"]["path"] = MakeTestDataPath("www/stuff");
+
+  CreateServer(cfg);
+  RunContextInBackground(context_);
+
+  auto resp = DoHttpRequest(port_, YOGI_MET_GET, "/foo/");
+  EXPECT_EQ(resp.result_int(), 200);
+  EXPECT_EQ(resp[http::field::content_type], "text/html");
+  EXPECT_NE(resp.body().find("<body>"), std::string::npos);
+
+  resp = DoHttpRequest(port_, YOGI_MET_GET, "/foo");
+  EXPECT_EQ(resp.result_int(), 200);
+  EXPECT_EQ(resp[http::field::content_type], "text/html");
+  EXPECT_NE(resp.body().find("<body>"), std::string::npos);
+
+  resp = DoHttpRequest(port_, YOGI_MET_GET, "/foo/bar/hello.txt");
+  EXPECT_EQ(resp.result_int(), 403);
+
+  resp = DoHttpRequest(port_, YOGI_MET_GET, "/foo/bar/hello.txt",
+                       MakeAuthRequestModifierFn());
+  EXPECT_EQ(resp.result_int(), 200);
+  EXPECT_EQ(resp[http::field::content_type], "text/plain");
+  EXPECT_EQ(resp.body(), "Hello World!\n");
+
+  resp = DoHttpRequest(port_, YOGI_MET_GET, "/foo/bar/../index.txt",
+                       MakeAuthRequestModifierFn());
+  EXPECT_EQ(resp.result_int(), 400);
+
+  resp = DoHttpRequest(port_, YOGI_MET_GET, "/foo/..");
+  EXPECT_EQ(resp.result_int(), 400);
+
+  resp = DoHttpRequest(port_, YOGI_MET_GET, "/foo/public/test.json");
+  EXPECT_EQ(resp.result_int(), 200);
+  EXPECT_EQ(resp[http::field::content_type], "application/json");
+
+  resp = DoHttpRequest(port_, YOGI_MET_GET, "/foo/public/../public/test.json");
+  EXPECT_EQ(resp.result_int(), 400);
+
+  resp = DoHttpRequest(port_, YOGI_MET_GET, "/foo/public/nothing.txt");
+  EXPECT_EQ(resp.result_int(), 404);
+
+  resp = DoHttpRequest(port_, YOGI_MET_GET, "/foo/public/");
+  EXPECT_EQ(resp.result_int(), 404);
 }

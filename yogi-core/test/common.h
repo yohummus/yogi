@@ -241,6 +241,10 @@ boost::beast::http::response<boost::beast::http::string_body> DoHttpRequest(
     boost::asio::ip::tcp::endpoint ep, int method, const std::string& target,
     RequestModifierFn req_modifier_fn = {}, bool https = true, int repeat = 1);
 
+RequestModifierFn MakeAuthRequestModifierFn(
+    const std::string& user = api::kDefaultAdminUser,
+    const std::string& password = api::kDefaultAdminPassword);
+
 std::ostream& operator<<(std::ostream& os, const std::chrono::nanoseconds& dur);
 std::ostream& operator<<(std::ostream& os,
                          const std::chrono::microseconds& dur);

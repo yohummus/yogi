@@ -33,8 +33,8 @@ namespace objects {
 namespace web {
 namespace detail {
 
-class Session;
-typedef std::shared_ptr<Session> SessionPtr;
+class HttpsSession;
+typedef std::shared_ptr<HttpsSession> HttpsSessionPtr;
 
 class Route;
 typedef std::shared_ptr<Route> RoutePtr;
@@ -43,10 +43,7 @@ typedef std::shared_ptr<RoutesVector> RoutesVectorPtr;
 
 class Route : public objects::log::LoggerUser {
  public:
-  typedef boost::beast::http::string_body MsgBody;
-  typedef boost::beast::http::request<MsgBody> Request;
-  typedef boost::beast::http::response<MsgBody> Response;
-  typedef std::function<void()> SendResponseFn;
+  typedef boost::beast::http::request<boost::beast::http::string_body> Request;
 
   static RoutesVectorPtr CreateAll(const nlohmann::json& cfg,
                                    const AuthProvider& auth,
@@ -57,8 +54,7 @@ class Route : public objects::log::LoggerUser {
   virtual ~Route() {}
 
   virtual void HandleRequest(const Request& req, const std::string& uri,
-                             Response* resp, SessionPtr session, UserPtr user,
-                             SendResponseFn send_fn) = 0;
+                             const HttpsSessionPtr& session, UserPtr user) = 0;
 
   const std::string& GetBaseUri() const { return base_uri_; }
   bool IsEnabled() const { return enabled_; }

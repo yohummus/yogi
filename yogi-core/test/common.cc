@@ -21,6 +21,7 @@
 #include "../src/api/constants.h"
 #include "../src/network/messages.h"
 #include "../src/objects/web/detail/session/methods.h"
+#include "../src/utils/base64.h"
 
 #include <boost/uuid/uuid_io.hpp>
 #include <boost/asio.hpp>
@@ -574,7 +575,7 @@ http::response<http::string_body> DoHttpRequest(
   }
 
   beast::flat_buffer buffer;
-  http::response<http::string_body> resp;
+  boost::optional<http::response_parser<http::string_body>> resp;
 
   if (https) {
     beast::ssl_stream<beast::tcp_stream> stream(ioc, ssl);
@@ -585,8 +586,9 @@ http::response<http::string_body> DoHttpRequest(
 
     for (int i = 0; i < repeat; ++i) {
       http::write(stream, req);
-      resp = {};
-      http::read(stream, buffer, resp);
+      resp.emplace();
+      resp->skip(method == YOGI_MET_HEAD);
+      http::read(stream, buffer, *resp);
     }
 
     beast::error_code ec;
@@ -597,15 +599,24 @@ http::response<http::string_body> DoHttpRequest(
 
     for (int i = 0; i < repeat; ++i) {
       http::write(stream, req);
-      resp = {};
-      http::read(stream, buffer, resp);
+      resp.emplace();
+      resp->skip(method == YOGI_MET_HEAD);
+      http::read(stream, buffer, *resp);
     }
 
     beast::error_code ec;
     stream.socket().shutdown(tcp::socket::shutdown_both, ec);
   }
 
-  return resp;
+  return resp->release();
+}
+
+RequestModifierFn MakeAuthRequestModifierFn(const std::string& user,
+                                            const std::string& password) {
+  auto token = user + ':' + password;
+  auto enc_token = utils::EncodeBase64(token);
+  auto field_val = "Basic "s + enc_token;
+  return [=](auto* req) { req->set(http::field::authorization, field_val); };
 }
 
 std::ostream& operator<<(std::ostream& os,

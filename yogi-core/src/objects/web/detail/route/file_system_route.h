@@ -20,6 +20,8 @@
 #include "../../../../config.h"
 #include "route.h"
 
+#include <boost/filesystem/path.hpp>
+
 namespace objects {
 namespace web {
 namespace detail {
@@ -27,8 +29,8 @@ namespace detail {
 class FileSystemRoute : public Route {
  public:
   virtual void HandleRequest(const Request& req, const std::string& uri,
-                             Response* resp, SessionPtr session, UserPtr user,
-                             SendResponseFn send_fn) override;
+                             const HttpsSessionPtr& session,
+                             UserPtr user) override;
 
   const std::string& GetPath() { return path_; }
 
@@ -38,6 +40,9 @@ class FileSystemRoute : public Route {
   virtual void LogCreation() override;
 
  private:
+  boost::filesystem::path GetFilePathFromUri(const std::string& uri) const;
+  const std::string& GetMimeType(const boost::filesystem::path& file) const;
+
   std::string path_;
 };
 

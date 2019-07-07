@@ -21,6 +21,8 @@
 #include "../../../../utils/bind.h"
 #include "../../../../utils/base64.h"
 
+using namespace std::string_literals;
+
 YOGI_DEFINE_INTERNAL_LOGGER("WebServer.Session.HTTPS")
 
 using tcp = boost::asio::ip::tcp;
@@ -40,6 +42,42 @@ void HttpsSession::Start() {
   stream_.async_handshake(
       stream_.server, Buffer().data(),
       utils::BindStrong(&HttpsSession::OnHandshakeFinished, this));
+}
+
+void HttpsSession::SendResponse(EmptyResponse&& resp) {
+  empty_response_ = std::move(resp);
+  FinaliseResponse(&empty_response_);
+  http::async_write(
+      stream_, empty_response_,
+      utils::BindStrong(&HttpsSession::OnSendResponseFinished, this));
+}
+
+void HttpsSession::SendResponse(GenericResponse&& resp) {
+  generic_response_ = std::move(resp);
+  FinaliseResponse(&generic_response_);
+  http::async_write(
+      stream_, generic_response_,
+      utils::BindStrong(&HttpsSession::OnSendResponseFinished, this));
+}
+
+void HttpsSession::SendResponse(FileResponse&& resp) {
+  file_response_ = std::move(resp);
+  FinaliseResponse(&file_response_);
+  http::async_write(
+      stream_, file_response_,
+      utils::BindStrong(&HttpsSession::OnSendResponseFinished, this));
+}
+
+void HttpsSession::SendResponse(boost::beast::http::status status,
+                                std::string html) {
+  GenericResponse resp;
+  resp.result(status);
+  if (!html.empty()) {
+    resp.set(http::field::content_type, "text/html");
+    resp.body() = html;
+    resp.prepare_payload();
+  }
+  SendResponse(std::move(resp));
 }
 
 boost::beast::tcp_stream& HttpsSession::Stream() {
@@ -88,13 +126,12 @@ void HttpsSession::OnReceiveRequestFinished(boost::beast::error_code ec,
 }
 
 void HttpsSession::HandleRequest() {
-  auto& req = parser_->get();
-  InitResponse();
-
   if (!CheckRequestMethod()) return;
 
   auto uri = DecodeTargetUri();
   if (uri.empty()) return;
+
+  auto& req = parser_->get();
   LOG_IFO("Received " << req.method() << ' ' << uri);
 
   auto route = FindRoute(uri);
@@ -109,27 +146,24 @@ void HttpsSession::HandleRequest() {
   }
 
   auto self = MakeSharedPtr();
-  route->HandleRequest(req, uri, &resp_, self, user,
-                       [self] { self->StartSendResponse(); });
-}
-
-void HttpsSession::StartSendResponse() {
-  http::async_write(
-      stream_, resp_,
-      utils::BindStrong(&HttpsSession::OnSendResponseFinished, this));
+  route->HandleRequest(req, uri, self, user);
 }
 
 void HttpsSession::OnSendResponseFinished(boost::beast::error_code ec,
                                           std::size_t) {
+  empty_response_ = {};
+  generic_response_ = {};
+  file_response_ = {};
+
   if (ec) {
     LOG_ERR("Sending response failed: " << ec.message());
     Close();
     return;
   }
 
-  LOG_IFO("Response " << resp_.result_int() << " sent");
+  LOG_IFO("Response " << response_status_ << " sent");
 
-  if (resp_.need_eof()) {
+  if (response_needs_eof_) {
     StartShutdown();
   } else {
     StartReceiveRequest();
@@ -149,23 +183,12 @@ void HttpsSession::OnShutdownFinished(boost::beast::error_code ec) {
   Close();
 }
 
-void HttpsSession::InitResponse() {
-  auto& req = parser_->get();
-  resp_.version(req.version());
-  resp_.set(http::field::server, "Yogi " YOGI_HDR_VERSION " Web Server");
-  resp_.keep_alive(req.keep_alive());
-  resp_.result(http::status::ok);
-}
-
 bool HttpsSession::CheckRequestMethod() {
   auto verb = parser_->get().method();
   auto method = VerbToMethod(verb);
   if (method == api::kNoMethod) {
     LOG_ERR("Received invalid method " << verb);
-
-    resp_.result(http::status::method_not_allowed);
-    StartSendResponse();
-
+    SendResponse(http::status::method_not_allowed);
     return false;
   }
 
@@ -175,36 +198,27 @@ bool HttpsSession::CheckRequestMethod() {
 std::string HttpsSession::DecodeTargetUri() {
   auto& req = parser_->get();
   auto uri = DecodeUrl(req.target());
-  if (!uri) {
-    LOG_ERR("Received " << req.method() << " with invalid URI encoding");
-
-    resp_.result(http::status::bad_request);
-    resp_.set(http::field::content_type, "text/html");
-    resp_.body() = "Invalid URI encoding in header.";
-    resp_.prepare_payload();
-    StartSendResponse();
-  }
-
   if (uri) {
     return *uri;
-  } else {
-    return {};
   }
+
+  LOG_ERR("Received " << req.method() << " with invalid URI encoding");
+  SendResponse(http::status::bad_request, "Invalid URI encoding in header.");
+
+  return {};
 }
 
 RoutePtr HttpsSession::FindRoute(const std::string& uri) {
   auto route = Route::FindRouteByUri(uri, *Routes());
-  if (!route) {
-    LOG_ERR("Route " << uri.substr(0, uri.find('?')) << " not found");
-
-    resp_.result(http::status::not_found);
-    resp_.set(http::field::content_type, "text/html");
-    resp_.body() = "The resource '" + uri + "' was not found.";
-    resp_.prepare_payload();
-    StartSendResponse();
+  if (route) {
+    return route;
   }
 
-  return route;
+  auto txt = "Route "s + uri.substr(0, uri.find('?')) + " not found";
+  LOG_ERR(txt);
+  SendResponse(http::status::not_found, txt + '.');
+
+  return {};
 }
 
 bool HttpsSession::AuthenticateUser(UserPtr* user) {
@@ -236,15 +250,27 @@ bool HttpsSession::AuthenticateUser(UserPtr* user) {
   }
 
   if (auth_error) {
-    resp_.result(http::status::unauthorized);
-    resp_.set(http::field::www_authenticate, "Basic");
-    resp_.set(http::field::content_type, "text/html");
-    resp_.body() = auth_error;
-    resp_.prepare_payload();
-    StartSendResponse();
+    GenericResponse resp;
+    resp.result(http::status::unauthorized);
+    resp.set(http::field::www_authenticate, "Basic");
+    resp.set(http::field::content_type, "text/html");
+    resp.body() = auth_error;
+    resp.prepare_payload();
+    SendResponse(std::move(resp));
   }
 
   return !auth_error;
+}
+
+template <typename Response>
+void HttpsSession::FinaliseResponse(Response* resp) {
+  auto& req = parser_->get();
+  resp->version(req.version());
+  resp->set(http::field::server, "Yogi " YOGI_HDR_VERSION " Web Server");
+  resp->keep_alive(!resp->need_eof() && req.keep_alive());
+
+  response_status_ = resp->result_int();
+  response_needs_eof_ = resp->need_eof();
 }
 
 }  // namespace detail

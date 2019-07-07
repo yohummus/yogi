@@ -30,8 +30,8 @@ class ContentRoute : public Route {
   const std::string& GetContent() { return content_; }
 
   virtual void HandleRequest(const Request& req, const std::string& uri,
-                             Response* resp, SessionPtr session, UserPtr user,
-                             SendResponseFn send_fn) override;
+                             const HttpsSessionPtr& session,
+                             UserPtr user) override;
 
  protected:
   virtual void ReadConfiguration(
