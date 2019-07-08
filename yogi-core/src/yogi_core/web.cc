@@ -53,7 +53,15 @@ YOGI_API int YOGI_WebServerCreate(void** server, void* context, void* branch,
 }
 
 YOGI_API int YOGI_WebServerAddWorker(void* server, void* context) {
-  return YOGI_ERR_UNKNOWN;
+  CHECK_PARAM(server != nullptr);
+  CHECK_PARAM(context != nullptr);
+
+  try {
+    auto svr = api::ObjectRegister::Get<objects::web::WebServer>(server);
+    auto ctx = api::ObjectRegister::Get<objects::Context>(context);
+    svr->AddWorker(ctx);
+  }
+  CATCH_AND_RETURN;
 }
 
 YOGI_API int YOGI_WebRouteCreate(

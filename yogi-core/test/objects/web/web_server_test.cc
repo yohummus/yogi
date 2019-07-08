@@ -186,6 +186,28 @@ TEST_F(WebServerTest, BodyLimit) {
   EXPECT_ANY_THROW(DoHttpRequest(port_, YOGI_MET_GET, "/", fn, false));
 }
 
+TEST_F(WebServerTest, Worker) {
+  CreateServer();
+  RunContextInBackground(context_);
+
+  void* worker = CreateContext();
+  int res = YOGI_WebServerAddWorker(server_, worker);
+  ASSERT_OK(res);
+
+  std::thread th([&] {
+    try {
+      DoHttpRequest(this->port_, YOGI_MET_GET, "/");
+    } catch (...) {
+    }
+  });
+
+  res = YOGI_ContextRunOne(worker, nullptr, -1);
+  EXPECT_OK(res);
+
+  RunContextInBackground(worker);
+  th.join();
+}
+
 TEST_F(WebServerTest, ContentRoute) {
   CreateServer();
   RunContextInBackground(context_);
