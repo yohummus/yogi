@@ -23,6 +23,8 @@ namespace http = boost::beast::http;
 namespace asio = boost::asio;
 using asio::ip::tcp;
 
+#include <thread>
+
 class WebServerTest : public TestFixture {
  protected:
   void* context_ = CreateContext();
