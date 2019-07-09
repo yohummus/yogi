@@ -292,7 +292,7 @@ TEST_F(WebServerTest, FileSystemRoute) {
                        MakeAuthRequestModifierFn());
   EXPECT_EQ(resp.result_int(), 200);
   EXPECT_EQ(resp[http::field::content_type], "text/plain");
-  EXPECT_EQ(resp.body(), "Hello World!\n");
+  EXPECT_EQ(resp.body().find("Hello World!"), 0);
 
   resp = DoHttpRequest(port_, YOGI_MET_GET, "/foo/bar/../index.txt",
                        MakeAuthRequestModifierFn());

@@ -54,7 +54,7 @@ boost::beast::http::verb MethodToVerb(api::RequestMethods method) {
 }
 
 api::RequestMethods VerbToMethod(boost::beast::http::verb verb) {
-  using boost::beast::http::verb;
+  using namespace boost::beast::http;
   switch (verb) {
     case verb::get:
       return api::kGet;

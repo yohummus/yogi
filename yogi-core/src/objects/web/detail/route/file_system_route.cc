@@ -56,7 +56,7 @@ void FileSystemRoute::HandleRequest(const Request& req, const std::string& uri,
 
   http::file_body::value_type body;
   boost::beast::error_code ec;
-  body.open(file_path.c_str(), beast::file_mode::scan, ec);
+  body.open(file_path.string().c_str(), beast::file_mode::scan, ec);
   if (ec == errc::no_such_file_or_directory) {
     LOG_ERR("Requested non-existing file " << file_path);
     session->SendResponse(http::status::not_found);
